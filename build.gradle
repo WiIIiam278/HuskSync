@@ -6,7 +6,7 @@ subprojects {
 
     group = 'me.William278'
     project.version = '0.1'
-    project.properties.put('description', 'Synchronise data cross-server')
+    project.properties.put('description', 'Synchronize data cross-server')
 
     sourceCompatibility = 16
     targetCompatibility = 16
