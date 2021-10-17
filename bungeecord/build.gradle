@@ -1,0 +1,39 @@
+plugins {
+    id 'java'
+    id 'com.github.johnrengelman.shadow' version '7.1.0'
+}
+
+repositories {
+    mavenCentral()
+    maven { url = 'https://oss.sonatype.org/content/groups/public/' }
+}
+
+
+dependencies {
+    api project(':common')
+    compileOnly 'net.md-5:bungeecord-api:1.16-R0.4'
+}
+
+shadowJar {
+    relocate 'org.bstats', 'me.william278.shaded.org.bukkit.bstats'
+    relocate 'de.themoep.minedown', 'me.william278.shaded.de.themeop.minedown'
+    dependencies {
+        include(dependency(':common'))
+    }
+}
+
+artifacts {
+    archives shadowJar
+}
+
+processResources {
+    def props = [version: project.version]
+    inputs.properties props
+    expand props
+    filteringCharset 'UTF-8'
+    filesMatching('bungee.yml') {
+        expand props
+    }
+}
+
+tasks.build.dependsOn tasks.shadowJar

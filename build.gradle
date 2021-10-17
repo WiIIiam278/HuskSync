@@ -1,0 +1,28 @@
+defaultTasks ':bukkit:createFinalJar'
+
+subprojects {
+    apply plugin: 'java-library'
+    apply plugin: 'maven-publish'
+
+    group = 'me.William278'
+    project.version = '0.1'
+    project.properties.put('description', 'Synchronise data cross-server')
+
+    sourceCompatibility = 16
+    targetCompatibility = 16
+
+    tasks.withType(JavaCompile) {
+        options.encoding = 'UTF-8'
+    }
+    tasks.withType(Javadoc) {
+        options.encoding = 'UTF-8'
+    }
+
+    repositories {
+        mavenLocal()
+    }
+
+    tasks.withType(Copy).all {
+        duplicatesStrategy 'include'
+    }
+}
