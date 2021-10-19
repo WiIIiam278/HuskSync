@@ -1,2 +1,12 @@
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+    }
+}
+
 rootProject.name = 'CrossServerSync'
-include 'common', 'bukkit', 'bungeecord'
+
+include 'common'
+include 'bukkit'
+include 'bungeecord'
+include 'plugin'

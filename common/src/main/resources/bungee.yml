@@ -1,0 +1,5 @@
+name: CrossServerSync
+version: @version@
+main: me.william278.crossserversync.bungeecord.CrossServerSyncBungeeCord
+author: William278
+description: 'Synchronize data cross-server'

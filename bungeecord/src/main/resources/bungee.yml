@@ -1,4 +1,0 @@
-name: CrossServerSync
-version: '${version}'
-main: me.william278.crossserversync.CrossServerSyncBungeeCord
-description: '${properties.description}'

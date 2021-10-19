@@ -1,28 +1,40 @@
-defaultTasks ':bukkit:createFinalJar'
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+}
+
+plugins {
+    id 'com.github.johnrengelman.shadow' version '7.1.0' apply false
+    id 'java'
+}
+
+allprojects {
+    group 'me.William278'
+    version '0.1'
+
+    compileJava { options.encoding = 'UTF-8' }
+    tasks.withType(JavaCompile) { options.encoding = 'UTF-8' }
+    javadoc { options.encoding = 'UTF-8' }
+}
+
+logger.lifecycle('Building CrossServerSync v' + version.toString())
 
 subprojects {
-    apply plugin: 'java-library'
+    apply plugin: 'com.github.johnrengelman.shadow'
+    apply plugin: 'java'
     apply plugin: 'maven-publish'
 
-    group = 'me.William278'
-    project.version = '0.1'
-    project.properties.put('description', 'Synchronize data cross-server')
-
-    sourceCompatibility = 16
-    targetCompatibility = 16
-
-    tasks.withType(JavaCompile) {
-        options.encoding = 'UTF-8'
-    }
-    tasks.withType(Javadoc) {
-        options.encoding = 'UTF-8'
+    compileJava {
+        options.release = 16
     }
 
     repositories {
         mavenLocal()
-    }
-
-    tasks.withType(Copy).all {
-        duplicatesStrategy 'include'
+        mavenCentral()
+        maven { url 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/' }
+        maven { url 'https://repo.minebench.de/' }
+        maven { url 'https://repo.codemc.org/repository/maven-public' }
+        maven { url 'https://jitpack.io' }
     }
 }

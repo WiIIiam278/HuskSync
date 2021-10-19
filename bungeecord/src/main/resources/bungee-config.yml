@@ -1,0 +1,19 @@
+redis_settings:
+  host: 'localhost'
+  port: 6379
+  password: ''
+data_storage_settings:
+  database_type: 'sqlite'
+  mysql_settings:
+    host: 'localhost'
+    port: 8123
+    database: 'CrossServerSync'
+    username: 'root'
+    password: 'pa55w0rd'
+    params: ''
+  hikari_pool_settings:
+    maximum_pool_size: 10
+    minimum_idle: 10
+    maximum_lifetime: 1800000
+    keepalive_time: 0
+    connection_timeout: 5000

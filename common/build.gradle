@@ -1,16 +1,32 @@
-plugins {
-    id 'java'
-}
-
 dependencies {
-    compileOnly 'org.spigotmc:spigot-api:1.16.5-R0.1-SNAPSHOT'
+    implementation 'redis.clients:jedis:3.7.0'
 }
 
-repositories {
-    mavenCentral()
-    maven { url 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/' }
+import org.apache.tools.ant.filters.ReplaceTokens
+task updateVersion(type: Copy) {
+    from('src/main/resources') {
+        include 'plugin.yml'
+        include 'bungee.yml'
+    }
+    into 'build/sources/resources/'
+    filter(ReplaceTokens, tokens: [version: '' + project.version])
 }
 
-java {
-    withJavadocJar()
+processResources {
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    dependsOn updateVersion
+    from 'build/sources/resources'
+}
+
+shadowJar {
+    dependsOn processResources
+
+    // Exclude some unnecessary files
+    exclude "**/module-info.class"
+    exclude "module-info.class"
+
+    // Relocations
+    relocate 'redis.clients', 'me.William278.crossserversync.libraries.jedis'
+    relocate 'org.apache.commons', 'me.William278.crossserversync.libraries.apache-commons'
+    relocate 'org.slf4j', 'me.William278.crossserversync.libraries.slf4j'
 }

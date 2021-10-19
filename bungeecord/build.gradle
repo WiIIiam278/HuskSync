@@ -1,39 +1,17 @@
-plugins {
-    id 'java'
-    id 'com.github.johnrengelman.shadow' version '7.1.0'
-}
-
-repositories {
-    mavenCentral()
-    maven { url = 'https://oss.sonatype.org/content/groups/public/' }
-}
-
-
 dependencies {
-    api project(':common')
-    compileOnly 'net.md-5:bungeecord-api:1.16-R0.4'
+    compileOnly project(':common')
+    implementation project(path: ':common', configuration: 'shadow')
+
+    implementation 'redis.clients:jedis:3.7.0'
+
+    compileOnly 'net.md-5:bungeecord-api:1.16-R0.5-SNAPSHOT'
 }
 
 shadowJar {
-    relocate 'org.bstats', 'me.william278.shaded.org.bukkit.bstats'
-    relocate 'de.themoep.minedown', 'me.william278.shaded.de.themeop.minedown'
-    dependencies {
-        include(dependency(':common'))
-    }
+    relocate 'redis.clients', 'me.William278.crossserversync.libraries.jedis'
+    relocate 'org.bstats', 'me.William278.crossserversync.libraries.plan'
+    relocate 'org.apache.commons', 'me.William278.crossserversync.libraries.apache-commons'
+    relocate 'org.slf4j', 'me.William278.crossserversync.libraries.slf4j'
 }
 
-artifacts {
-    archives shadowJar
-}
-
-processResources {
-    def props = [version: project.version]
-    inputs.properties props
-    expand props
-    filteringCharset 'UTF-8'
-    filesMatching('bungee.yml') {
-        expand props
-    }
-}
-
-tasks.build.dependsOn tasks.shadowJar
+tasks.register('prepareKotlinBuildScriptModel'){}
