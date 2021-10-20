@@ -18,7 +18,7 @@ public class RedisMessage {
 
     private final String messageData;
     private final MessageType messageType;
-    private MessageTarget messageTarget;
+    private final MessageTarget messageTarget;
 
     /**
      * Create a new RedisMessage
