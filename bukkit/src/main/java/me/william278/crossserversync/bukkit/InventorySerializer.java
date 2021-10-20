@@ -3,7 +3,6 @@ package me.william278.crossserversync.bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.util.io.BukkitObjectInputStream;
 import org.bukkit.util.io.BukkitObjectOutputStream;
 import org.yaml.snakeyaml.external.biz.base64Coder.Base64Coder;
@@ -107,13 +106,17 @@ public final class InventorySerializer {
     }
 
     /**
-     * Gets an array of ItemStacks from Base64 string.
+     * Gets an array of ItemStacks from a Base64 string.
      *
      * @param data Base64 string to convert to ItemStack array.
      * @return ItemStack array created from the Base64 string.
      * @throws IOException in the event the class type cannot be decoded
      */
     public static ItemStack[] itemStackArrayFromBase64(String data) throws IOException {
+        // Return an empty ItemStack[] if the data is empty
+        if (data.isEmpty()) {
+            return new ItemStack[0];
+        }
         try (ByteArrayInputStream inputStream = new ByteArrayInputStream(Base64Coder.decodeLines(data))) {
             BukkitObjectInputStream dataInput = new BukkitObjectInputStream(inputStream);
             ItemStack[] items = new ItemStack[dataInput.readInt()];

@@ -4,6 +4,7 @@ import me.william278.crossserversync.Settings;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPubSub;
 
+import java.io.IOException;
 import java.util.logging.Level;
 
 public abstract class RedisListener {
@@ -42,7 +43,11 @@ public abstract class RedisListener {
                     }
 
                     // Handle the message
-                    handleMessage(new RedisMessage(message));
+                    try {
+                        handleMessage(new RedisMessage(message));
+                    } catch (IOException | ClassNotFoundException e) {
+                        log(Level.SEVERE, "Failed to deserialize message target");
+                    }
                 }
             }, RedisMessage.REDIS_CHANNEL), "Redis Subscriber").start();
         } else {
