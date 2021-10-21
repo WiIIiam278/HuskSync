@@ -29,6 +29,7 @@ public class PlayerSetter {
             player.setSaturation(data.getSaturation());
             player.setExhaustion(data.getSaturationExhaustion());
             player.getInventory().setHeldItemSlot(data.getSelectedSlot());
+            player.setTotalExperience(data.getExperience());
 
             //todo potion effects not working
             setPlayerPotionEffects(player, DataSerializer.potionEffectArrayFromBase64(data.getSerializedEffectData()));

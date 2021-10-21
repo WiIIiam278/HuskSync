@@ -22,11 +22,12 @@ public class BungeeRedisListener extends RedisListener {
     }
 
     private PlayerData getPlayerCachedData(UUID uuid) {
-        for (PlayerData data : DataManager.playerDataCache.playerData) {
-            if (data.getPlayerUUID() == uuid) {
-                return data;
-            }
+        // Get the player data from the cache
+        PlayerData cachedData = DataManager.playerDataCache.getPlayer(uuid);
+        if (cachedData != null) {
+            return cachedData;
         }
+
         // If the cache does not contain player data:
         DataManager.ensurePlayerExists(uuid); // Make sure the player is registered on MySQL
 

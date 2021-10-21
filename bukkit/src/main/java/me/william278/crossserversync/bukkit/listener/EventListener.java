@@ -35,7 +35,8 @@ public class EventListener implements Listener {
                 player.getSaturation(),
                 player.getExhaustion(),
                 player.getInventory().getHeldItemSlot(),
-                DataSerializer.getSerializedEffectData(player)));
+                DataSerializer.getSerializedEffectData(player),
+                player.getTotalExperience()));
     }
 
     @EventHandler

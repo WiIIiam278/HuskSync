@@ -40,6 +40,7 @@ public class SQLite extends Database {
                     "`saturation_exhaustion` float NOT NULL," +
                     "`selected_slot` integer NOT NULL," +
                     "`status_effects` longtext NOT NULL," +
+                    "`experience` integer NOT NULL," +
 
                     "PRIMARY KEY (`player_id`,`version_uuid`)" +
                     ");"

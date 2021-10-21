@@ -76,8 +76,9 @@ public class DataManager {
                     final float saturationExhaustion = resultSet.getFloat("saturation_exhaustion");
                     final int selectedSlot = resultSet.getInt("selected_slot");
                     final String serializedStatusEffects = resultSet.getString("status_effects");
+                    final int experience = resultSet.getInt("experience");
 
-                    return new PlayerData(playerUUID, dataVersionUUID, serializedInventory, serializedEnderChest, health, maxHealth, hunger, saturation, saturationExhaustion, selectedSlot, serializedStatusEffects);
+                    return new PlayerData(playerUUID, dataVersionUUID, serializedInventory, serializedEnderChest, health, maxHealth, hunger, saturation, saturationExhaustion, selectedSlot, serializedStatusEffects, experience);
                 } else {
                     return PlayerData.DEFAULT_PLAYER_DATA(playerUUID);
                 }
@@ -105,7 +106,7 @@ public class DataManager {
     private static void updatePlayerSQLData(PlayerData playerData) {
         try (Connection connection = CrossServerSyncBungeeCord.getConnection()) {
             try (PreparedStatement statement = connection.prepareStatement(
-                    "UPDATE " + Database.DATA_TABLE_NAME + " SET `version_uuid`=?, `timestamp`=?, `inventory`=?, `ender_chest`=?, `health`=?, `max_health`=?, `hunger`=?, `saturation`=?, `saturation_exhaustion`=?, `selected_slot`=?, `status_effects`=? WHERE `player_id`=(SELECT `id` FROM " + Database.PLAYER_TABLE_NAME + " WHERE `uuid`=?);")) {
+                    "UPDATE " + Database.DATA_TABLE_NAME + " SET `version_uuid`=?, `timestamp`=?, `inventory`=?, `ender_chest`=?, `health`=?, `max_health`=?, `hunger`=?, `saturation`=?, `saturation_exhaustion`=?, `selected_slot`=?, `status_effects`=?, `experience`=? WHERE `player_id`=(SELECT `id` FROM " + Database.PLAYER_TABLE_NAME + " WHERE `uuid`=?);")) {
                 statement.setString(1, playerData.getDataVersionUUID().toString());
                 statement.setTimestamp(2, new Timestamp(Instant.now().getEpochSecond()));
                 statement.setString(3, playerData.getSerializedInventory());
@@ -117,7 +118,8 @@ public class DataManager {
                 statement.setFloat(9, playerData.getSaturationExhaustion()); // Saturation exhaustion
                 statement.setInt(10, playerData.getSelectedSlot()); // Current selected slot
                 statement.setString(11, playerData.getSerializedEffectData()); // Status effects
-                statement.setString(12, playerData.getPlayerUUID().toString());
+                statement.setInt(12, playerData.getExperience()); // Experience
+                statement.setString(13, playerData.getPlayerUUID().toString());
                 statement.executeUpdate();
             }
         } catch (SQLException e) {
@@ -128,7 +130,7 @@ public class DataManager {
     private static void insertPlayerData(PlayerData playerData) {
         try (Connection connection = CrossServerSyncBungeeCord.getConnection()) {
             try (PreparedStatement statement = connection.prepareStatement(
-                    "INSERT INTO " + Database.DATA_TABLE_NAME + " (`player_id`,`version_uuid`,`timestamp`,`inventory`,`ender_chest`,`health`,`max_health`,`hunger`,`saturation`,`saturation_exhaustion`,`selected_slot`,`status_effects`) VALUES((SELECT `id` FROM " + Database.PLAYER_TABLE_NAME + " WHERE `uuid`=?),?,?,?,?,?,?,?,?,?,?,?);")) {
+                    "INSERT INTO " + Database.DATA_TABLE_NAME + " (`player_id`,`version_uuid`,`timestamp`,`inventory`,`ender_chest`,`health`,`max_health`,`hunger`,`saturation`,`saturation_exhaustion`,`selected_slot`,`status_effects`,`experience`) VALUES((SELECT `id` FROM " + Database.PLAYER_TABLE_NAME + " WHERE `uuid`=?),?,?,?,?,?,?,?,?,?,?,?,?);")) {
                 statement.setString(1, playerData.getPlayerUUID().toString());
                 statement.setString(2, playerData.getDataVersionUUID().toString());
                 statement.setTimestamp(3, new Timestamp(Instant.now().getEpochSecond()));
@@ -141,6 +143,7 @@ public class DataManager {
                 statement.setFloat(10, playerData.getSaturationExhaustion()); // Saturation exhaustion
                 statement.setInt(11, playerData.getSelectedSlot()); // Current selected slot
                 statement.setString(12, playerData.getSerializedEffectData()); // Status effects
+                statement.setInt(13, playerData.getExperience()); // Experience
 
                 statement.executeUpdate();
             }
