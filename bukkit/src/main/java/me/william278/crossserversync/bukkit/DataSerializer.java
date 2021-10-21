@@ -1,8 +1,8 @@
 package me.william278.crossserversync.bukkit;
 
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.potion.PotionEffect;
 import org.bukkit.util.io.BukkitObjectInputStream;
 import org.bukkit.util.io.BukkitObjectOutputStream;
 import org.yaml.snakeyaml.external.biz.base64Coder.Base64Coder;
@@ -19,8 +19,9 @@ import java.util.Map;
  *
  * @author efindus
  * @author graywolf336
+ * @author William278
  */
-public final class InventorySerializer {
+public final class DataSerializer {
 
     /**
      * Converts the player inventory to a Base64 encoded string.
@@ -46,35 +47,33 @@ public final class InventorySerializer {
         return itemStackArrayToBase64(player.getEnderChest().getContents());
     }
 
-    /**
-     * Sets a player's inventory from a set of {@link ItemStack}s
-     *
-     * @param player The player to set the inventory of
-     * @param items The array of {@link ItemStack}s to set
-     */
-    public static void setPlayerItems(Player player, ItemStack[] items) {
-        setInventoryItems(player.getInventory(), items);
+    public static String getSerializedEffectData(Player player) {
+        PotionEffect[] potionEffects = new PotionEffect[player.getActivePotionEffects().size()];
+        int x = 0;
+        for (PotionEffect effect : player.getActivePotionEffects()) {
+            potionEffects[x] = effect;
+            x++;
+        }
+        return effectArrayToBase64(potionEffects);
     }
 
-    /**
-     * Sets a player's ender chest from a set of {@link ItemStack}s
-     *
-     * @param player The player to set the inventory of
-     * @param items The array of {@link ItemStack}s to set
-     */
-    public static void setPlayerEnderChest(Player player, ItemStack[] items) {
-        setInventoryItems(player.getEnderChest(), items);
-    }
+    public static String effectArrayToBase64(PotionEffect[] effects) {
+        try {
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            try (BukkitObjectOutputStream dataOutput = new BukkitObjectOutputStream(outputStream)) {
+                dataOutput.writeInt(effects.length);
 
-    // Clears, then fills an inventory's items correctly.
-    private static void setInventoryItems(Inventory inventory, ItemStack[] items) {
-        inventory.clear();
-        int index = 0;
-        for (ItemStack item : items) {
-            if (item != null) {
-                inventory.setItem(index, item);
+                for (PotionEffect effect : effects) {
+                    if (effect != null) {
+                        dataOutput.writeObject(effect.serialize());
+                    } else {
+                        dataOutput.writeObject(null);
+                    }
+                }
             }
-            index++;
+            return Base64Coder.encodeLines(outputStream.toByteArray());
+        } catch (Exception e) {
+            throw new IllegalStateException("Unable to save potion effects.", e);
         }
     }
 
@@ -127,6 +126,32 @@ public final class InventorySerializer {
 
                 if (stack != null) {
                     items[Index] = ItemStack.deserialize(stack);
+                } else {
+                    items[Index] = null;
+                }
+            }
+
+            return items;
+        } catch (ClassNotFoundException e) {
+            throw new IOException("Unable to decode class type.", e);
+        }
+    }
+
+    public static PotionEffect[] potionEffectArrayFromBase64(String data) throws IOException {
+        // Return an empty PotionEffect[] if the data is empty
+        if (data.isEmpty()) {
+            return new PotionEffect[0];
+        }
+        try (ByteArrayInputStream inputStream = new ByteArrayInputStream(Base64Coder.decodeLines(data))) {
+            BukkitObjectInputStream dataInput = new BukkitObjectInputStream(inputStream);
+            PotionEffect[] items = new PotionEffect[dataInput.readInt()];
+
+            for (int Index = 0; Index < items.length; Index++) {
+                @SuppressWarnings("unchecked") // Ignore the unchecked cast here
+                Map<String, Object> effect = (Map<String, Object>) dataInput.readObject();
+
+                if (effect != null) {
+                    items[Index] = new PotionEffect(effect);
                 } else {
                     items[Index] = null;
                 }

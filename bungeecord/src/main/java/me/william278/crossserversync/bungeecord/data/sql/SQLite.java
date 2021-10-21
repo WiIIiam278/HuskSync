@@ -1,7 +1,7 @@
 package me.william278.crossserversync.bungeecord.data.sql;
 
 import com.zaxxer.hikari.HikariDataSource;
-import me.william278.crossserversync.bungeecord.CrossServerSyncBungeeCord;
+import me.william278.crossserversync.CrossServerSyncBungeeCord;
 
 import java.io.File;
 import java.io.IOException;
@@ -23,28 +23,25 @@ public class SQLite extends Database {
             "PRAGMA encoding = 'UTF-8';",
 
             "CREATE TABLE IF NOT EXISTS " + PLAYER_TABLE_NAME + " (" +
-                    "`id` integer NOT NULL AUTO_INCREMENT," +
-                    "`uuid` char(36) NOT NULL UNIQUE," +
-
-                    "PRIMARY KEY (`id`)" +
+                    "`id` integer PRIMARY KEY," +
+                    "`uuid` char(36) NOT NULL UNIQUE" +
                     ");",
 
             "CREATE TABLE IF NOT EXISTS " + DATA_TABLE_NAME + " (" +
-                    "`player_id` integer NOT NULL," +
+                    "`player_id` integer NOT NULL REFERENCES " + PLAYER_TABLE_NAME + "(`id`)," +
                     "`version_uuid` char(36) NOT NULL UNIQUE," +
                     "`timestamp` datetime NOT NULL," +
                     "`inventory` longtext NOT NULL," +
                     "`ender_chest` longtext NOT NULL," +
                     "`health` double NOT NULL," +
                     "`max_health` double NOT NULL," +
-                    "`hunger` double NOT NULL," +
-                    "`saturation` double NOT NULL," +
+                    "`hunger` integer NOT NULL," +
+                    "`saturation` float NOT NULL," +
+                    "`selected_slot` integer NOT NULL," +
                     "`status_effects` longtext NOT NULL," +
 
-                    "PRIMARY KEY (`player_id`,`uuid`)," +
-                    "FOREIGN KEY (`player_id`) REFERENCES " + PLAYER_TABLE_NAME + "(`id`)" +
+                    "PRIMARY KEY (`player_id`,`version_uuid`)" +
                     ");"
-
     };
 
     private static final String DATABASE_NAME = "CrossServerSyncData";
@@ -80,9 +77,10 @@ public class SQLite extends Database {
         createDatabaseFileIfNotExist();
 
         // Create new HikariCP data source
-        final String jdbcUrl = "jdbc:sqlite:" + plugin.getDataFolder().getAbsolutePath() + "/" + DATABASE_NAME + ".db";
+        final String jdbcUrl = "jdbc:sqlite:" + plugin.getDataFolder().getAbsolutePath() + File.separator + DATABASE_NAME + ".db";
         dataSource = new HikariDataSource();
-        dataSource.setJdbcUrl(jdbcUrl);
+        dataSource.setDataSourceClassName("org.sqlite.SQLiteDataSource");
+        dataSource.addDataSourceProperty("url", jdbcUrl);
 
         // Set various additional parameters
         dataSource.setMaximumPoolSize(hikariMaximumPoolSize);

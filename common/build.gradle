@@ -27,6 +27,4 @@ shadowJar {
 
     // Relocations
     relocate 'redis.clients', 'me.William278.crossserversync.libraries.jedis'
-    relocate 'org.apache.commons', 'me.William278.crossserversync.libraries.apache-commons'
-    relocate 'org.slf4j', 'me.William278.crossserversync.libraries.slf4j'
 }

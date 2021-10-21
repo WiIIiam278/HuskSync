@@ -1,7 +1,7 @@
 package me.william278.crossserversync.bungeecord.data.sql;
 
 import me.william278.crossserversync.Settings;
-import me.william278.crossserversync.bungeecord.CrossServerSyncBungeeCord;
+import me.william278.crossserversync.CrossServerSyncBungeeCord;
 
 import java.sql.Connection;
 import java.sql.SQLException;

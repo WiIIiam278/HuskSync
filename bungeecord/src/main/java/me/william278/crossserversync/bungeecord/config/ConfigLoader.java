@@ -26,7 +26,6 @@ public class ConfigLoader {
         Settings.hikariMaximumLifetime = config.getLong("data_storage_settings.hikari_pool_settings.maximum_lifetime", 1800000);
         Settings.hikariKeepAliveTime = config.getLong("data_storage_settings.hikari_pool_settings.keepalive_time", 10);
         Settings.hikariConnectionTimeOut = config.getLong("data_storage_settings.hikari_pool_settings.connection_timeout", 5000);
-
     }
 
 }

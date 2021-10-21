@@ -1,4 +1,4 @@
-package me.william278.crossserversync.bukkit;
+package me.william278.crossserversync;
 
 import me.william278.crossserversync.bukkit.config.ConfigLoader;
 import me.william278.crossserversync.bukkit.data.LastDataUpdateUUIDCache;
@@ -34,11 +34,11 @@ public final class CrossServerSyncBukkit extends JavaPlugin {
         // Initialize last data update UUID cache
         lastDataUpdateUUIDCache = new LastDataUpdateUUIDCache();
 
-        // Initialize the redis listener
-        new BukkitRedisListener();
-
         // Initialize event listener
         getServer().getPluginManager().registerEvents(new EventListener(), this);
+
+        // Initialize the redis listener
+        new BukkitRedisListener();
 
         // Log to console
         getLogger().info("Enabled CrossServerSync (" + getServer().getName() + ") v" + getDescription().getVersion());

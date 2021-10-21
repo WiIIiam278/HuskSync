@@ -71,10 +71,6 @@ public class RedisMessage {
             }
     }
 
-    public String[] getMessageDataSeparated() {
-        return messageData.split(MESSAGE_DATA_SEPARATOR);
-    }
-
     public String getMessageData() {
         return messageData;
     }
@@ -90,7 +86,7 @@ public class RedisMessage {
     /**
      * Defines the type of the message
      */
-    public enum MessageType {
+    public enum MessageType implements Serializable {
         /**
          * Sent by Bukkit servers to proxy when a player disconnects with a player's updated data, alongside the UUID of the last loaded {@link PlayerData} for the user
          */
@@ -111,7 +107,7 @@ public class RedisMessage {
      * A record that defines the target of a plugin message; a spigot server or the proxy server(s).
      * For Bukkit servers, the name of the server must also be specified
      */
-    public record MessageTarget(Settings.ServerType targetServerType, UUID targetPlayerName) implements Serializable { }
+    public record MessageTarget(Settings.ServerType targetServerType, UUID targetPlayerUUID) implements Serializable { }
 
     /**
      * Deserialize an object from a Base64 string

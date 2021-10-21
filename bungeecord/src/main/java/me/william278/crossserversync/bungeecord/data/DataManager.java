@@ -1,7 +1,7 @@
 package me.william278.crossserversync.bungeecord.data;
 
 import me.william278.crossserversync.PlayerData;
-import me.william278.crossserversync.bungeecord.CrossServerSyncBungeeCord;
+import me.william278.crossserversync.CrossServerSyncBungeeCord;
 import me.william278.crossserversync.bungeecord.data.sql.Database;
 
 import java.sql.*;
@@ -14,10 +14,6 @@ public class DataManager {
 
     private static final CrossServerSyncBungeeCord plugin = CrossServerSyncBungeeCord.getInstance();
     public static PlayerDataCache playerDataCache;
-
-    public static void setupCache() {
-        playerDataCache = new PlayerDataCache();
-    }
 
     /**
      * Checks if the player is registered on the database; register them if not.
@@ -75,11 +71,12 @@ public class DataManager {
                     final String serializedEnderChest = resultSet.getString("ender_chest");
                     final double health = resultSet.getDouble("health");
                     final double maxHealth = resultSet.getDouble("max_health");
-                    final double hunger = resultSet.getDouble("hunger");
-                    final double saturation = resultSet.getDouble("saturation");
+                    final int hunger = resultSet.getInt("hunger");
+                    final float saturation = resultSet.getFloat("saturation");
+                    final int selectedSlot = resultSet.getInt("selected_slot");
                     final String serializedStatusEffects = resultSet.getString("status_effects");
 
-                    return new PlayerData(playerUUID, dataVersionUUID, serializedInventory, serializedEnderChest, health, maxHealth, hunger, saturation, serializedStatusEffects);
+                    return new PlayerData(playerUUID, dataVersionUUID, serializedInventory, serializedEnderChest, health, maxHealth, hunger, saturation, selectedSlot, serializedStatusEffects);
                 } else {
                     return PlayerData.EMPTY_PLAYER_DATA(playerUUID);
                 }
@@ -90,41 +87,35 @@ public class DataManager {
         }
     }
 
-    public static void updatePlayerData(PlayerData playerData, UUID lastDataUUID) {
+    public static void updatePlayerData(PlayerData playerData) {
         // Ignore if the Spigot server didn't properly sync the previous data
-        PlayerData oldPlayerData = playerDataCache.getPlayer(playerData.getPlayerUUID());
-        if (oldPlayerData != null) {
-            if (oldPlayerData.getDataVersionUUID() != lastDataUUID) {
-                return;
-            }
-        }
 
         // Add the new player data to the cache
         playerDataCache.updatePlayer(playerData);
 
         // SQL: If the player has cached data, update it, otherwise insert new data.
         if (playerHasCachedData(playerData.getPlayerUUID())) {
-            updatePlayerData(playerData);
+            updatePlayerSQLData(playerData);
         } else {
             insertPlayerData(playerData);
         }
     }
 
-    private static void updatePlayerData(PlayerData playerData) {
+    private static void updatePlayerSQLData(PlayerData playerData) {
         try (Connection connection = CrossServerSyncBungeeCord.getConnection()) {
             try (PreparedStatement statement = connection.prepareStatement(
-                    "UPDATE " + Database.DATA_TABLE_NAME + " SET `version_uuid`=?, `timestamp`=?, `inventory`=?, `ender_chest`=?, `health`=?, `max_health`=?, `hunger`=?, `saturation`=?, `status_effects`=? WHERE `player_id`=(SELECT `id` FROM " + Database.PLAYER_TABLE_NAME + " WHERE `uuid`=?);")) {
+                    "UPDATE " + Database.DATA_TABLE_NAME + " SET `version_uuid`=?, `timestamp`=?, `inventory`=?, `ender_chest`=?, `health`=?, `max_health`=?, `hunger`=?, `saturation`=?, `selected_slot`=?, `status_effects`=? WHERE `player_id`=(SELECT `id` FROM " + Database.PLAYER_TABLE_NAME + " WHERE `uuid`=?);")) {
                 statement.setString(1, playerData.getDataVersionUUID().toString());
                 statement.setTimestamp(2, new Timestamp(Instant.now().getEpochSecond()));
                 statement.setString(3, playerData.getSerializedInventory());
                 statement.setString(4, playerData.getSerializedEnderChest());
-                statement.setDouble(5, 20D); // Health
-                statement.setDouble(6, 20D); // Max health
-                statement.setDouble(7, 20D); // Hunger
-                statement.setDouble(8, 20D); // Saturation
-                statement.setString(9, ""); // Status effects
-
-                statement.setString(10, playerData.getPlayerUUID().toString());
+                statement.setDouble(5, playerData.getHealth()); // Health
+                statement.setDouble(6, playerData.getMaxHealth()); // Max health
+                statement.setInt(7, playerData.getHunger()); // Hunger
+                statement.setFloat(8, playerData.getSaturation()); // Saturation
+                statement.setInt(9, playerData.getSelectedSlot());
+                statement.setString(10, playerData.getSerializedEffectData()); // Status effects
+                statement.setString(11, playerData.getPlayerUUID().toString());
                 statement.executeUpdate();
             }
         } catch (SQLException e) {
@@ -135,17 +126,18 @@ public class DataManager {
     private static void insertPlayerData(PlayerData playerData) {
         try (Connection connection = CrossServerSyncBungeeCord.getConnection()) {
             try (PreparedStatement statement = connection.prepareStatement(
-                    "INSERT INTO " + Database.DATA_TABLE_NAME + " (`player_id`,`version_uuid`,`timestamp`,`inventory`,`ender_chest`,`health`,`max_health`,`hunger`,`saturation`,`status_effects`) VALUES((SELECT `id` FROM " + Database.PLAYER_TABLE_NAME + " WHERE `uuid`=?),?,?,?,?,?,?,?,?,?);")) {
+                    "INSERT INTO " + Database.DATA_TABLE_NAME + " (`player_id`,`version_uuid`,`timestamp`,`inventory`,`ender_chest`,`health`,`max_health`,`hunger`,`saturation`,`selected_slot`,`status_effects`) VALUES((SELECT `id` FROM " + Database.PLAYER_TABLE_NAME + " WHERE `uuid`=?),?,?,?,?,?,?,?,?,?,?);")) {
                 statement.setString(1, playerData.getPlayerUUID().toString());
                 statement.setString(2, playerData.getDataVersionUUID().toString());
                 statement.setTimestamp(3, new Timestamp(Instant.now().getEpochSecond()));
                 statement.setString(4, playerData.getSerializedInventory());
                 statement.setString(5, playerData.getSerializedEnderChest());
-                statement.setDouble(6, 20D); // Health
-                statement.setDouble(7, 20D); // Max health
-                statement.setDouble(8, 20D); // Hunger
-                statement.setDouble(9, 20D); // Saturation
-                statement.setString(10, ""); // Status effects
+                statement.setDouble(6, playerData.getHealth()); // Health
+                statement.setDouble(7, playerData.getMaxHealth()); // Max health
+                statement.setInt(8, playerData.getHunger()); // Hunger
+                statement.setFloat(9, playerData.getSaturation()); // Saturation
+                statement.setInt(10, playerData.getSelectedSlot());
+                statement.setString(11, playerData.getSerializedEffectData()); // Status effects
 
                 statement.executeUpdate();
             }
@@ -178,7 +170,6 @@ public class DataManager {
      * A cache of PlayerData
      */
     public static class PlayerDataCache {
-
         // The cached player data
         public HashSet<PlayerData> playerData;
 

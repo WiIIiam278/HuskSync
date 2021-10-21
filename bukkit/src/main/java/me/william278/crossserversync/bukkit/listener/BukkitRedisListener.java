@@ -1,9 +1,9 @@
 package me.william278.crossserversync.bukkit.listener;
 
-import me.william278.crossserversync.bukkit.InventorySerializer;
 import me.william278.crossserversync.PlayerData;
 import me.william278.crossserversync.Settings;
-import me.william278.crossserversync.bukkit.CrossServerSyncBukkit;
+import me.william278.crossserversync.CrossServerSyncBukkit;
+import me.william278.crossserversync.bukkit.PlayerSetter;
 import me.william278.crossserversync.redis.RedisListener;
 import me.william278.crossserversync.redis.RedisMessage;
 import org.bukkit.Bukkit;
@@ -29,20 +29,19 @@ public class BukkitRedisListener extends RedisListener {
     @Override
     public void handleMessage(RedisMessage message) {
         // Ignore messages for proxy servers
-        if (message.getMessageTarget().targetServerType() != Settings.ServerType.BUKKIT) {
+        if (!message.getMessageTarget().targetServerType().equals(Settings.ServerType.BUKKIT)) {
             return;
         }
         // Handle the message for the player
         for (Player player : Bukkit.getOnlinePlayers()) {
-            if (player.getUniqueId() == message.getMessageTarget().targetPlayerName()) {
-                if (message.getMessageType() == RedisMessage.MessageType.PLAYER_DATA_REPLY) {
+            if (player.getUniqueId().equals(message.getMessageTarget().targetPlayerUUID())) {
+                if (message.getMessageType().equals(RedisMessage.MessageType.PLAYER_DATA_REPLY)) {
                     try {
                         // Deserialize the received PlayerData
                         PlayerData data = (PlayerData) RedisMessage.deserialize(message.getMessageData());
 
-                        // Set the player's data //todo do more stuff like health etc
-                        InventorySerializer.setPlayerItems(player, InventorySerializer.itemStackArrayFromBase64(data.getSerializedInventory()));
-                        InventorySerializer.setPlayerEnderChest(player, InventorySerializer.itemStackArrayFromBase64(data.getSerializedEnderChest()));
+                        // Set the player's data
+                        PlayerSetter.setPlayerFrom(player, data);
 
                         // Update last loaded data UUID
                         CrossServerSyncBukkit.lastDataUpdateUUIDCache.setVersionUUID(player.getUniqueId(), data.getDataVersionUUID());

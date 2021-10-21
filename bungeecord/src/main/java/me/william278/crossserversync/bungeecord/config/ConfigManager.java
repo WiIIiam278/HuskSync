@@ -1,6 +1,6 @@
 package me.william278.crossserversync.bungeecord.config;
 
-import me.william278.crossserversync.bungeecord.CrossServerSyncBungeeCord;
+import me.william278.crossserversync.CrossServerSyncBungeeCord;
 import net.md_5.bungee.config.Configuration;
 import net.md_5.bungee.config.ConfigurationProvider;
 import net.md_5.bungee.config.YamlConfiguration;
@@ -23,7 +23,8 @@ public class ConfigManager {
             }
             File configFile = new File(plugin.getDataFolder(), "config.yml");
             if (!configFile.exists()) {
-                Files.copy(plugin.getResourceAsStream("bungee_config.yml"), configFile.toPath());
+                Files.copy(plugin.getResourceAsStream("bungee-config.yml"), configFile.toPath());
+                plugin.getLogger().info("Created CrossServerSync bungee-config.yml file");
             }
         } catch (Exception e) {
             plugin.getLogger().log(Level.CONFIG, "An exception occurred loading the configuration file", e);

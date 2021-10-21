@@ -1,6 +1,5 @@
-package me.william278.crossserversync.bungeecord;
+package me.william278.crossserversync;
 
-import me.william278.crossserversync.Settings;
 import me.william278.crossserversync.bungeecord.config.ConfigLoader;
 import me.william278.crossserversync.bungeecord.config.ConfigManager;
 import me.william278.crossserversync.bungeecord.data.DataManager;
@@ -50,7 +49,7 @@ public final class CrossServerSyncBungeeCord extends Plugin {
         database.load();
 
         // Setup player data cache
-        DataManager.setupCache();
+        DataManager.playerDataCache = new DataManager.PlayerDataCache();
 
         // Initialize PreLoginEvent listener
         getProxy().getPluginManager().registerListener(this, new BungeeEventListener());

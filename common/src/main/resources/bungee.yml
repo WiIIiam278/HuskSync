@@ -1,5 +1,8 @@
 name: CrossServerSync
 version: @version@
-main: me.william278.crossserversync.bungeecord.CrossServerSyncBungeeCord
+main: me.william278.crossserversync.CrossServerSyncBungeeCord
 author: William278
 description: 'Synchronize data cross-server'
+libraries:
+  - mysql:mysql-connector-java:8.0.25
+  - org.xerial:sqlite-jdbc:3.36.0.3

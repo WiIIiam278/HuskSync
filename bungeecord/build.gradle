@@ -12,8 +12,6 @@ shadowJar {
     relocate 'redis.clients', 'me.William278.crossserversync.libraries.jedis'
     relocate 'com.zaxxer', 'me.William278.crossserversync.libraries.hikari'
     relocate 'org.bstats', 'me.William278.crossserversync.libraries.plan'
-    relocate 'org.apache.commons', 'me.William278.crossserversync.libraries.apache-commons'
-    relocate 'org.slf4j', 'me.William278.crossserversync.libraries.slf4j'
 }
 
 tasks.register('prepareKotlinBuildScriptModel'){}

@@ -1,16 +1,14 @@
 package me.william278.crossserversync.bungeecord.listener;
 
+import me.william278.crossserversync.CrossServerSyncBungeeCord;
 import me.william278.crossserversync.PlayerData;
 import me.william278.crossserversync.Settings;
-import me.william278.crossserversync.bungeecord.CrossServerSyncBungeeCord;
 import me.william278.crossserversync.bungeecord.data.DataManager;
 import me.william278.crossserversync.redis.RedisListener;
 import me.william278.crossserversync.redis.RedisMessage;
 import net.md_5.bungee.api.ProxyServer;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.util.UUID;
 import java.util.logging.Level;
 
@@ -66,17 +64,11 @@ public class BungeeRedisListener extends RedisListener {
                 });
             }
             case PLAYER_DATA_UPDATE -> {
-                // Get the update data
-                final String[] updateData = message.getMessageDataSeparated();
-
-                // Get UUID of the last-updated data on the spigot
-                final UUID lastDataUpdateUUID = UUID.fromString(updateData[0]);
-
-                // Deserialize the PlayerData
+                // Deserialize the PlayerData received
                 PlayerData playerData;
-                final String serializedPlayerData = updateData[1];
-                try (ObjectInputStream stream = new ObjectInputStream(new ByteArrayInputStream(serializedPlayerData.getBytes()))) {
-                    playerData = (PlayerData) stream.readObject();
+                final String serializedPlayerData = message.getMessageData();
+                try {
+                    playerData = (PlayerData) RedisMessage.deserialize(serializedPlayerData);
                 } catch (IOException | ClassNotFoundException e) {
                     log(Level.SEVERE, "Failed to deserialize PlayerData when handling a player update request");
                     e.printStackTrace();
@@ -84,7 +76,7 @@ public class BungeeRedisListener extends RedisListener {
                 }
 
                 // Update the data in the cache and SQL
-                DataManager.updatePlayerData(playerData, lastDataUpdateUUID);
+                DataManager.updatePlayerData(playerData);
             }
         }
     }
