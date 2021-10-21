@@ -37,6 +37,18 @@ public class Settings {
     public static long hikariConnectionTimeOut;
 
     /*
+     * Bukkit server-only settings
+     */
+
+    // Synchronisation options
+    public static boolean syncInventories;
+    public static boolean syncEnderChests;
+    public static boolean syncHealth;
+    public static boolean syncHunger;
+    public static boolean syncExperience;
+    public static boolean syncPotionEffects;
+
+    /*
      * Enum definitions
      */
 

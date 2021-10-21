@@ -2,3 +2,10 @@ redis_settings:
   host: 'localhost'
   port: 6379
   password: ''
+synchronisation_settings:
+  inventories: true
+  ender_chests: true
+  health: true
+  hunger: true
+  experience: true
+  potion_effects: true

@@ -2,6 +2,7 @@ package me.william278.crossserversync.bukkit;
 
 import me.william278.crossserversync.CrossServerSyncBukkit;
 import me.william278.crossserversync.PlayerData;
+import me.william278.crossserversync.Settings;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
@@ -21,18 +22,29 @@ public class PlayerSetter {
      */
     public static void setPlayerFrom(Player player, PlayerData data) {
         try {
-            setPlayerInventory(player, DataSerializer.itemStackArrayFromBase64(data.getSerializedInventory()));
-            setPlayerEnderChest(player, DataSerializer.itemStackArrayFromBase64(data.getSerializedEnderChest()));
-            player.setHealth(data.getHealth());
-            player.setMaxHealth(data.getMaxHealth());
-            player.setFoodLevel(data.getHunger());
-            player.setSaturation(data.getSaturation());
-            player.setExhaustion(data.getSaturationExhaustion());
-            player.getInventory().setHeldItemSlot(data.getSelectedSlot());
-            player.setTotalExperience(data.getExperience());
-
-            //todo potion effects not working
-            setPlayerPotionEffects(player, DataSerializer.potionEffectArrayFromBase64(data.getSerializedEffectData()));
+            if (Settings.syncInventories) {
+                setPlayerInventory(player, DataSerializer.itemStackArrayFromBase64(data.getSerializedInventory()));
+                player.getInventory().setHeldItemSlot(data.getSelectedSlot());
+            }
+            if (Settings.syncEnderChests) {
+                setPlayerEnderChest(player, DataSerializer.itemStackArrayFromBase64(data.getSerializedEnderChest()));
+            }
+            if (Settings.syncHealth) {
+                player.setHealth(data.getHealth());
+                player.setMaxHealth(data.getMaxHealth());
+            }
+            if (Settings.syncHunger) {
+                player.setFoodLevel(data.getHunger());
+                player.setSaturation(data.getSaturation());
+                player.setExhaustion(data.getSaturationExhaustion());
+            }
+            if (Settings.syncExperience) {
+                player.setTotalExperience(data.getExperience());
+            }
+            if (Settings.syncPotionEffects) {
+                // todo not working ?
+                setPlayerPotionEffects(player, DataSerializer.potionEffectArrayFromBase64(data.getSerializedEffectData()));
+            }
         } catch (IOException e) {
             plugin.getLogger().log(Level.SEVERE, "Failed to deserialize PlayerData", e);
         }
