@@ -30,8 +30,8 @@ public class PlayerSetter {
                 setPlayerEnderChest(player, DataSerializer.itemStackArrayFromBase64(data.getSerializedEnderChest()));
             }
             if (Settings.syncHealth) {
-                player.setHealth(data.getHealth());
                 player.setMaxHealth(data.getMaxHealth());
+                player.setHealth(data.getHealth());
             }
             if (Settings.syncHunger) {
                 player.setFoodLevel(data.getHunger());
