@@ -54,7 +54,7 @@ public class BungeeRedisListener extends RedisListener {
                 ProxyServer.getInstance().getScheduler().runAsync(plugin, () -> {
                     try {
                         // Send the reply, serializing the message data
-                        new RedisMessage(RedisMessage.MessageType.PLAYER_DATA_REPLY,
+                        new RedisMessage(RedisMessage.MessageType.PLAYER_DATA_SET,
                                 new RedisMessage.MessageTarget(Settings.ServerType.BUKKIT, requestingPlayerUUID),
                                 RedisMessage.serialize(getPlayerCachedData(requestingPlayerUUID))).send();
                     } catch (IOException e) {

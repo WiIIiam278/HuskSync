@@ -75,6 +75,8 @@ public class RedisMessage {
         return messageData;
     }
 
+    public String[] getMessageDataElements() { return messageData.split(MESSAGE_DATA_SEPARATOR); }
+
     public MessageType getMessageType() {
         return messageType;
     }
@@ -100,7 +102,12 @@ public class RedisMessage {
         /**
          * Sent by the Proxy to reply to a {@code MessageType.PLAYER_DATA_REQUEST}, contains the latest {@link PlayerData} for the requester.
          */
-        PLAYER_DATA_REPLY
+        PLAYER_DATA_SET,
+
+        /**
+         * Sent by the proxy to ask the Bukkit server to send the full plugin information, contains information about the proxy brand and version
+         */
+        SEND_PLUGIN_INFORMATION
     }
 
     /**

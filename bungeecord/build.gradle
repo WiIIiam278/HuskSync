@@ -4,6 +4,7 @@ dependencies {
 
     implementation 'redis.clients:jedis:3.7.0'
     implementation 'com.zaxxer:HikariCP:5.0.0'
+    implementation 'de.themoep:minedown:1.7.1-SNAPSHOT'
 
     compileOnly 'net.md-5:bungeecord-api:1.16-R0.5-SNAPSHOT'
 }
@@ -12,6 +13,7 @@ shadowJar {
     relocate 'redis.clients', 'me.William278.crossserversync.libraries.jedis'
     relocate 'com.zaxxer', 'me.William278.crossserversync.libraries.hikari'
     relocate 'org.bstats', 'me.William278.crossserversync.libraries.plan'
+    relocate 'de.themoep', 'me.William278.crossserversync.libraries.minedown'
 }
 
 tasks.register('prepareKotlinBuildScriptModel'){}

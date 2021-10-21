@@ -73,12 +73,13 @@ public class DataManager {
                     final double maxHealth = resultSet.getDouble("max_health");
                     final int hunger = resultSet.getInt("hunger");
                     final float saturation = resultSet.getFloat("saturation");
+                    final float saturationExhaustion = resultSet.getFloat("saturation_exhaustion");
                     final int selectedSlot = resultSet.getInt("selected_slot");
                     final String serializedStatusEffects = resultSet.getString("status_effects");
 
-                    return new PlayerData(playerUUID, dataVersionUUID, serializedInventory, serializedEnderChest, health, maxHealth, hunger, saturation, selectedSlot, serializedStatusEffects);
+                    return new PlayerData(playerUUID, dataVersionUUID, serializedInventory, serializedEnderChest, health, maxHealth, hunger, saturation, saturationExhaustion, selectedSlot, serializedStatusEffects);
                 } else {
-                    return PlayerData.EMPTY_PLAYER_DATA(playerUUID);
+                    return PlayerData.DEFAULT_PLAYER_DATA(playerUUID);
                 }
             }
         } catch (SQLException e) {
@@ -104,7 +105,7 @@ public class DataManager {
     private static void updatePlayerSQLData(PlayerData playerData) {
         try (Connection connection = CrossServerSyncBungeeCord.getConnection()) {
             try (PreparedStatement statement = connection.prepareStatement(
-                    "UPDATE " + Database.DATA_TABLE_NAME + " SET `version_uuid`=?, `timestamp`=?, `inventory`=?, `ender_chest`=?, `health`=?, `max_health`=?, `hunger`=?, `saturation`=?, `selected_slot`=?, `status_effects`=? WHERE `player_id`=(SELECT `id` FROM " + Database.PLAYER_TABLE_NAME + " WHERE `uuid`=?);")) {
+                    "UPDATE " + Database.DATA_TABLE_NAME + " SET `version_uuid`=?, `timestamp`=?, `inventory`=?, `ender_chest`=?, `health`=?, `max_health`=?, `hunger`=?, `saturation`=?, `saturation_exhaustion`=?, `selected_slot`=?, `status_effects`=? WHERE `player_id`=(SELECT `id` FROM " + Database.PLAYER_TABLE_NAME + " WHERE `uuid`=?);")) {
                 statement.setString(1, playerData.getDataVersionUUID().toString());
                 statement.setTimestamp(2, new Timestamp(Instant.now().getEpochSecond()));
                 statement.setString(3, playerData.getSerializedInventory());
@@ -113,9 +114,10 @@ public class DataManager {
                 statement.setDouble(6, playerData.getMaxHealth()); // Max health
                 statement.setInt(7, playerData.getHunger()); // Hunger
                 statement.setFloat(8, playerData.getSaturation()); // Saturation
-                statement.setInt(9, playerData.getSelectedSlot());
-                statement.setString(10, playerData.getSerializedEffectData()); // Status effects
-                statement.setString(11, playerData.getPlayerUUID().toString());
+                statement.setFloat(9, playerData.getSaturationExhaustion()); // Saturation exhaustion
+                statement.setInt(10, playerData.getSelectedSlot()); // Current selected slot
+                statement.setString(11, playerData.getSerializedEffectData()); // Status effects
+                statement.setString(12, playerData.getPlayerUUID().toString());
                 statement.executeUpdate();
             }
         } catch (SQLException e) {
@@ -126,7 +128,7 @@ public class DataManager {
     private static void insertPlayerData(PlayerData playerData) {
         try (Connection connection = CrossServerSyncBungeeCord.getConnection()) {
             try (PreparedStatement statement = connection.prepareStatement(
-                    "INSERT INTO " + Database.DATA_TABLE_NAME + " (`player_id`,`version_uuid`,`timestamp`,`inventory`,`ender_chest`,`health`,`max_health`,`hunger`,`saturation`,`selected_slot`,`status_effects`) VALUES((SELECT `id` FROM " + Database.PLAYER_TABLE_NAME + " WHERE `uuid`=?),?,?,?,?,?,?,?,?,?,?);")) {
+                    "INSERT INTO " + Database.DATA_TABLE_NAME + " (`player_id`,`version_uuid`,`timestamp`,`inventory`,`ender_chest`,`health`,`max_health`,`hunger`,`saturation`,`saturation_exhaustion`,`selected_slot`,`status_effects`) VALUES((SELECT `id` FROM " + Database.PLAYER_TABLE_NAME + " WHERE `uuid`=?),?,?,?,?,?,?,?,?,?,?,?);")) {
                 statement.setString(1, playerData.getPlayerUUID().toString());
                 statement.setString(2, playerData.getDataVersionUUID().toString());
                 statement.setTimestamp(3, new Timestamp(Instant.now().getEpochSecond()));
@@ -136,8 +138,9 @@ public class DataManager {
                 statement.setDouble(7, playerData.getMaxHealth()); // Max health
                 statement.setInt(8, playerData.getHunger()); // Hunger
                 statement.setFloat(9, playerData.getSaturation()); // Saturation
-                statement.setInt(10, playerData.getSelectedSlot());
-                statement.setString(11, playerData.getSerializedEffectData()); // Status effects
+                statement.setFloat(10, playerData.getSaturationExhaustion()); // Saturation exhaustion
+                statement.setInt(11, playerData.getSelectedSlot()); // Current selected slot
+                statement.setString(12, playerData.getSerializedEffectData()); // Status effects
 
                 statement.executeUpdate();
             }

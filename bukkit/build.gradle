@@ -4,6 +4,7 @@ dependencies {
 
     implementation 'org.bstats:bstats-bukkit:2.2.1'
     implementation 'redis.clients:jedis:3.7.0'
+    implementation 'de.themoep:minedown:1.7.1-SNAPSHOT'
 
     compileOnly 'org.spigotmc:spigot-api:1.16.5-R0.1-SNAPSHOT'
 }
@@ -11,6 +12,7 @@ dependencies {
 shadowJar {
     relocate 'redis.clients', 'me.William278.crossserversync.libraries.jedis'
     relocate 'org.bstats', 'me.William278.crossserversync.libraries.plan'
+    relocate 'de.themoep', 'me.William278.crossserversync.libraries.minedown'
 }
 
 tasks.register('prepareKotlinBuildScriptModel'){}

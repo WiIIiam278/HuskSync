@@ -37,6 +37,7 @@ public class SQLite extends Database {
                     "`max_health` double NOT NULL," +
                     "`hunger` integer NOT NULL," +
                     "`saturation` float NOT NULL," +
+                    "`saturation_exhaustion` float NOT NULL," +
                     "`selected_slot` integer NOT NULL," +
                     "`status_effects` longtext NOT NULL," +
 

@@ -33,6 +33,7 @@ public class EventListener implements Listener {
                 player.getMaxHealth(),
                 player.getFoodLevel(),
                 player.getSaturation(),
+                player.getExhaustion(),
                 player.getInventory().getHeldItemSlot(),
                 DataSerializer.getSerializedEffectData(player)));
     }

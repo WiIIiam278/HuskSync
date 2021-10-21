@@ -23,9 +23,9 @@ public class PlayerData implements Serializable {
     private final double maxHealth;
     private final int hunger;
     private final float saturation;
+    private final float saturationExhaustion;
     private final int selectedSlot;
     private final String serializedEffectData;
-
 
     /**
      * Create a new PlayerData object; a random data version UUID will be selected.
@@ -39,7 +39,7 @@ public class PlayerData implements Serializable {
      * @param selectedSlot Player selected slot
      * @param serializedStatusEffects Serialized status effect data
      */
-    public PlayerData(UUID playerUUID, String serializedInventory, String serializedEnderChest, double health, double maxHealth, int hunger, float saturation, int selectedSlot, String serializedStatusEffects) {
+    public PlayerData(UUID playerUUID, String serializedInventory, String serializedEnderChest, double health, double maxHealth, int hunger, float saturation, float saturationExhaustion, int selectedSlot, String serializedStatusEffects) {
         this.dataVersionUUID = UUID.randomUUID();
         this.playerUUID = playerUUID;
         this.serializedInventory = serializedInventory;
@@ -48,11 +48,12 @@ public class PlayerData implements Serializable {
         this.maxHealth = maxHealth;
         this.hunger = hunger;
         this.saturation = saturation;
+        this.saturationExhaustion = saturationExhaustion;
         this.selectedSlot = selectedSlot;
         this.serializedEffectData = serializedStatusEffects;
     }
 
-    public PlayerData(UUID playerUUID, UUID dataVersionUUID, String serializedInventory, String serializedEnderChest, double health, double maxHealth, int hunger, float saturation, int selectedSlot, String serializedStatusEffects) {
+    public PlayerData(UUID playerUUID, UUID dataVersionUUID, String serializedInventory, String serializedEnderChest, double health, double maxHealth, int hunger, float saturation, float saturationExhaustion, int selectedSlot, String serializedStatusEffects) {
         this.playerUUID = playerUUID;
         this.dataVersionUUID = dataVersionUUID;
         this.serializedInventory = serializedInventory;
@@ -61,13 +62,14 @@ public class PlayerData implements Serializable {
         this.maxHealth = maxHealth;
         this.hunger = hunger;
         this.saturation = saturation;
+        this.saturationExhaustion = saturationExhaustion;
         this.selectedSlot = selectedSlot;
         this.serializedEffectData = serializedStatusEffects;
     }
 
-    public static PlayerData EMPTY_PLAYER_DATA(UUID playerUUID) {
+    public static PlayerData DEFAULT_PLAYER_DATA(UUID playerUUID) {
         return new PlayerData(playerUUID, "", "", 20,
-                20, 20, 20, 0, "");
+                20, 20, 10, 1, 0, "");
     }
 
     public UUID getPlayerUUID() {
@@ -101,6 +103,8 @@ public class PlayerData implements Serializable {
     public float getSaturation() {
         return saturation;
     }
+
+    public float getSaturationExhaustion() { return saturationExhaustion; }
 
     public int getSelectedSlot() {
         return selectedSlot;

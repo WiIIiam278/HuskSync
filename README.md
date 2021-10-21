@@ -1,5 +1,5 @@
 # CrossServerSync
-**CrossServerSync** is a robust solution for synchronising player data (inventories, health, hunger & status effects) between servers. It was designed as a lightweight alternative to MySQLPlayerDataBridge, 
+**CrossServerSync** is a robust solution for synchronising player data (inventories, health, hunger & status effects) between servers. It was designed as a much faster alternative to MySQLPlayerDataBridge, 
 
 ### Installation
 Install CrossServerSync in the `/plugins/` folder of your Spigot (and derivatives) servers and Proxy (BungeeCord and derivatives) server.

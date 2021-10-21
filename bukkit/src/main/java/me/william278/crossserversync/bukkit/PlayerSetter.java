@@ -27,7 +27,9 @@ public class PlayerSetter {
             player.setMaxHealth(data.getMaxHealth());
             player.setFoodLevel(data.getHunger());
             player.setSaturation(data.getSaturation());
+            player.setExhaustion(data.getSaturationExhaustion());
             player.getInventory().setHeldItemSlot(data.getSelectedSlot());
+
             //todo potion effects not working
             setPlayerPotionEffects(player, DataSerializer.potionEffectArrayFromBase64(data.getSerializedEffectData()));
         } catch (IOException e) {
