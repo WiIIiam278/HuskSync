@@ -7,10 +7,10 @@ data_storage_settings:
   mysql_settings:
     host: 'localhost'
     port: 8123
-    database: 'CrossServerSync'
+    database: 'HuskSync'
     username: 'root'
     password: 'pa55w0rd'
-    params: ''
+    params: '?autoReconnect=true&useSSL=false'
   hikari_pool_settings:
     maximum_pool_size: 10
     minimum_idle: 10

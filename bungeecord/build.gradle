@@ -10,10 +10,10 @@ dependencies {
 }
 
 shadowJar {
-    relocate 'redis.clients', 'me.William278.crossserversync.libraries.jedis'
-    relocate 'com.zaxxer', 'me.William278.crossserversync.libraries.hikari'
-    relocate 'org.bstats', 'me.William278.crossserversync.libraries.plan'
-    relocate 'de.themoep', 'me.William278.crossserversync.libraries.minedown'
+    relocate 'redis.clients', 'me.William278.husksync.libraries.jedis'
+    relocate 'com.zaxxer', 'me.William278.husksync.libraries.hikari'
+    relocate 'org.bstats', 'me.William278.husksync.libraries.plan'
+    relocate 'de.themoep', 'me.William278.husksync.libraries.minedown'
 }
 
 tasks.register('prepareKotlinBuildScriptModel'){}

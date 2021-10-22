@@ -4,7 +4,7 @@ pluginManagement {
     }
 }
 
-rootProject.name = 'CrossServerSync'
+rootProject.name = 'HuskSync'
 
 include 'common'
 include 'bukkit'

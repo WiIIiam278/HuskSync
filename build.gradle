@@ -18,7 +18,7 @@ allprojects {
     javadoc { options.encoding = 'UTF-8' }
 }
 
-logger.lifecycle('Building CrossServerSync v' + version.toString())
+logger.lifecycle('Building HuskSync v' + version.toString())
 
 subprojects {
     apply plugin: 'com.github.johnrengelman.shadow'

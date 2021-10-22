@@ -1,6 +1,6 @@
-name: CrossServerSync
+name: HuskSync
 version: @version@
-main: me.william278.crossserversync.CrossServerSyncBungeeCord
+main: me.william278.husksync.HuskSyncBungeeCord
 author: William278
 description: 'Synchronize data cross-server'
 libraries:

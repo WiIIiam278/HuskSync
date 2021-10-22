@@ -6,7 +6,7 @@ dependencies {
 
 shadowJar {
     destinationDirectory.set(file("$rootDir/target/"))
-    archiveBaseName.set('CrossServerSync')
+    archiveBaseName.set('HuskSync')
     archiveClassifier.set('')
 
     build {
@@ -18,7 +18,7 @@ publishing {
     publications {
         mavenJava(MavenPublication) {
             groupId = 'me.William278'
-            artifactId = 'CrossServerSync-plugin'
+            artifactId = 'HuskSync-plugin'
             version = "$project.version"
 
             artifact shadowJar

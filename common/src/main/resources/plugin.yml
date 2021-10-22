@@ -1,6 +1,6 @@
 name: CrossServerSync
 version: @version@
-main: me.william278.crossserversync.CrossServerSyncBukkit
+main: me.william278.husksync.HuskSyncBukkit
 api-version: 1.16
 author: William278
 description: 'Synchronize data cross-server'

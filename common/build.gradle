@@ -26,5 +26,5 @@ shadowJar {
     exclude "module-info.class"
 
     // Relocations
-    relocate 'redis.clients', 'me.William278.crossserversync.libraries.jedis'
+    relocate 'redis.clients', 'me.William278.husksync.libraries.jedis'
 }
