@@ -17,6 +17,9 @@ public class ConfigLoader {
         Settings.syncHunger = config.getBoolean("synchronisation_settings.hunger", true);
         Settings.syncExperience = config.getBoolean("synchronisation_settings.experience", true);
         Settings.syncPotionEffects = config.getBoolean("synchronisation_settings.potion_effects", true);
+        Settings.syncStatistics = config.getBoolean("synchronisation_settings.statistics", true);
+        Settings.syncGameMode = config.getBoolean("synchronisation_settings.game_mode", true);
+
     }
 
 }

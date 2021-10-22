@@ -5,6 +5,7 @@ import me.william278.crossserversync.PlayerData;
 import me.william278.crossserversync.Settings;
 import me.william278.crossserversync.bukkit.DataSerializer;
 import me.william278.crossserversync.redis.RedisMessage;
+import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -12,6 +13,7 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
 import java.io.IOException;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.logging.Level;
 
@@ -30,13 +32,17 @@ public class EventListener implements Listener {
                 DataSerializer.getSerializedInventoryContents(player),
                 DataSerializer.getSerializedEnderChestContents(player),
                 player.getHealth(),
-                player.getMaxHealth(),
+                Objects.requireNonNull(player.getAttribute(Attribute.GENERIC_MAX_HEALTH)).getBaseValue(),
                 player.getFoodLevel(),
                 player.getSaturation(),
                 player.getExhaustion(),
                 player.getInventory().getHeldItemSlot(),
                 DataSerializer.getSerializedEffectData(player),
-                player.getTotalExperience()));
+                player.getTotalExperience(),
+                player.getLevel(),
+                player.getExp(),
+                player.getGameMode().toString(),
+                DataSerializer.getSerializedStatisticData(player)));
     }
 
     @EventHandler
@@ -46,7 +52,7 @@ public class EventListener implements Listener {
 
         try {
             // Get the player's last updated PlayerData version UUID
-            final UUID lastUpdatedDataVersion = CrossServerSyncBukkit.lastDataUpdateUUIDCache.getVersionUUID(player.getUniqueId());
+            final UUID lastUpdatedDataVersion = CrossServerSyncBukkit.bukkitCache.getVersionUUID(player.getUniqueId());
             if (lastUpdatedDataVersion == null) return; // Return if the player has not been properly updated.
 
             // Send a redis message with the player's last updated PlayerData version UUID and their new PlayerData
@@ -64,13 +70,15 @@ public class EventListener implements Listener {
         // When a player joins a Bukkit server
         final Player player = event.getPlayer();
 
-        try {
-            // Send a redis message requesting the player data
-            new RedisMessage(RedisMessage.MessageType.PLAYER_DATA_REQUEST,
-                    new RedisMessage.MessageTarget(Settings.ServerType.BUNGEECORD, null),
-                    player.getUniqueId().toString()).send();
-        } catch (IOException e) {
-            plugin.getLogger().log(Level.SEVERE, "Failed to send a PlayerData fetch request", e);
+        if (CrossServerSyncBukkit.bukkitCache.isPlayerRequestingOnJoin(player.getUniqueId())) {
+            try {
+                // Send a redis message requesting the player data
+                new RedisMessage(RedisMessage.MessageType.PLAYER_DATA_REQUEST,
+                        new RedisMessage.MessageTarget(Settings.ServerType.BUNGEECORD, null),
+                        player.getUniqueId().toString()).send();
+            } catch (IOException e) {
+                plugin.getLogger().log(Level.SEVERE, "Failed to send a PlayerData fetch request", e);
+            }
         }
     }
 }

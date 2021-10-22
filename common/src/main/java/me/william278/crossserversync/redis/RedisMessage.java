@@ -95,7 +95,7 @@ public class RedisMessage {
         PLAYER_DATA_UPDATE,
 
         /**
-         * Sent by Bukkit servers to proxy to request {@link PlayerData} from the proxy.
+         * Sent by Bukkit servers to proxy to request {@link PlayerData} from the proxy if they are set as needing to request data on join.
          */
         PLAYER_DATA_REQUEST,
 
@@ -105,9 +105,19 @@ public class RedisMessage {
         PLAYER_DATA_SET,
 
         /**
+         * Sent by the proxy to a Bukkit server to have them request data on join; contains no data otherwise
+         */
+        REQUEST_DATA_ON_JOIN,
+
+        /**
          * Sent by the proxy to ask the Bukkit server to send the full plugin information, contains information about the proxy brand and version
          */
         SEND_PLUGIN_INFORMATION
+    }
+
+    public enum RequestOnJoinUpdateType {
+        ADD_REQUESTER,
+        REMOVE_REQUESTER
     }
 
     /**

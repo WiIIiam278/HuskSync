@@ -15,6 +15,8 @@ public class PlayerData implements Serializable {
      */
     private final UUID dataVersionUUID;
 
+    // Flag to indicate if the Bukkit server should use default data
+    private boolean useDefaultData = false;
 
     // Player data
     private final String serializedInventory;
@@ -26,21 +28,31 @@ public class PlayerData implements Serializable {
     private final float saturationExhaustion;
     private final int selectedSlot;
     private final String serializedEffectData;
-    private final int experience;
+    private final int totalExperience;
+    private final int expLevel;
+    private final float expProgress;
+    private final String gameMode;
+    private final String serializedStatistics;
 
     /**
-     * Create a new PlayerData object; a random data version UUID will be selected.
-     * @param playerUUID UUID of the player
-     * @param serializedInventory Serialized inventory data
-     * @param serializedEnderChest Serialized ender chest data
-     * @param health Player health
-     * @param maxHealth Player max health
-     * @param hunger Player hunger
-     * @param saturation Player saturation
-     * @param selectedSlot Player selected slot
-     * @param serializedStatusEffects Serialized status effect data
+     * Constructor to create new PlayerData from a bukkit {@code Player}'s data
+     * @param playerUUID The Player's UUID
+     * @param serializedInventory Their serialized inventory
+     * @param serializedEnderChest Their serialized ender chest
+     * @param health Their health
+     * @param maxHealth Their max health
+     * @param hunger Their hunger
+     * @param saturation Their saturation
+     * @param saturationExhaustion Their saturation exhaustion
+     * @param selectedSlot Their selected hot bar slot
+     * @param serializedStatusEffects Their serialized status effects
+     * @param totalExperience Their total experience points ("Score")
+     * @param expLevel Their exp level
+     * @param expProgress Their exp progress to the next level
+     * @param gameMode Their game mode ({@code SURVIVAL}, {@code CREATIVE}, etc)
+     * @param serializedStatistics Their serialized statistics data (Displayed in Statistics menu in ESC menu)
      */
-    public PlayerData(UUID playerUUID, String serializedInventory, String serializedEnderChest, double health, double maxHealth, int hunger, float saturation, float saturationExhaustion, int selectedSlot, String serializedStatusEffects, int experience) {
+    public PlayerData(UUID playerUUID, String serializedInventory, String serializedEnderChest, double health, double maxHealth, int hunger, float saturation, float saturationExhaustion, int selectedSlot, String serializedStatusEffects, int totalExperience, int expLevel, float expProgress, String gameMode, String serializedStatistics) {
         this.dataVersionUUID = UUID.randomUUID();
         this.playerUUID = playerUUID;
         this.serializedInventory = serializedInventory;
@@ -52,10 +64,33 @@ public class PlayerData implements Serializable {
         this.saturationExhaustion = saturationExhaustion;
         this.selectedSlot = selectedSlot;
         this.serializedEffectData = serializedStatusEffects;
-        this.experience = experience;
+        this.totalExperience = totalExperience;
+        this.expLevel = expLevel;
+        this.expProgress = expProgress;
+        this.gameMode = gameMode;
+        this.serializedStatistics = serializedStatistics;
     }
 
-    public PlayerData(UUID playerUUID, UUID dataVersionUUID, String serializedInventory, String serializedEnderChest, double health, double maxHealth, int hunger, float saturation, float saturationExhaustion, int selectedSlot, String serializedStatusEffects, int experience) {
+    /**
+     * Constructor for a PlayerData object from an existing object that was stored in SQL
+     * @param playerUUID The player whose data this is' UUID
+     * @param dataVersionUUID The PlayerData version UUID
+     * @param serializedInventory Their serialized inventory
+     * @param serializedEnderChest Their serialized ender chest
+     * @param health Their health
+     * @param maxHealth Their max health
+     * @param hunger Their hunger
+     * @param saturation Their saturation
+     * @param saturationExhaustion Their saturation exhaustion
+     * @param selectedSlot Their selected hot bar slot
+     * @param serializedStatusEffects Their serialized status effects
+     * @param totalExperience Their total experience points ("Score")
+     * @param expLevel Their exp level
+     * @param expProgress Their exp progress to the next level
+     * @param gameMode Their game mode ({@code SURVIVAL}, {@code CREATIVE}, etc)
+     * @param serializedStatistics Their serialized statistics data (Displayed in Statistics menu in ESC menu)
+     */
+    public PlayerData(UUID playerUUID, UUID dataVersionUUID, String serializedInventory, String serializedEnderChest, double health, double maxHealth, int hunger, float saturation, float saturationExhaustion, int selectedSlot, String serializedStatusEffects, int totalExperience, int expLevel, float expProgress, String gameMode, String serializedStatistics) {
         this.playerUUID = playerUUID;
         this.dataVersionUUID = dataVersionUUID;
         this.serializedInventory = serializedInventory;
@@ -67,12 +102,24 @@ public class PlayerData implements Serializable {
         this.saturationExhaustion = saturationExhaustion;
         this.selectedSlot = selectedSlot;
         this.serializedEffectData = serializedStatusEffects;
-        this.experience = experience;
+        this.totalExperience = totalExperience;
+        this.expLevel = expLevel;
+        this.expProgress = expProgress;
+        this.gameMode = gameMode;
+        this.serializedStatistics = serializedStatistics;
     }
 
+    /**
+     * Get default PlayerData for a new user
+     * @param playerUUID The bukkit Player's UUID
+     * @return Default {@link PlayerData}
+     */
     public static PlayerData DEFAULT_PLAYER_DATA(UUID playerUUID) {
-        return new PlayerData(playerUUID, "", "", 20,
-                20, 20, 10, 1, 0, "", 0);
+        PlayerData data = new PlayerData(playerUUID, "", "", 20,
+                20, 20, 10, 1, 0,
+                "", 0, 0, 0, "SURVIVAL", "");
+        data.useDefaultData = true;
+        return data;
     }
 
     public UUID getPlayerUUID() {
@@ -107,7 +154,9 @@ public class PlayerData implements Serializable {
         return saturation;
     }
 
-    public float getSaturationExhaustion() { return saturationExhaustion; }
+    public float getSaturationExhaustion() {
+        return saturationExhaustion;
+    }
 
     public int getSelectedSlot() {
         return selectedSlot;
@@ -117,5 +166,27 @@ public class PlayerData implements Serializable {
         return serializedEffectData;
     }
 
-    public int getExperience() { return experience; }
+    public int getTotalExperience() {
+        return totalExperience;
+    }
+
+    public String getSerializedStatistics() {
+        return serializedStatistics;
+    }
+
+    public int getExpLevel() {
+        return expLevel;
+    }
+
+    public float getExpProgress() {
+        return expProgress;
+    }
+
+    public String getGameMode() {
+        return gameMode;
+    }
+
+    public boolean isUseDefaultData() {
+        return useDefaultData;
+    }
 }

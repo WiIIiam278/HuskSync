@@ -12,6 +12,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.io.IOException;
+import java.util.UUID;
 import java.util.logging.Level;
 
 public class BukkitRedisListener extends RedisListener {
@@ -35,38 +36,48 @@ public class BukkitRedisListener extends RedisListener {
             return;
         }
         // Handle the message for the player
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            if (player.getUniqueId().equals(message.getMessageTarget().targetPlayerUUID())) {
-                switch (message.getMessageType()) {
-                    case PLAYER_DATA_SET -> {
-                        try {
-                            // Deserialize the received PlayerData
-                            PlayerData data = (PlayerData) RedisMessage.deserialize(message.getMessageData());
+        if (message.getMessageTarget().targetPlayerUUID() == null) {
+            if (message.getMessageType() == RedisMessage.MessageType.REQUEST_DATA_ON_JOIN) {
+                UUID playerUUID = UUID.fromString(message.getMessageDataElements()[1]);
+                switch (RedisMessage.RequestOnJoinUpdateType.valueOf(message.getMessageDataElements()[0])) {
+                    case ADD_REQUESTER -> CrossServerSyncBukkit.bukkitCache.setRequestOnJoin(playerUUID);
+                    case REMOVE_REQUESTER -> CrossServerSyncBukkit.bukkitCache.removeRequestOnJoin(playerUUID);
+                }
+            }
+        } else {
+            for (Player player : Bukkit.getOnlinePlayers()) {
+                if (player.getUniqueId().equals(message.getMessageTarget().targetPlayerUUID())) {
+                    switch (message.getMessageType()) {
+                        case PLAYER_DATA_SET -> {
+                            try {
+                                // Deserialize the received PlayerData
+                                PlayerData data = (PlayerData) RedisMessage.deserialize(message.getMessageData());
 
-                            // Set the player's data
-                            PlayerSetter.setPlayerFrom(player, data);
+                                // Update last loaded data UUID
+                                CrossServerSyncBukkit.bukkitCache.setVersionUUID(player.getUniqueId(), data.getDataVersionUUID());
 
-                            // Update last loaded data UUID
-                            CrossServerSyncBukkit.lastDataUpdateUUIDCache.setVersionUUID(player.getUniqueId(), data.getDataVersionUUID());
-                        } catch (IOException | ClassNotFoundException e) {
-                            log(Level.SEVERE, "Failed to deserialize PlayerData when handling a reply from the proxy with PlayerData");
-                            e.printStackTrace();
+                                // Set the player's data
+                                PlayerSetter.setPlayerFrom(player, data);
+                            } catch (IOException | ClassNotFoundException e) {
+                                log(Level.SEVERE, "Failed to deserialize PlayerData when handling a reply from the proxy with PlayerData");
+                                e.printStackTrace();
+                            }
+                        }
+                        case SEND_PLUGIN_INFORMATION -> {
+                            String proxyBrand = message.getMessageDataElements()[0];
+                            String proxyVersion = message.getMessageDataElements()[1];
+                            assert plugin.getDescription().getDescription() != null;
+                            player.spigot().sendMessage(new MineDown(MessageStrings.PLUGIN_INFORMATION.toString()
+                                    .replaceAll("%plugin_description%", plugin.getDescription().getDescription())
+                                    .replaceAll("%proxy_brand%", proxyBrand)
+                                    .replaceAll("%proxy_version%", proxyVersion)
+                                    .replaceAll("%bukkit_brand%", Bukkit.getName())
+                                    .replaceAll("%bukkit_version%", plugin.getDescription().getVersion()))
+                                    .toComponent());
                         }
                     }
-                    case SEND_PLUGIN_INFORMATION -> {
-                        String proxyBrand = message.getMessageDataElements()[0];
-                        String proxyVersion = message.getMessageDataElements()[1];
-                        assert plugin.getDescription().getDescription() != null;
-                        player.spigot().sendMessage(new MineDown(MessageStrings.PLUGIN_INFORMATION.toString()
-                                .replaceAll("%plugin_description%", plugin.getDescription().getDescription())
-                                .replaceAll("%proxy_brand%", proxyBrand)
-                                .replaceAll("%proxy_version%", proxyVersion)
-                                .replaceAll("%bukkit_brand%", Bukkit.getName())
-                                .replaceAll("%bukkit_version%", plugin.getDescription().getVersion()))
-                                .toComponent());
-                    }
+                    return;
                 }
-                return;
             }
         }
     }

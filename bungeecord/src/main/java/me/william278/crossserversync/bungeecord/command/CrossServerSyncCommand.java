@@ -23,7 +23,8 @@ public class CrossServerSyncCommand extends Command implements TabExecutor {
     private final static String[] COMMAND_TAB_ARGUMENTS = {"about", "reload"};
     private final static String PERMISSION = "crossserversync.command.csc";
 
-    public CrossServerSyncCommand() { super("csc", PERMISSION, "crossserversync"); }
+    //public CrossServerSyncCommand() { super("csc", PERMISSION, "crossserversync"); }
+    public CrossServerSyncCommand() { super("csc"); }
 
     @Override
     public void execute(CommandSender sender, String[] args) {

@@ -1,5 +1,6 @@
 package me.william278.crossserversync.bungeecord.listener;
 
+import de.themoep.minedown.MineDown;
 import me.william278.crossserversync.CrossServerSyncBungeeCord;
 import me.william278.crossserversync.PlayerData;
 import me.william278.crossserversync.Settings;
@@ -7,6 +8,7 @@ import me.william278.crossserversync.bungeecord.data.DataManager;
 import me.william278.crossserversync.redis.RedisListener;
 import me.william278.crossserversync.redis.RedisMessage;
 import net.md_5.bungee.api.ProxyServer;
+import net.md_5.bungee.api.connection.ProxiedPlayer;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -57,7 +59,14 @@ public class BungeeRedisListener extends RedisListener {
                         // Send the reply, serializing the message data
                         new RedisMessage(RedisMessage.MessageType.PLAYER_DATA_SET,
                                 new RedisMessage.MessageTarget(Settings.ServerType.BUKKIT, requestingPlayerUUID),
-                                RedisMessage.serialize(getPlayerCachedData(requestingPlayerUUID))).send();
+                                RedisMessage.serialize(getPlayerCachedData(requestingPlayerUUID)))
+                                .send();
+
+                        // Send an update to all bukkit servers removing the player from the requester cache
+                        new RedisMessage(RedisMessage.MessageType.REQUEST_DATA_ON_JOIN,
+                                new RedisMessage.MessageTarget(Settings.ServerType.BUKKIT, null),
+                                RedisMessage.RequestOnJoinUpdateType.REMOVE_REQUESTER.toString(), requestingPlayerUUID.toString())
+                                .send();
                     } catch (IOException e) {
                         log(Level.SEVERE, "Failed to serialize data when replying to a data request");
                         e.printStackTrace();
@@ -78,6 +87,22 @@ public class BungeeRedisListener extends RedisListener {
 
                 // Update the data in the cache and SQL
                 DataManager.updatePlayerData(playerData);
+
+                // Reply to set the player's data if they moved servers
+                ProxiedPlayer player = ProxyServer.getInstance().getPlayer(playerData.getPlayerUUID());
+                if (player != null) {
+                    if (player.isConnected()) {
+                        // Send the reply, serializing the message data
+                        try {
+                            new RedisMessage(RedisMessage.MessageType.PLAYER_DATA_SET,
+                                    new RedisMessage.MessageTarget(Settings.ServerType.BUKKIT, playerData.getPlayerUUID()),
+                                    RedisMessage.serialize(playerData)).send();
+                        } catch (IOException e) {
+                            log(Level.SEVERE, "Failed to serialize data when replying to a data update");
+                            e.printStackTrace();
+                        }
+                    }
+                }
             }
         }
     }

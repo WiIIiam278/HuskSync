@@ -1,7 +1,7 @@
 package me.william278.crossserversync;
 
 import me.william278.crossserversync.bukkit.config.ConfigLoader;
-import me.william278.crossserversync.bukkit.data.LastDataUpdateUUIDCache;
+import me.william278.crossserversync.bukkit.data.BukkitDataCache;
 import me.william278.crossserversync.bukkit.listener.BukkitRedisListener;
 import me.william278.crossserversync.bukkit.listener.EventListener;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -13,7 +13,7 @@ public final class CrossServerSyncBukkit extends JavaPlugin {
         return instance;
     }
 
-    public static LastDataUpdateUUIDCache lastDataUpdateUUIDCache;
+    public static BukkitDataCache bukkitCache;
 
     @Override
     public void onLoad() {
@@ -32,7 +32,7 @@ public final class CrossServerSyncBukkit extends JavaPlugin {
         ConfigLoader.loadSettings(getConfig());
 
         // Initialize last data update UUID cache
-        lastDataUpdateUUIDCache = new LastDataUpdateUUIDCache();
+        bukkitCache = new BukkitDataCache();
 
         // Initialize event listener
         getServer().getPluginManager().registerEvents(new EventListener(), this);

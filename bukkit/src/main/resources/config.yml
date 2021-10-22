@@ -9,3 +9,5 @@ synchronisation_settings:
   hunger: true
   experience: true
   potion_effects: true
+  statistics: true
+  game_mode: true

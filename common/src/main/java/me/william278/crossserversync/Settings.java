@@ -47,6 +47,8 @@ public class Settings {
     public static boolean syncHunger;
     public static boolean syncExperience;
     public static boolean syncPotionEffects;
+    public static boolean syncStatistics;
+    public static boolean syncGameMode;
 
     /*
      * Enum definitions

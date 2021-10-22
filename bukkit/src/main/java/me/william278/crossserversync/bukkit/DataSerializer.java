@@ -1,5 +1,9 @@
 package me.william278.crossserversync.bukkit;
 
+import me.william278.crossserversync.redis.RedisMessage;
+import org.bukkit.Material;
+import org.bukkit.Statistic;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
@@ -10,7 +14,12 @@ import org.yaml.snakeyaml.external.biz.base64Coder.Base64Coder;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.Serializable;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Class for serializing and deserializing player inventories and Ender Chests contents ({@link ItemStack[]}) as base64 strings.
@@ -162,4 +171,56 @@ public final class DataSerializer {
             throw new IOException("Unable to decode class type.", e);
         }
     }
+
+    public static StatisticData deserializeStatisticData(String serializedStatisticData) throws IOException {
+        if (serializedStatisticData.isEmpty()) {
+            return new StatisticData(new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>());
+        }
+        try {
+            return (StatisticData) RedisMessage.deserialize(serializedStatisticData);
+        } catch (ClassNotFoundException e) {
+            throw new IOException("Unable to decode class type.", e);
+        }
+    }
+
+    public static String getSerializedStatisticData(Player player) throws IOException {
+        HashMap<Statistic,Integer> untypedStatisticValues = new HashMap<>();
+        HashMap<Statistic,HashMap<Material,Integer>> blockStatisticValues = new HashMap<>();
+        HashMap<Statistic,HashMap<Material,Integer>> itemStatisticValues = new HashMap<>();
+        HashMap<Statistic,HashMap<EntityType,Integer>> entityStatisticValues = new HashMap<>();
+        for (Statistic statistic : Statistic.values()) {
+            switch (statistic.getType()) {
+                case ITEM -> {
+                    HashMap<Material,Integer> itemValues = new HashMap<>();
+                    for (Material itemMaterial : Arrays.stream(Material.values()).filter(Material::isItem).collect(Collectors.toList())) {
+                        itemValues.put(itemMaterial, player.getStatistic(statistic, itemMaterial));
+                    }
+                    itemStatisticValues.put(statistic, itemValues);
+                }
+                case BLOCK -> {
+                    HashMap<Material,Integer> blockValues = new HashMap<>();
+                    for (Material blockMaterial : Arrays.stream(Material.values()).filter(Material::isBlock).collect(Collectors.toList())) {
+                        blockValues.put(blockMaterial, player.getStatistic(statistic, blockMaterial));
+                    }
+                    blockStatisticValues.put(statistic, blockValues);
+                }
+                case ENTITY -> {
+                    HashMap<EntityType,Integer> entityValues = new HashMap<>();
+                    for (EntityType type : Arrays.stream(EntityType.values()).filter(EntityType::isAlive).collect(Collectors.toList())) {
+                        entityValues.put(type, player.getStatistic(statistic, type));
+                    }
+                    entityStatisticValues.put(statistic, entityValues);
+                }
+                case UNTYPED -> untypedStatisticValues.put(statistic, player.getStatistic(statistic));
+            }
+        }
+
+        StatisticData statisticData = new StatisticData(untypedStatisticValues, blockStatisticValues, itemStatisticValues, entityStatisticValues);
+        return RedisMessage.serialize(statisticData);
+    }
+
+    public record StatisticData(HashMap<Statistic,Integer> untypedStatisticValues,
+                                HashMap<Statistic,HashMap<Material,Integer>> blockStatisticValues,
+                                HashMap<Statistic,HashMap<Material,Integer>> itemStatisticValues,
+                                HashMap<Statistic,HashMap<EntityType,Integer>> entityStatisticValues) implements Serializable { }
 }
