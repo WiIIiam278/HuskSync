@@ -19,7 +19,8 @@ public class ConfigLoader {
         Settings.syncPotionEffects = config.getBoolean("synchronisation_settings.potion_effects", true);
         Settings.syncStatistics = config.getBoolean("synchronisation_settings.statistics", true);
         Settings.syncGameMode = config.getBoolean("synchronisation_settings.game_mode", true);
-
+        Settings.syncAdvancements = config.getBoolean("synchronisation_settings.advancements", true);
+        Settings.syncLocation = config.getBoolean("synchronisation_settings.location", false);
     }
 
 }

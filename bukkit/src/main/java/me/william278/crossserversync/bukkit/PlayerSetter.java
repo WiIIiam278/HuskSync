@@ -6,10 +6,9 @@ import me.william278.crossserversync.MessageStrings;
 import me.william278.crossserversync.PlayerData;
 import me.william278.crossserversync.Settings;
 import net.md_5.bungee.api.ChatMessageType;
-import org.bukkit.Bukkit;
-import org.bukkit.GameMode;
-import org.bukkit.Material;
-import org.bukkit.Statistic;
+import org.bukkit.*;
+import org.bukkit.advancement.Advancement;
+import org.bukkit.advancement.AdvancementProgress;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
@@ -17,6 +16,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.Objects;
 import java.util.logging.Level;
 
@@ -39,6 +40,10 @@ public class PlayerSetter {
         // Set the player's data from the PlayerData
         Bukkit.getScheduler().runTask(plugin, () -> {
             try {
+                if (Settings.syncAdvancements) {
+                    // Sync advancements first so that any rewards will be overridden
+                    setPlayerAdvancements(player, DataSerializer.deserializeAdvancementData(data.getSerializedAdvancements()));
+                }
                 if (Settings.syncInventories) {
                     setPlayerInventory(player, DataSerializer.itemStackArrayFromBase64(data.getSerializedInventory()));
                     player.getInventory().setHeldItemSlot(data.getSelectedSlot());
@@ -68,6 +73,10 @@ public class PlayerSetter {
                 }
                 if (Settings.syncGameMode) {
                     player.setGameMode(GameMode.valueOf(data.getGameMode()));
+                }
+                if (Settings.syncLocation) {
+                    player.setFlying(player.getAllowFlight() && data.isFlying());
+                    setPlayerLocation(player, DataSerializer.deserializePlayerLocationData(data.getSerializedLocation()));
                 }
 
                 // Send action bar synchronisation message
@@ -114,7 +123,8 @@ public class PlayerSetter {
 
     /**
      * Set a player's current potion effects from a set of {@link PotionEffect[]}
-     * @param player The player to set the potion effects of
+     *
+     * @param player  The player to set the potion effects of
      * @param effects The array of {@link PotionEffect}s to set
      */
     private static void setPlayerPotionEffects(Player player, PotionEffect[] effects) {
@@ -127,8 +137,69 @@ public class PlayerSetter {
     }
 
     /**
+     * Update a player's advancements and progress to match the advancementData
+     *
+     * @param player          The player to set the advancements of
+     * @param advancementData The ArrayList of {@link DataSerializer.AdvancementRecord}s to set
+     */
+    private static void setPlayerAdvancements(Player player, ArrayList<DataSerializer.AdvancementRecord> advancementData) {
+        // Temporarily disable advancement announcing if needed
+        boolean announceAdvancementUpdate = false;
+        if (Boolean.TRUE.equals(player.getWorld().getGameRuleValue(GameRule.ANNOUNCE_ADVANCEMENTS))) {
+            player.getWorld().setGameRule(GameRule.ANNOUNCE_ADVANCEMENTS, false);
+            announceAdvancementUpdate = true;
+        }
+        final boolean finalAnnounceAdvancementUpdate = announceAdvancementUpdate;
+
+        // Run async because advancement loading is very slow
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            // Apply the advancements to the player
+            Iterator<Advancement> serverAdvancements = Bukkit.getServer().advancementIterator();
+            while (serverAdvancements.hasNext()) {
+                Advancement advancement = serverAdvancements.next();
+                AdvancementProgress playerProgress = player.getAdvancementProgress(advancement);
+                boolean hasAdvancement = false;
+                for (DataSerializer.AdvancementRecord record : advancementData) {
+                    if (record.advancementKey().equals(advancement.getKey().getNamespace() + ":" + advancement.getKey().getKey())) {
+                        hasAdvancement = true;
+
+                        // Save the experience before granting the advancement
+                        final int expLevel = player.getLevel();
+                        final float expProgress = player.getExp();
+
+                        // Grant advancement criteria if the player does not have it
+                        for (String awardCriteria : record.awardedAdvancementCriteria()) {
+                            if (!playerProgress.getAwardedCriteria().contains(awardCriteria)) {
+                                Bukkit.getScheduler().runTask(plugin, () -> player.getAdvancementProgress(advancement).awardCriteria(awardCriteria));
+                            }
+                        }
+
+                        // Set experience back to before granting advancement; nullify exp gained from it
+                        player.setLevel(expLevel);
+                        player.setExp(expProgress);
+                        break;
+                    }
+                }
+                if (!hasAdvancement) {
+                    for (String awardCriteria : playerProgress.getAwardedCriteria()) {
+                        Bukkit.getScheduler().runTask(plugin, () -> player.getAdvancementProgress(advancement).revokeCriteria(awardCriteria));
+                    }
+                }
+            }
+
+            // Re-enable announcing advancements (back on main thread again)
+            Bukkit.getScheduler().runTask(plugin, () -> {
+                if (finalAnnounceAdvancementUpdate) {
+                    player.getWorld().setGameRule(GameRule.ANNOUNCE_ADVANCEMENTS, true);
+                }
+            });
+        });
+    }
+
+    /**
      * Set a player's statistics (in the Statistic menu)
-     * @param player The player to set the statistics of
+     *
+     * @param player        The player to set the statistics of
      * @param statisticData The {@link DataSerializer.StatisticData} to set
      */
     private static void setPlayerStatistics(Player player, DataSerializer.StatisticData statisticData) {
@@ -157,5 +228,38 @@ public class PlayerSetter {
                 player.setStatistic(statistic, entityType, statisticData.entityStatisticValues().get(statistic).get(entityType));
             }
         }
+    }
+
+    /**
+     * Set a player's location from {@link DataSerializer.PlayerLocation} data
+     *
+     * @param player   The {@link Player} to teleport
+     * @param location The {@link DataSerializer.PlayerLocation}
+     */
+    private static void setPlayerLocation(Player player, DataSerializer.PlayerLocation location) {
+        // Don't teleport if the location is invalid
+        if (location == null) {
+            return;
+        }
+
+        // Determine the world; if the names match, use that
+        World world = Bukkit.getWorld(location.worldName());
+        if (world == null) {
+
+            // If the names don't match, find the corresponding world with the same dimension environment
+            for (World worldOnServer : Bukkit.getWorlds()) {
+                if (worldOnServer.getEnvironment().equals(location.environment())) {
+                    world = worldOnServer;
+                }
+            }
+
+            // If that still fails, return
+            if (world == null) {
+                return;
+            }
+        }
+
+        // Teleport the player
+        player.teleport(new Location(world, location.x(), location.y(), location.z(), location.yaw(), location.pitch()));
     }
 }

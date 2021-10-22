@@ -14,7 +14,6 @@ import org.bukkit.event.player.PlayerQuitEvent;
 
 import java.io.IOException;
 import java.util.Objects;
-import java.util.UUID;
 import java.util.logging.Level;
 
 public class EventListener implements Listener {
@@ -23,6 +22,7 @@ public class EventListener implements Listener {
 
     /**
      * Returns the new serialized PlayerData for a player.
+     *
      * @param player The {@link Player} to get the new serialized PlayerData for
      * @return The {@link PlayerData}, serialized as a {@link String}
      * @throws IOException If the serialization fails
@@ -42,7 +42,10 @@ public class EventListener implements Listener {
                 player.getLevel(),
                 player.getExp(),
                 player.getGameMode().toString(),
-                DataSerializer.getSerializedStatisticData(player)));
+                DataSerializer.getSerializedStatisticData(player),
+                player.isFlying(),
+                DataSerializer.getSerializedAdvancements(player),
+                DataSerializer.getSerializedLocation(player)));
     }
 
     @EventHandler
@@ -52,8 +55,8 @@ public class EventListener implements Listener {
 
         try {
             // Get the player's last updated PlayerData version UUID
-            final UUID lastUpdatedDataVersion = CrossServerSyncBukkit.bukkitCache.getVersionUUID(player.getUniqueId());
-            if (lastUpdatedDataVersion == null) return; // Return if the player has not been properly updated.
+            //final UUID lastUpdatedDataVersion = CrossServerSyncBukkit.bukkitCache.getVersionUUID(player.getUniqueId());
+            //if (lastUpdatedDataVersion == null) return; // Return if the player has not been properly updated.
 
             // Send a redis message with the player's last updated PlayerData version UUID and their new PlayerData
             final String serializedPlayerData = getNewSerializedPlayerData(player);
@@ -63,12 +66,23 @@ public class EventListener implements Listener {
         } catch (IOException e) {
             plugin.getLogger().log(Level.SEVERE, "Failed to send a PlayerData update to the proxy", e);
         }
+
+        // Clear player inventory and ender chest
+        player.getInventory().clear();
+        player.getEnderChest().clear();
+
+        // Set data version ID to null
+        CrossServerSyncBukkit.bukkitCache.setVersionUUID(player.getUniqueId(), null);
     }
 
-   @EventHandler
+    @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         // When a player joins a Bukkit server
         final Player player = event.getPlayer();
+
+        // Clear player inventory and ender chest
+        player.getInventory().clear();
+        player.getEnderChest().clear();
 
         if (CrossServerSyncBukkit.bukkitCache.isPlayerRequestingOnJoin(player.getUniqueId())) {
             try {

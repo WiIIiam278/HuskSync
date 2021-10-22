@@ -1,8 +1,9 @@
 package me.william278.crossserversync.bukkit;
 
 import me.william278.crossserversync.redis.RedisMessage;
-import org.bukkit.Material;
-import org.bukkit.Statistic;
+import org.bukkit.*;
+import org.bukkit.advancement.Advancement;
+import org.bukkit.advancement.AdvancementProgress;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -15,10 +16,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -120,6 +118,7 @@ public final class DataSerializer {
      * @return ItemStack array created from the Base64 string.
      * @throws IOException in the event the class type cannot be decoded
      */
+    @SuppressWarnings("unchecked") // Ignore the unchecked cast here
     public static ItemStack[] itemStackArrayFromBase64(String data) throws IOException {
         // Return an empty ItemStack[] if the data is empty
         if (data.isEmpty()) {
@@ -130,7 +129,6 @@ public final class DataSerializer {
             ItemStack[] items = new ItemStack[dataInput.readInt()];
 
             for (int Index = 0; Index < items.length; Index++) {
-                @SuppressWarnings("unchecked") // Ignore the unchecked cast here
                 Map<String, Object> stack = (Map<String, Object>) dataInput.readObject();
 
                 if (stack != null) {
@@ -146,6 +144,7 @@ public final class DataSerializer {
         }
     }
 
+    @SuppressWarnings("unchecked") // Ignore the unchecked cast here
     public static PotionEffect[] potionEffectArrayFromBase64(String data) throws IOException {
         // Return an empty PotionEffect[] if the data is empty
         if (data.isEmpty()) {
@@ -156,7 +155,6 @@ public final class DataSerializer {
             PotionEffect[] items = new PotionEffect[dataInput.readInt()];
 
             for (int Index = 0; Index < items.length; Index++) {
-                @SuppressWarnings("unchecked") // Ignore the unchecked cast here
                 Map<String, Object> effect = (Map<String, Object>) dataInput.readObject();
 
                 if (effect != null) {
@@ -172,6 +170,57 @@ public final class DataSerializer {
         }
     }
 
+    public static PlayerLocation deserializePlayerLocationData(String serializedLocationData) throws IOException {
+        if (serializedLocationData.isEmpty()) {
+            return null;
+        }
+        try {
+            return (PlayerLocation) RedisMessage.deserialize(serializedLocationData);
+        } catch (ClassNotFoundException e) {
+            throw new IOException("Unable to decode class type.", e);
+        }
+    }
+
+    public static String getSerializedLocation(Player player) throws IOException {
+        final Location playerLocation = player.getLocation();
+        return RedisMessage.serialize(new PlayerLocation(playerLocation.getX(), playerLocation.getY(), playerLocation.getZ(),
+                playerLocation.getYaw(), playerLocation.getPitch(), player.getWorld().getName(), player.getWorld().getEnvironment()));
+    }
+
+    public record PlayerLocation(double x, double y, double z, float yaw, float pitch,
+                                 String worldName, World.Environment environment) implements Serializable {
+    }
+
+    @SuppressWarnings("unchecked") // Ignore the unchecked cast here
+    public static ArrayList<AdvancementRecord> deserializeAdvancementData(String serializedAdvancementData) throws IOException {
+        if (serializedAdvancementData.isEmpty()) {
+            return new ArrayList<>();
+        }
+        try {
+            return (ArrayList<AdvancementRecord>) RedisMessage.deserialize(serializedAdvancementData);
+        } catch (ClassNotFoundException e) {
+            throw new IOException("Unable to decode class type.", e);
+        }
+    }
+
+    public static String getSerializedAdvancements(Player player) throws IOException {
+        Iterator<Advancement> serverAdvancements = Bukkit.getServer().advancementIterator();
+        ArrayList<AdvancementRecord> advancementData = new ArrayList<>();
+
+        while (serverAdvancements.hasNext()) {
+            final AdvancementProgress progress = player.getAdvancementProgress(serverAdvancements.next());
+            final NamespacedKey advancementKey = progress.getAdvancement().getKey();
+            final ArrayList<String> awardedCriteria = new ArrayList<>(progress.getAwardedCriteria());
+            advancementData.add(new AdvancementRecord(advancementKey.getNamespace() + ":" + advancementKey.getKey(), awardedCriteria));
+        }
+
+        return RedisMessage.serialize(advancementData);
+    }
+
+    public record AdvancementRecord(String advancementKey,
+                                    ArrayList<String> awardedAdvancementCriteria) implements Serializable {
+    }
+
     public static StatisticData deserializeStatisticData(String serializedStatisticData) throws IOException {
         if (serializedStatisticData.isEmpty()) {
             return new StatisticData(new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>());
@@ -184,28 +233,28 @@ public final class DataSerializer {
     }
 
     public static String getSerializedStatisticData(Player player) throws IOException {
-        HashMap<Statistic,Integer> untypedStatisticValues = new HashMap<>();
-        HashMap<Statistic,HashMap<Material,Integer>> blockStatisticValues = new HashMap<>();
-        HashMap<Statistic,HashMap<Material,Integer>> itemStatisticValues = new HashMap<>();
-        HashMap<Statistic,HashMap<EntityType,Integer>> entityStatisticValues = new HashMap<>();
+        HashMap<Statistic, Integer> untypedStatisticValues = new HashMap<>();
+        HashMap<Statistic, HashMap<Material, Integer>> blockStatisticValues = new HashMap<>();
+        HashMap<Statistic, HashMap<Material, Integer>> itemStatisticValues = new HashMap<>();
+        HashMap<Statistic, HashMap<EntityType, Integer>> entityStatisticValues = new HashMap<>();
         for (Statistic statistic : Statistic.values()) {
             switch (statistic.getType()) {
                 case ITEM -> {
-                    HashMap<Material,Integer> itemValues = new HashMap<>();
+                    HashMap<Material, Integer> itemValues = new HashMap<>();
                     for (Material itemMaterial : Arrays.stream(Material.values()).filter(Material::isItem).collect(Collectors.toList())) {
                         itemValues.put(itemMaterial, player.getStatistic(statistic, itemMaterial));
                     }
                     itemStatisticValues.put(statistic, itemValues);
                 }
                 case BLOCK -> {
-                    HashMap<Material,Integer> blockValues = new HashMap<>();
+                    HashMap<Material, Integer> blockValues = new HashMap<>();
                     for (Material blockMaterial : Arrays.stream(Material.values()).filter(Material::isBlock).collect(Collectors.toList())) {
                         blockValues.put(blockMaterial, player.getStatistic(statistic, blockMaterial));
                     }
                     blockStatisticValues.put(statistic, blockValues);
                 }
                 case ENTITY -> {
-                    HashMap<EntityType,Integer> entityValues = new HashMap<>();
+                    HashMap<EntityType, Integer> entityValues = new HashMap<>();
                     for (EntityType type : Arrays.stream(EntityType.values()).filter(EntityType::isAlive).collect(Collectors.toList())) {
                         entityValues.put(type, player.getStatistic(statistic, type));
                     }
@@ -219,8 +268,9 @@ public final class DataSerializer {
         return RedisMessage.serialize(statisticData);
     }
 
-    public record StatisticData(HashMap<Statistic,Integer> untypedStatisticValues,
-                                HashMap<Statistic,HashMap<Material,Integer>> blockStatisticValues,
-                                HashMap<Statistic,HashMap<Material,Integer>> itemStatisticValues,
-                                HashMap<Statistic,HashMap<EntityType,Integer>> entityStatisticValues) implements Serializable { }
+    public record StatisticData(HashMap<Statistic, Integer> untypedStatisticValues,
+                                HashMap<Statistic, HashMap<Material, Integer>> blockStatisticValues,
+                                HashMap<Statistic, HashMap<Material, Integer>> itemStatisticValues,
+                                HashMap<Statistic, HashMap<EntityType, Integer>> entityStatisticValues) implements Serializable {
+    }
 }

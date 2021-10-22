@@ -35,6 +35,8 @@ public class BukkitRedisListener extends RedisListener {
         if (!message.getMessageTarget().targetServerType().equals(Settings.ServerType.BUKKIT)) {
             return;
         }
+
+
         // Handle the message for the player
         if (message.getMessageTarget().targetPlayerUUID() == null) {
             if (message.getMessageType() == RedisMessage.MessageType.REQUEST_DATA_ON_JOIN) {

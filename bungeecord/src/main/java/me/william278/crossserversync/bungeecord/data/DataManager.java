@@ -80,10 +80,16 @@ public class DataManager {
                     final int expLevel = resultSet.getInt("exp_level");
                     final float expProgress = resultSet.getInt("exp_progress");
                     final String gameMode = resultSet.getString("game_mode");
+                    final boolean isFlying = resultSet.getBoolean("is_flying");
+                    final String serializedAdvancementData = resultSet.getString("advancements");
+                    final String serializedLocationData = resultSet.getString(  "location");
 
                     final String serializedStatisticData = resultSet.getString("statistics");
 
-                    return new PlayerData(playerUUID, dataVersionUUID, serializedInventory, serializedEnderChest, health, maxHealth, hunger, saturation, saturationExhaustion, selectedSlot, serializedStatusEffects, totalExperience, expLevel, expProgress, gameMode, serializedStatisticData);
+                    return new PlayerData(playerUUID, dataVersionUUID, serializedInventory, serializedEnderChest,
+                            health, maxHealth, hunger, saturation, saturationExhaustion, selectedSlot, serializedStatusEffects,
+                            totalExperience, expLevel, expProgress, gameMode, serializedStatisticData, isFlying,
+                            serializedAdvancementData, serializedLocationData);
                 } else {
                     return PlayerData.DEFAULT_PLAYER_DATA(playerUUID);
                 }
@@ -111,7 +117,7 @@ public class DataManager {
     private static void updatePlayerSQLData(PlayerData playerData) {
         try (Connection connection = CrossServerSyncBungeeCord.getConnection()) {
             try (PreparedStatement statement = connection.prepareStatement(
-                    "UPDATE " + Database.DATA_TABLE_NAME + " SET `version_uuid`=?, `timestamp`=?, `inventory`=?, `ender_chest`=?, `health`=?, `max_health`=?, `hunger`=?, `saturation`=?, `saturation_exhaustion`=?, `selected_slot`=?, `status_effects`=?, `total_experience`=?, `exp_level`=?, `exp_progress`=?, `game_mode`=?, `statistics`=? WHERE `player_id`=(SELECT `id` FROM " + Database.PLAYER_TABLE_NAME + " WHERE `uuid`=?);")) {
+                    "UPDATE " + Database.DATA_TABLE_NAME + " SET `version_uuid`=?, `timestamp`=?, `inventory`=?, `ender_chest`=?, `health`=?, `max_health`=?, `hunger`=?, `saturation`=?, `saturation_exhaustion`=?, `selected_slot`=?, `status_effects`=?, `total_experience`=?, `exp_level`=?, `exp_progress`=?, `game_mode`=?, `statistics`=?, `is_flying`=?, `advancements`=?, `location`=? WHERE `player_id`=(SELECT `id` FROM " + Database.PLAYER_TABLE_NAME + " WHERE `uuid`=?);")) {
                 statement.setString(1, playerData.getDataVersionUUID().toString());
                 statement.setTimestamp(2, new Timestamp(Instant.now().getEpochSecond()));
                 statement.setString(3, playerData.getSerializedInventory());
@@ -128,8 +134,11 @@ public class DataManager {
                 statement.setFloat(14, playerData.getExpProgress()); // Exp progress
                 statement.setString(15, playerData.getGameMode()); // GameMode
                 statement.setString(16, playerData.getSerializedStatistics()); // Statistics
+                statement.setBoolean(17, playerData.isFlying()); // Is flying
+                statement.setString(18, playerData.getSerializedAdvancements()); // Advancements
+                statement.setString(19, playerData.getSerializedLocation()); // Location
 
-                statement.setString(17, playerData.getPlayerUUID().toString());
+                statement.setString(20, playerData.getPlayerUUID().toString());
                 statement.executeUpdate();
             }
         } catch (SQLException e) {
@@ -140,7 +149,7 @@ public class DataManager {
     private static void insertPlayerData(PlayerData playerData) {
         try (Connection connection = CrossServerSyncBungeeCord.getConnection()) {
             try (PreparedStatement statement = connection.prepareStatement(
-                    "INSERT INTO " + Database.DATA_TABLE_NAME + " (`player_id`,`version_uuid`,`timestamp`,`inventory`,`ender_chest`,`health`,`max_health`,`hunger`,`saturation`,`saturation_exhaustion`,`selected_slot`,`status_effects`,`total_experience`,`exp_level`,`exp_progress`,`game_mode`,`statistics`) VALUES((SELECT `id` FROM " + Database.PLAYER_TABLE_NAME + " WHERE `uuid`=?),?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);")) {
+                    "INSERT INTO " + Database.DATA_TABLE_NAME + " (`player_id`,`version_uuid`,`timestamp`,`inventory`,`ender_chest`,`health`,`max_health`,`hunger`,`saturation`,`saturation_exhaustion`,`selected_slot`,`status_effects`,`total_experience`,`exp_level`,`exp_progress`,`game_mode`,`statistics`,`is_flying`,`advancements`,`location`) VALUES((SELECT `id` FROM " + Database.PLAYER_TABLE_NAME + " WHERE `uuid`=?),?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);")) {
                 statement.setString(1, playerData.getPlayerUUID().toString());
                 statement.setString(2, playerData.getDataVersionUUID().toString());
                 statement.setTimestamp(3, new Timestamp(Instant.now().getEpochSecond()));
@@ -157,8 +166,10 @@ public class DataManager {
                 statement.setInt(14, playerData.getExpLevel()); // Exp level
                 statement.setFloat(15, playerData.getExpProgress()); // Exp progress
                 statement.setString(16, playerData.getGameMode()); // GameMode
-
                 statement.setString(17, playerData.getSerializedStatistics()); // Statistics
+                statement.setBoolean(18, playerData.isFlying()); // Is flying
+                statement.setString(19, playerData.getSerializedAdvancements()); // Advancements
+                statement.setString(20, playerData.getSerializedLocation()); // Location
 
                 statement.executeUpdate();
             }
@@ -232,23 +243,6 @@ public class DataManager {
                 }
             }
             return null;
-        }
-
-        /**
-         * Remove a player's {@link PlayerData} from the cache
-         * @param playerUUID The UUID of the player to remove
-         */
-        public void removePlayer(UUID playerUUID) {
-            PlayerData dataToRemove = null;
-            for (PlayerData data : playerData) {
-                if (data.getPlayerUUID() == playerUUID) {
-                    dataToRemove = data;
-                    break;
-                }
-            }
-            if (dataToRemove != null) {
-                playerData.remove(dataToRemove);
-            }
         }
 
     }

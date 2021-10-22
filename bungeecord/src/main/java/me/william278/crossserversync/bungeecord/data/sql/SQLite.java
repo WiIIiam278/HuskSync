@@ -45,6 +45,9 @@ public class SQLite extends Database {
                     "`exp_progress` float NOT NULL," +
                     "`game_mode` tinytext NOT NULL," +
                     "`statistics` longtext NOT NULL," +
+                    "`is_flying` boolean NOT NULL," +
+                    "`advancements` longtext NOT NULL," +
+                    "`location` text NOT NULL," +
 
                     "PRIMARY KEY (`player_id`,`version_uuid`)" +
                     ");"

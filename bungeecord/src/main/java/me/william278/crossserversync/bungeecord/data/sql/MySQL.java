@@ -37,6 +37,9 @@ public class MySQL extends Database {
                     "`exp_progress` float NOT NULL," +
                     "`game_mode` tinytext NOT NULL," +
                     "`statistics` longtext NOT NULL," +
+                    "`is_flying` boolean NOT NULL," +
+                    "`advancements` longtext NOT NULL," +
+                    "`location` text NOT NULL," +
 
                     "PRIMARY KEY (`player_id`,`uuid`)," +
                     "FOREIGN KEY (`player_id`) REFERENCES " + PLAYER_TABLE_NAME + " (`id`)" +

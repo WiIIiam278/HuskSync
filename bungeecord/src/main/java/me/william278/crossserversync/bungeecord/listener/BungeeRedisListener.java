@@ -1,6 +1,5 @@
 package me.william278.crossserversync.bungeecord.listener;
 
-import de.themoep.minedown.MineDown;
 import me.william278.crossserversync.CrossServerSyncBungeeCord;
 import me.william278.crossserversync.PlayerData;
 import me.william278.crossserversync.Settings;
@@ -88,20 +87,20 @@ public class BungeeRedisListener extends RedisListener {
                 // Update the data in the cache and SQL
                 DataManager.updatePlayerData(playerData);
 
-                // Reply to set the player's data if they moved servers
-                ProxiedPlayer player = ProxyServer.getInstance().getPlayer(playerData.getPlayerUUID());
-                if (player != null) {
-                    if (player.isConnected()) {
-                        // Send the reply, serializing the message data
-                        try {
+                // Reply with the player data if they are still online (switching server)
+                try {
+                    ProxiedPlayer player = ProxyServer.getInstance().getPlayer(playerData.getPlayerUUID());
+                    if (player != null) {
+                        if (player.isConnected()) {
                             new RedisMessage(RedisMessage.MessageType.PLAYER_DATA_SET,
                                     new RedisMessage.MessageTarget(Settings.ServerType.BUKKIT, playerData.getPlayerUUID()),
-                                    RedisMessage.serialize(playerData)).send();
-                        } catch (IOException e) {
-                            log(Level.SEVERE, "Failed to serialize data when replying to a data update");
-                            e.printStackTrace();
+                                    RedisMessage.serialize(playerData))
+                                    .send();
                         }
                     }
+                } catch (IOException e) {
+                    log(Level.SEVERE, "Failed to re-serialize PlayerData when handling a player update request");
+                    e.printStackTrace();
                 }
             }
         }

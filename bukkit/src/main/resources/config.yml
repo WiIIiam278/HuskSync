@@ -11,3 +11,5 @@ synchronisation_settings:
   potion_effects: true
   statistics: true
   game_mode: true
+  advancements: true
+  location: false
