@@ -6,6 +6,7 @@ dependencies {
     implementation 'redis.clients:jedis:3.7.0'
     implementation 'de.themoep:minedown:1.7.1-SNAPSHOT'
 
+    compileOnly 'net.craftersland.data:bridge:3.36.3'
     compileOnly 'org.spigotmc:spigot-api:1.16.5-R0.1-SNAPSHOT'
 }
 

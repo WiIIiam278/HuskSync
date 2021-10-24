@@ -5,15 +5,9 @@ import me.william278.husksync.HuskSyncBungeeCord;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-import java.util.Locale;
 import java.util.logging.Level;
 
 public class SQLite extends Database {
@@ -24,7 +18,8 @@ public class SQLite extends Database {
 
             "CREATE TABLE IF NOT EXISTS " + PLAYER_TABLE_NAME + " (" +
                     "`id` integer PRIMARY KEY," +
-                    "`uuid` char(36) NOT NULL UNIQUE" +
+                    "`uuid` char(36) NOT NULL UNIQUE," +
+                    "`username` varchar(16) NOT NULL" +
                     ");",
 
             "CREATE TABLE IF NOT EXISTS " + DATA_TABLE_NAME + " (" +
@@ -35,6 +30,7 @@ public class SQLite extends Database {
                     "`ender_chest` longtext NOT NULL," +
                     "`health` double NOT NULL," +
                     "`max_health` double NOT NULL," +
+                    "`health_scale` double NOT NULL," +
                     "`hunger` integer NOT NULL," +
                     "`saturation` float NOT NULL," +
                     "`saturation_exhaustion` float NOT NULL," +
@@ -98,7 +94,10 @@ public class SQLite extends Database {
         dataSource.setKeepaliveTime(hikariKeepAliveTime);
         dataSource.setConnectionTimeout(hikariConnectionTimeOut);
         dataSource.setPoolName(DATA_POOL_NAME);
+    }
 
+    @Override
+    public void createTables() {
         // Create tables
         try (Connection connection = dataSource.getConnection()) {
             try (Statement statement = connection.createStatement()) {
@@ -118,23 +117,4 @@ public class SQLite extends Database {
         }
     }
 
-    @Override
-    public void backup() {
-        final String BACKUPS_FOLDER_NAME = "database-backups";
-        final String backupFileName = DATABASE_NAME + "Backup_" + DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss-SS")
-                .withLocale(Locale.getDefault())
-                .withZone(ZoneId.systemDefault())
-                .format(Instant.now()).replaceAll(" ", "-") + ".db";
-        final File databaseFile = new File(plugin.getDataFolder(), DATABASE_NAME + ".db");
-        if (new File(plugin.getDataFolder(), BACKUPS_FOLDER_NAME).mkdirs()) {
-            plugin.getLogger().info("Created backups directory in HuskSync plugin data folder.");
-        }
-        final File backUpFile = new File(plugin.getDataFolder(), BACKUPS_FOLDER_NAME + File.separator + backupFileName);
-        try {
-            Files.copy(databaseFile.toPath(), backUpFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-            plugin.getLogger().info("Created a backup of your database.");
-        } catch (IOException iox) {
-            plugin.getLogger().log(Level.WARNING, "An error occurred making a database backup", iox);
-        }
-    }
 }

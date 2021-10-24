@@ -112,7 +112,42 @@ public class RedisMessage {
         /**
          * Sent by the proxy to ask the Bukkit server to send the full plugin information, contains information about the proxy brand and version
          */
-        SEND_PLUGIN_INFORMATION
+        SEND_PLUGIN_INFORMATION,
+
+        /**
+         * Sent by the proxy to show a player the contents of another player's inventory, contains their username and {@link PlayerData}
+         */
+        OPEN_INVENTORY,
+
+        /**
+         * Sent by the proxy to show a player the contents of another player's ender chest, contains their username and {@link PlayerData}
+         */
+        OPEN_ENDER_CHEST,
+
+        /**
+         * Sent by both the proxy and bukkit servers to confirm cross-server communication has been established
+         */
+        CONNECTION_HANDSHAKE,
+
+        /**
+         * Sent by both the proxy and bukkit servers to terminate communications (if a bukkit / the proxy goes offline)
+         */
+        TERMINATE_HANDSHAKE,
+
+        /**
+         * Sent by a proxy to a bukkit server to decode MPDB data
+         */
+        DECODE_MPDB_DATA,
+
+        /**
+         * Sent by a bukkit server back to the proxy with the correctly decoded MPDB data
+         */
+        DECODED_MPDB_DATA_SET,
+
+        /**
+         * Sent by the proxy to a bukkit server to initiate a reload
+         */
+        RELOAD_CONFIG
     }
 
     public enum RequestOnJoinUpdateType {

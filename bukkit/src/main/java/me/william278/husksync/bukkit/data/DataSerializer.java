@@ -1,4 +1,4 @@
-package me.william278.husksync.bukkit;
+package me.william278.husksync.bukkit.data;
 
 import me.william278.husksync.redis.RedisMessage;
 import org.bukkit.*;
@@ -6,6 +6,7 @@ import org.bukkit.advancement.Advancement;
 import org.bukkit.advancement.AdvancementProgress;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.util.io.BukkitObjectInputStream;
@@ -33,19 +34,19 @@ public final class DataSerializer {
     /**
      * Converts the player inventory to a Base64 encoded string.
      *
-     * @param player whose inventory will be turned into an array of strings.
+     * @param inventory the inventory to convert to Base64.
      * @return string with serialized Inventory
      * @throws IllegalStateException in the event the item stacks cannot be saved
      */
-    public static String getSerializedInventoryContents(Player player) throws IllegalStateException {
+    public static String getSerializedInventoryContents(Inventory inventory) throws IllegalStateException {
         // This contains contents, armor and offhand (contents are indexes 0 - 35, armor 36 - 39, offhand - 40)
-        return itemStackArrayToBase64(player.getInventory().getContents());
+        return itemStackArrayToBase64(inventory.getContents());
     }
 
     /**
      * Converts the player inventory to a Base64 encoded string.
      *
-     * @param player whose Ender Chest will be turned into an array of strings.
+     * @param player whose Ender Chest will be turned into Base64.
      * @return string with serialized Ender Chest
      * @throws IllegalStateException in the event the item stacks cannot be saved
      */

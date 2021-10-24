@@ -16,26 +16,27 @@ public class PlayerData implements Serializable {
     private final UUID dataVersionUUID;
 
     // Flag to indicate if the Bukkit server should use default data
-    private boolean useDefaultData = false;
+    public boolean useDefaultData = false;
 
     // Player data
-    private final String serializedInventory;
-    private final String serializedEnderChest;
-    private final double health;
-    private final double maxHealth;
-    private final int hunger;
-    private final float saturation;
-    private final float saturationExhaustion;
-    private final int selectedSlot;
-    private final String serializedEffectData;
-    private final int totalExperience;
-    private final int expLevel;
-    private final float expProgress;
-    private final String gameMode;
-    private final String serializedStatistics;
-    private final boolean isFlying;
-    private final String serializedAdvancements;
-    private final String serializedLocation;
+    private String serializedInventory;
+    private String serializedEnderChest;
+    private double health;
+    private double maxHealth;
+    private double healthScale;
+    private int hunger;
+    private float saturation;
+    private float saturationExhaustion;
+    private int selectedSlot;
+    private String serializedEffectData;
+    private int totalExperience;
+    private int expLevel;
+    private float expProgress;
+    private String gameMode;
+    private String serializedStatistics;
+    private boolean isFlying;
+    private String serializedAdvancements;
+    private String serializedLocation;
 
     /**
      * Constructor to create new PlayerData from a bukkit {@code Player}'s data
@@ -45,6 +46,7 @@ public class PlayerData implements Serializable {
      * @param serializedEnderChest    Their serialized ender chest
      * @param health                  Their health
      * @param maxHealth               Their max health
+     * @param healthScale             Their health scale
      * @param hunger                  Their hunger
      * @param saturation              Their saturation
      * @param saturationExhaustion    Their saturation exhaustion
@@ -56,8 +58,8 @@ public class PlayerData implements Serializable {
      * @param gameMode                Their game mode ({@code SURVIVAL}, {@code CREATIVE}, etc)
      * @param serializedStatistics    Their serialized statistics data (Displayed in Statistics menu in ESC menu)
      */
-    public PlayerData(UUID playerUUID, String serializedInventory, String serializedEnderChest, double health,
-                      double maxHealth, int hunger, float saturation, float saturationExhaustion, int selectedSlot,
+    public PlayerData(UUID playerUUID, String serializedInventory, String serializedEnderChest, double health, double maxHealth,
+                      double healthScale, int hunger, float saturation, float saturationExhaustion, int selectedSlot,
                       String serializedStatusEffects, int totalExperience, int expLevel, float expProgress, String gameMode,
                       String serializedStatistics, boolean isFlying, String serializedAdvancements, String serializedLocation) {
         this.dataVersionUUID = UUID.randomUUID();
@@ -66,6 +68,7 @@ public class PlayerData implements Serializable {
         this.serializedEnderChest = serializedEnderChest;
         this.health = health;
         this.maxHealth = maxHealth;
+        this.healthScale = healthScale;
         this.hunger = hunger;
         this.saturation = saturation;
         this.saturationExhaustion = saturationExhaustion;
@@ -90,6 +93,7 @@ public class PlayerData implements Serializable {
      * @param serializedEnderChest    Their serialized ender chest
      * @param health                  Their health
      * @param maxHealth               Their max health
+     * @param healthScale             Their health scale
      * @param hunger                  Their hunger
      * @param saturation              Their saturation
      * @param saturationExhaustion    Their saturation exhaustion
@@ -102,7 +106,7 @@ public class PlayerData implements Serializable {
      * @param serializedStatistics    Their serialized statistics data (Displayed in Statistics menu in ESC menu)
      */
     public PlayerData(UUID playerUUID, UUID dataVersionUUID, String serializedInventory, String serializedEnderChest,
-                      double health, double maxHealth, int hunger, float saturation, float saturationExhaustion,
+                      double health, double maxHealth, double healthScale, int hunger, float saturation, float saturationExhaustion,
                       int selectedSlot, String serializedStatusEffects, int totalExperience, int expLevel, float expProgress,
                       String gameMode, String serializedStatistics, boolean isFlying, String serializedAdvancements,
                       String serializedLocation) {
@@ -112,6 +116,7 @@ public class PlayerData implements Serializable {
         this.serializedEnderChest = serializedEnderChest;
         this.health = health;
         this.maxHealth = maxHealth;
+        this.healthScale = healthScale;
         this.hunger = hunger;
         this.saturation = saturation;
         this.saturationExhaustion = saturationExhaustion;
@@ -135,7 +140,7 @@ public class PlayerData implements Serializable {
      */
     public static PlayerData DEFAULT_PLAYER_DATA(UUID playerUUID) {
         PlayerData data = new PlayerData(playerUUID, "", "", 20,
-                20, 20, 10, 1, 0,
+                20, 0, 20, 10, 1, 0,
                 "", 0, 0, 0, "SURVIVAL",
                 "", false, "", "");
         data.useDefaultData = true;
@@ -165,6 +170,8 @@ public class PlayerData implements Serializable {
     public double getMaxHealth() {
         return maxHealth;
     }
+
+    public double getHealthScale() { return healthScale; }
 
     public int getHunger() {
         return hunger;
@@ -222,4 +229,75 @@ public class PlayerData implements Serializable {
         return useDefaultData;
     }
 
+    public void setSerializedInventory(String serializedInventory) {
+        this.serializedInventory = serializedInventory;
+    }
+
+    public void setSerializedEnderChest(String serializedEnderChest) {
+        this.serializedEnderChest = serializedEnderChest;
+    }
+
+    public void setHealth(double health) {
+        this.health = health;
+    }
+
+    public void setMaxHealth(double maxHealth) {
+        this.maxHealth = maxHealth;
+    }
+
+    public void setHealthScale(double healthScale) {
+        this.healthScale = healthScale;
+    }
+
+    public void setHunger(int hunger) {
+        this.hunger = hunger;
+    }
+
+    public void setSaturation(float saturation) {
+        this.saturation = saturation;
+    }
+
+    public void setSaturationExhaustion(float saturationExhaustion) {
+        this.saturationExhaustion = saturationExhaustion;
+    }
+
+    public void setSelectedSlot(int selectedSlot) {
+        this.selectedSlot = selectedSlot;
+    }
+
+    public void setSerializedEffectData(String serializedEffectData) {
+        this.serializedEffectData = serializedEffectData;
+    }
+
+    public void setTotalExperience(int totalExperience) {
+        this.totalExperience = totalExperience;
+    }
+
+    public void setExpLevel(int expLevel) {
+        this.expLevel = expLevel;
+    }
+
+    public void setExpProgress(float expProgress) {
+        this.expProgress = expProgress;
+    }
+
+    public void setGameMode(String gameMode) {
+        this.gameMode = gameMode;
+    }
+
+    public void setSerializedStatistics(String serializedStatistics) {
+        this.serializedStatistics = serializedStatistics;
+    }
+
+    public void setFlying(boolean flying) {
+        isFlying = flying;
+    }
+
+    public void setSerializedAdvancements(String serializedAdvancements) {
+        this.serializedAdvancements = serializedAdvancements;
+    }
+
+    public void setSerializedLocation(String serializedLocation) {
+        this.serializedLocation = serializedLocation;
+    }
 }

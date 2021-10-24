@@ -16,13 +16,17 @@ public class DataManager {
     public static PlayerDataCache playerDataCache;
 
     /**
-     * Checks if the player is registered on the database; register them if not.
+     * Checks if the player is registered on the database.
+     * If not, register them to the database
+     * If they are, ensure that their player name is up-to-date on the database
      *
      * @param playerUUID The UUID of the player to register
      */
-    public static void ensurePlayerExists(UUID playerUUID) {
+    public static void ensurePlayerExists(UUID playerUUID, String playerName) {
         if (!playerExists(playerUUID)) {
-            createPlayerEntry(playerUUID);
+            createPlayerEntry(playerUUID, playerName);
+        } else {
+            updatePlayerName(playerUUID, playerName);
         }
     }
 
@@ -46,16 +50,58 @@ public class DataManager {
         }
     }
 
-    private static void createPlayerEntry(UUID playerUUID) {
+    private static void createPlayerEntry(UUID playerUUID, String playerName) {
         try (Connection connection = HuskSyncBungeeCord.getConnection()) {
             try (PreparedStatement statement = connection.prepareStatement(
-                    "INSERT INTO " + Database.PLAYER_TABLE_NAME + " (`uuid`) VALUES(?);")) {
+                    "INSERT INTO " + Database.PLAYER_TABLE_NAME + " (`uuid`,`username`) VALUES(?,?);")) {
                 statement.setString(1, playerUUID.toString());
+                statement.setString(2, playerName);
                 statement.executeUpdate();
             }
         } catch (SQLException e) {
             plugin.getLogger().log(Level.SEVERE, "An SQL exception occurred", e);
         }
+    }
+
+    public static void updatePlayerName(UUID playerUUID, String playerName) {
+        try (Connection connection = HuskSyncBungeeCord.getConnection()) {
+            try (PreparedStatement statement = connection.prepareStatement(
+                    "UPDATE " + Database.PLAYER_TABLE_NAME + " SET `username`=? WHERE `uuid`=?;")) {
+                statement.setString(1, playerName);
+                statement.setString(2, playerUUID.toString());
+                statement.executeUpdate();
+            }
+        } catch (SQLException e) {
+            plugin.getLogger().log(Level.SEVERE, "An SQL exception occurred", e);
+        }
+    }
+
+    /**
+     * Returns a player's PlayerData by their username
+     * @param playerName The PlayerName of the data to get
+     * @return Their {@link PlayerData}; or {@code null} if the player does not exist
+     */
+    public static PlayerData getPlayerDataByName(String playerName) {
+        PlayerData playerData = null;
+        try (Connection connection = HuskSyncBungeeCord.getConnection()) {
+            try (PreparedStatement statement = connection.prepareStatement(
+                    "SELECT * FROM " + Database.PLAYER_TABLE_NAME + " WHERE `username`=? LIMIT 1;")) {
+                statement.setString(1, playerName);
+                ResultSet resultSet = statement.executeQuery();
+                if (resultSet.next()) {
+                    final UUID uuid = UUID.fromString(resultSet.getString("uuid"));
+
+                    // Get the player data from the cache if it's there, otherwise pull from SQL
+                    playerData = playerDataCache.getPlayer(uuid);
+                    if (playerData == null) {
+                        playerData = getPlayerData(uuid);
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            plugin.getLogger().log(Level.SEVERE, "An SQL exception occurred", e);
+        }
+        return playerData;
     }
 
     public static PlayerData getPlayerData(UUID playerUUID) {
@@ -66,11 +112,12 @@ public class DataManager {
                 ResultSet resultSet = statement.executeQuery();
                 if (resultSet.next()) {
                     final UUID dataVersionUUID = UUID.fromString(resultSet.getString("version_uuid"));
-                    final Timestamp dataSaveTimestamp = resultSet.getTimestamp("timestamp");
+                    //final Timestamp dataSaveTimestamp = resultSet.getTimestamp("timestamp");
                     final String serializedInventory = resultSet.getString("inventory");
                     final String serializedEnderChest = resultSet.getString("ender_chest");
                     final double health = resultSet.getDouble("health");
                     final double maxHealth = resultSet.getDouble("max_health");
+                    final double healthScale = resultSet.getDouble("health_scale");
                     final int hunger = resultSet.getInt("hunger");
                     final float saturation = resultSet.getFloat("saturation");
                     final float saturationExhaustion = resultSet.getFloat("saturation_exhaustion");
@@ -87,7 +134,7 @@ public class DataManager {
                     final String serializedStatisticData = resultSet.getString("statistics");
 
                     return new PlayerData(playerUUID, dataVersionUUID, serializedInventory, serializedEnderChest,
-                            health, maxHealth, hunger, saturation, saturationExhaustion, selectedSlot, serializedStatusEffects,
+                            health, maxHealth, healthScale, hunger, saturation, saturationExhaustion, selectedSlot, serializedStatusEffects,
                             totalExperience, expLevel, expProgress, gameMode, serializedStatisticData, isFlying,
                             serializedAdvancementData, serializedLocationData);
                 } else {
@@ -117,46 +164,14 @@ public class DataManager {
     private static void updatePlayerSQLData(PlayerData playerData) {
         try (Connection connection = HuskSyncBungeeCord.getConnection()) {
             try (PreparedStatement statement = connection.prepareStatement(
-                    "UPDATE " + Database.DATA_TABLE_NAME + " SET `version_uuid`=?, `timestamp`=?, `inventory`=?, `ender_chest`=?, `health`=?, `max_health`=?, `hunger`=?, `saturation`=?, `saturation_exhaustion`=?, `selected_slot`=?, `status_effects`=?, `total_experience`=?, `exp_level`=?, `exp_progress`=?, `game_mode`=?, `statistics`=?, `is_flying`=?, `advancements`=?, `location`=? WHERE `player_id`=(SELECT `id` FROM " + Database.PLAYER_TABLE_NAME + " WHERE `uuid`=?);")) {
+                    "UPDATE " + Database.DATA_TABLE_NAME + " SET `version_uuid`=?, `timestamp`=?, `inventory`=?, `ender_chest`=?, `health`=?, `max_health`=?, `health_scale`=?, `hunger`=?, `saturation`=?, `saturation_exhaustion`=?, `selected_slot`=?, `status_effects`=?, `total_experience`=?, `exp_level`=?, `exp_progress`=?, `game_mode`=?, `statistics`=?, `is_flying`=?, `advancements`=?, `location`=? WHERE `player_id`=(SELECT `id` FROM " + Database.PLAYER_TABLE_NAME + " WHERE `uuid`=?);")) {
                 statement.setString(1, playerData.getDataVersionUUID().toString());
                 statement.setTimestamp(2, new Timestamp(Instant.now().getEpochSecond()));
                 statement.setString(3, playerData.getSerializedInventory());
                 statement.setString(4, playerData.getSerializedEnderChest());
                 statement.setDouble(5, playerData.getHealth()); // Health
                 statement.setDouble(6, playerData.getMaxHealth()); // Max health
-                statement.setInt(7, playerData.getHunger()); // Hunger
-                statement.setFloat(8, playerData.getSaturation()); // Saturation
-                statement.setFloat(9, playerData.getSaturationExhaustion()); // Saturation exhaustion
-                statement.setInt(10, playerData.getSelectedSlot()); // Current selected slot
-                statement.setString(11, playerData.getSerializedEffectData()); // Status effects
-                statement.setInt(12, playerData.getTotalExperience()); // Total Experience
-                statement.setInt(13, playerData.getExpLevel()); // Exp level
-                statement.setFloat(14, playerData.getExpProgress()); // Exp progress
-                statement.setString(15, playerData.getGameMode()); // GameMode
-                statement.setString(16, playerData.getSerializedStatistics()); // Statistics
-                statement.setBoolean(17, playerData.isFlying()); // Is flying
-                statement.setString(18, playerData.getSerializedAdvancements()); // Advancements
-                statement.setString(19, playerData.getSerializedLocation()); // Location
-
-                statement.setString(20, playerData.getPlayerUUID().toString());
-                statement.executeUpdate();
-            }
-        } catch (SQLException e) {
-            plugin.getLogger().log(Level.SEVERE, "An SQL exception occurred", e);
-        }
-    }
-
-    private static void insertPlayerData(PlayerData playerData) {
-        try (Connection connection = HuskSyncBungeeCord.getConnection()) {
-            try (PreparedStatement statement = connection.prepareStatement(
-                    "INSERT INTO " + Database.DATA_TABLE_NAME + " (`player_id`,`version_uuid`,`timestamp`,`inventory`,`ender_chest`,`health`,`max_health`,`hunger`,`saturation`,`saturation_exhaustion`,`selected_slot`,`status_effects`,`total_experience`,`exp_level`,`exp_progress`,`game_mode`,`statistics`,`is_flying`,`advancements`,`location`) VALUES((SELECT `id` FROM " + Database.PLAYER_TABLE_NAME + " WHERE `uuid`=?),?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);")) {
-                statement.setString(1, playerData.getPlayerUUID().toString());
-                statement.setString(2, playerData.getDataVersionUUID().toString());
-                statement.setTimestamp(3, new Timestamp(Instant.now().getEpochSecond()));
-                statement.setString(4, playerData.getSerializedInventory());
-                statement.setString(5, playerData.getSerializedEnderChest());
-                statement.setDouble(6, playerData.getHealth()); // Health
-                statement.setDouble(7, playerData.getMaxHealth()); // Max health
+                statement.setDouble(7, playerData.getHealthScale()); // Health scale
                 statement.setInt(8, playerData.getHunger()); // Hunger
                 statement.setFloat(9, playerData.getSaturation()); // Saturation
                 statement.setFloat(10, playerData.getSaturationExhaustion()); // Saturation exhaustion
@@ -170,6 +185,40 @@ public class DataManager {
                 statement.setBoolean(18, playerData.isFlying()); // Is flying
                 statement.setString(19, playerData.getSerializedAdvancements()); // Advancements
                 statement.setString(20, playerData.getSerializedLocation()); // Location
+
+                statement.setString(21, playerData.getPlayerUUID().toString());
+                statement.executeUpdate();
+            }
+        } catch (SQLException e) {
+            plugin.getLogger().log(Level.SEVERE, "An SQL exception occurred", e);
+        }
+    }
+
+    private static void insertPlayerData(PlayerData playerData) {
+        try (Connection connection = HuskSyncBungeeCord.getConnection()) {
+            try (PreparedStatement statement = connection.prepareStatement(
+                    "INSERT INTO " + Database.DATA_TABLE_NAME + " (`player_id`,`version_uuid`,`timestamp`,`inventory`,`ender_chest`,`health`,`max_health`,`health_scale`,`hunger`,`saturation`,`saturation_exhaustion`,`selected_slot`,`status_effects`,`total_experience`,`exp_level`,`exp_progress`,`game_mode`,`statistics`,`is_flying`,`advancements`,`location`) VALUES((SELECT `id` FROM " + Database.PLAYER_TABLE_NAME + " WHERE `uuid`=?),?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);")) {
+                statement.setString(1, playerData.getPlayerUUID().toString());
+                statement.setString(2, playerData.getDataVersionUUID().toString());
+                statement.setTimestamp(3, new Timestamp(Instant.now().getEpochSecond()));
+                statement.setString(4, playerData.getSerializedInventory());
+                statement.setString(5, playerData.getSerializedEnderChest());
+                statement.setDouble(6, playerData.getHealth()); // Health
+                statement.setDouble(7, playerData.getMaxHealth()); // Max health
+                statement.setDouble(8, playerData.getHealthScale()); // Health scale
+                statement.setInt(9, playerData.getHunger()); // Hunger
+                statement.setFloat(10, playerData.getSaturation()); // Saturation
+                statement.setFloat(11, playerData.getSaturationExhaustion()); // Saturation exhaustion
+                statement.setInt(12, playerData.getSelectedSlot()); // Current selected slot
+                statement.setString(13, playerData.getSerializedEffectData()); // Status effects
+                statement.setInt(14, playerData.getTotalExperience()); // Total Experience
+                statement.setInt(15, playerData.getExpLevel()); // Exp level
+                statement.setFloat(16, playerData.getExpProgress()); // Exp progress
+                statement.setString(17, playerData.getGameMode()); // GameMode
+                statement.setString(18, playerData.getSerializedStatistics()); // Statistics
+                statement.setBoolean(19, playerData.isFlying()); // Is flying
+                statement.setString(20, playerData.getSerializedAdvancements()); // Advancements
+                statement.setString(21, playerData.getSerializedLocation()); // Location
 
                 statement.executeUpdate();
             }

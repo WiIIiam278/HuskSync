@@ -1,6 +1,7 @@
-name: CrossServerSync
+name: HuskSync
 version: @version@
 main: me.william278.husksync.HuskSyncBukkit
 api-version: 1.16
 author: William278
-description: 'Synchronize data cross-server'
+description: 'A modern, cross-server player data synchronisation system'
+softdepend: [MysqlPlayerDataBridge]

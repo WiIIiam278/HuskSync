@@ -15,6 +15,7 @@ public class MySQL extends Database {
             "CREATE TABLE IF NOT EXISTS " + PLAYER_TABLE_NAME + " (" +
                     "`id` integer NOT NULL AUTO_INCREMENT," +
                     "`uuid` char(36) NOT NULL UNIQUE," +
+                    "`username` varchar(16) NOT NULL," +
 
                     "PRIMARY KEY (`id`)" +
                     ");",
@@ -27,6 +28,7 @@ public class MySQL extends Database {
                     "`ender_chest` longtext NOT NULL," +
                     "`health` double NOT NULL," +
                     "`max_health` double NOT NULL," +
+                    "`health_scale` double NOT NULL," +
                     "`hunger` integer NOT NULL," +
                     "`saturation` float NOT NULL," +
                     "`saturation_exhaustion` float NOT NULL," +
@@ -47,12 +49,13 @@ public class MySQL extends Database {
 
     };
 
-    final String host = me.william278.husksync.Settings.mySQLHost;
-    final int port = me.william278.husksync.Settings.mySQLPort;
-    final String database = me.william278.husksync.Settings.mySQLDatabase;
-    final String username = me.william278.husksync.Settings.mySQLUsername;
-    final String password = me.william278.husksync.Settings.mySQLPassword;
-    final String params = Settings.mySQLParams;
+    public String host = Settings.mySQLHost;
+    public int port = Settings.mySQLPort;
+    public String database = Settings.mySQLDatabase;
+    public String username = Settings.mySQLUsername;
+    public String password = Settings.mySQLPassword;
+    public String params = Settings.mySQLParams;
+    public String dataPoolName = DATA_POOL_NAME;
 
     private HikariDataSource dataSource;
 
@@ -81,8 +84,11 @@ public class MySQL extends Database {
         dataSource.setMaxLifetime(hikariMaximumLifetime);
         dataSource.setKeepaliveTime(hikariKeepAliveTime);
         dataSource.setConnectionTimeout(hikariConnectionTimeOut);
-        dataSource.setPoolName(DATA_POOL_NAME);
+        dataSource.setPoolName(dataPoolName);
+    }
 
+    @Override
+    public void createTables() {
         // Create tables
         try (Connection connection = dataSource.getConnection()) {
             try (Statement statement = connection.createStatement()) {
@@ -102,8 +108,4 @@ public class MySQL extends Database {
         }
     }
 
-    @Override
-    public void backup() {
-        plugin.getLogger().info("Remember to make backups of your HuskHomes Database before updating the plugin!");
-    }
 }

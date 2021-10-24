@@ -9,6 +9,9 @@ public class Settings {
      * General settings
      */
 
+    // Messages language
+    public static String language;
+
     // The type of THIS server (Bungee or Bukkit)
     public static ServerType serverType;
 

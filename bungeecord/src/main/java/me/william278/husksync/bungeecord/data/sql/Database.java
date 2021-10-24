@@ -19,9 +19,17 @@ public abstract class Database {
 
     public abstract Connection getConnection() throws SQLException;
 
+    public boolean isInactive() {
+        try {
+            return getConnection() == null;
+        } catch (SQLException e) {
+            return true;
+        }
+    }
+
     public abstract void load();
 
-    public abstract void backup();
+    public abstract void createTables();
 
     public abstract void close();
 

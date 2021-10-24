@@ -22,8 +22,8 @@ public class BungeeEventListener implements Listener {
     public void onPostLogin(PostLoginEvent event) {
         final ProxiedPlayer player = event.getPlayer();
         ProxyServer.getInstance().getScheduler().runAsync(plugin, () -> {
-            // Ensure the player has data on SQL
-            DataManager.ensurePlayerExists(player.getUniqueId());
+            // Ensure the player has data on SQL and that it is up-to-date
+            DataManager.ensurePlayerExists(player.getUniqueId(), player.getName());
 
             // Get the player's data from SQL
             final PlayerData data = DataManager.getPlayerData(player.getUniqueId());

@@ -10,6 +10,11 @@ import java.util.logging.Level;
 public abstract class RedisListener {
 
     /**
+     * Determines if the RedisListener is working properly
+     */
+    public boolean isActiveAndEnabled;
+
+    /**
      * Handle an incoming {@link RedisMessage}
      * @param message The {@link RedisMessage} to handle
      */
@@ -33,6 +38,7 @@ public abstract class RedisListener {
         }
         jedis.connect();
         if (jedis.isConnected()) {
+            isActiveAndEnabled = true;
             log(Level.INFO,"Enabled Redis listener successfully!");
             new Thread(() -> jedis.subscribe(new JedisPubSub() {
                 @Override
@@ -51,6 +57,7 @@ public abstract class RedisListener {
                 }
             }, RedisMessage.REDIS_CHANNEL), "Redis Subscriber").start();
         } else {
+            isActiveAndEnabled = false;
             log(Level.SEVERE, "Failed to initialize the redis listener!");
         }
     }

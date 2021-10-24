@@ -6,7 +6,7 @@ data_storage_settings:
   database_type: 'sqlite'
   mysql_settings:
     host: 'localhost'
-    port: 8123
+    port: 3306
     database: 'HuskSync'
     username: 'root'
     password: 'pa55w0rd'
