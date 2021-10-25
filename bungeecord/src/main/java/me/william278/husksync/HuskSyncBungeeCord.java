@@ -32,6 +32,9 @@ public final class HuskSyncBungeeCord extends Plugin {
         return instance;
     }
 
+    // Whether the plugin is ready to accept redis messages
+    public static boolean readyForRedis = false;
+
     /**
      Set of all the {@link Server}s that have completed the synchronisation handshake with HuskSync on the proxy
      */
@@ -107,6 +110,9 @@ public final class HuskSyncBungeeCord extends Plugin {
 
         // Log to console
         getLogger().info("Enabled HuskSync (" + getProxy().getName() + ") v" + getDescription().getVersion());
+
+        // Mark as ready for redis message processing
+        readyForRedis = true;
     }
 
     @Override

@@ -49,6 +49,10 @@ public class BungeeRedisListener extends RedisListener {
         if (message.getMessageTarget().targetServerType() != Settings.ServerType.BUNGEECORD) {
             return;
         }
+        // Only process redis messages when ready
+        if (!HuskSyncBungeeCord.readyForRedis) {
+            return;
+        }
 
         switch (message.getMessageType()) {
             case PLAYER_DATA_REQUEST -> {

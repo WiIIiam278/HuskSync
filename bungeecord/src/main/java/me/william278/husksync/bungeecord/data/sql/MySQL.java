@@ -43,7 +43,7 @@ public class MySQL extends Database {
                     "`advancements` longtext NOT NULL," +
                     "`location` text NOT NULL," +
 
-                    "PRIMARY KEY (`player_id`,`uuid`)," +
+                    "PRIMARY KEY (`player_id`,`version_uuid`)," +
                     "FOREIGN KEY (`player_id`) REFERENCES " + PLAYER_TABLE_NAME + " (`id`)" +
                     ");"
 
