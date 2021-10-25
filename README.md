@@ -20,7 +20,6 @@ Are you a developer? [Read below for information about code bounty licensing](#C
 2. Start your servers, then stop them again to allow the configuration files to generate.  
 3. Navigate to the generated `config.yml` files on your Spigot server and Proxy (located in `/plugins/HuskSync/`) and fill in the credentials of your redis server. 
    1. On the Proxy server, you can additionally configure a MySQL database to save player data in, as by default the plugin will create a SQLite database. 
-   2. If you have multiple proxy servers (i.e. via RedisBungee), you need to install the plugin on all of them and make use of the MySQL option and ensure the proxies are using the same database.
    3. By default, everything except player locations are synchronised. If you would like to change what gets synchronised, you can do this by editing the `config.yml` files of each Spigot server.
 4. Once you have finished setting everything up, make sure to restart all of your servers and proxy server. Then, log in and data should be synchronised!
 
