@@ -140,7 +140,7 @@ public class PlayerData implements Serializable {
      */
     public static PlayerData DEFAULT_PLAYER_DATA(UUID playerUUID) {
         PlayerData data = new PlayerData(playerUUID, "", "", 20,
-                20, 0, 20, 10, 1, 0,
+                20, 20, 20, 10, 1, 0,
                 "", 0, 0, 0, "SURVIVAL",
                 "", false, "", "");
         data.useDefaultData = true;

@@ -1,9 +1,10 @@
 dependencies {
     compileOnly project(':common')
+    compileOnly project(':api')
     implementation project(path: ':common', configuration: 'shadow')
 
+    compileOnly 'redis.clients:jedis:3.7.0'
     implementation 'org.bstats:bstats-bukkit:2.2.1'
-    implementation 'redis.clients:jedis:3.7.0'
     implementation 'de.themoep:minedown:1.7.1-SNAPSHOT'
 
     compileOnly 'net.craftersland.data:bridge:3.36.3'
@@ -11,7 +12,6 @@ dependencies {
 }
 
 shadowJar {
-    relocate 'redis.clients', 'me.William278.husksync.libraries.jedis'
     relocate 'org.bstats', 'me.William278.husksync.libraries.plan'
     relocate 'de.themoep', 'me.William278.husksync.libraries.minedown'
 }

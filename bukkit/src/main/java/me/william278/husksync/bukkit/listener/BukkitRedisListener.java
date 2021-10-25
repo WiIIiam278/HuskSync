@@ -40,7 +40,7 @@ public class BukkitRedisListener extends RedisListener {
             return;
         }
 
-        // Handle the message for the player
+        // Handle the incoming redis message; either for a specific player or the system
         if (message.getMessageTarget().targetPlayerUUID() == null) {
             switch (message.getMessageType()) {
                 case REQUEST_DATA_ON_JOIN -> {
@@ -81,18 +81,20 @@ public class BukkitRedisListener extends RedisListener {
                 case DECODE_MPDB_DATA -> {
                     UUID serverUUID = UUID.fromString(message.getMessageDataElements()[0]);
                     String encodedData = message.getMessageDataElements()[1];
-                    if (serverUUID.equals(HuskSyncBukkit.serverUUID)) {
-                        try {
-                            MPDBPlayerData data = (MPDBPlayerData) RedisMessage.deserialize(encodedData);
-                            new RedisMessage(RedisMessage.MessageType.DECODED_MPDB_DATA_SET,
-                                    new RedisMessage.MessageTarget(Settings.ServerType.BUNGEECORD, null),
-                                    RedisMessage.serialize(MPDBDeserializer.convertMPDBData(data)),
-                                    data.playerName)
-                                    .send();
-                        } catch (IOException | ClassNotFoundException e) {
-                            log(Level.SEVERE, "Failed to serialize encoded MPDB data");
+                    Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+                        if (serverUUID.equals(HuskSyncBukkit.serverUUID)) {
+                            try {
+                                MPDBPlayerData data = (MPDBPlayerData) RedisMessage.deserialize(encodedData);
+                                new RedisMessage(RedisMessage.MessageType.DECODED_MPDB_DATA_SET,
+                                        new RedisMessage.MessageTarget(Settings.ServerType.BUNGEECORD, null),
+                                        RedisMessage.serialize(MPDBDeserializer.convertMPDBData(data)),
+                                        data.playerName)
+                                        .send();
+                            } catch (IOException | ClassNotFoundException e) {
+                                log(Level.SEVERE, "Failed to serialize encoded MPDB data");
+                            }
                         }
-                    }
+                    });
                 }
                 case RELOAD_CONFIG -> {
                     plugin.reloadConfig();

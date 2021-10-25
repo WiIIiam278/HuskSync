@@ -97,8 +97,9 @@ public class HuskSyncCommand extends Command implements TabExecutor {
                         }
                         ConfigManager.loadConfig();
                         ConfigLoader.loadSettings(Objects.requireNonNull(ConfigManager.getConfig()));
-                        ConfigManager.loadMessages(Settings.language);
-                        ConfigLoader.loadMessages(Objects.requireNonNull(ConfigManager.getMessages(Settings.language)));
+
+                        ConfigManager.loadMessages();
+                        ConfigLoader.loadMessageStrings(Objects.requireNonNull(ConfigManager.getMessages()));
 
                         // Send reload request to all bukkit servers
                         try {

@@ -1,6 +1,7 @@
 package me.william278.husksync.bungeecord.config;
 
 import me.william278.husksync.HuskSyncBungeeCord;
+import me.william278.husksync.Settings;
 import net.md_5.bungee.config.Configuration;
 import net.md_5.bungee.config.ConfigurationProvider;
 import net.md_5.bungee.config.YamlConfiguration;
@@ -31,16 +32,16 @@ public class ConfigManager {
         }
     }
 
-    public static void loadMessages(String language) {
+    public static void loadMessages() {
         try {
             if (!plugin.getDataFolder().exists()) {
                 if (plugin.getDataFolder().mkdir()) {
                     plugin.getLogger().info("Created HuskSync data folder");
                 }
             }
-            File messagesFile = new File(plugin.getDataFolder(), "messages_ " + language + ".yml");
+            File messagesFile = new File(plugin.getDataFolder(), "messages_" + Settings.language + ".yml");
             if (!messagesFile.exists()) {
-                Files.copy(plugin.getResourceAsStream("languages" + File.separator + language + ".yml"), messagesFile.toPath());
+                Files.copy(plugin.getResourceAsStream("languages/" + Settings.language + ".yml"), messagesFile.toPath());
                 plugin.getLogger().info("Created HuskSync messages file");
             }
         } catch (Exception e) {
@@ -58,9 +59,9 @@ public class ConfigManager {
         }
     }
 
-    public static Configuration getMessages(String language) {
+    public static Configuration getMessages() {
         try {
-            File configFile = new File(plugin.getDataFolder(), "messages-" + language + ".yml");
+            File configFile = new File(plugin.getDataFolder(), "messages_" + Settings.language + ".yml");
             return ConfigurationProvider.getProvider(YamlConfiguration.class).load(configFile);
         } catch (IOException e) {
             plugin.getLogger().log(Level.CONFIG, "An IOException occurred fetching the messages file", e);

@@ -24,7 +24,4 @@ shadowJar {
     // Exclude some unnecessary files
     exclude "**/module-info.class"
     exclude "module-info.class"
-
-    // Relocations
-    relocate 'redis.clients', 'me.William278.husksync.libraries.jedis'
 }

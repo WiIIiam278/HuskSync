@@ -9,6 +9,7 @@ import me.william278.husksync.bungeecord.data.DataManager;
 import me.william278.husksync.bungeecord.migrator.MPDBMigrator;
 import me.william278.husksync.redis.RedisListener;
 import me.william278.husksync.redis.RedisMessage;
+import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 
@@ -70,7 +71,7 @@ public class BungeeRedisListener extends RedisListener {
                         // Send synchronisation complete message
                         ProxiedPlayer player = ProxyServer.getInstance().getPlayer(requestingPlayerUUID);
                         if (player.isConnected()) {
-                            player.sendMessage(new MineDown(MessageManager.getMessage("synchronisation_complete")).toComponent());
+                            player.sendMessage(ChatMessageType.ACTION_BAR, new MineDown(MessageManager.getMessage("synchronisation_complete")).toComponent());
                         }
                     } catch (IOException e) {
                         log(Level.SEVERE, "Failed to serialize data when replying to a data request");
@@ -104,7 +105,7 @@ public class BungeeRedisListener extends RedisListener {
                                     .send();
 
                             // Send synchronisation complete message
-                            player.sendMessage(new MineDown(MessageManager.getMessage("synchronisation_complete")).toComponent());
+                            player.sendMessage(ChatMessageType.ACTION_BAR, new MineDown(MessageManager.getMessage("synchronisation_complete")).toComponent());
                         }
                     }
                 } catch (IOException e) {

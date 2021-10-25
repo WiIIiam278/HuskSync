@@ -13,6 +13,7 @@ import me.william278.husksync.bungeecord.migrator.MPDBMigrator;
 import me.william278.husksync.redis.RedisMessage;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.plugin.Plugin;
+import org.bstats.bungeecord.Metrics;
 
 import java.io.IOException;
 import java.sql.Connection;
@@ -23,6 +24,8 @@ import java.util.UUID;
 import java.util.logging.Level;
 
 public final class HuskSyncBungeeCord extends Plugin {
+
+    private static final int METRICS_ID = 13141;
 
     private static HuskSyncBungeeCord instance;
     public static HuskSyncBungeeCord getInstance() {
@@ -58,10 +61,10 @@ public final class HuskSyncBungeeCord extends Plugin {
         ConfigLoader.loadSettings(Objects.requireNonNull(ConfigManager.getConfig()));
 
         // Load messages
-        ConfigManager.loadMessages(Settings.language);
+        ConfigManager.loadMessages();
 
         // Load locales from messages
-        ConfigLoader.loadMessages(Objects.requireNonNull(ConfigManager.getMessages(Settings.language)));
+        ConfigLoader.loadMessageStrings(Objects.requireNonNull(ConfigManager.getMessages()));
 
         // Initialize the database
         database = switch (Settings.dataStorageType) {
@@ -94,6 +97,13 @@ public final class HuskSyncBungeeCord extends Plugin {
 
         // Prepare the migrator for use if needed
         mpdbMigrator = new MPDBMigrator();
+
+        // Initialize bStats metrics
+        try {
+            new Metrics(this, METRICS_ID);
+        } catch (Exception e) {
+            getLogger().info("Skipped metrics initialization");
+        }
 
         // Log to console
         getLogger().info("Enabled HuskSync (" + getProxy().getName() + ") v" + getDescription().getVersion());

@@ -9,6 +9,8 @@ import java.util.HashMap;
 public class ConfigLoader {
 
     public static void loadSettings(Configuration config) throws IllegalArgumentException {
+        Settings.language = config.getString("language", "en-gb");
+
         Settings.serverType = Settings.ServerType.BUNGEECORD;
         Settings.redisHost = config.getString("redis_settings.host", "localhost");
         Settings.redisPort = config.getInt("redis_settings.port", 6379);
@@ -31,7 +33,7 @@ public class ConfigLoader {
         Settings.hikariConnectionTimeOut = config.getLong("data_storage_settings.hikari_pool_settings.connection_timeout", 5000);
     }
 
-    public static void loadMessages(Configuration config) {
+    public static void loadMessageStrings(Configuration config) {
         final HashMap<String,String> messages = new HashMap<>();
         for (String messageId : config.getKeys()) {
             messages.put(messageId, config.getString(messageId));

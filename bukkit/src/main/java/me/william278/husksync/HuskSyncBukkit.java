@@ -1,12 +1,15 @@
 package me.william278.husksync;
 
+import me.william278.husksync.bukkit.PlayerSetter;
 import me.william278.husksync.bukkit.config.ConfigLoader;
 import me.william278.husksync.bukkit.data.BukkitDataCache;
 import me.william278.husksync.bukkit.listener.BukkitRedisListener;
 import me.william278.husksync.bukkit.listener.EventListener;
 import me.william278.husksync.bukkit.migrator.MPDBDeserializer;
 import me.william278.husksync.redis.RedisMessage;
+import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
@@ -17,8 +20,9 @@ import java.util.logging.Level;
 
 public final class HuskSyncBukkit extends JavaPlugin {
 
-    private static HuskSyncBukkit instance;
+    private static final int METRICS_ID = 13140;
 
+    private static HuskSyncBukkit instance;
     public static HuskSyncBukkit getInstance() {
         return instance;
     }
@@ -52,7 +56,8 @@ public final class HuskSyncBukkit extends JavaPlugin {
                         new RedisMessage.MessageTarget(Settings.ServerType.BUNGEECORD, null),
                         serverUUID.toString(),
                         Boolean.toString(isMySqlPlayerDataBridgeInstalled),
-                        Bukkit.getName()).send();
+                        Bukkit.getName())
+                        .send();
                 attempts[0]++;
                 if (attempts[0] == 10) {
                     getInstance().getLogger().log(Level.WARNING, "Failed to complete handshake with the Proxy server; Please make sure your Proxy server is online and has HuskSync installed in its' /plugins/ folder. HuskSync will continue to try and establish a connection.");
@@ -64,6 +69,7 @@ public final class HuskSyncBukkit extends JavaPlugin {
     }
 
     private void closeRedisHandshake() {
+        if (!handshakeCompleted) return;
         try {
             new RedisMessage(RedisMessage.MessageType.TERMINATE_HANDSHAKE,
                     new RedisMessage.MessageTarget(Settings.ServerType.BUNGEECORD, null),
@@ -114,12 +120,29 @@ public final class HuskSyncBukkit extends JavaPlugin {
         // Ensure redis is connected; establish a handshake
         establishRedisHandshake();
 
+        // Initialize bStats metrics
+        try {
+            new Metrics(this, METRICS_ID);
+        } catch (Exception e) {
+            getLogger().info("Skipped metrics initialization");
+        }
+
         // Log to console
         getLogger().info("Enabled HuskSync (" + getServer().getName() + ") v" + getDescription().getVersion());
     }
 
     @Override
     public void onDisable() {
+        // Update player data for disconnecting players
+        if (HuskSyncBukkit.handshakeCompleted && !HuskSyncBukkit.isMySqlPlayerDataBridgeInstalled && Bukkit.getOnlinePlayers().size() > 0) {
+            getLogger().info("Saving data for remaining online players...");
+            for (Player player : Bukkit.getOnlinePlayers()) {
+                PlayerSetter.updatePlayerData(player);
+            }
+            getLogger().info("Data save complete!");
+        }
+
+
         // Send termination handshake to proxy
         closeRedisHandshake();
 

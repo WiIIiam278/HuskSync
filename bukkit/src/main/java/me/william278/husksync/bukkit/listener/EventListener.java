@@ -28,35 +28,6 @@ public class EventListener implements Listener {
 
     private static final HuskSyncBukkit plugin = HuskSyncBukkit.getInstance();
 
-    /**
-     * Returns the new serialized PlayerData for a player.
-     *
-     * @param player The {@link Player} to get the new serialized PlayerData for
-     * @return The {@link PlayerData}, serialized as a {@link String}
-     * @throws IOException If the serialization fails
-     */
-    private static String getNewSerializedPlayerData(Player player) throws IOException {
-        return RedisMessage.serialize(new PlayerData(player.getUniqueId(),
-                DataSerializer.getSerializedInventoryContents(player.getInventory()),
-                DataSerializer.getSerializedEnderChestContents(player),
-                player.getHealth(),
-                Objects.requireNonNull(player.getAttribute(Attribute.GENERIC_MAX_HEALTH)).getBaseValue(),
-                player.getHealthScale(),
-                player.getFoodLevel(),
-                player.getSaturation(),
-                player.getExhaustion(),
-                player.getInventory().getHeldItemSlot(),
-                DataSerializer.getSerializedEffectData(player),
-                player.getTotalExperience(),
-                player.getLevel(),
-                player.getExp(),
-                player.getGameMode().toString(),
-                DataSerializer.getSerializedStatisticData(player),
-                player.isFlying(),
-                DataSerializer.getSerializedAdvancements(player),
-                DataSerializer.getSerializedLocation(player)));
-    }
-
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
         // When a player leaves a Bukkit server
@@ -70,19 +41,8 @@ public class EventListener implements Listener {
 
         if (!plugin.isEnabled() || !HuskSyncBukkit.handshakeCompleted || HuskSyncBukkit.isMySqlPlayerDataBridgeInstalled) return; // If the plugin has not been initialized correctly
 
-        // Send a redis message with the player's last updated PlayerData version UUID and their new PlayerData
-        try {
-            final String serializedPlayerData = getNewSerializedPlayerData(player);
-            new RedisMessage(RedisMessage.MessageType.PLAYER_DATA_UPDATE,
-                    new RedisMessage.MessageTarget(Settings.ServerType.BUNGEECORD, null),
-                    serializedPlayerData).send();
-        } catch (IOException e) {
-            plugin.getLogger().log(Level.SEVERE, "Failed to send a PlayerData update to the proxy", e);
-        }
-
-        // Clear player inventory and ender chest
-        player.getInventory().clear();
-        player.getEnderChest().clear();
+        // Update the player's data
+        PlayerSetter.updatePlayerData(player);
     }
 
     @EventHandler

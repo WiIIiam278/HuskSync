@@ -54,8 +54,9 @@ public class MPDBMigrator {
             }
         }
         if (synchronisedServersWithMpdb < 1) {
-            plugin.getLogger().log(Level.WARNING, "Failed to start migration because at least one Spigot server must be online and have both HuskSync and MySqlPlayerDataBridge installed. " +
+            plugin.getLogger().log(Level.WARNING, "Failed to start migration because at least one Spigot server with both HuskSync and MySqlPlayerDataBridge installed is not online. " +
                     "Please start one Spigot server with HuskSync installed to begin migration.");
+            return;
         }
 
         migratedDataSent = 0;
@@ -144,7 +145,7 @@ public class MPDBMigrator {
                 }
             }
         } catch (SQLException e) {
-            plugin.getLogger().log(Level.SEVERE, "An exception occurred getting ender chest", e);
+            plugin.getLogger().log(Level.SEVERE, "An exception occurred getting ender chest data", e);
         } finally {
             plugin.getLogger().log(Level.INFO, "Finished getting ender chest data from MySQLPlayerDataBridge");
         }
@@ -161,7 +162,7 @@ public class MPDBMigrator {
                     for (MPDBPlayerData data : mpdbPlayerData) {
                         if (data.playerUUID.equals(playerUUID)) {
                             data.expLevel = resultSet.getInt("exp_lvl");
-                            data.expProgress = resultSet.getInt("exp");
+                            data.expProgress = resultSet.getFloat("exp");
                             data.totalExperience = resultSet.getInt("total_exp");
                             break;
                         }
@@ -169,7 +170,7 @@ public class MPDBMigrator {
                 }
             }
         } catch (SQLException e) {
-            plugin.getLogger().log(Level.SEVERE, "An exception occurred getting ender chest", e);
+            plugin.getLogger().log(Level.SEVERE, "An exception occurred getting experience data", e);
         } finally {
             plugin.getLogger().log(Level.INFO, "Finished getting experience data from MySQLPlayerDataBridge");
         }
@@ -229,6 +230,7 @@ public class MPDBMigrator {
                                 the rest of the Spigot servers, then restart them.
                                 """.replaceAll("%1%", Integer.toString(MPDBMigrator.playersMigrated))
                     .replaceAll("%2%", Integer.toString(MPDBMigrator.migratedDataSent)));
+            sourceDatabase.close(); // Close source database
         });
     }
 

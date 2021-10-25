@@ -3,6 +3,8 @@ package me.william278.husksync.bukkit;
 import me.william278.husksync.HuskSyncBukkit;
 import me.william278.husksync.PlayerData;
 import me.william278.husksync.Settings;
+import me.william278.husksync.api.events.SyncCompleteEvent;
+import me.william278.husksync.api.events.SyncEvent;
 import me.william278.husksync.bukkit.data.DataSerializer;
 import me.william278.husksync.redis.RedisMessage;
 import org.bukkit.*;
@@ -26,6 +28,60 @@ public class PlayerSetter {
 
     private static final HuskSyncBukkit plugin = HuskSyncBukkit.getInstance();
 
+    /**
+     * Returns the new serialized PlayerData for a player.
+     *
+     * @param player The {@link Player} to get the new serialized PlayerData for
+     * @return The {@link PlayerData}, serialized as a {@link String}
+     * @throws IOException If the serialization fails
+     */
+    private static String getNewSerializedPlayerData(Player player) throws IOException {
+        return RedisMessage.serialize(new PlayerData(player.getUniqueId(),
+                DataSerializer.getSerializedInventoryContents(player.getInventory()),
+                DataSerializer.getSerializedEnderChestContents(player),
+                player.getHealth(),
+                Objects.requireNonNull(player.getAttribute(Attribute.GENERIC_MAX_HEALTH)).getBaseValue(),
+                player.getHealthScale(),
+                player.getFoodLevel(),
+                player.getSaturation(),
+                player.getExhaustion(),
+                player.getInventory().getHeldItemSlot(),
+                DataSerializer.getSerializedEffectData(player),
+                player.getTotalExperience(),
+                player.getLevel(),
+                player.getExp(),
+                player.getGameMode().toString(),
+                DataSerializer.getSerializedStatisticData(player),
+                player.isFlying(),
+                DataSerializer.getSerializedAdvancements(player),
+                DataSerializer.getSerializedLocation(player)));
+    }
+
+    /**
+     * Update a {@link Player}'s data, sending it to the proxy
+     * @param player {@link Player} to send data to proxy
+     */
+    public static void updatePlayerData(Player player) {
+        // Send a redis message with the player's last updated PlayerData version UUID and their new PlayerData
+        try {
+            final String serializedPlayerData = getNewSerializedPlayerData(player);
+            new RedisMessage(RedisMessage.MessageType.PLAYER_DATA_UPDATE,
+                    new RedisMessage.MessageTarget(Settings.ServerType.BUNGEECORD, null),
+                    serializedPlayerData).send();
+        } catch (IOException e) {
+            plugin.getLogger().log(Level.SEVERE, "Failed to send a PlayerData update to the proxy", e);
+        }
+
+        // Clear player inventory and ender chest
+        player.getInventory().clear();
+        player.getEnderChest().clear();
+    }
+
+    /**
+     * Request a {@link Player}'s data from the proxy
+     * @param playerUUID The {@link UUID} of the {@link Player} to fetch PlayerData from
+     * @throws IOException If the request Redis message data fails to serialize
+     */
     public static void requestPlayerData(UUID playerUUID) throws IOException {
         new RedisMessage(RedisMessage.MessageType.PLAYER_DATA_REQUEST,
                 new RedisMessage.MessageTarget(Settings.ServerType.BUNGEECORD, null),
@@ -35,26 +91,34 @@ public class PlayerSetter {
     /**
      * Set a player from their PlayerData, based on settings
      *
-     * @param player The {@link Player} to set
-     * @param data   The {@link PlayerData} to assign to the player
+     * @param player    The {@link Player} to set
+     * @param dataToSet The {@link PlayerData} to assign to the player
      */
-    public static void setPlayerFrom(Player player, PlayerData data) {
-        // If the data is flagged as being default data, skip setting
-        if (data.isUseDefaultData()) {
-            HuskSyncBukkit.bukkitCache.removeAwaitingDataFetch(player.getUniqueId());
-            return;
-        }
-
-        // Clear player
-        player.getInventory().clear();
-        player.getEnderChest().clear();
-        player.setExp(0);
-        player.setLevel(0);
-
-        HuskSyncBukkit.bukkitCache.removeAwaitingDataFetch(player.getUniqueId());
-
-        // Set the player's data from the PlayerData
+    public static void setPlayerFrom(Player player, PlayerData dataToSet) {
         Bukkit.getScheduler().runTask(plugin, () -> {
+            // Handle the SyncEvent
+            SyncEvent syncEvent = new SyncEvent(player, dataToSet);
+            Bukkit.getPluginManager().callEvent(syncEvent);
+            final PlayerData data = syncEvent.getData();
+            if (syncEvent.isCancelled()) {
+                return;
+            }
+
+            // If the data is flagged as being default data, skip setting
+            if (data.isUseDefaultData()) {
+                HuskSyncBukkit.bukkitCache.removeAwaitingDataFetch(player.getUniqueId());
+                return;
+            }
+
+            // Clear player
+            player.getInventory().clear();
+            player.getEnderChest().clear();
+            player.setExp(0);
+            player.setLevel(0);
+
+            HuskSyncBukkit.bukkitCache.removeAwaitingDataFetch(player.getUniqueId());
+
+            // Set the player's data from the PlayerData
             try {
                 if (Settings.syncAdvancements) {
                     setPlayerAdvancements(player, DataSerializer.deserializeAdvancementData(data.getSerializedAdvancements()), data);
@@ -67,7 +131,7 @@ public class PlayerSetter {
                     setPlayerEnderChest(player, DataSerializer.itemStackArrayFromBase64(data.getSerializedEnderChest()));
                 }
                 if (Settings.syncHealth) {
-                    player.setHealthScale(data.getHealthScale() > 0 ? data.getHealthScale() : 0D);
+                    player.setHealthScale(data.getHealthScale() <= 0 ? data.getHealthScale() : 20D);
                     Objects.requireNonNull(player.getAttribute(Attribute.GENERIC_MAX_HEALTH)).setBaseValue(data.getMaxHealth());
                     player.setHealth(data.getHealth());
                 }
@@ -93,6 +157,9 @@ public class PlayerSetter {
                     player.setFlying(player.getAllowFlight() && data.isFlying());
                     setPlayerLocation(player, DataSerializer.deserializePlayerLocationData(data.getSerializedLocation()));
                 }
+
+                // Handle the SyncCompleteEvent
+                Bukkit.getPluginManager().callEvent(new SyncCompleteEvent(player, data));
             } catch (IOException e) {
                 plugin.getLogger().log(Level.SEVERE, "Failed to deserialize PlayerData", e);
             }

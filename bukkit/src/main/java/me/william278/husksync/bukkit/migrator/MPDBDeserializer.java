@@ -21,6 +21,7 @@ public class MPDBDeserializer {
 
     // Instance of MySqlPlayerDataBridge
     private static PD mySqlPlayerDataBridge;
+
     public static void setMySqlPlayerDataBridge() {
         mySqlPlayerDataBridge = (PD) Bukkit.getPluginManager().getPlugin("MySqlPlayerDataBridge");
     }
@@ -41,16 +42,36 @@ public class MPDBDeserializer {
 
         // Convert the data
         try {
-            // Set inventory
+            // Set inventory contents
             Inventory inventory = Bukkit.createInventory(null, InventoryType.PLAYER);
-            PlayerSetter.setInventory(inventory, getItemStackArrayFromMPDBBase64String(mpdbPlayerData.inventoryData));
+            if (!mpdbPlayerData.inventoryData.isEmpty() && !mpdbPlayerData.inventoryData.equalsIgnoreCase("none")) {
+                PlayerSetter.setInventory(inventory, getItemStackArrayFromMPDBBase64String(mpdbPlayerData.inventoryData));
+            }
 
+            // Set armor (if there is data; MPDB stores empty data with literally the word "none". Obviously.)
+            int armorSlot = 36;
+            if (!mpdbPlayerData.armorData.isEmpty() && !mpdbPlayerData.armorData.equalsIgnoreCase("none")) {
+                ItemStack[] armorItems = getItemStackArrayFromMPDBBase64String(mpdbPlayerData.armorData);
+                for (ItemStack armorPiece : armorItems) {
+                    if (armorPiece != null) {
+                        inventory.setItem(armorSlot, armorPiece);
+                    }
+                    armorSlot++;
+                }
+
+            }
+
+            // Now apply the contents and clear the temporary inventory variable
             playerData.setSerializedInventory(DataSerializer.getSerializedInventoryContents(inventory));
-            inventory.clear();
 
-            // Set ender chest
-            playerData.setSerializedEnderChest(DataSerializer.itemStackArrayToBase64(
-                    getItemStackArrayFromMPDBBase64String(mpdbPlayerData.enderChestData)));
+            // Set ender chest (again, if there is data)
+            ItemStack[] enderChestData;
+            if (!mpdbPlayerData.enderChestData.isEmpty() && !mpdbPlayerData.enderChestData.equalsIgnoreCase("none")) {
+                enderChestData = getItemStackArrayFromMPDBBase64String(mpdbPlayerData.enderChestData);
+            } else {
+                enderChestData = new ItemStack[0];
+            }
+            playerData.setSerializedEnderChest(DataSerializer.itemStackArrayToBase64(enderChestData));
 
             // Set experience
             playerData.setExpLevel(mpdbPlayerData.expLevel);
