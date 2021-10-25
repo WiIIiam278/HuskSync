@@ -34,6 +34,14 @@ To migrate from MySQLPLayerDataBridge, you need a Proxy server with HuskSync ins
 4. Follow the steps in the Migration wizard to ensure the connection credentials and details of the database containing your MySQLPlayerDataBridge are correct, changing settings with `husksync migrate setting <setting> <new value>` as necessary.
 5. Run `husksync migrate start` in the Proxy server's console to start the migration. This could take some time, depending on the amount of data that needs migrating and the speed of your database/server. When the migration is complete, it will display a "Migration complete" message. 
 
+### Troubleshooting
+#### Commands do not function
+Please check that the plugin is installed and enabled on both the proxy and bukkit server you are trying to execute the command from and that both plugins connected to Redis. (A connection handshake confirmation message is logged to console when communications are successfully established.)
+
+#### SQL errors in proxy console / data not synchronising
+This issue frequently occurs in users running Cracked (illegal) servers. I do not support piracy and so will be limited in my ability to help you.
+If you are running an offline server for a legitimate reason, however, make sure that in the `paper.yml` of your Bukkit servers `bungee-online-mode` is set to the correct value - and that both your Proxy (BungeeCord, Waterfall, etc.) server and Bukkit (Spigot, paper, etc.) servers are set up correctly to work with offline mode.
+
 ## How it works
 ![Flow chart showing different processes of how the plugin works](images/flow-chart.png)
 HuskSync saves a player's data when they log out to a cache on your proxy server, and redistributes that data to players when they join another HuskSync-enabled server. Player data in the cache is then saved to a database (be it SQLite or MySQL) and this is loaded from when a player joins your network.
@@ -70,6 +78,35 @@ Command | Description | Permission
 `/husksync invsee` | View an offline player's inventory | `husksync.command.inventory`
 `/husksync echest` | View an offline player's ender chest | `husksync.command.ender_chest`
 `/husksync migrate`| Migrate data from MPDB | _Console-only_
+
+### Frequently Asked Questions (FAQs)
+#### Is Redis required?
+Yes. Redis is both free, easy to install and multiplatform, though. Pterodactyl users can also run it in an egg with relatively low overheads.
+
+#### What is Redis?
+Redis is server software that acts as an in-memory data store. Minecraft server software typically makes use of its function to send messages efficiently.
+
+#### Is Economy synchronisation supported?
+No. Synchronising economy data manually, as is done by MPDB, causes a number of issues and incompatibilities that require manual integrations with plugins. I strongly recommend making use of cross-server supporting economy plugins, like [XConomy](https://www.spigotmc.org/resources/xconomy.75669/), instead.
+
+#### Will this work on servers running multiple proxies?
+Short answer: Not right now, but improved support for this is planned in the future.
+
+Long answer: This is a difficult question to unpack because of the wide variety of setups that involve multiple proxies, however currently the architecture of how messages are sent between servers assumes that one proxy will serve multiple Bukkit servers, so having multiple proxies will lead to data going out of sync, among other issues.
+
+#### Does it work with Velocity?
+I'd like to add support for Velocity in the future, but right now it is not supported.
+
+#### Is this faster than MySqlPlayerDataBridge (MPDB)?
+It's difficult to say, and will depend on your server. 
+
+MPDB stores data in a MySQL database (hence the name) and operates by querying a database for said data when a player joins a Bukkit server. 
+HuskSync stores player data in a central cache on the Proxy server and servers request data from said cache; data is only queried from the database when a player joins the network, not when switching servers within it.
+
+HuskSync should operate faster in theory, then, as it does not need to query large amounts of data from a database file as often. However, any performance enhancements you might see will heavily depend on the speed of your existing database and your server hardware.
+
+#### Are modded items supported?
+Most likely not - and I cannot support it - but feel free to test it, as depending on the implementation of your modding API it may work just fine.
 
 ## Developers
 ### API
