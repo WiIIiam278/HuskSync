@@ -11,7 +11,6 @@ import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
-import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.logging.Level;
 
@@ -77,7 +76,7 @@ public class MPDBDeserializer {
             playerData.setExpLevel(mpdbPlayerData.expLevel);
             playerData.setExpProgress(mpdbPlayerData.expProgress);
             playerData.setTotalExperience(mpdbPlayerData.totalExperience);
-        } catch (IOException | InvocationTargetException | IllegalAccessException e) {
+        } catch (Exception e) {
             plugin.getLogger().log(Level.WARNING, "Failed to convert MPDB data to HuskSync's format!");
             e.printStackTrace();
         }
@@ -89,11 +88,10 @@ public class MPDBDeserializer {
      *
      * @param data The encoded ItemStack[] string from MySQLPlayerDataBridge
      * @return The {@link ItemStack[]} array
-     * @throws IOException               If an error occurs during decoding
      * @throws InvocationTargetException If an error occurs during decoding
      * @throws IllegalAccessException    If an error occurs during decoding
      */
-    public static ItemStack[] getItemStackArrayFromMPDBBase64String(String data) throws IOException, InvocationTargetException, IllegalAccessException {
+    public static ItemStack[] getItemStackArrayFromMPDBBase64String(String data) throws InvocationTargetException, IllegalAccessException {
         if (data.isEmpty()) {
             return new ItemStack[0];
         }
