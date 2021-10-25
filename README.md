@@ -64,18 +64,24 @@ Commands are handled by the proxy server, rather than each spigot server. Some w
 
 Command | Description | Permission
 ------- | ----------- | ----------
-`/husksync about`  | View plugin information | N/A
+`/husksync about`  | View plugin information | _None_
 `/husksync status` | View system status information | `husksync.command.admin`
 `/husksync reload` | Reload config & message files | `husksync.command.admin`
 `/husksync invsee` | View an offline player's inventory | `husksync.command.inventory`
 `/husksync echest` | View an offline player's ender chest | `husksync.command.ender_chest`
+`/husksync migrate`| Migrate data from MPDB | _Console-only_
 
 ## Developers
 ### API
-Coming soon!
+HuskSync currently has a few API events (located in the api module) which developers can use to detect when player data synchronisation has completed, or to update Player Data:
+* **SyncCompleteEvent** - Fires when a player's data has finished synchronising. Use #getData to get the PlayerData being set.
+* **SyncEvent** - Fires just before a player's data is synchronised. Can be cancelled. Use #getData to get the PlayerData being set, and #setData to set it.
 
 ### Contributing
 A code bounty program is in place for HuskSync, where developers making significant code contributions to HuskSync may be entitled to a discretionary license to use HuskSync in commercial contexts without having to purchase the resource, so please feel free to submit pull requests with improvements, fixes and features!
+
+### Translation
+While the code bounty program is not available for translation contributors, they are still strongly appreciated in making the plugin more accessible. If you'd like to contribute translated message strings for your language, you can submit a Pull Request that creates a .yml file in `bungeecord/src/main/resources/languages` with the correct translations.
 
 ### Building
 To build HuskSync you will first need to download MySqlPlayerDataBridge and `mvn install:install-file` the jar file to your local maven repository.
@@ -87,3 +93,15 @@ Then, to build the plugin, run the following in the root of the repository:
 ```
 ./gradlew clean build
 ```
+
+## bStats
+This plugin uses bStats to provide me with metrics about its usage:
+* [View Bukkit metrics](https://bstats.org/plugin/bukkit/HuskSync%20-%20Bukkit/13140)
+* [View BungeeCord metrics](https://bstats.org/plugin/bungeecord/HuskSync%20-%20BungeeCord/13141)
+
+You can turn metric collection off by navigating to `plugins/bStats/config.yml` and editing the config to disable plugin metrics.
+
+## Support
+* Report bugs: [Click here](https://github.com/WiIIiam278/HuskSync/issues)
+* Discord support: Join the [HuskHelp Discord](https://discord.gg/tVYhJfyDWG)!
+    * Proof of purchase is required for support.
