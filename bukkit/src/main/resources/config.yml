@@ -13,3 +13,4 @@ synchronisation_settings:
   game_mode: true
   advancements: true
   location: false
+check_for_updates: true

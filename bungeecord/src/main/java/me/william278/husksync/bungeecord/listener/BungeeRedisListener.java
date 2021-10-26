@@ -2,7 +2,7 @@ package me.william278.husksync.bungeecord.listener;
 
 import de.themoep.minedown.MineDown;
 import me.william278.husksync.HuskSyncBungeeCord;
-import me.william278.husksync.MessageManager;
+import me.william278.husksync.util.MessageManager;
 import me.william278.husksync.PlayerData;
 import me.william278.husksync.Settings;
 import me.william278.husksync.bungeecord.data.DataManager;
@@ -122,12 +122,15 @@ public class BungeeRedisListener extends RedisListener {
                 final UUID serverUUID = UUID.fromString(message.getMessageDataElements()[0]);
                 final boolean hasMySqlPlayerDataBridge = Boolean.parseBoolean(message.getMessageDataElements()[1]);
                 final String bukkitBrand = message.getMessageDataElements()[2];
+                final String huskSyncVersion = message.getMessageDataElements()[3];
                 try {
                     new RedisMessage(RedisMessage.MessageType.CONNECTION_HANDSHAKE,
                             new RedisMessage.MessageTarget(Settings.ServerType.BUKKIT, null),
                             serverUUID.toString(), plugin.getProxy().getName())
                             .send();
-                    HuskSyncBungeeCord.synchronisedServers.add(new HuskSyncBungeeCord.Server(serverUUID, hasMySqlPlayerDataBridge));
+                    HuskSyncBungeeCord.synchronisedServers.add(
+                            new HuskSyncBungeeCord.Server(serverUUID, hasMySqlPlayerDataBridge,
+                                    huskSyncVersion, bukkitBrand));
                     log(Level.INFO, "Completed handshake with " + bukkitBrand + " server (" + serverUUID + ")");
                 } catch (IOException e) {
                     log(Level.SEVERE, "Failed to serialize handshake message data");

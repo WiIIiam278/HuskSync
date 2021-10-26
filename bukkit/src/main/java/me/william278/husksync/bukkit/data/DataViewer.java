@@ -3,7 +3,7 @@ package me.william278.husksync.bukkit.data;
 import me.william278.husksync.HuskSyncBukkit;
 import me.william278.husksync.PlayerData;
 import me.william278.husksync.Settings;
-import me.william278.husksync.bukkit.PlayerSetter;
+import me.william278.husksync.bukkit.util.PlayerSetter;
 import me.william278.husksync.redis.RedisMessage;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;

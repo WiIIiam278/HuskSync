@@ -2,12 +2,12 @@ package me.william278.husksync.bukkit.listener;
 
 import de.themoep.minedown.MineDown;
 import me.william278.husksync.HuskSyncBukkit;
-import me.william278.husksync.MessageManager;
+import me.william278.husksync.util.MessageManager;
 import me.william278.husksync.PlayerData;
 import me.william278.husksync.Settings;
 import me.william278.husksync.bukkit.config.ConfigLoader;
 import me.william278.husksync.bukkit.data.DataViewer;
-import me.william278.husksync.bukkit.PlayerSetter;
+import me.william278.husksync.bukkit.util.PlayerSetter;
 import me.william278.husksync.bukkit.migrator.MPDBDeserializer;
 import me.william278.husksync.migrator.MPDBPlayerData;
 import me.william278.husksync.redis.RedisListener;

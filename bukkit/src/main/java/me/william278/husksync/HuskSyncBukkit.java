@@ -1,6 +1,7 @@
 package me.william278.husksync;
 
-import me.william278.husksync.bukkit.PlayerSetter;
+import me.william278.husksync.bukkit.util.BukkitUpdateChecker;
+import me.william278.husksync.bukkit.util.PlayerSetter;
 import me.william278.husksync.bukkit.config.ConfigLoader;
 import me.william278.husksync.bukkit.data.BukkitDataCache;
 import me.william278.husksync.bukkit.listener.BukkitRedisListener;
@@ -56,7 +57,8 @@ public final class HuskSyncBukkit extends JavaPlugin {
                         new RedisMessage.MessageTarget(Settings.ServerType.BUNGEECORD, null),
                         serverUUID.toString(),
                         Boolean.toString(isMySqlPlayerDataBridgeInstalled),
-                        Bukkit.getName())
+                        Bukkit.getName(),
+                        getInstance().getDescription().getVersion())
                         .send();
                 attempts[0]++;
                 if (attempts[0] == 10) {
@@ -95,6 +97,11 @@ public final class HuskSyncBukkit extends JavaPlugin {
         saveConfig();
         reloadConfig();
         ConfigLoader.loadSettings(getConfig());
+
+        // Do update checker
+        if (Settings.automaticUpdateChecks) {
+            new BukkitUpdateChecker().logToConsole();
+        }
 
         // Check if MySqlPlayerDataBridge is installed
         Plugin mySqlPlayerDataBridge = Bukkit.getPluginManager().getPlugin("MySqlPlayerDataBridge");

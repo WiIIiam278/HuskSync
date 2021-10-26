@@ -10,6 +10,7 @@ import me.william278.husksync.bungeecord.data.sql.SQLite;
 import me.william278.husksync.bungeecord.listener.BungeeEventListener;
 import me.william278.husksync.bungeecord.listener.BungeeRedisListener;
 import me.william278.husksync.bungeecord.migrator.MPDBMigrator;
+import me.william278.husksync.bungeecord.util.BungeeUpdateChecker;
 import me.william278.husksync.redis.RedisMessage;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.plugin.Plugin;
@@ -68,6 +69,11 @@ public final class HuskSyncBungeeCord extends Plugin {
 
         // Load locales from messages
         ConfigLoader.loadMessageStrings(Objects.requireNonNull(ConfigManager.getMessages()));
+
+        // Do update checker
+        if (Settings.automaticUpdateChecks) {
+            new BungeeUpdateChecker(getDescription().getVersion()).logToConsole();
+        }
 
         // Initialize the database
         database = switch (Settings.dataStorageType) {
@@ -141,5 +147,5 @@ public final class HuskSyncBungeeCord extends Plugin {
     /**
      * A record representing a server synchronised on the network and whether it has MySqlPlayerDataBridge installed
      */
-    public record Server(UUID serverUUID, boolean hasMySqlPlayerDataBridge) { }
+    public record Server(UUID serverUUID, boolean hasMySqlPlayerDataBridge, String huskSyncVersion, String serverBrand) { }
 }

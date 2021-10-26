@@ -1,6 +1,6 @@
 package me.william278.husksync.bungeecord.config;
 
-import me.william278.husksync.MessageManager;
+import me.william278.husksync.util.MessageManager;
 import me.william278.husksync.Settings;
 import net.md_5.bungee.config.Configuration;
 
@@ -12,6 +12,7 @@ public class ConfigLoader {
         Settings.language = config.getString("language", "en-gb");
 
         Settings.serverType = Settings.ServerType.BUNGEECORD;
+        Settings.automaticUpdateChecks = config.getBoolean("check_for_updates", true);
         Settings.redisHost = config.getString("redis_settings.host", "localhost");
         Settings.redisPort = config.getInt("redis_settings.port", 6379);
         Settings.redisPassword = config.getString("redis_settings.password", "");

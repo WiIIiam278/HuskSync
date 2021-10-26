@@ -2,7 +2,7 @@ package me.william278.husksync.bukkit.migrator;
 
 import me.william278.husksync.HuskSyncBukkit;
 import me.william278.husksync.PlayerData;
-import me.william278.husksync.bukkit.PlayerSetter;
+import me.william278.husksync.bukkit.util.PlayerSetter;
 import me.william278.husksync.bukkit.data.DataSerializer;
 import me.william278.husksync.migrator.MPDBPlayerData;
 import net.craftersland.data.bridge.PD;

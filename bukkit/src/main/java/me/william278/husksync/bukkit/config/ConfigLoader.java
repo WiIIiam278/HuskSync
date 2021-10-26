@@ -7,6 +7,7 @@ public class ConfigLoader {
 
     public static void loadSettings(FileConfiguration config) throws IllegalArgumentException {
         Settings.serverType = Settings.ServerType.BUKKIT;
+        Settings.automaticUpdateChecks = config.getBoolean("check_for_updates", true);
         Settings.redisHost = config.getString("redis_settings.host", "localhost");
         Settings.redisPort = config.getInt("redis_settings.port", 6379);
         Settings.redisPassword = config.getString("redis_settings.password", "");

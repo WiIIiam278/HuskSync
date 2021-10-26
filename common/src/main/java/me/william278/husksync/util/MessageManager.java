@@ -1,4 +1,4 @@
-package me.william278.husksync;
+package me.william278.husksync.util;
 
 import java.util.HashMap;
 

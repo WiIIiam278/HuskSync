@@ -1,14 +1,9 @@
 package me.william278.husksync.bukkit.listener;
 
 import me.william278.husksync.HuskSyncBukkit;
-import me.william278.husksync.PlayerData;
-import me.william278.husksync.Settings;
-import me.william278.husksync.bukkit.data.DataSerializer;
 import me.william278.husksync.bukkit.data.DataViewer;
-import me.william278.husksync.bukkit.PlayerSetter;
-import me.william278.husksync.redis.RedisMessage;
+import me.william278.husksync.bukkit.util.PlayerSetter;
 import org.bukkit.Bukkit;
-import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -21,7 +16,6 @@ import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.*;
 
 import java.io.IOException;
-import java.util.Objects;
 import java.util.logging.Level;
 
 public class EventListener implements Listener {

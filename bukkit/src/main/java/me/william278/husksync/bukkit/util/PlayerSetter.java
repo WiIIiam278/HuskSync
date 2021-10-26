@@ -1,4 +1,4 @@
-package me.william278.husksync.bukkit;
+package me.william278.husksync.bukkit.util;
 
 import me.william278.husksync.HuskSyncBukkit;
 import me.william278.husksync.PlayerData;

@@ -2,7 +2,8 @@ package me.william278.husksync.bungeecord.command;
 
 import de.themoep.minedown.MineDown;
 import me.william278.husksync.HuskSyncBungeeCord;
-import me.william278.husksync.MessageManager;
+import me.william278.husksync.bungeecord.util.BungeeUpdateChecker;
+import me.william278.husksync.util.MessageManager;
 import me.william278.husksync.PlayerData;
 import me.william278.husksync.Settings;
 import me.william278.husksync.bungeecord.config.ConfigLoader;
@@ -30,6 +31,7 @@ public class HuskSyncCommand extends Command implements TabExecutor {
     private final static SubCommand[] SUB_COMMANDS = {new SubCommand("about", null),
             new SubCommand("status", "husksync.command.admin"),
             new SubCommand("reload", "husksync.command.admin"),
+            new SubCommand("update", "husksync.command.admin"),
             new SubCommand("invsee", "husksync.command.inventory"),
             new SubCommand("echest", "husksync.command.ender_chest")};
 
@@ -47,6 +49,42 @@ public class HuskSyncCommand extends Command implements TabExecutor {
             if (args.length >= 1) {
                 switch (args[0].toLowerCase(Locale.ROOT)) {
                     case "about", "info" -> sendAboutInformation(player);
+                    case "update" -> {
+                        if (!player.hasPermission("husksync.command.inventory")) {
+                            sender.sendMessage(new MineDown(MessageManager.getMessage("error_no_permission")).toComponent());
+                            return;
+                        }
+                        sender.sendMessage(new MineDown("[Checking for HuskSync updates...](gray)").toComponent());
+                        ProxyServer.getInstance().getScheduler().runAsync(plugin, () -> {
+                            // Check Bukkit servers needing updates
+                            int updatesNeeded = 0;
+                            String bukkitBrand = "Spigot";
+                            String bukkitVersion = "1.0";
+                            for (HuskSyncBungeeCord.Server server : HuskSyncBungeeCord.synchronisedServers) {
+                                BungeeUpdateChecker updateChecker = new BungeeUpdateChecker(server.huskSyncVersion());
+                                if (!updateChecker.isUpToDate()) {
+                                    updatesNeeded++;
+                                    bukkitBrand = server.serverBrand();
+                                    bukkitVersion = server.huskSyncVersion();
+                                }
+                            }
+
+                            // Check Bungee servers needing updates and send message
+                            BungeeUpdateChecker proxyUpdateChecker = new BungeeUpdateChecker(ProxyServer.getInstance().getVersion());
+                            if (proxyUpdateChecker.isUpToDate() && updatesNeeded == 0) {
+                                sender.sendMessage(new MineDown("[HuskSync](#00fb9a bold) [| HuskSync is up-to-date, running Version " + proxyUpdateChecker.getLatestVersion() + "](#00fb9a)").toComponent());
+                            } else {
+                                sender.sendMessage(new MineDown("[HuskSync](#00fb9a bold) [| Your servers are not up-to-date:](#00fb9a)").toComponent());
+                                if (!proxyUpdateChecker.isUpToDate()) {
+                                    sender.sendMessage(new MineDown("[•](white) [HuskSync on the " + ProxyServer.getInstance().getName() + " proxy is outdated (Latest: " + proxyUpdateChecker.getLatestVersion() + ", Running: " + proxyUpdateChecker.getCurrentVersion() + ")](#00fb9a)").toComponent());
+                                }
+                                if (updatesNeeded > 0) {
+                                    sender.sendMessage(new MineDown("[•](white) [HuskSync on " + updatesNeeded + " connected " + bukkitBrand + " servers are outdated (Latest: " + proxyUpdateChecker.getLatestVersion() + ", Running: " + bukkitVersion + ")](#00fb9a)").toComponent());
+                                }
+                                sender.sendMessage(new MineDown("[•](white) [Download links:](#00fb9a) [[⏩ Spigot]](gray open_url=https://www.spigotmc.org/resources/husktowns.92672/updates) [•](#262626) [[⏩ Polymart]](gray open_url=https://polymart.org/resource/husktowns.1056/updates)").toComponent());
+                            }
+                        });
+                    }
                     case "invsee", "openinv", "inventory" -> {
                         if (!player.hasPermission("husksync.command.inventory")) {
                             sender.sendMessage(new MineDown(MessageManager.getMessage("error_no_permission")).toComponent());

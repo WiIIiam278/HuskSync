@@ -9,8 +9,8 @@ public class Settings {
      * General settings
      */
 
-    // Messages language
-    public static String language;
+    // Whether to do automatic update checks on startup
+    public static boolean automaticUpdateChecks;
 
     // The type of THIS server (Bungee or Bukkit)
     public static ServerType serverType;
@@ -23,6 +23,9 @@ public class Settings {
     /*
      * Bungee / Proxy server-only settings
      */
+
+    // Messages language
+    public static String language;
 
     // SQL settings
     public static DataStorageType dataStorageType;
