@@ -70,7 +70,7 @@ public class HuskSyncCommand extends Command implements TabExecutor {
                             }
 
                             // Check Bungee servers needing updates and send message
-                            BungeeUpdateChecker proxyUpdateChecker = new BungeeUpdateChecker(ProxyServer.getInstance().getVersion());
+                            BungeeUpdateChecker proxyUpdateChecker = new BungeeUpdateChecker(plugin.getDescription().getVersion());
                             if (proxyUpdateChecker.isUpToDate() && updatesNeeded == 0) {
                                 sender.sendMessage(new MineDown("[HuskSync](#00fb9a bold) [| HuskSync is up-to-date, running Version " + proxyUpdateChecker.getLatestVersion() + "](#00fb9a)").toComponent());
                             } else {
