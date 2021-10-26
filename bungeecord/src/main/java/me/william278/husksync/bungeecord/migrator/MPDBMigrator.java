@@ -33,7 +33,7 @@ public class MPDBMigrator {
 
     private static final HuskSyncBungeeCord plugin = HuskSyncBungeeCord.getInstance();
 
-    public static HashMap<PlayerData,String> incomingPlayerData;
+    public static HashMap<PlayerData, String> incomingPlayerData;
 
     public static MigrationSettings migrationSettings = new MigrationSettings();
     private static Database sourceDatabase;
@@ -198,15 +198,17 @@ public class MPDBMigrator {
     }
 
     /**
-     * Load all incoming decoded MPDB data to cache / SQL
+     * Loads all incoming decoded MPDB data to the cache and database
+     *
+     * @param dataToLoad HashMap of the {@link PlayerData} to player Usernames that will be loaded
      */
-    public static void loadIncomingData() {
+    public static void loadIncomingData(HashMap<PlayerData, String> dataToLoad) {
         ProxyServer.getInstance().getScheduler().runAsync(plugin, () -> {
             int playersSaved = 0;
             plugin.getLogger().log(Level.INFO, "Saving data for " + playersMigrated + " players...");
 
-            for (PlayerData playerData : incomingPlayerData.keySet()) {
-                String playerName = incomingPlayerData.get(playerData);
+            for (PlayerData playerData : dataToLoad.keySet()) {
+                String playerName = dataToLoad.get(playerData);
 
                 // Add the player to the MySQL table
                 DataManager.ensurePlayerExists(playerData.getPlayerUUID(), playerName);
@@ -220,15 +222,15 @@ public class MPDBMigrator {
 
             // Mark as done when done
             plugin.getLogger().log(Level.INFO, """
-                                === MySQLPlayerDataBridge Migration Wizard ==========
-                                                                
-                                Migration complete!
-                                                                
-                                Successfully migrated data for %1%/%2% players.
-                                                                
-                                You should now uninstall MySQLPlayerDataBridge from
-                                the rest of the Spigot servers, then restart them.
-                                """.replaceAll("%1%", Integer.toString(MPDBMigrator.playersMigrated))
+                    === MySQLPlayerDataBridge Migration Wizard ==========
+                                                    
+                    Migration complete!
+                                                    
+                    Successfully migrated data for %1%/%2% players.
+                                                    
+                    You should now uninstall MySQLPlayerDataBridge from
+                    the rest of the Spigot servers, then restart them.
+                    """.replaceAll("%1%", Integer.toString(MPDBMigrator.playersMigrated))
                     .replaceAll("%2%", Integer.toString(MPDBMigrator.migratedDataSent)));
             sourceDatabase.close(); // Close source database
         });

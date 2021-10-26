@@ -172,7 +172,7 @@ public class BungeeRedisListener extends RedisListener {
 
                 // When all the data has been received, save it
                 if (MPDBMigrator.migratedDataSent == MPDBMigrator.playersMigrated) {
-                    MPDBMigrator.loadIncomingData();
+                    MPDBMigrator.loadIncomingData(MPDBMigrator.incomingPlayerData);
                 }
             }
         }
