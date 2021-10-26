@@ -125,7 +125,7 @@ public class DataManager {
                     final String serializedStatusEffects = resultSet.getString("status_effects");
                     final int totalExperience = resultSet.getInt("total_experience");
                     final int expLevel = resultSet.getInt("exp_level");
-                    final float expProgress = resultSet.getInt("exp_progress");
+                    final float expProgress = resultSet.getFloat("exp_progress");
                     final String gameMode = resultSet.getString("game_mode");
                     final boolean isFlying = resultSet.getBoolean("is_flying");
                     final String serializedAdvancementData = resultSet.getString("advancements");

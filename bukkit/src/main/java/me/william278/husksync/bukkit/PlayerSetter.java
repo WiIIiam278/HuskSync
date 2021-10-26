@@ -59,6 +59,7 @@ public class PlayerSetter {
 
     /**
      * Update a {@link Player}'s data, sending it to the proxy
+     *
      * @param player {@link Player} to send data to proxy
      */
     public static void updatePlayerData(Player player) {
@@ -79,6 +80,7 @@ public class PlayerSetter {
 
     /**
      * Request a {@link Player}'s data from the proxy
+     *
      * @param playerUUID The {@link UUID} of the {@link Player} to fetch PlayerData from
      * @throws IOException If the request Redis message data fails to serialize
      */
