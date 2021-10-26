@@ -72,6 +72,7 @@ Commands are handled by the proxy server, rather than each spigot server. Some w
 Command | Description | Permission
 ------- | ----------- | ----------
 `/husksync about`  | View plugin information | _None_
+`/husksync update` | Check if an update is available | `husksync.command.admin`
 `/husksync status` | View system status information | `husksync.command.admin`
 `/husksync reload` | Reload config & message files | `husksync.command.admin`
 `/husksync invsee` | View an offline player's inventory | `husksync.command.inventory`
