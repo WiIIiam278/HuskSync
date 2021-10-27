@@ -24,7 +24,7 @@ public class DataViewer {
      * @param data   The {@link DataView} to show the viewer
      * @throws IOException If an exception occurred deserializing item data
      */
-    public static void showData(Player viewer, DataView data) throws IOException {
+    public static void showData(Player viewer, DataView data) throws IOException, ClassNotFoundException {
         // Show an inventory with the viewer's inventory and equipment
         viewer.closeInventory();
         viewer.openInventory(createInventory(viewer, data));
@@ -49,7 +49,7 @@ public class DataViewer {
 
         // Get and update the PlayerData with the new item data
         PlayerData playerData = dataView.playerData();
-        String serializedItemData = DataSerializer.itemStackArrayToBase64(inventory.getContents());
+        String serializedItemData = PlayerSerializer.serializeInventory(inventory.getContents());
         switch (dataView.inventoryType()) {
             case INVENTORY -> playerData.setSerializedInventory(serializedItemData);
             case ENDER_CHEST -> playerData.setSerializedEnderChest(serializedItemData);
@@ -70,7 +70,7 @@ public class DataViewer {
      * @return The {@link Inventory} that the viewer will see
      * @throws IOException If an exception occurred deserializing item data
      */
-    private static Inventory createInventory(Player viewer, DataView data) throws IOException {
+    private static Inventory createInventory(Player viewer, DataView data) throws IOException, ClassNotFoundException {
         Inventory inventory = switch (data.inventoryType) {
             case INVENTORY -> Bukkit.createInventory(viewer, 45, data.ownerName + "'s Inventory");
             case ENDER_CHEST -> Bukkit.createInventory(viewer, 27, data.ownerName + "'s Ender Chest");
@@ -104,10 +104,10 @@ public class DataViewer {
          * @return The deserialized item data, as an {@link ItemStack[]} array
          * @throws IOException If an exception occurred deserializing item data
          */
-        public ItemStack[] getDeserializedData() throws IOException {
+        public ItemStack[] getDeserializedData() throws IOException, ClassNotFoundException {
             return switch (inventoryType) {
-                case INVENTORY -> DataSerializer.itemStackArrayFromBase64(playerData.getSerializedInventory());
-                case ENDER_CHEST -> DataSerializer.itemStackArrayFromBase64(playerData.getSerializedEnderChest());
+                case INVENTORY -> PlayerSerializer.deserializeInventory(playerData.getSerializedInventory());
+                case ENDER_CHEST -> PlayerSerializer.deserializeInventory(playerData.getSerializedEnderChest());
             };
         }
     }

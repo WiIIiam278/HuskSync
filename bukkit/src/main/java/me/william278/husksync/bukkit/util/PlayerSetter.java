@@ -5,7 +5,7 @@ import me.william278.husksync.PlayerData;
 import me.william278.husksync.Settings;
 import me.william278.husksync.api.events.SyncCompleteEvent;
 import me.william278.husksync.api.events.SyncEvent;
-import me.william278.husksync.bukkit.data.DataSerializer;
+import me.william278.husksync.bukkit.data.PlayerSerializer;
 import me.william278.husksync.redis.RedisMessage;
 import org.bukkit.*;
 import org.bukkit.advancement.Advancement;
@@ -37,8 +37,8 @@ public class PlayerSetter {
      */
     private static String getNewSerializedPlayerData(Player player) throws IOException {
         return RedisMessage.serialize(new PlayerData(player.getUniqueId(),
-                DataSerializer.getSerializedInventoryContents(player.getInventory()),
-                DataSerializer.getSerializedEnderChestContents(player),
+                PlayerSerializer.serializeInventory(player.getInventory().getContents()),
+                PlayerSerializer.serializeInventory(player.getEnderChest().getContents()),
                 player.getHealth(),
                 Objects.requireNonNull(player.getAttribute(Attribute.GENERIC_MAX_HEALTH)).getBaseValue(),
                 player.getHealthScale(),
@@ -46,15 +46,31 @@ public class PlayerSetter {
                 player.getSaturation(),
                 player.getExhaustion(),
                 player.getInventory().getHeldItemSlot(),
-                DataSerializer.getSerializedEffectData(player),
+                PlayerSerializer.serializePotionEffects(getPlayerPotionEffects(player)),
                 player.getTotalExperience(),
                 player.getLevel(),
                 player.getExp(),
                 player.getGameMode().toString(),
-                DataSerializer.getSerializedStatisticData(player),
+                PlayerSerializer.getSerializedStatisticData(player),
                 player.isFlying(),
-                DataSerializer.getSerializedAdvancements(player),
-                DataSerializer.getSerializedLocation(player)));
+                PlayerSerializer.getSerializedAdvancements(player),
+                PlayerSerializer.getSerializedLocation(player)));
+    }
+
+    /**
+     * Returns a {@link Player}'s active potion effects in a {@link PotionEffect} array
+     *
+     * @param player The {@link Player} to get the effects of
+     * @return The {@link PotionEffect} array
+     */
+    private static PotionEffect[] getPlayerPotionEffects(Player player) {
+        PotionEffect[] potionEffects = new PotionEffect[player.getActivePotionEffects().size()];
+        int arrayIndex = 0;
+        for (PotionEffect effect : player.getActivePotionEffects()) {
+            potionEffects[arrayIndex] = effect;
+            arrayIndex++;
+        }
+        return potionEffects;
     }
 
     /**
@@ -123,14 +139,14 @@ public class PlayerSetter {
             // Set the player's data from the PlayerData
             try {
                 if (Settings.syncAdvancements) {
-                    setPlayerAdvancements(player, DataSerializer.deserializeAdvancementData(data.getSerializedAdvancements()), data);
+                    setPlayerAdvancements(player, PlayerSerializer.deserializeAdvancementData(data.getSerializedAdvancements()), data);
                 }
                 if (Settings.syncInventories) {
-                    setPlayerInventory(player, DataSerializer.itemStackArrayFromBase64(data.getSerializedInventory()));
+                    setPlayerInventory(player, PlayerSerializer.deserializeInventory(data.getSerializedInventory()));
                     player.getInventory().setHeldItemSlot(data.getSelectedSlot());
                 }
                 if (Settings.syncEnderChests) {
-                    setPlayerEnderChest(player, DataSerializer.itemStackArrayFromBase64(data.getSerializedEnderChest()));
+                    setPlayerEnderChest(player, PlayerSerializer.deserializeInventory(data.getSerializedEnderChest()));
                 }
                 if (Settings.syncHealth) {
                     player.setHealthScale(data.getHealthScale() <= 0 ? data.getHealthScale() : 20D);
@@ -147,22 +163,22 @@ public class PlayerSetter {
                     setPlayerExperience(player, data);
                 }
                 if (Settings.syncPotionEffects) {
-                    setPlayerPotionEffects(player, DataSerializer.potionEffectArrayFromBase64(data.getSerializedEffectData()));
+                    setPlayerPotionEffects(player, PlayerSerializer.deserializePotionEffects(data.getSerializedEffectData()));
                 }
                 if (Settings.syncStatistics) {
-                    setPlayerStatistics(player, DataSerializer.deserializeStatisticData(data.getSerializedStatistics()));
+                    setPlayerStatistics(player, PlayerSerializer.deserializeStatisticData(data.getSerializedStatistics()));
                 }
                 if (Settings.syncGameMode) {
                     player.setGameMode(GameMode.valueOf(data.getGameMode()));
                 }
                 if (Settings.syncLocation) {
                     player.setFlying(player.getAllowFlight() && data.isFlying());
-                    setPlayerLocation(player, DataSerializer.deserializePlayerLocationData(data.getSerializedLocation()));
+                    setPlayerLocation(player, PlayerSerializer.deserializePlayerLocationData(data.getSerializedLocation()));
                 }
 
                 // Handle the SyncCompleteEvent
                 Bukkit.getPluginManager().callEvent(new SyncCompleteEvent(player, data));
-            } catch (IOException e) {
+            } catch (IOException | ClassNotFoundException e) {
                 plugin.getLogger().log(Level.SEVERE, "Failed to deserialize PlayerData", e);
             }
         });
@@ -224,9 +240,9 @@ public class PlayerSetter {
      * Update a player's advancements and progress to match the advancementData
      *
      * @param player          The player to set the advancements of
-     * @param advancementData The ArrayList of {@link DataSerializer.AdvancementRecord}s to set
+     * @param advancementData The ArrayList of {@link PlayerSerializer.AdvancementRecord}s to set
      */
-    private static void setPlayerAdvancements(Player player, ArrayList<DataSerializer.AdvancementRecord> advancementData, PlayerData data) {
+    private static void setPlayerAdvancements(Player player, ArrayList<PlayerSerializer.AdvancementRecord> advancementData, PlayerData data) {
         // Temporarily disable advancement announcing if needed
         boolean announceAdvancementUpdate = false;
         if (Boolean.TRUE.equals(player.getWorld().getGameRuleValue(GameRule.ANNOUNCE_ADVANCEMENTS))) {
@@ -244,7 +260,7 @@ public class PlayerSetter {
                 boolean correctExperienceCheck = false; // Determines whether the experience might have changed warranting an update
                 Advancement advancement = serverAdvancements.next();
                 AdvancementProgress playerProgress = player.getAdvancementProgress(advancement);
-                for (DataSerializer.AdvancementRecord record : advancementData) {
+                for (PlayerSerializer.AdvancementRecord record : advancementData) {
                     // If the advancement is one on the data
                     if (record.advancementKey().equals(advancement.getKey().getNamespace() + ":" + advancement.getKey().getKey())) {
 
@@ -287,9 +303,9 @@ public class PlayerSetter {
      * Set a player's statistics (in the Statistic menu)
      *
      * @param player        The player to set the statistics of
-     * @param statisticData The {@link DataSerializer.StatisticData} to set
+     * @param statisticData The {@link PlayerSerializer.StatisticData} to set
      */
-    private static void setPlayerStatistics(Player player, DataSerializer.StatisticData statisticData) {
+    private static void setPlayerStatistics(Player player, PlayerSerializer.StatisticData statisticData) {
         // Set untyped statistics
         for (Statistic statistic : statisticData.untypedStatisticValues().keySet()) {
             player.setStatistic(statistic, statisticData.untypedStatisticValues().get(statistic));
@@ -330,12 +346,12 @@ public class PlayerSetter {
     }
 
     /**
-     * Set a player's location from {@link DataSerializer.PlayerLocation} data
+     * Set a player's location from {@link PlayerSerializer.PlayerLocation} data
      *
      * @param player   The {@link Player} to teleport
-     * @param location The {@link DataSerializer.PlayerLocation}
+     * @param location The {@link PlayerSerializer.PlayerLocation}
      */
-    private static void setPlayerLocation(Player player, DataSerializer.PlayerLocation location) {
+    private static void setPlayerLocation(Player player, PlayerSerializer.PlayerLocation location) {
         // Don't teleport if the location is invalid
         if (location == null) {
             return;
