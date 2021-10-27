@@ -1,5 +1,6 @@
 [![HuskSync Banner](images/banner-graphic.png)](https://github.com/WiIIiam278/HuskSync)
 # HuskSync
+[![Maven CI](https://github.com/WiIIiam278/HuskSync/actions/workflows/gradle.yml/badge.svg)](https://github.com/WiIIiam278/HuskSync/actions/workflows/gradle.yml)
 [![Discord](https://img.shields.io/discord/818135932103557162?color=7289da&logo=discord)](https://discord.gg/tVYhJfyDWG)
 
 **HuskSync** is a modern, cross-server player data synchronisation system that allows player data (inventories, health, hunger & status effects) to be synchronised across servers through the use of **Redis**. 
@@ -86,8 +87,12 @@ Yes. Redis is both free, easy to install and multiplatform, though. Pterodactyl 
 #### What is Redis?
 Redis is server software that acts as an in-memory data store. Minecraft server software typically makes use of its function to send messages efficiently.
 
-#### Is Economy synchronisation supported?
-No. Synchronising economy data manually, as is done by MPDB, causes a number of issues and incompatibilities that require manual integrations with plugins. I strongly recommend making use of cross-server supporting economy plugins, like [XConomy](https://www.spigotmc.org/resources/xconomy.75669/), instead.
+#### Is Economy / Vault synchronization supported?
+No.
+
+Synchronising economy data like MySQLPlayerDataBridge does causes a number of issues and incompatibilities that mean that MySQLPlayerDataBridge has had to add integrations with a number of plugins just to make them work. This leads to poor compatibility and more bugs as plugins change their APIs and systems. In the case of HuskSync, this would require both plugin authors and myself to manually support each other, which would inevitably increase update times, lead to a bottomless pit of "add support for this plugin" requests and these integrations would then inevitably break when authors decide to update their plugins, requiring me to update manually.
+
+I strongly recommend making use of economy plugins that provide built-in support for cross-server synchronisation instead, which do not have the same issues. I have personally used [XConomy](https://www.spigotmc.org/resources/xconomy.75669/) in the past and reccommend it.
 
 #### Will this work on servers running multiple proxies?
 Short answer: Not right now, but improved support for this is planned in the future.
