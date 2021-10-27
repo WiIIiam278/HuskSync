@@ -1,5 +1,6 @@
 [![HuskSync Banner](images/banner-graphic.png)](https://github.com/WiIIiam278/HuskSync)
 # HuskSync
+[![Maven CI](https://github.com/WiIIiam278/HuskSync/actions/workflows/gradle.yml/badge.svg)](https://github.com/WiIIiam278/HuskSync/actions/workflows/gradle.yml)
 [![Discord](https://img.shields.io/discord/818135932103557162?color=7289da&logo=discord)](https://discord.gg/tVYhJfyDWG)
 
 **HuskSync** is a modern, cross-server player data synchronisation system that allows player data (inventories, health, hunger & status effects) to be synchronised across servers through the use of **Redis**. 
