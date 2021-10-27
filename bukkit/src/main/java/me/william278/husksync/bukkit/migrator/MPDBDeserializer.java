@@ -3,7 +3,7 @@ package me.william278.husksync.bukkit.migrator;
 import me.william278.husksync.HuskSyncBukkit;
 import me.william278.husksync.PlayerData;
 import me.william278.husksync.bukkit.util.PlayerSetter;
-import me.william278.husksync.bukkit.data.PlayerSerializer;
+import me.william278.husksync.bukkit.data.DataSerializer;
 import me.william278.husksync.migrator.MPDBPlayerData;
 import net.craftersland.data.bridge.PD;
 import org.bukkit.Bukkit;
@@ -61,7 +61,7 @@ public class MPDBDeserializer {
             }
 
             // Now apply the contents and clear the temporary inventory variable
-            playerData.setSerializedInventory(PlayerSerializer.serializeInventory(inventory.getContents()));
+            playerData.setSerializedInventory(DataSerializer.serializeInventory(inventory.getContents()));
 
             // Set ender chest (again, if there is data)
             ItemStack[] enderChestData;
@@ -70,7 +70,7 @@ public class MPDBDeserializer {
             } else {
                 enderChestData = new ItemStack[0];
             }
-            playerData.setSerializedEnderChest(PlayerSerializer.serializeInventory(enderChestData));
+            playerData.setSerializedEnderChest(DataSerializer.serializeInventory(enderChestData));
 
             // Set experience
             playerData.setExpLevel(mpdbPlayerData.expLevel);

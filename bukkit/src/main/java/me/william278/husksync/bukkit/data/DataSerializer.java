@@ -19,7 +19,7 @@ import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class PlayerSerializer {
+public class DataSerializer {
 
     /**
      * Returns a serialized array of {@link ItemStack}s
@@ -181,12 +181,12 @@ public class PlayerSerializer {
         return serializedPotionEffect != null ? new PotionEffect((Map<String, Object>) serializedPotionEffect) : null;
     }
 
-    public static PlayerSerializer.PlayerLocation deserializePlayerLocationData(String serializedLocationData) throws IOException {
+    public static DataSerializer.PlayerLocation deserializePlayerLocationData(String serializedLocationData) throws IOException {
         if (serializedLocationData.isEmpty()) {
             return null;
         }
         try {
-            return (PlayerSerializer.PlayerLocation) RedisMessage.deserialize(serializedLocationData);
+            return (DataSerializer.PlayerLocation) RedisMessage.deserialize(serializedLocationData);
         } catch (ClassNotFoundException e) {
             throw new IOException("Unable to decode class type.", e);
         }
@@ -194,7 +194,7 @@ public class PlayerSerializer {
 
     public static String getSerializedLocation(Player player) throws IOException {
         final Location playerLocation = player.getLocation();
-        return RedisMessage.serialize(new PlayerSerializer.PlayerLocation(playerLocation.getX(), playerLocation.getY(), playerLocation.getZ(),
+        return RedisMessage.serialize(new DataSerializer.PlayerLocation(playerLocation.getX(), playerLocation.getY(), playerLocation.getZ(),
                 playerLocation.getYaw(), playerLocation.getPitch(), player.getWorld().getName(), player.getWorld().getEnvironment()));
     }
 
@@ -203,12 +203,12 @@ public class PlayerSerializer {
     }
 
     @SuppressWarnings("unchecked") // Ignore the unchecked cast here
-    public static ArrayList<PlayerSerializer.AdvancementRecord> deserializeAdvancementData(String serializedAdvancementData) throws IOException {
+    public static ArrayList<DataSerializer.AdvancementRecord> deserializeAdvancementData(String serializedAdvancementData) throws IOException {
         if (serializedAdvancementData.isEmpty()) {
             return new ArrayList<>();
         }
         try {
-            return (ArrayList<PlayerSerializer.AdvancementRecord>) RedisMessage.deserialize(serializedAdvancementData);
+            return (ArrayList<DataSerializer.AdvancementRecord>) RedisMessage.deserialize(serializedAdvancementData);
         } catch (ClassNotFoundException e) {
             throw new IOException("Unable to decode class type.", e);
         }
@@ -216,13 +216,13 @@ public class PlayerSerializer {
 
     public static String getSerializedAdvancements(Player player) throws IOException {
         Iterator<Advancement> serverAdvancements = Bukkit.getServer().advancementIterator();
-        ArrayList<PlayerSerializer.AdvancementRecord> advancementData = new ArrayList<>();
+        ArrayList<DataSerializer.AdvancementRecord> advancementData = new ArrayList<>();
 
         while (serverAdvancements.hasNext()) {
             final AdvancementProgress progress = player.getAdvancementProgress(serverAdvancements.next());
             final NamespacedKey advancementKey = progress.getAdvancement().getKey();
             final ArrayList<String> awardedCriteria = new ArrayList<>(progress.getAwardedCriteria());
-            advancementData.add(new PlayerSerializer.AdvancementRecord(advancementKey.getNamespace() + ":" + advancementKey.getKey(), awardedCriteria));
+            advancementData.add(new DataSerializer.AdvancementRecord(advancementKey.getNamespace() + ":" + advancementKey.getKey(), awardedCriteria));
         }
 
         return RedisMessage.serialize(advancementData);
@@ -232,12 +232,12 @@ public class PlayerSerializer {
                                     ArrayList<String> awardedAdvancementCriteria) implements Serializable {
     }
 
-    public static PlayerSerializer.StatisticData deserializeStatisticData(String serializedStatisticData) throws IOException {
+    public static DataSerializer.StatisticData deserializeStatisticData(String serializedStatisticData) throws IOException {
         if (serializedStatisticData.isEmpty()) {
-            return new PlayerSerializer.StatisticData(new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>());
+            return new DataSerializer.StatisticData(new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>());
         }
         try {
-            return (PlayerSerializer.StatisticData) RedisMessage.deserialize(serializedStatisticData);
+            return (DataSerializer.StatisticData) RedisMessage.deserialize(serializedStatisticData);
         } catch (ClassNotFoundException e) {
             throw new IOException("Unable to decode class type.", e);
         }
@@ -275,7 +275,7 @@ public class PlayerSerializer {
             }
         }
 
-        PlayerSerializer.StatisticData statisticData = new PlayerSerializer.StatisticData(untypedStatisticValues, blockStatisticValues, itemStatisticValues, entityStatisticValues);
+        DataSerializer.StatisticData statisticData = new DataSerializer.StatisticData(untypedStatisticValues, blockStatisticValues, itemStatisticValues, entityStatisticValues);
         return RedisMessage.serialize(statisticData);
     }
 

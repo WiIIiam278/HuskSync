@@ -49,7 +49,7 @@ public class DataViewer {
 
         // Get and update the PlayerData with the new item data
         PlayerData playerData = dataView.playerData();
-        String serializedItemData = PlayerSerializer.serializeInventory(inventory.getContents());
+        String serializedItemData = DataSerializer.serializeInventory(inventory.getContents());
         switch (dataView.inventoryType()) {
             case INVENTORY -> playerData.setSerializedInventory(serializedItemData);
             case ENDER_CHEST -> playerData.setSerializedEnderChest(serializedItemData);
@@ -106,8 +106,8 @@ public class DataViewer {
          */
         public ItemStack[] getDeserializedData() throws IOException, ClassNotFoundException {
             return switch (inventoryType) {
-                case INVENTORY -> PlayerSerializer.deserializeInventory(playerData.getSerializedInventory());
-                case ENDER_CHEST -> PlayerSerializer.deserializeInventory(playerData.getSerializedEnderChest());
+                case INVENTORY -> DataSerializer.deserializeInventory(playerData.getSerializedInventory());
+                case ENDER_CHEST -> DataSerializer.deserializeInventory(playerData.getSerializedEnderChest());
             };
         }
     }
