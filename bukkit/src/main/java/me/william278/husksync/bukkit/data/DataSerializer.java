@@ -28,6 +28,11 @@ public class DataSerializer {
      * @return The serialized inventory contents
      */
     public static String serializeInventory(ItemStack[] inventoryContents) {
+        // Return an empty string if there is no inventory item data to serialize
+        if (inventoryContents.length == 0) {
+            return "";
+        }
+
         // Create an output stream that will be encoded into base 64
         ByteArrayOutputStream byteOutputStream = new ByteArrayOutputStream();
 
@@ -108,6 +113,11 @@ public class DataSerializer {
      * @return The serialized potion effects
      */
     public static String serializePotionEffects(PotionEffect[] potionEffects) {
+        // Return an empty string if there are no effects to serialize
+        if (potionEffects.length == 0) {
+            return "";
+        }
+
         // Create an output stream that will be encoded into base 64
         ByteArrayOutputStream byteOutputStream = new ByteArrayOutputStream();
 
