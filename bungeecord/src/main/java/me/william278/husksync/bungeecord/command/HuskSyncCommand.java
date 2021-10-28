@@ -74,12 +74,12 @@ public class HuskSyncCommand extends Command implements TabExecutor {
                             if (proxyUpdateChecker.isUpToDate() && updatesNeeded == 0) {
                                 sender.sendMessage(new MineDown("[HuskSync](#00fb9a bold) [| HuskSync is up-to-date, running Version " + proxyUpdateChecker.getLatestVersion() + "](#00fb9a)").toComponent());
                             } else {
-                                sender.sendMessage(new MineDown("[HuskSync](#00fb9a bold) [| Your servers are not up-to-date:](#00fb9a)").toComponent());
+                                sender.sendMessage(new MineDown("[HuskSync](#00fb9a bold) [| Your server(s) are not up-to-date:](#00fb9a)").toComponent());
                                 if (!proxyUpdateChecker.isUpToDate()) {
                                     sender.sendMessage(new MineDown("[•](white) [HuskSync on the " + ProxyServer.getInstance().getName() + " proxy is outdated (Latest: " + proxyUpdateChecker.getLatestVersion() + ", Running: " + proxyUpdateChecker.getCurrentVersion() + ")](#00fb9a)").toComponent());
                                 }
                                 if (updatesNeeded > 0) {
-                                    sender.sendMessage(new MineDown("[•](white) [HuskSync on " + updatesNeeded + " connected " + bukkitBrand + " servers are outdated (Latest: " + proxyUpdateChecker.getLatestVersion() + ", Running: " + bukkitVersion + ")](#00fb9a)").toComponent());
+                                    sender.sendMessage(new MineDown("[•](white) [HuskSync on " + updatesNeeded + " connected " + bukkitBrand + " server(s) are outdated (Latest: " + proxyUpdateChecker.getLatestVersion() + ", Running: " + bukkitVersion + ")](#00fb9a)").toComponent());
                                 }
                                 sender.sendMessage(new MineDown("[•](white) [Download links:](#00fb9a) [[⏩ Spigot]](gray open_url=https://www.spigotmc.org/resources/husktowns.92672/updates) [•](#262626) [[⏩ Polymart]](gray open_url=https://polymart.org/resource/husktowns.1056/updates)").toComponent());
                             }
