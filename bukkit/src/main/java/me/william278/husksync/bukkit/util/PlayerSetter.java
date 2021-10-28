@@ -11,6 +11,8 @@ import org.bukkit.*;
 import org.bukkit.advancement.Advancement;
 import org.bukkit.advancement.AdvancementProgress;
 import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeInstance;
+import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
@@ -20,7 +22,6 @@ import org.bukkit.potion.PotionEffect;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.Objects;
 import java.util.UUID;
 import java.util.logging.Level;
 
@@ -40,7 +41,7 @@ public class PlayerSetter {
                 DataSerializer.serializeInventory(player.getInventory().getContents()),
                 DataSerializer.serializeInventory(player.getEnderChest().getContents()),
                 player.getHealth(),
-                Objects.requireNonNull(player.getAttribute(Attribute.GENERIC_MAX_HEALTH)).getBaseValue(),
+                player.getMaxHealth(),
                 player.getHealthScale(),
                 player.getFoodLevel(),
                 player.getSaturation(),
@@ -149,8 +150,8 @@ public class PlayerSetter {
                     setPlayerEnderChest(player, DataSerializer.deserializeInventory(data.getSerializedEnderChest()));
                 }
                 if (Settings.syncHealth) {
-                    player.setHealthScale(data.getHealthScale() <= 0 ? data.getHealthScale() : 20D);
-                    Objects.requireNonNull(player.getAttribute(Attribute.GENERIC_MAX_HEALTH)).setBaseValue(data.getMaxHealth());
+                    player.setMaxHealth(data.getMaxHealth());
+                    player.setHealthScale(data.getHealthScale());
                     player.setHealth(data.getHealth());
                 }
                 if (Settings.syncHunger) {
