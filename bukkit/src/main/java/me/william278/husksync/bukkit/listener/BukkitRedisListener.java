@@ -39,6 +39,10 @@ public class BukkitRedisListener extends RedisListener {
         if (!message.getMessageTarget().targetServerType().equals(Settings.ServerType.BUKKIT)) {
             return;
         }
+        // Ignore messages if the plugin is disabled
+        if (!plugin.isEnabled()) {
+            return;
+        }
 
         // Handle the incoming redis message; either for a specific player or the system
         if (message.getMessageTarget().targetPlayerUUID() == null) {
