@@ -10,15 +10,18 @@ import me.william278.husksync.redis.RedisMessage;
 import org.bukkit.*;
 import org.bukkit.advancement.Advancement;
 import org.bukkit.advancement.AdvancementProgress;
+import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.logging.Level;
 
@@ -34,12 +37,13 @@ public class PlayerSetter {
      * @throws IOException If the serialization fails
      */
     private static String getNewSerializedPlayerData(Player player) throws IOException {
+        final double maxHealth = getMaxHealth(player); // Get the player's max health (used to determine health as well)
         return RedisMessage.serialize(new PlayerData(player.getUniqueId(),
                 DataSerializer.serializeInventory(player.getInventory().getContents()),
                 DataSerializer.serializeInventory(player.getEnderChest().getContents()),
-                player.getHealth(),
-                player.getMaxHealth(),
-                player.getHealthScale(),
+                Math.min(player.getHealth(), maxHealth),
+                maxHealth,
+                player.isHealthScaled() ? player.getHealthScale() : 0D,
                 player.getFoodLevel(),
                 player.getSaturation(),
                 player.getExhaustion(),
@@ -53,6 +57,25 @@ public class PlayerSetter {
                 player.isFlying(),
                 DataSerializer.getSerializedAdvancements(player),
                 DataSerializer.getSerializedLocation(player)));
+    }
+
+    /**
+     * Returns a {@link Player}'s maximum health, minus any health boost effects
+     *
+     * @param player The {@link Player} to get the maximum health of
+     * @return The {@link Player}'s max health
+     */
+    private static double getMaxHealth(Player player) {
+        double maxHealth = Objects.requireNonNull(player.getAttribute(Attribute.GENERIC_MAX_HEALTH)).getBaseValue();
+
+        // If the player has additional health bonuses from synchronised potion effects, subtract these from this number as they are synchronised seperately
+        if (player.hasPotionEffect(PotionEffectType.HEALTH_BOOST) && maxHealth > 20D) {
+            PotionEffect healthBoostEffect = player.getPotionEffect(PotionEffectType.HEALTH_BOOST);
+            assert healthBoostEffect != null;
+            double healthBoostBonus = 4 * (healthBoostEffect.getAmplifier() + 1);
+            maxHealth -= healthBoostBonus;
+        }
+        return maxHealth;
     }
 
     /**
@@ -147,9 +170,7 @@ public class PlayerSetter {
                     setPlayerEnderChest(player, DataSerializer.deserializeInventory(data.getSerializedEnderChest()));
                 }
                 if (Settings.syncHealth) {
-                    player.setMaxHealth(data.getMaxHealth());
-                    player.setHealthScale(data.getHealthScale());
-                    player.setHealth(data.getHealth());
+                    setPlayerHealth(player, data.getHealth(), data.getMaxHealth(), data.getHealthScale());
                 }
                 if (Settings.syncHunger) {
                     player.setFoodLevel(data.getHunger());
@@ -374,5 +395,31 @@ public class PlayerSetter {
 
         // Teleport the player
         player.teleport(new Location(world, location.x(), location.y(), location.z(), location.yaw(), location.pitch()));
+    }
+
+    /**
+     * Correctly set a {@link Player}'s health data
+     *
+     * @param player      The {@link Player} to set
+     * @param health      Health to set to the player
+     * @param maxHealth   Max health to set to the player
+     * @param healthScale Health scaling to apply to the player
+     */
+    private static void setPlayerHealth(Player player, double health, double maxHealth, double healthScale) {
+        // Set max health
+        if (maxHealth != 0.0D) {
+            Objects.requireNonNull(player.getAttribute(Attribute.GENERIC_MAX_HEALTH)).setBaseValue(maxHealth);
+        }
+
+        // Set health
+        player.setHealth(player.getHealth() > maxHealth ? maxHealth : health);
+
+        // Set health scaling if needed
+        if (healthScale != 0D) {
+            player.setHealthScale(healthScale);
+        } else {
+            player.setHealthScale(maxHealth);
+        }
+        player.setHealthScaled(healthScale != 0D);
     }
 }
