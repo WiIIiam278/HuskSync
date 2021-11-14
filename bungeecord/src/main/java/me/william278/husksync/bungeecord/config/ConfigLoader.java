@@ -32,6 +32,15 @@ public class ConfigLoader {
         Settings.hikariMaximumLifetime = config.getLong("data_storage_settings.hikari_pool_settings.maximum_lifetime", 1800000);
         Settings.hikariKeepAliveTime = config.getLong("data_storage_settings.hikari_pool_settings.keepalive_time", 0);
         Settings.hikariConnectionTimeOut = config.getLong("data_storage_settings.hikari_pool_settings.connection_timeout", 5000);
+
+        // Read cluster data
+        Configuration section = config.getSection("clusters");
+        for (String clusterId : section.getKeys()) {
+            final String playerTableName = config.getString("clusters." + clusterId + ".player_table", "husksync_players");
+            final String dataTableName = config.getString("clusters." + clusterId + ".data_table", "husksync_data");
+            final String databaseName = config.getString("clusters." + clusterId + ".database", Settings.mySQLDatabase);
+            Settings.clusters.add(new Settings.SynchronisationCluster(clusterId, databaseName, playerTableName, dataTableName));
+        }
     }
 
     public static void loadMessageStrings(Configuration config) {

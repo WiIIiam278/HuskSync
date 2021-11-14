@@ -11,8 +11,8 @@ import java.util.logging.Level;
 
 public class MySQL extends Database {
 
-    final static String[] SQL_SETUP_STATEMENTS = {
-            "CREATE TABLE IF NOT EXISTS " + PLAYER_TABLE_NAME + " (" +
+    final String[] SQL_SETUP_STATEMENTS = {
+            "CREATE TABLE IF NOT EXISTS " + cluster.playerTableName() + " (" +
                     "`id` integer NOT NULL AUTO_INCREMENT," +
                     "`uuid` char(36) NOT NULL UNIQUE," +
                     "`username` varchar(16) NOT NULL," +
@@ -20,7 +20,7 @@ public class MySQL extends Database {
                     "PRIMARY KEY (`id`)" +
                     ");",
 
-            "CREATE TABLE IF NOT EXISTS " + DATA_TABLE_NAME + " (" +
+            "CREATE TABLE IF NOT EXISTS " + cluster.dataTableName() + " (" +
                     "`player_id` integer NOT NULL," +
                     "`version_uuid` char(36) NOT NULL UNIQUE," +
                     "`timestamp` datetime NOT NULL," +
@@ -44,7 +44,7 @@ public class MySQL extends Database {
                     "`location` text NOT NULL," +
 
                     "PRIMARY KEY (`player_id`,`version_uuid`)," +
-                    "FOREIGN KEY (`player_id`) REFERENCES " + PLAYER_TABLE_NAME + " (`id`)" +
+                    "FOREIGN KEY (`player_id`) REFERENCES " + cluster.playerTableName() + " (`id`)" +
                     ");"
 
     };
@@ -55,12 +55,11 @@ public class MySQL extends Database {
     public String username = Settings.mySQLUsername;
     public String password = Settings.mySQLPassword;
     public String params = Settings.mySQLParams;
-    public String dataPoolName = DATA_POOL_NAME;
 
     private HikariDataSource dataSource;
 
-    public MySQL(HuskSyncBungeeCord instance) {
-        super(instance);
+    public MySQL(HuskSyncBungeeCord instance, Settings.SynchronisationCluster cluster) {
+        super(instance, cluster);
     }
 
     @Override

@@ -159,7 +159,7 @@ public class RedisMessage {
      * A record that defines the target of a plugin message; a spigot server or the proxy server(s).
      * For Bukkit servers, the name of the server must also be specified
      */
-    public record MessageTarget(Settings.ServerType targetServerType, UUID targetPlayerUUID) implements Serializable { }
+    public record MessageTarget(Settings.ServerType targetServerType, UUID targetPlayerUUID, String targetClusterId) implements Serializable { }
 
     /**
      * Deserialize an object from a Base64 string

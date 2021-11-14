@@ -104,7 +104,7 @@ public class PlayerSetter {
         try {
             final String serializedPlayerData = getNewSerializedPlayerData(player);
             new RedisMessage(RedisMessage.MessageType.PLAYER_DATA_UPDATE,
-                    new RedisMessage.MessageTarget(Settings.ServerType.BUNGEECORD, null),
+                    new RedisMessage.MessageTarget(Settings.ServerType.BUNGEECORD, null, Settings.cluster),
                     serializedPlayerData).send();
         } catch (IOException e) {
             plugin.getLogger().log(Level.SEVERE, "Failed to send a PlayerData update to the proxy", e);
@@ -123,7 +123,7 @@ public class PlayerSetter {
      */
     public static void requestPlayerData(UUID playerUUID) throws IOException {
         new RedisMessage(RedisMessage.MessageType.PLAYER_DATA_REQUEST,
-                new RedisMessage.MessageTarget(Settings.ServerType.BUNGEECORD, null),
+                new RedisMessage.MessageTarget(Settings.ServerType.BUNGEECORD, null, Settings.cluster),
                 playerUUID.toString()).send();
     }
 

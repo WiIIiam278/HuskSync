@@ -43,6 +43,13 @@ public class BukkitRedisListener extends RedisListener {
         if (!plugin.isEnabled()) {
             return;
         }
+        // Ignore messages for other clusters if applicable
+        final String targetClusterId = message.getMessageTarget().targetClusterId();
+        if (targetClusterId != null) {
+            if (!targetClusterId.equalsIgnoreCase(Settings.cluster)) {
+                return;
+            }
+        }
 
         // Handle the incoming redis message; either for a specific player or the system
         if (message.getMessageTarget().targetPlayerUUID() == null) {
@@ -90,7 +97,7 @@ public class BukkitRedisListener extends RedisListener {
                             try {
                                 MPDBPlayerData data = (MPDBPlayerData) RedisMessage.deserialize(encodedData);
                                 new RedisMessage(RedisMessage.MessageType.DECODED_MPDB_DATA_SET,
-                                        new RedisMessage.MessageTarget(Settings.ServerType.BUNGEECORD, null),
+                                        new RedisMessage.MessageTarget(Settings.ServerType.BUNGEECORD, null, Settings.cluster),
                                         RedisMessage.serialize(MPDBDeserializer.convertMPDBData(data)),
                                         data.playerName)
                                         .send();

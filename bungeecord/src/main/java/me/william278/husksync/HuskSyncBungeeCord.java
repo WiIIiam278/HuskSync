@@ -19,6 +19,7 @@ import org.bstats.bungeecord.Metrics;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.UUID;
@@ -26,6 +27,7 @@ import java.util.logging.Level;
 
 public final class HuskSyncBungeeCord extends Plugin {
 
+    // BungeeCord bStats ID (different to Bukkit)
     private static final int METRICS_ID = 13141;
 
     private static HuskSyncBungeeCord instance;
@@ -41,9 +43,9 @@ public final class HuskSyncBungeeCord extends Plugin {
      */
     public static HashSet<Server> synchronisedServers;
 
-    private static Database database;
-    public static Connection getConnection() throws SQLException {
-        return database.getConnection();
+    private static HashMap<String,Database> clusterDatabases;
+    public static Connection getConnection(String clusterId) throws SQLException {
+        return clusterDatabases.get(clusterId).getConnection();
     }
 
     public static MPDBMigrator mpdbMigrator;
@@ -76,21 +78,29 @@ public final class HuskSyncBungeeCord extends Plugin {
         }
 
         // Initialize the database
-        database = switch (Settings.dataStorageType) {
-            case SQLITE -> new SQLite(this);
-            case MYSQL -> new MySQL(this);
-        };
-        database.load();
-        database.createTables();
-
-        // Abort loading if the database failed to initialize
-        if (database.isInactive()) {
-            getLogger().severe("Failed to initialize the database; HuskSync will now abort loading itself (" + getProxy().getName() + ") v" + getDescription().getVersion());
-            return;
+        for (Settings.SynchronisationCluster cluster : Settings.clusters) {
+            Database clusterDatabase = switch (Settings.dataStorageType) {
+                case SQLITE -> new SQLite(this, cluster);
+                case MYSQL -> new MySQL(this, cluster);
+            };
+            clusterDatabase.load();
+            clusterDatabase.createTables();
+            clusterDatabases.put(cluster.clusterId(), clusterDatabase);
         }
 
+        // Abort loading if the database failed to initialize
+        for (Database database : clusterDatabases.values()) {
+            if (database.isInactive()) {
+                getLogger().severe("Failed to initialize the database(s); HuskSync will now abort loading itself (" + getProxy().getName() + ") v" + getDescription().getVersion());
+                return;
+            }
+        }
+
+
         // Setup player data cache
-        DataManager.playerDataCache = new DataManager.PlayerDataCache();
+        for (Settings.SynchronisationCluster cluster : Settings.clusters) {
+            DataManager.playerDataCache.put(cluster, new DataManager.PlayerDataCache());
+        }
 
         // Initialize the redis listener
         if (!new BungeeRedisListener().isActiveAndEnabled) {
@@ -129,7 +139,7 @@ public final class HuskSyncBungeeCord extends Plugin {
         for (Server server: synchronisedServers) {
             try {
                 new RedisMessage(RedisMessage.MessageType.TERMINATE_HANDSHAKE,
-                        new RedisMessage.MessageTarget(Settings.ServerType.BUKKIT, null),
+                        new RedisMessage.MessageTarget(Settings.ServerType.BUKKIT, null, server.clusterId()),
                         server.serverUUID().toString(),
                         ProxyServer.getInstance().getName()).send();
             }  catch (IOException e) {
@@ -138,7 +148,9 @@ public final class HuskSyncBungeeCord extends Plugin {
         }
 
         // Close the database
-        database.close();
+        for (Database database : clusterDatabases.values()) {
+            database.close();
+        }
 
         // Log to console
         getLogger().info("Disabled HuskSync (" + getProxy().getName() + ") v" + getDescription().getVersion());
@@ -147,5 +159,5 @@ public final class HuskSyncBungeeCord extends Plugin {
     /**
      * A record representing a server synchronised on the network and whether it has MySqlPlayerDataBridge installed
      */
-    public record Server(UUID serverUUID, boolean hasMySqlPlayerDataBridge, String huskSyncVersion, String serverBrand) { }
+    public record Server(UUID serverUUID, boolean hasMySqlPlayerDataBridge, String huskSyncVersion, String serverBrand, String clusterId) { }
 }

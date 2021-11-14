@@ -21,6 +21,7 @@ import java.util.logging.Level;
 
 public final class HuskSyncBukkit extends JavaPlugin {
 
+    // Bukkit bStats ID (Different to BungeeCord)
     private static final int METRICS_ID = 13140;
 
     private static HuskSyncBukkit instance;
@@ -36,7 +37,7 @@ public final class HuskSyncBukkit extends JavaPlugin {
     // Has a handshake been established with the Bungee?
     public static boolean handshakeCompleted = false;
 
-    // THe handshake task to execute
+    // The handshake task to execute
     private static BukkitTask handshakeTask;
 
     // Whether MySqlPlayerDataBridge is installed
@@ -54,7 +55,7 @@ public final class HuskSyncBukkit extends JavaPlugin {
             }
             try {
                 new RedisMessage(RedisMessage.MessageType.CONNECTION_HANDSHAKE,
-                        new RedisMessage.MessageTarget(Settings.ServerType.BUNGEECORD, null),
+                        new RedisMessage.MessageTarget(Settings.ServerType.BUNGEECORD, null, Settings.cluster),
                         serverUUID.toString(),
                         Boolean.toString(isMySqlPlayerDataBridgeInstalled),
                         Bukkit.getName(),
@@ -74,7 +75,7 @@ public final class HuskSyncBukkit extends JavaPlugin {
         if (!handshakeCompleted) return;
         try {
             new RedisMessage(RedisMessage.MessageType.TERMINATE_HANDSHAKE,
-                    new RedisMessage.MessageTarget(Settings.ServerType.BUNGEECORD, null),
+                    new RedisMessage.MessageTarget(Settings.ServerType.BUNGEECORD, null, Settings.cluster),
                     serverUUID.toString(),
                     Bukkit.getName()).send();
         }  catch (IOException e) {

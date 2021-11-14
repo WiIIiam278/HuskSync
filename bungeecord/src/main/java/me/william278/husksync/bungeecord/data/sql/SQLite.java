@@ -2,6 +2,7 @@ package me.william278.husksync.bungeecord.data.sql;
 
 import com.zaxxer.hikari.HikariDataSource;
 import me.william278.husksync.HuskSyncBungeeCord;
+import me.william278.husksync.Settings;
 
 import java.io.File;
 import java.io.IOException;
@@ -12,18 +13,18 @@ import java.util.logging.Level;
 
 public class SQLite extends Database {
 
-    final static String[] SQL_SETUP_STATEMENTS = {
+    final String[] SQL_SETUP_STATEMENTS = {
             "PRAGMA foreign_keys = ON;",
             "PRAGMA encoding = 'UTF-8';",
 
-            "CREATE TABLE IF NOT EXISTS " + PLAYER_TABLE_NAME + " (" +
+            "CREATE TABLE IF NOT EXISTS " + cluster.playerTableName() + " (" +
                     "`id` integer PRIMARY KEY," +
                     "`uuid` char(36) NOT NULL UNIQUE," +
                     "`username` varchar(16) NOT NULL" +
                     ");",
 
-            "CREATE TABLE IF NOT EXISTS " + DATA_TABLE_NAME + " (" +
-                    "`player_id` integer NOT NULL REFERENCES " + PLAYER_TABLE_NAME + "(`id`)," +
+            "CREATE TABLE IF NOT EXISTS " + cluster.dataTableName() + " (" +
+                    "`player_id` integer NOT NULL REFERENCES " + cluster.playerTableName() + "(`id`)," +
                     "`version_uuid` char(36) NOT NULL UNIQUE," +
                     "`timestamp` datetime NOT NULL," +
                     "`inventory` longtext NOT NULL," +
@@ -49,24 +50,26 @@ public class SQLite extends Database {
                     ");"
     };
 
-    private static final String DATABASE_NAME = "HuskSyncData";
+    private String getDatabaseName() {
+        return cluster.databaseName() + "Data";
+    }
 
     private HikariDataSource dataSource;
 
-    public SQLite(HuskSyncBungeeCord instance) {
-        super(instance);
+    public SQLite(HuskSyncBungeeCord instance, Settings.SynchronisationCluster cluster) {
+        super(instance, cluster);
     }
 
     // Create the database file if it does not exist yet
     private void createDatabaseFileIfNotExist() {
-        File databaseFile = new File(plugin.getDataFolder(), DATABASE_NAME + ".db");
+        File databaseFile = new File(plugin.getDataFolder(), getDatabaseName() + ".db");
         if (!databaseFile.exists()) {
             try {
                 if (!databaseFile.createNewFile()) {
-                    plugin.getLogger().log(Level.SEVERE, "Failed to write new file: " + DATABASE_NAME + ".db (file already exists)");
+                    plugin.getLogger().log(Level.SEVERE, "Failed to write new file: " + getDatabaseName() + ".db (file already exists)");
                 }
             } catch (IOException e) {
-                plugin.getLogger().log(Level.SEVERE, "An error occurred writing a file: " + DATABASE_NAME + ".db (" + e.getCause() + ")");
+                plugin.getLogger().log(Level.SEVERE, "An error occurred writing a file: " + getDatabaseName() + ".db (" + e.getCause() + ")");
             }
         }
     }
@@ -82,7 +85,7 @@ public class SQLite extends Database {
         createDatabaseFileIfNotExist();
 
         // Create new HikariCP data source
-        final String jdbcUrl = "jdbc:sqlite:" + plugin.getDataFolder().getAbsolutePath() + File.separator + DATABASE_NAME + ".db";
+        final String jdbcUrl = "jdbc:sqlite:" + plugin.getDataFolder().getAbsolutePath() + File.separator + getDatabaseName() + ".db";
         dataSource = new HikariDataSource();
         dataSource.setDataSourceClassName("org.sqlite.SQLiteDataSource");
         dataSource.addDataSourceProperty("url", jdbcUrl);
@@ -93,7 +96,7 @@ public class SQLite extends Database {
         dataSource.setMaxLifetime(hikariMaximumLifetime);
         dataSource.setKeepaliveTime(hikariKeepAliveTime);
         dataSource.setConnectionTimeout(hikariConnectionTimeOut);
-        dataSource.setPoolName(DATA_POOL_NAME);
+        dataSource.setPoolName(dataPoolName);
     }
 
     @Override

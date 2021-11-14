@@ -9,12 +9,13 @@ import java.sql.SQLException;
 public abstract class Database {
     protected HuskSyncBungeeCord plugin;
 
-    public final static String DATA_POOL_NAME = "HuskSyncHikariPool";
-    public final static String PLAYER_TABLE_NAME = "husksync_players";
-    public final static String DATA_TABLE_NAME = "husksync_data";
+    public String dataPoolName;
+    public Settings.SynchronisationCluster cluster;
 
-    public Database(HuskSyncBungeeCord instance) {
-        plugin = instance;
+    public Database(HuskSyncBungeeCord instance, Settings.SynchronisationCluster cluster) {
+        this.plugin = instance;
+        this.cluster = cluster;
+        this.dataPoolName = "HuskSyncHikariPool-" + cluster.clusterId();
     }
 
     public abstract Connection getConnection() throws SQLException;
@@ -33,9 +34,9 @@ public abstract class Database {
 
     public abstract void close();
 
-    public final int hikariMaximumPoolSize = me.william278.husksync.Settings.hikariMaximumPoolSize;
-    public final int hikariMinimumIdle = me.william278.husksync.Settings.hikariMinimumIdle;
-    public final long hikariMaximumLifetime = me.william278.husksync.Settings.hikariMaximumLifetime;
-    public final long hikariKeepAliveTime = me.william278.husksync.Settings.hikariKeepAliveTime;
+    public final int hikariMaximumPoolSize = Settings.hikariMaximumPoolSize;
+    public final int hikariMinimumIdle = Settings.hikariMinimumIdle;
+    public final long hikariMaximumLifetime = Settings.hikariMaximumLifetime;
+    public final long hikariKeepAliveTime = Settings.hikariKeepAliveTime;
     public final long hikariConnectionTimeOut = Settings.hikariConnectionTimeOut;
 }

@@ -36,6 +36,7 @@ public class MPDBMigrator {
     public static HashMap<PlayerData, String> incomingPlayerData;
 
     public static MigrationSettings migrationSettings = new MigrationSettings();
+    private static Settings.SynchronisationCluster targetCluster;
     private static Database sourceDatabase;
 
     private static HashSet<MPDBPlayerData> mpdbPlayerData;
@@ -56,6 +57,18 @@ public class MPDBMigrator {
         if (synchronisedServersWithMpdb < 1) {
             plugin.getLogger().log(Level.WARNING, "Failed to start migration because at least one Spigot server with both HuskSync and MySqlPlayerDataBridge installed is not online. " +
                     "Please start one Spigot server with HuskSync installed to begin migration.");
+            return;
+        }
+
+        for (Settings.SynchronisationCluster cluster : Settings.clusters) {
+            if (migrationSettings.targetCluster.equals(cluster.clusterId())) {
+                targetCluster = cluster;
+                break;
+            }
+        }
+        if (targetCluster == null) {
+            plugin.getLogger().log(Level.WARNING, "Failed to start migration because the target cluster could not be found. " +
+            "Please ensure the target cluster is correct, configured in the proxy config file, then try again");
             return;
         }
 
@@ -91,11 +104,11 @@ public class MPDBMigrator {
     // Clear the new database out of current data
     private void prepareTargetDatabase() {
         plugin.getLogger().log(Level.INFO, "Preparing target database...");
-        try (Connection connection = HuskSyncBungeeCord.getConnection()) {
-            try (PreparedStatement statement = connection.prepareStatement("DELETE FROM " + Database.PLAYER_TABLE_NAME + ";")) {
+        try (Connection connection = HuskSyncBungeeCord.getConnection(targetCluster.clusterId())) {
+            try (PreparedStatement statement = connection.prepareStatement("DELETE FROM " + targetCluster.playerTableName() + ";")) {
                 statement.executeUpdate();
             }
-            try (PreparedStatement statement = connection.prepareStatement("DELETE FROM " + Database.DATA_TABLE_NAME + ";")) {
+            try (PreparedStatement statement = connection.prepareStatement("DELETE FROM " + targetCluster.dataTableName() + ";")) {
                 statement.executeUpdate();
             }
         } catch (SQLException e) {
@@ -182,7 +195,7 @@ public class MPDBMigrator {
                 for (MPDBPlayerData data : mpdbPlayerData) {
                     try {
                         new RedisMessage(RedisMessage.MessageType.DECODE_MPDB_DATA,
-                                new RedisMessage.MessageTarget(Settings.ServerType.BUKKIT, null),
+                                new RedisMessage.MessageTarget(Settings.ServerType.BUKKIT, null, null),
                                 processingServer.serverUUID().toString(),
                                 RedisMessage.serialize(data))
                                 .send();
@@ -214,7 +227,10 @@ public class MPDBMigrator {
                 DataManager.ensurePlayerExists(playerData.getPlayerUUID(), playerName);
 
                 // Update the data in the cache and SQL
-                DataManager.updatePlayerData(playerData);
+                for (Settings.SynchronisationCluster cluster : Settings.clusters) {
+                    DataManager.updatePlayerData(playerData, cluster);
+                    break;
+                }
 
                 playersSaved++;
                 plugin.getLogger().log(Level.INFO, "Saved data for " + playersSaved + "/" + playersMigrated + " players");
@@ -250,12 +266,16 @@ public class MPDBMigrator {
         public String enderChestDataTable;
         public String expDataTable;
 
+        public String targetCluster;
+
         public MigrationSettings() {
             sourceHost = "localhost";
             sourcePort = 3306;
             sourceDatabase = "mpdb";
             sourceUsername = "root";
             sourcePassword = "pa55w0rd";
+
+            targetCluster = "main";
 
             inventoryDataTable = "mpdb_inventory";
             enderChestDataTable = "mpdb_enderchest";
@@ -268,14 +288,14 @@ public class MPDBMigrator {
      */
     public static class MigratorMySQL extends MySQL {
         public MigratorMySQL(HuskSyncBungeeCord instance, String host, int port, String database, String username, String password) {
-            super(instance);
+            super(instance, null);
             super.host = host;
             super.port = port;
             super.database = database;
             super.username = username;
             super.password = password;
             super.params = "?useSSL=false";
-            super.dataPoolName = DATA_POOL_NAME + "Migrator";
+            super.dataPoolName = super.dataPoolName + "Migrator";
         }
     }
 

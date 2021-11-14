@@ -13,4 +13,5 @@ synchronisation_settings:
   game_mode: true
   advancements: true
   location: false
+cluster_id: 'main'
 check_for_updates: true

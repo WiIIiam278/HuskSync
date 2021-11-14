@@ -2,18 +2,22 @@ package me.william278.husksync.bungeecord.data;
 
 import me.william278.husksync.PlayerData;
 import me.william278.husksync.HuskSyncBungeeCord;
+import me.william278.husksync.Settings;
 import me.william278.husksync.bungeecord.data.sql.Database;
 
 import java.sql.*;
 import java.time.Instant;
-import java.util.HashSet;
-import java.util.UUID;
+import java.util.*;
 import java.util.logging.Level;
 
 public class DataManager {
 
     private static final HuskSyncBungeeCord plugin = HuskSyncBungeeCord.getInstance();
-    public static PlayerDataCache playerDataCache;
+
+    /**
+     * The player data cache for each cluster ID
+     */
+    public static HashMap<Settings.SynchronisationCluster, PlayerDataCache> playerDataCache = new HashMap<>();
 
     /**
      * Checks if the player is registered on the database.
@@ -23,10 +27,12 @@ public class DataManager {
      * @param playerUUID The UUID of the player to register
      */
     public static void ensurePlayerExists(UUID playerUUID, String playerName) {
-        if (!playerExists(playerUUID)) {
-            createPlayerEntry(playerUUID, playerName);
-        } else {
-            updatePlayerName(playerUUID, playerName);
+        for (Settings.SynchronisationCluster cluster : Settings.clusters) {
+            if (!playerExists(playerUUID, cluster)) {
+                createPlayerEntry(playerUUID, playerName, cluster);
+            } else {
+                updatePlayerName(playerUUID, playerName, cluster);
+            }
         }
     }
 
@@ -36,10 +42,10 @@ public class DataManager {
      * @param playerUUID The UUID of the player
      * @return {@code true} if the player is on the player table
      */
-    private static boolean playerExists(UUID playerUUID) {
-        try (Connection connection = HuskSyncBungeeCord.getConnection()) {
+    private static boolean playerExists(UUID playerUUID, Settings.SynchronisationCluster cluster) {
+        try (Connection connection = HuskSyncBungeeCord.getConnection(cluster.clusterId())) {
             try (PreparedStatement statement = connection.prepareStatement(
-                    "SELECT * FROM " + Database.PLAYER_TABLE_NAME + " WHERE `uuid`=?;")) {
+                    "SELECT * FROM " + cluster.playerTableName() + " WHERE `uuid`=?;")) {
                 statement.setString(1, playerUUID.toString());
                 ResultSet resultSet = statement.executeQuery();
                 return resultSet.next();
@@ -50,10 +56,10 @@ public class DataManager {
         }
     }
 
-    private static void createPlayerEntry(UUID playerUUID, String playerName) {
-        try (Connection connection = HuskSyncBungeeCord.getConnection()) {
+    private static void createPlayerEntry(UUID playerUUID, String playerName, Settings.SynchronisationCluster cluster) {
+        try (Connection connection = HuskSyncBungeeCord.getConnection(cluster.clusterId())) {
             try (PreparedStatement statement = connection.prepareStatement(
-                    "INSERT INTO " + Database.PLAYER_TABLE_NAME + " (`uuid`,`username`) VALUES(?,?);")) {
+                    "INSERT INTO " + cluster.playerTableName() + " (`uuid`,`username`) VALUES(?,?);")) {
                 statement.setString(1, playerUUID.toString());
                 statement.setString(2, playerName);
                 statement.executeUpdate();
@@ -63,10 +69,10 @@ public class DataManager {
         }
     }
 
-    public static void updatePlayerName(UUID playerUUID, String playerName) {
-        try (Connection connection = HuskSyncBungeeCord.getConnection()) {
+    public static void updatePlayerName(UUID playerUUID, String playerName, Settings.SynchronisationCluster cluster) {
+        try (Connection connection = HuskSyncBungeeCord.getConnection(cluster.clusterId())) {
             try (PreparedStatement statement = connection.prepareStatement(
-                    "UPDATE " + Database.PLAYER_TABLE_NAME + " SET `username`=? WHERE `uuid`=?;")) {
+                    "UPDATE " + cluster.playerTableName() + " SET `username`=? WHERE `uuid`=?;")) {
                 statement.setString(1, playerName);
                 statement.setString(2, playerUUID.toString());
                 statement.executeUpdate();
@@ -78,93 +84,105 @@ public class DataManager {
 
     /**
      * Returns a player's PlayerData by their username
+     *
      * @param playerName The PlayerName of the data to get
      * @return Their {@link PlayerData}; or {@code null} if the player does not exist
      */
-    public static PlayerData getPlayerDataByName(String playerName) {
+    public static PlayerData getPlayerDataByName(String playerName, String clusterId) {
         PlayerData playerData = null;
-        try (Connection connection = HuskSyncBungeeCord.getConnection()) {
-            try (PreparedStatement statement = connection.prepareStatement(
-                    "SELECT * FROM " + Database.PLAYER_TABLE_NAME + " WHERE `username`=? LIMIT 1;")) {
-                statement.setString(1, playerName);
-                ResultSet resultSet = statement.executeQuery();
-                if (resultSet.next()) {
-                    final UUID uuid = UUID.fromString(resultSet.getString("uuid"));
+        for (Settings.SynchronisationCluster cluster : Settings.clusters) {
+            if (cluster.clusterId().equals(clusterId)) {
+                try (Connection connection = HuskSyncBungeeCord.getConnection(clusterId)) {
+                    try (PreparedStatement statement = connection.prepareStatement(
+                            "SELECT * FROM " + cluster.playerTableName() + " WHERE `username`=? LIMIT 1;")) {
+                        statement.setString(1, playerName);
+                        ResultSet resultSet = statement.executeQuery();
+                        if (resultSet.next()) {
+                            final UUID uuid = UUID.fromString(resultSet.getString("uuid"));
 
-                    // Get the player data from the cache if it's there, otherwise pull from SQL
-                    playerData = playerDataCache.getPlayer(uuid);
-                    if (playerData == null) {
-                        playerData = getPlayerData(uuid);
+                            // Get the player data from the cache if it's there, otherwise pull from SQL
+                            playerData = playerDataCache.get(cluster).getPlayer(uuid);
+                            if (playerData == null) {
+                                playerData = Objects.requireNonNull(getPlayerData(uuid)).get(cluster);
+                            }
+                            break;
+
+                        }
                     }
+                } catch (SQLException e) {
+                    plugin.getLogger().log(Level.SEVERE, "An SQL exception occurred", e);
                 }
+                break;
             }
-        } catch (SQLException e) {
-            plugin.getLogger().log(Level.SEVERE, "An SQL exception occurred", e);
+
         }
         return playerData;
     }
 
-    public static PlayerData getPlayerData(UUID playerUUID) {
-        try (Connection connection = HuskSyncBungeeCord.getConnection()) {
-            try (PreparedStatement statement = connection.prepareStatement(
-                    "SELECT * FROM " + Database.DATA_TABLE_NAME + " WHERE `player_id`=(SELECT `id` FROM " + Database.PLAYER_TABLE_NAME + " WHERE `uuid`=?);")) {
-                statement.setString(1, playerUUID.toString());
-                ResultSet resultSet = statement.executeQuery();
-                if (resultSet.next()) {
-                    final UUID dataVersionUUID = UUID.fromString(resultSet.getString("version_uuid"));
-                    //final Timestamp dataSaveTimestamp = resultSet.getTimestamp("timestamp");
-                    final String serializedInventory = resultSet.getString("inventory");
-                    final String serializedEnderChest = resultSet.getString("ender_chest");
-                    final double health = resultSet.getDouble("health");
-                    final double maxHealth = resultSet.getDouble("max_health");
-                    final double healthScale = resultSet.getDouble("health_scale");
-                    final int hunger = resultSet.getInt("hunger");
-                    final float saturation = resultSet.getFloat("saturation");
-                    final float saturationExhaustion = resultSet.getFloat("saturation_exhaustion");
-                    final int selectedSlot = resultSet.getInt("selected_slot");
-                    final String serializedStatusEffects = resultSet.getString("status_effects");
-                    final int totalExperience = resultSet.getInt("total_experience");
-                    final int expLevel = resultSet.getInt("exp_level");
-                    final float expProgress = resultSet.getFloat("exp_progress");
-                    final String gameMode = resultSet.getString("game_mode");
-                    final boolean isFlying = resultSet.getBoolean("is_flying");
-                    final String serializedAdvancementData = resultSet.getString("advancements");
-                    final String serializedLocationData = resultSet.getString(  "location");
+    public static Map<Settings.SynchronisationCluster, PlayerData> getPlayerData(UUID playerUUID) {
+        HashMap<Settings.SynchronisationCluster, PlayerData> data = new HashMap<>();
+        for (Settings.SynchronisationCluster cluster : Settings.clusters) {
+            try (Connection connection = HuskSyncBungeeCord.getConnection(cluster.clusterId())) {
+                try (PreparedStatement statement = connection.prepareStatement(
+                        "SELECT * FROM " + cluster.dataTableName() + " WHERE `player_id`=(SELECT `id` FROM " + cluster.playerTableName() + " WHERE `uuid`=?);")) {
+                    statement.setString(1, playerUUID.toString());
+                    ResultSet resultSet = statement.executeQuery();
+                    if (resultSet.next()) {
+                        final UUID dataVersionUUID = UUID.fromString(resultSet.getString("version_uuid"));
+                        //final Timestamp dataSaveTimestamp = resultSet.getTimestamp("timestamp");
+                        final String serializedInventory = resultSet.getString("inventory");
+                        final String serializedEnderChest = resultSet.getString("ender_chest");
+                        final double health = resultSet.getDouble("health");
+                        final double maxHealth = resultSet.getDouble("max_health");
+                        final double healthScale = resultSet.getDouble("health_scale");
+                        final int hunger = resultSet.getInt("hunger");
+                        final float saturation = resultSet.getFloat("saturation");
+                        final float saturationExhaustion = resultSet.getFloat("saturation_exhaustion");
+                        final int selectedSlot = resultSet.getInt("selected_slot");
+                        final String serializedStatusEffects = resultSet.getString("status_effects");
+                        final int totalExperience = resultSet.getInt("total_experience");
+                        final int expLevel = resultSet.getInt("exp_level");
+                        final float expProgress = resultSet.getFloat("exp_progress");
+                        final String gameMode = resultSet.getString("game_mode");
+                        final boolean isFlying = resultSet.getBoolean("is_flying");
+                        final String serializedAdvancementData = resultSet.getString("advancements");
+                        final String serializedLocationData = resultSet.getString("location");
+                        final String serializedStatisticData = resultSet.getString("statistics");
 
-                    final String serializedStatisticData = resultSet.getString("statistics");
-
-                    return new PlayerData(playerUUID, dataVersionUUID, serializedInventory, serializedEnderChest,
-                            health, maxHealth, healthScale, hunger, saturation, saturationExhaustion, selectedSlot, serializedStatusEffects,
-                            totalExperience, expLevel, expProgress, gameMode, serializedStatisticData, isFlying,
-                            serializedAdvancementData, serializedLocationData);
-                } else {
-                    return PlayerData.DEFAULT_PLAYER_DATA(playerUUID);
+                        data.put(cluster, new PlayerData(playerUUID, dataVersionUUID, serializedInventory, serializedEnderChest,
+                                health, maxHealth, healthScale, hunger, saturation, saturationExhaustion, selectedSlot, serializedStatusEffects,
+                                totalExperience, expLevel, expProgress, gameMode, serializedStatisticData, isFlying,
+                                serializedAdvancementData, serializedLocationData));
+                    } else {
+                        data.put(cluster, PlayerData.DEFAULT_PLAYER_DATA(playerUUID));
+                    }
                 }
+            } catch (SQLException e) {
+                plugin.getLogger().log(Level.SEVERE, "An SQL exception occurred", e);
+                return null;
             }
-        } catch (SQLException e) {
-            plugin.getLogger().log(Level.SEVERE, "An SQL exception occurred", e);
-            return null;
         }
+        return data;
     }
 
-    public static void updatePlayerData(PlayerData playerData) {
+    public static void updatePlayerData(PlayerData playerData, Settings.SynchronisationCluster cluster) {
         // Ignore if the Spigot server didn't properly sync the previous data
 
         // Add the new player data to the cache
-        playerDataCache.updatePlayer(playerData);
+        playerDataCache.get(cluster).updatePlayer(playerData);
 
         // SQL: If the player has cached data, update it, otherwise insert new data.
-        if (playerHasCachedData(playerData.getPlayerUUID())) {
-            updatePlayerSQLData(playerData);
+        if (playerHasCachedData(playerData.getPlayerUUID(), cluster)) {
+            updatePlayerSQLData(playerData, cluster);
         } else {
-            insertPlayerData(playerData);
+            insertPlayerData(playerData, cluster);
         }
     }
 
-    private static void updatePlayerSQLData(PlayerData playerData) {
-        try (Connection connection = HuskSyncBungeeCord.getConnection()) {
+    private static void updatePlayerSQLData(PlayerData playerData, Settings.SynchronisationCluster cluster) {
+        try (Connection connection = HuskSyncBungeeCord.getConnection(cluster.clusterId())) {
             try (PreparedStatement statement = connection.prepareStatement(
-                    "UPDATE " + Database.DATA_TABLE_NAME + " SET `version_uuid`=?, `timestamp`=?, `inventory`=?, `ender_chest`=?, `health`=?, `max_health`=?, `health_scale`=?, `hunger`=?, `saturation`=?, `saturation_exhaustion`=?, `selected_slot`=?, `status_effects`=?, `total_experience`=?, `exp_level`=?, `exp_progress`=?, `game_mode`=?, `statistics`=?, `is_flying`=?, `advancements`=?, `location`=? WHERE `player_id`=(SELECT `id` FROM " + Database.PLAYER_TABLE_NAME + " WHERE `uuid`=?);")) {
+                    "UPDATE " + cluster.dataTableName() + " SET `version_uuid`=?, `timestamp`=?, `inventory`=?, `ender_chest`=?, `health`=?, `max_health`=?, `health_scale`=?, `hunger`=?, `saturation`=?, `saturation_exhaustion`=?, `selected_slot`=?, `status_effects`=?, `total_experience`=?, `exp_level`=?, `exp_progress`=?, `game_mode`=?, `statistics`=?, `is_flying`=?, `advancements`=?, `location`=? WHERE `player_id`=(SELECT `id` FROM " + cluster.playerTableName() + " WHERE `uuid`=?);")) {
                 statement.setString(1, playerData.getDataVersionUUID().toString());
                 statement.setTimestamp(2, new Timestamp(Instant.now().getEpochSecond()));
                 statement.setString(3, playerData.getSerializedInventory());
@@ -194,10 +212,10 @@ public class DataManager {
         }
     }
 
-    private static void insertPlayerData(PlayerData playerData) {
-        try (Connection connection = HuskSyncBungeeCord.getConnection()) {
+    private static void insertPlayerData(PlayerData playerData, Settings.SynchronisationCluster cluster) {
+        try (Connection connection = HuskSyncBungeeCord.getConnection(cluster.clusterId())) {
             try (PreparedStatement statement = connection.prepareStatement(
-                    "INSERT INTO " + Database.DATA_TABLE_NAME + " (`player_id`,`version_uuid`,`timestamp`,`inventory`,`ender_chest`,`health`,`max_health`,`health_scale`,`hunger`,`saturation`,`saturation_exhaustion`,`selected_slot`,`status_effects`,`total_experience`,`exp_level`,`exp_progress`,`game_mode`,`statistics`,`is_flying`,`advancements`,`location`) VALUES((SELECT `id` FROM " + Database.PLAYER_TABLE_NAME + " WHERE `uuid`=?),?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);")) {
+                    "INSERT INTO " + cluster.dataTableName() + " (`player_id`,`version_uuid`,`timestamp`,`inventory`,`ender_chest`,`health`,`max_health`,`health_scale`,`hunger`,`saturation`,`saturation_exhaustion`,`selected_slot`,`status_effects`,`total_experience`,`exp_level`,`exp_progress`,`game_mode`,`statistics`,`is_flying`,`advancements`,`location`) VALUES((SELECT `id` FROM " + cluster.playerTableName() + " WHERE `uuid`=?),?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);")) {
                 statement.setString(1, playerData.getPlayerUUID().toString());
                 statement.setString(2, playerData.getDataVersionUUID().toString());
                 statement.setTimestamp(3, new Timestamp(Instant.now().getEpochSecond()));
@@ -233,10 +251,10 @@ public class DataManager {
      * @param playerUUID The UUID of the player
      * @return {@code true} if the player has an entry in the data table
      */
-    private static boolean playerHasCachedData(UUID playerUUID) {
-        try (Connection connection = HuskSyncBungeeCord.getConnection()) {
+    private static boolean playerHasCachedData(UUID playerUUID, Settings.SynchronisationCluster cluster) {
+        try (Connection connection = HuskSyncBungeeCord.getConnection(cluster.clusterId())) {
             try (PreparedStatement statement = connection.prepareStatement(
-                    "SELECT * FROM " + Database.DATA_TABLE_NAME + " WHERE `player_id`=(SELECT `id` FROM " + Database.PLAYER_TABLE_NAME + " WHERE `uuid`=?);")) {
+                    "SELECT * FROM " + cluster.dataTableName() + " WHERE `player_id`=(SELECT `id` FROM " + cluster.playerTableName() + " WHERE `uuid`=?);")) {
                 statement.setString(1, playerUUID.toString());
                 ResultSet resultSet = statement.executeQuery();
                 return resultSet.next();

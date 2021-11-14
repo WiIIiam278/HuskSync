@@ -90,9 +90,24 @@ public class HuskSyncCommand extends Command implements TabExecutor {
                             sender.sendMessage(new MineDown(MessageManager.getMessage("error_no_permission")).toComponent());
                             return;
                         }
-                        if (args.length == 2) {
+                        String clusterId;
+                        if (Settings.clusters.size() > 1) {
+                            if (args.length == 3) {
+                                clusterId = args[2];
+                            } else {
+                                sender.sendMessage(new MineDown(MessageManager.getMessage("error_invalid_cluster")).toComponent());
+                                return;
+                            }
+                        } else {
+                            clusterId = "main";
+                            for (Settings.SynchronisationCluster cluster : Settings.clusters) {
+                                clusterId = cluster.clusterId();
+                                break;
+                            }
+                        }
+                        if (args.length == 2 || args.length == 3) {
                             String playerName = args[1];
-                            openInventory(player, playerName);
+                            openInventory(player, playerName, clusterId);
                         } else {
                             sender.sendMessage(new MineDown(MessageManager.getMessage("error_invalid_syntax").replaceAll("%1%",
                                     "/husksync invsee <player>")).toComponent());
@@ -103,9 +118,24 @@ public class HuskSyncCommand extends Command implements TabExecutor {
                             sender.sendMessage(new MineDown(MessageManager.getMessage("error_no_permission")).toComponent());
                             return;
                         }
-                        if (args.length == 2) {
+                        String clusterId;
+                        if (Settings.clusters.size() > 1) {
+                            if (args.length == 3) {
+                                clusterId = args[2];
+                            } else {
+                                sender.sendMessage(new MineDown(MessageManager.getMessage("error_invalid_cluster")).toComponent());
+                                return;
+                            }
+                        } else {
+                            clusterId = "main";
+                            for (Settings.SynchronisationCluster cluster : Settings.clusters) {
+                                clusterId = cluster.clusterId();
+                                break;
+                            }
+                        }
+                        if (args.length == 2 || args.length == 3) {
                             String playerName = args[1];
-                            openEnderChest(player, playerName);
+                            openEnderChest(player, playerName, clusterId);
                         } else {
                             sender.sendMessage(new MineDown(MessageManager.getMessage("error_invalid_syntax")
                                     .replaceAll("%1%", "/husksync echest <player>")).toComponent());
@@ -124,9 +154,13 @@ public class HuskSyncCommand extends Command implements TabExecutor {
                             sender.sendMessage(new MineDown(MessageManager.getMessage("error_no_permission")).toComponent());
                             return;
                         }
+                        int playerDataSize = 0;
+                        for (Settings.SynchronisationCluster cluster : Settings.clusters) {
+                            playerDataSize += DataManager.playerDataCache.get(cluster).playerData.size();
+                        }
                         sender.sendMessage(new MineDown(MessageManager.PLUGIN_STATUS.toString()
                                 .replaceAll("%1%", String.valueOf(HuskSyncBungeeCord.synchronisedServers.size()))
-                                .replaceAll("%2%", String.valueOf(DataManager.playerDataCache.playerData.size()))).toComponent());
+                                .replaceAll("%2%", String.valueOf(playerDataSize))).toComponent());
                     }
                     case "reload" -> {
                         if (!player.hasPermission("husksync.command.admin")) {
@@ -142,7 +176,7 @@ public class HuskSyncCommand extends Command implements TabExecutor {
                         // Send reload request to all bukkit servers
                         try {
                             new RedisMessage(RedisMessage.MessageType.RELOAD_CONFIG,
-                                    new RedisMessage.MessageTarget(Settings.ServerType.BUKKIT, null),
+                                    new RedisMessage.MessageTarget(Settings.ServerType.BUKKIT, null, null),
                                     "reload")
                                     .send();
                         } catch (IOException e) {
@@ -200,6 +234,8 @@ public class HuskSyncCommand extends Command implements TabExecutor {
                                             sourceInventoryTableName: %6%
                                             sourceEnderChestTableName: %7%
                                             sourceExperienceTableName: %8%
+                                            
+                                            targetCluster: %9%
                                                                                             
                                             To change a setting, type:
                                             husksync migrate setting <settingName> <value>
@@ -211,7 +247,7 @@ public class HuskSyncCommand extends Command implements TabExecutor {
                                             Redis credentials.
                                                                                             
                                             Warning: Data will be saved to your configured data
-                                            source, which is currently a %9% database.
+                                            source, which is currently a %10% database.
                                             Please make sure you are happy with this, or stop
                                             the proxy server and edit this in config.yml
                                                                                             
@@ -228,7 +264,8 @@ public class HuskSyncCommand extends Command implements TabExecutor {
                                             .replaceAll("%6%", MPDBMigrator.migrationSettings.inventoryDataTable)
                                             .replaceAll("%7%", MPDBMigrator.migrationSettings.enderChestDataTable)
                                             .replaceAll("%8%", MPDBMigrator.migrationSettings.expDataTable)
-                                            .replaceAll("%9%", Settings.dataStorageType.toString())
+                                            .replaceAll("%9%", MPDBMigrator.migrationSettings.targetCluster)
+                                            .replaceAll("%10%", Settings.dataStorageType.toString())
                             ).toComponent());
                             case "setting" -> {
                                 if (args.length == 4) {
@@ -249,6 +286,7 @@ public class HuskSyncCommand extends Command implements TabExecutor {
                                         case "sourceInventoryTableName", "inventoryTableName", "inventoryTable" -> MPDBMigrator.migrationSettings.inventoryDataTable = value;
                                         case "sourceEnderChestTableName", "enderChestTableName", "enderChestTable" -> MPDBMigrator.migrationSettings.enderChestDataTable = value;
                                         case "sourceExperienceTableName", "experienceTableName", "experienceTable" -> MPDBMigrator.migrationSettings.expDataTable = value;
+                                        case "targetCluster", "cluster" -> MPDBMigrator.migrationSettings.targetCluster = value;
                                         default -> {
                                             sender.sendMessage(new MineDown("Error: Invalid setting; please use \"husksync migrate setup\" to view a list").toComponent());
                                             return;
@@ -274,7 +312,7 @@ public class HuskSyncCommand extends Command implements TabExecutor {
     }
 
     // View the inventory of a player specified by their name
-    private void openInventory(ProxiedPlayer viewer, String targetPlayerName) {
+    private void openInventory(ProxiedPlayer viewer, String targetPlayerName, String clusterId) {
         if (viewer.getName().equalsIgnoreCase(targetPlayerName)) {
             viewer.sendMessage(new MineDown(MessageManager.getMessage("error_cannot_view_own_ender_chest")).toComponent());
             return;
@@ -284,26 +322,31 @@ public class HuskSyncCommand extends Command implements TabExecutor {
             return;
         }
         ProxyServer.getInstance().getScheduler().runAsync(plugin, () -> {
-            PlayerData playerData = DataManager.getPlayerDataByName(targetPlayerName);
-            if (playerData == null) {
-                viewer.sendMessage(new MineDown(MessageManager.getMessage("error_invalid_player")).toComponent());
+            for (Settings.SynchronisationCluster cluster : Settings.clusters) {
+                if (!cluster.clusterId().equals(clusterId)) continue;
+                PlayerData playerData = DataManager.getPlayerDataByName(targetPlayerName, cluster.clusterId());
+                if (playerData == null) {
+                    viewer.sendMessage(new MineDown(MessageManager.getMessage("error_invalid_player")).toComponent());
+                    return;
+                }
+                try {
+                    new RedisMessage(RedisMessage.MessageType.OPEN_INVENTORY,
+                            new RedisMessage.MessageTarget(Settings.ServerType.BUKKIT, viewer.getUniqueId(), null),
+                            targetPlayerName, RedisMessage.serialize(playerData))
+                            .send();
+                    viewer.sendMessage(new MineDown(MessageManager.getMessage("viewing_inventory_of").replaceAll("%1%",
+                            targetPlayerName)).toComponent());
+                } catch (IOException e) {
+                    plugin.getLogger().log(Level.WARNING, "Failed to serialize inventory-see player data", e);
+                }
                 return;
             }
-            try {
-                new RedisMessage(RedisMessage.MessageType.OPEN_INVENTORY,
-                        new RedisMessage.MessageTarget(Settings.ServerType.BUKKIT, viewer.getUniqueId()),
-                        targetPlayerName, RedisMessage.serialize(playerData))
-                        .send();
-                viewer.sendMessage(new MineDown(MessageManager.getMessage("viewing_inventory_of").replaceAll("%1%",
-                        targetPlayerName)).toComponent());
-            } catch (IOException e) {
-                plugin.getLogger().log(Level.WARNING, "Failed to serialize inventory-see player data", e);
-            }
+            viewer.sendMessage(new MineDown(MessageManager.getMessage("error_invalid_cluster")).toComponent());
         });
     }
 
     // View the ender chest of a player specified by their name
-    private void openEnderChest(ProxiedPlayer viewer, String targetPlayerName) {
+    private void openEnderChest(ProxiedPlayer viewer, String targetPlayerName, String clusterId) {
         if (viewer.getName().equalsIgnoreCase(targetPlayerName)) {
             viewer.sendMessage(new MineDown(MessageManager.getMessage("error_cannot_view_own_ender_chest")).toComponent());
             return;
@@ -313,21 +356,26 @@ public class HuskSyncCommand extends Command implements TabExecutor {
             return;
         }
         ProxyServer.getInstance().getScheduler().runAsync(plugin, () -> {
-            PlayerData playerData = DataManager.getPlayerDataByName(targetPlayerName);
-            if (playerData == null) {
-                viewer.sendMessage(new MineDown(MessageManager.getMessage("error_invalid_player")).toComponent());
+            for (Settings.SynchronisationCluster cluster : Settings.clusters) {
+                if (!cluster.clusterId().equals(clusterId)) continue;
+                PlayerData playerData = DataManager.getPlayerDataByName(targetPlayerName, cluster.clusterId());
+                if (playerData == null) {
+                    viewer.sendMessage(new MineDown(MessageManager.getMessage("error_invalid_player")).toComponent());
+                    return;
+                }
+                try {
+                    new RedisMessage(RedisMessage.MessageType.OPEN_ENDER_CHEST,
+                            new RedisMessage.MessageTarget(Settings.ServerType.BUKKIT, viewer.getUniqueId(), null),
+                            targetPlayerName, RedisMessage.serialize(playerData))
+                            .send();
+                    viewer.sendMessage(new MineDown(MessageManager.getMessage("viewing_ender_chest_of").replaceAll("%1%",
+                            targetPlayerName)).toComponent());
+                } catch (IOException e) {
+                    plugin.getLogger().log(Level.WARNING, "Failed to serialize inventory-see player data", e);
+                }
                 return;
             }
-            try {
-                new RedisMessage(RedisMessage.MessageType.OPEN_ENDER_CHEST,
-                        new RedisMessage.MessageTarget(Settings.ServerType.BUKKIT, viewer.getUniqueId()),
-                        targetPlayerName, RedisMessage.serialize(playerData))
-                        .send();
-                viewer.sendMessage(new MineDown(MessageManager.getMessage("viewing_ender_chest_of").replaceAll("%1%",
-                        targetPlayerName)).toComponent());
-            } catch (IOException e) {
-                plugin.getLogger().log(Level.WARNING, "Failed to serialize inventory-see player data", e);
-            }
+            viewer.sendMessage(new MineDown(MessageManager.getMessage("error_invalid_cluster")).toComponent());
         });
     }
 
@@ -339,7 +387,7 @@ public class HuskSyncCommand extends Command implements TabExecutor {
     private void sendAboutInformation(ProxiedPlayer player) {
         try {
             new RedisMessage(RedisMessage.MessageType.SEND_PLUGIN_INFORMATION,
-                    new RedisMessage.MessageTarget(Settings.ServerType.BUKKIT, player.getUniqueId()),
+                    new RedisMessage.MessageTarget(Settings.ServerType.BUKKIT, player.getUniqueId(), null),
                     plugin.getProxy().getName(), plugin.getDescription().getVersion()).send();
         } catch (IOException e) {
             plugin.getLogger().log(Level.WARNING, "Failed to serialize plugin information to send", e);

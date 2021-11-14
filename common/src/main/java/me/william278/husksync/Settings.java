@@ -1,5 +1,7 @@
 package me.william278.husksync;
 
+import java.util.ArrayList;
+
 /**
  * Settings class, holds values loaded from the plugin config (either Bukkit or Bungee)
  */
@@ -26,6 +28,9 @@ public class Settings {
 
     // Messages language
     public static String language;
+
+    // Cluster IDs
+    public static ArrayList<SynchronisationCluster> clusters = new ArrayList<>();
 
     // SQL settings
     public static DataStorageType dataStorageType;
@@ -61,6 +66,9 @@ public class Settings {
     public static boolean syncAdvancements;
     public static boolean syncLocation;
 
+    // This Cluster ID
+    public static String cluster;
+
     /*
      * Enum definitions
      */
@@ -73,5 +81,11 @@ public class Settings {
     public enum DataStorageType {
         MYSQL,
         SQLITE
+    }
+
+    /**
+     * Defines information for a synchronisation cluster as listed on the proxy
+     */
+    public record SynchronisationCluster(String clusterId, String databaseName, String playerTableName, String dataTableName) {
     }
 }
