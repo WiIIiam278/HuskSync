@@ -31,6 +31,7 @@ public final class HuskSyncBungeeCord extends Plugin {
     private static final int METRICS_ID = 13141;
 
     private static HuskSyncBungeeCord instance;
+
     public static HuskSyncBungeeCord getInstance() {
         return instance;
     }
@@ -38,12 +39,16 @@ public final class HuskSyncBungeeCord extends Plugin {
     // Whether the plugin is ready to accept redis messages
     public static boolean readyForRedis = false;
 
+    // Whether the plugin is in the process of disabling and should skip responding to handshake confirmations
+    public static boolean isDisabling = false;
+
     /**
-     Set of all the {@link Server}s that have completed the synchronisation handshake with HuskSync on the proxy
+     * Set of all the {@link Server}s that have completed the synchronisation handshake with HuskSync on the proxy
      */
     public static HashSet<Server> synchronisedServers;
 
-    private static HashMap<String,Database> clusterDatabases;
+    private static HashMap<String, Database> clusterDatabases;
+
     public static Connection getConnection(String clusterId) throws SQLException {
         return clusterDatabases.get(clusterId).getConnection();
     }
@@ -78,6 +83,7 @@ public final class HuskSyncBungeeCord extends Plugin {
         }
 
         // Initialize the database
+        clusterDatabases = new HashMap<>();
         for (Settings.SynchronisationCluster cluster : Settings.clusters) {
             Database clusterDatabase = switch (Settings.dataStorageType) {
                 case SQLITE -> new SQLite(this, cluster);
@@ -134,15 +140,16 @@ public final class HuskSyncBungeeCord extends Plugin {
     @Override
     public void onDisable() {
         // Plugin shutdown logic
+        isDisabling = true;
 
         // Send terminating handshake message
-        for (Server server: synchronisedServers) {
+        for (Server server : synchronisedServers) {
             try {
                 new RedisMessage(RedisMessage.MessageType.TERMINATE_HANDSHAKE,
                         new RedisMessage.MessageTarget(Settings.ServerType.BUKKIT, null, server.clusterId()),
                         server.serverUUID().toString(),
                         ProxyServer.getInstance().getName()).send();
-            }  catch (IOException e) {
+            } catch (IOException e) {
                 getInstance().getLogger().log(Level.SEVERE, "Failed to serialize Redis message for handshake termination", e);
             }
         }
@@ -159,5 +166,7 @@ public final class HuskSyncBungeeCord extends Plugin {
     /**
      * A record representing a server synchronised on the network and whether it has MySqlPlayerDataBridge installed
      */
-    public record Server(UUID serverUUID, boolean hasMySqlPlayerDataBridge, String huskSyncVersion, String serverBrand, String clusterId) { }
+    public record Server(UUID serverUUID, boolean hasMySqlPlayerDataBridge, String huskSyncVersion, String serverBrand,
+                         String clusterId) {
+    }
 }

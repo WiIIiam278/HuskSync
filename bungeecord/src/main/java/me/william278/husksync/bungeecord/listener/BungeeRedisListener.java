@@ -131,6 +131,7 @@ public class BungeeRedisListener extends RedisListener {
             }
             case CONNECTION_HANDSHAKE -> {
                 // Reply to a Bukkit server's connection handshake to complete the process
+                if (HuskSyncBungeeCord.isDisabling) return; // Return if the Proxy is disabling
                 final UUID serverUUID = UUID.fromString(message.getMessageDataElements()[0]);
                 final boolean hasMySqlPlayerDataBridge = Boolean.parseBoolean(message.getMessageDataElements()[1]);
                 final String bukkitBrand = message.getMessageDataElements()[2];
