@@ -56,7 +56,7 @@ public class BukkitRedisListener extends RedisListener {
             switch (message.getMessageType()) {
                 case REQUEST_DATA_ON_JOIN -> {
                     UUID playerUUID = UUID.fromString(message.getMessageDataElements()[1]);
-                    switch (me.william278.husksync.redis.RedisMessage.RequestOnJoinUpdateType.valueOf(message.getMessageDataElements()[0])) {
+                    switch (RedisMessage.RequestOnJoinUpdateType.valueOf(message.getMessageDataElements()[0])) {
                         case ADD_REQUESTER -> HuskSyncBukkit.bukkitCache.setRequestOnJoin(playerUUID);
                         case REMOVE_REQUESTER -> HuskSyncBukkit.bukkitCache.removeRequestOnJoin(playerUUID);
                     }

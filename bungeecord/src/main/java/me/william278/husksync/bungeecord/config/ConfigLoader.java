@@ -1,14 +1,40 @@
 package me.william278.husksync.bungeecord.config;
 
-import me.william278.husksync.util.MessageManager;
+import me.william278.husksync.HuskSyncBungeeCord;
 import me.william278.husksync.Settings;
+import me.william278.husksync.util.MessageManager;
 import net.md_5.bungee.config.Configuration;
 
 import java.util.HashMap;
 
 public class ConfigLoader {
 
-    public static void loadSettings(Configuration config) throws IllegalArgumentException {
+    private static final HuskSyncBungeeCord plugin = HuskSyncBungeeCord.getInstance();
+
+    private static Configuration copyDefaults(Configuration config) {
+        // Get the config version and update if needed
+        String configVersion = config.getString("config_file_version", "1.0");
+        if (configVersion.contains("-dev")) {
+            configVersion = configVersion.replaceAll("-dev", "");
+        }
+        if (!configVersion.equals(plugin.getDescription().getVersion())) {
+            if (configVersion.equalsIgnoreCase("1.0")) {
+                config.set("check_for_updates", true);
+            }
+            if (configVersion.equalsIgnoreCase("1.0") || configVersion.equalsIgnoreCase("1.0.1") || configVersion.equalsIgnoreCase("1.0.2") || configVersion.equalsIgnoreCase("1.0.3")) {
+                config.set("clusters.main.player_table", "husksync_players");
+                config.set("clusters.main.data_table", "husksync_data");
+            }
+            config.set("config_file_version", plugin.getDescription().getVersion());
+        }
+        // Save the config back
+        ConfigManager.saveConfig(config);
+        return config;
+    }
+
+    public static void loadSettings(Configuration loadedConfig) throws IllegalArgumentException {
+        Configuration config = copyDefaults(loadedConfig);
+
         Settings.language = config.getString("language", "en-gb");
 
         Settings.serverType = Settings.ServerType.BUNGEECORD;

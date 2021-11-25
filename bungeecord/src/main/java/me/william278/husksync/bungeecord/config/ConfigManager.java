@@ -32,6 +32,14 @@ public class ConfigManager {
         }
     }
 
+    public static void saveConfig(Configuration config) {
+        try {
+            ConfigurationProvider.getProvider(YamlConfiguration.class).save(config, new File(plugin.getDataFolder(), "config.yml"));
+        } catch (IOException e) {
+            plugin.getLogger().log(Level.CONFIG, "An exception occurred loading the configuration file", e);
+        }
+    }
+
     public static void loadMessages() {
         try {
             if (!plugin.getDataFolder().exists()) {
