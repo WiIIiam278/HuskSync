@@ -81,8 +81,10 @@ public class BungeeRedisListener extends RedisListener {
 
                         // Send synchronisation complete message
                         ProxiedPlayer player = ProxyServer.getInstance().getPlayer(requestingPlayerUUID);
-                        if (player.isConnected()) {
-                            player.sendMessage(ChatMessageType.ACTION_BAR, new MineDown(MessageManager.getMessage("synchronisation_complete")).toComponent());
+                        if (player != null) {
+                            if (player.isConnected()) {
+                                player.sendMessage(ChatMessageType.ACTION_BAR, new MineDown(MessageManager.getMessage("synchronisation_complete")).toComponent());
+                            }
                         }
                     } catch (IOException e) {
                         log(Level.SEVERE, "Failed to serialize data when replying to a data request");

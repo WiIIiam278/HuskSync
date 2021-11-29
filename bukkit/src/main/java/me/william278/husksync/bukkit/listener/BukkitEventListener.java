@@ -18,7 +18,7 @@ import org.bukkit.event.player.*;
 import java.io.IOException;
 import java.util.logging.Level;
 
-public class EventListener implements Listener {
+public class BukkitEventListener implements Listener {
 
     private static final HuskSyncBukkit plugin = HuskSyncBukkit.getInstance();
 

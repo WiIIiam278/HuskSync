@@ -5,7 +5,7 @@ import me.william278.husksync.bukkit.util.PlayerSetter;
 import me.william278.husksync.bukkit.config.ConfigLoader;
 import me.william278.husksync.bukkit.data.BukkitDataCache;
 import me.william278.husksync.bukkit.listener.BukkitRedisListener;
-import me.william278.husksync.bukkit.listener.EventListener;
+import me.william278.husksync.bukkit.listener.BukkitEventListener;
 import me.william278.husksync.bukkit.migrator.MPDBDeserializer;
 import me.william278.husksync.redis.RedisMessage;
 import org.bstats.bukkit.Metrics;
@@ -116,7 +116,7 @@ public final class HuskSyncBukkit extends JavaPlugin {
         bukkitCache = new BukkitDataCache();
 
         // Initialize event listener
-        getServer().getPluginManager().registerEvents(new EventListener(), this);
+        getServer().getPluginManager().registerEvents(new BukkitEventListener(), this);
 
         // Initialize the redis listener
         if (!new BukkitRedisListener().isActiveAndEnabled) {

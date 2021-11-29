@@ -61,10 +61,11 @@ public class ConfigLoader {
 
         // Read cluster data
         Configuration section = config.getSection("clusters");
+        final String settingDatabaseName = Settings.mySQLDatabase != null ? Settings.mySQLDatabase : "HuskSync";
         for (String clusterId : section.getKeys()) {
             final String playerTableName = config.getString("clusters." + clusterId + ".player_table", "husksync_players");
             final String dataTableName = config.getString("clusters." + clusterId + ".data_table", "husksync_data");
-            final String databaseName = config.getString("clusters." + clusterId + ".database", Settings.mySQLDatabase);
+            final String databaseName = config.getString("clusters." + clusterId + ".database", settingDatabaseName);
             Settings.clusters.add(new Settings.SynchronisationCluster(clusterId, databaseName, playerTableName, dataTableName));
         }
     }
