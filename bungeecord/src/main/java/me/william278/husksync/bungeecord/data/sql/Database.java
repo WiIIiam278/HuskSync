@@ -15,7 +15,7 @@ public abstract class Database {
     public Database(HuskSyncBungeeCord instance, Settings.SynchronisationCluster cluster) {
         this.plugin = instance;
         this.cluster = cluster;
-        this.dataPoolName = "HuskSyncHikariPool-" + cluster.clusterId();
+        this.dataPoolName = cluster != null ? "HuskSyncHikariPool-" + cluster.clusterId() : "HuskSyncMigratorPool";
     }
 
     public abstract Connection getConnection() throws SQLException;

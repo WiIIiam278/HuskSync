@@ -80,7 +80,7 @@ public class MPDBMigrator {
 
         // Get connection to source database
         sourceDatabase = new MigratorMySQL(plugin, settings.sourceHost, settings.sourcePort,
-                settings.sourceDatabase, settings.sourceUsername, settings.sourcePassword);
+                settings.sourceDatabase, settings.sourceUsername, settings.sourcePassword, targetCluster);
         sourceDatabase.load();
         if (sourceDatabase.isInactive()) {
             plugin.getLogger().log(Level.WARNING, "Failed to establish connection to the origin MySQL database. " +
@@ -287,8 +287,8 @@ public class MPDBMigrator {
      * MySQL class used for importing data from MPDB
      */
     public static class MigratorMySQL extends MySQL {
-        public MigratorMySQL(HuskSyncBungeeCord instance, String host, int port, String database, String username, String password) {
-            super(instance, null);
+        public MigratorMySQL(HuskSyncBungeeCord instance, String host, int port, String database, String username, String password, Settings.SynchronisationCluster cluster) {
+            super(instance, cluster);
             super.host = host;
             super.port = port;
             super.database = database;
