@@ -191,8 +191,13 @@ public class PlayerSetter {
                     player.setGameMode(GameMode.valueOf(data.getGameMode()));
                 }
                 if (Settings.syncLocation) {
-                    player.setFlying(player.getAllowFlight() && data.isFlying());
                     setPlayerLocation(player, DataSerializer.deserializePlayerLocationData(data.getSerializedLocation()));
+                }
+                if (Settings.syncFlight) {
+                    if (data.isFlying()) {
+                        player.setAllowFlight(true);
+                    }
+                    player.setFlying(player.getAllowFlight() && data.isFlying());
                 }
 
                 // Handle the SyncCompleteEvent

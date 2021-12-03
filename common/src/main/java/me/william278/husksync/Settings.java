@@ -65,6 +65,7 @@ public class Settings {
     public static boolean syncGameMode;
     public static boolean syncAdvancements;
     public static boolean syncLocation;
+    public static boolean syncFlight;
 
     // This Cluster ID
     public static String cluster;
