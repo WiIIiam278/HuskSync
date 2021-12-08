@@ -2,11 +2,11 @@ package me.william278.husksync.bungeecord.migrator;
 
 import me.william278.husksync.HuskSyncBungeeCord;
 import me.william278.husksync.PlayerData;
+import me.william278.husksync.Server;
 import me.william278.husksync.Settings;
-import me.william278.husksync.bungeecord.data.DataManager;
-import me.william278.husksync.bungeecord.data.sql.Database;
-import me.william278.husksync.bungeecord.data.sql.MySQL;
 import me.william278.husksync.migrator.MPDBPlayerData;
+import me.william278.husksync.proxy.data.sql.Database;
+import me.william278.husksync.proxy.data.sql.MySQL;
 import me.william278.husksync.redis.RedisMessage;
 import net.md_5.bungee.api.ProxyServer;
 
@@ -23,8 +23,8 @@ import java.util.logging.Level;
 /**
  * Class to handle migration of data from MySQLPlayerDataBridge
  * <p>
- * The migrator accesses and decodes MPDB's format directly.
- * It does this by establishing a connection
+ * The migrator accesses and decodes MPDB's format directly,
+ * by communicating with a Spigot server
  */
 public class MPDBMigrator {
 
@@ -43,19 +43,19 @@ public class MPDBMigrator {
 
     public void start() {
         if (ProxyServer.getInstance().getPlayers().size() > 0) {
-            plugin.getLogger().log(Level.WARNING, "Failed to start migration because there are players online. " +
+            plugin.getBungeeLogger().log(Level.WARNING, "Failed to start migration because there are players online. " +
                     "Your network has to be empty to migrate data for safety reasons.");
             return;
         }
 
         int synchronisedServersWithMpdb = 0;
-        for (HuskSyncBungeeCord.Server server : HuskSyncBungeeCord.synchronisedServers) {
+        for (Server server : HuskSyncBungeeCord.synchronisedServers) {
             if (server.hasMySqlPlayerDataBridge()) {
                 synchronisedServersWithMpdb++;
             }
         }
         if (synchronisedServersWithMpdb < 1) {
-            plugin.getLogger().log(Level.WARNING, "Failed to start migration because at least one Spigot server with both HuskSync and MySqlPlayerDataBridge installed is not online. " +
+            plugin.getBungeeLogger().log(Level.WARNING, "Failed to start migration because at least one Spigot server with both HuskSync and MySqlPlayerDataBridge installed is not online. " +
                     "Please start one Spigot server with HuskSync installed to begin migration.");
             return;
         }
@@ -67,7 +67,7 @@ public class MPDBMigrator {
             }
         }
         if (targetCluster == null) {
-            plugin.getLogger().log(Level.WARNING, "Failed to start migration because the target cluster could not be found. " +
+            plugin.getBungeeLogger().log(Level.WARNING, "Failed to start migration because the target cluster could not be found. " +
             "Please ensure the target cluster is correct, configured in the proxy config file, then try again");
             return;
         }
@@ -83,7 +83,7 @@ public class MPDBMigrator {
                 settings.sourceDatabase, settings.sourceUsername, settings.sourcePassword, targetCluster);
         sourceDatabase.load();
         if (sourceDatabase.isInactive()) {
-            plugin.getLogger().log(Level.WARNING, "Failed to establish connection to the origin MySQL database. " +
+            plugin.getBungeeLogger().log(Level.WARNING, "Failed to establish connection to the origin MySQL database. " +
                     "Please check you have input the correct connection details and try again.");
             return;
         }
@@ -103,8 +103,8 @@ public class MPDBMigrator {
 
     // Clear the new database out of current data
     private void prepareTargetDatabase() {
-        plugin.getLogger().log(Level.INFO, "Preparing target database...");
-        try (Connection connection = HuskSyncBungeeCord.getConnection(targetCluster.clusterId())) {
+        plugin.getBungeeLogger().log(Level.INFO, "Preparing target database...");
+        try (Connection connection = HuskSyncBungeeCord.dataManager.getConnection(targetCluster.clusterId())) {
             try (PreparedStatement statement = connection.prepareStatement("DELETE FROM " + targetCluster.playerTableName() + ";")) {
                 statement.executeUpdate();
             }
@@ -112,14 +112,14 @@ public class MPDBMigrator {
                 statement.executeUpdate();
             }
         } catch (SQLException e) {
-            plugin.getLogger().log(Level.SEVERE, "An exception occurred preparing the target database", e);
+            plugin.getBungeeLogger().log(Level.SEVERE, "An exception occurred preparing the target database", e);
         } finally {
-            plugin.getLogger().log(Level.INFO, "Finished preparing target database!");
+            plugin.getBungeeLogger().log(Level.INFO, "Finished preparing target database!");
         }
     }
 
     private void getInventoryData() {
-        plugin.getLogger().log(Level.INFO, "Getting inventory data from MySQLPlayerDataBridge...");
+        plugin.getBungeeLogger().log(Level.INFO, "Getting inventory data from MySQLPlayerDataBridge...");
         try (Connection connection = sourceDatabase.getConnection()) {
             try (PreparedStatement statement = connection.prepareStatement("SELECT * FROM " + migrationSettings.inventoryDataTable + ";")) {
                 ResultSet resultSet = statement.executeQuery();
@@ -135,14 +135,14 @@ public class MPDBMigrator {
                 }
             }
         } catch (SQLException e) {
-            plugin.getLogger().log(Level.SEVERE, "An exception occurred getting inventory data", e);
+            plugin.getBungeeLogger().log(Level.SEVERE, "An exception occurred getting inventory data", e);
         } finally {
-            plugin.getLogger().log(Level.INFO, "Finished getting inventory data from MySQLPlayerDataBridge");
+            plugin.getBungeeLogger().log(Level.INFO, "Finished getting inventory data from MySQLPlayerDataBridge");
         }
     }
 
     private void getEnderChestData() {
-        plugin.getLogger().log(Level.INFO, "Getting ender chest data from MySQLPlayerDataBridge...");
+        plugin.getBungeeLogger().log(Level.INFO, "Getting ender chest data from MySQLPlayerDataBridge...");
         try (Connection connection = sourceDatabase.getConnection()) {
             try (PreparedStatement statement = connection.prepareStatement("SELECT * FROM " + migrationSettings.enderChestDataTable + ";")) {
                 ResultSet resultSet = statement.executeQuery();
@@ -158,14 +158,14 @@ public class MPDBMigrator {
                 }
             }
         } catch (SQLException e) {
-            plugin.getLogger().log(Level.SEVERE, "An exception occurred getting ender chest data", e);
+            plugin.getBungeeLogger().log(Level.SEVERE, "An exception occurred getting ender chest data", e);
         } finally {
-            plugin.getLogger().log(Level.INFO, "Finished getting ender chest data from MySQLPlayerDataBridge");
+            plugin.getBungeeLogger().log(Level.INFO, "Finished getting ender chest data from MySQLPlayerDataBridge");
         }
     }
 
     private void getExperienceData() {
-        plugin.getLogger().log(Level.INFO, "Getting experience data from MySQLPlayerDataBridge...");
+        plugin.getBungeeLogger().log(Level.INFO, "Getting experience data from MySQLPlayerDataBridge...");
         try (Connection connection = sourceDatabase.getConnection()) {
             try (PreparedStatement statement = connection.prepareStatement("SELECT * FROM " + migrationSettings.expDataTable + ";")) {
                 ResultSet resultSet = statement.executeQuery();
@@ -183,14 +183,14 @@ public class MPDBMigrator {
                 }
             }
         } catch (SQLException e) {
-            plugin.getLogger().log(Level.SEVERE, "An exception occurred getting experience data", e);
+            plugin.getBungeeLogger().log(Level.SEVERE, "An exception occurred getting experience data", e);
         } finally {
-            plugin.getLogger().log(Level.INFO, "Finished getting experience data from MySQLPlayerDataBridge");
+            plugin.getBungeeLogger().log(Level.INFO, "Finished getting experience data from MySQLPlayerDataBridge");
         }
     }
 
     private void sendEncodedData() {
-        for (HuskSyncBungeeCord.Server processingServer : HuskSyncBungeeCord.synchronisedServers) {
+        for (Server processingServer : HuskSyncBungeeCord.synchronisedServers) {
             if (processingServer.hasMySqlPlayerDataBridge()) {
                 for (MPDBPlayerData data : mpdbPlayerData) {
                     try {
@@ -201,10 +201,10 @@ public class MPDBMigrator {
                                 .send();
                         migratedDataSent++;
                     } catch (IOException e) {
-                        plugin.getLogger().log(Level.SEVERE, "Failed to serialize encoded MPDB data", e);
+                        plugin.getBungeeLogger().log(Level.SEVERE, "Failed to serialize encoded MPDB data", e);
                     }
                 }
-                plugin.getLogger().log(Level.INFO, "Finished dispatching encoded data for " + migratedDataSent + " players; please wait for conversion to finish");
+                plugin.getBungeeLogger().log(Level.INFO, "Finished dispatching encoded data for " + migratedDataSent + " players; please wait for conversion to finish");
             }
             return;
         }
@@ -218,26 +218,26 @@ public class MPDBMigrator {
     public static void loadIncomingData(HashMap<PlayerData, String> dataToLoad) {
         ProxyServer.getInstance().getScheduler().runAsync(plugin, () -> {
             int playersSaved = 0;
-            plugin.getLogger().log(Level.INFO, "Saving data for " + playersMigrated + " players...");
+            plugin.getBungeeLogger().log(Level.INFO, "Saving data for " + playersMigrated + " players...");
 
             for (PlayerData playerData : dataToLoad.keySet()) {
                 String playerName = dataToLoad.get(playerData);
 
                 // Add the player to the MySQL table
-                DataManager.ensurePlayerExists(playerData.getPlayerUUID(), playerName);
+                HuskSyncBungeeCord.dataManager.ensurePlayerExists(playerData.getPlayerUUID(), playerName);
 
                 // Update the data in the cache and SQL
                 for (Settings.SynchronisationCluster cluster : Settings.clusters) {
-                    DataManager.updatePlayerData(playerData, cluster);
+                    HuskSyncBungeeCord.dataManager.updatePlayerData(playerData, cluster);
                     break;
                 }
 
                 playersSaved++;
-                plugin.getLogger().log(Level.INFO, "Saved data for " + playersSaved + "/" + playersMigrated + " players");
+                plugin.getBungeeLogger().log(Level.INFO, "Saved data for " + playersSaved + "/" + playersMigrated + " players");
             }
 
             // Mark as done when done
-            plugin.getLogger().log(Level.INFO, """
+            plugin.getBungeeLogger().log(Level.INFO, """
                     === MySQLPlayerDataBridge Migration Wizard ==========
                                                     
                     Migration complete!
@@ -288,7 +288,7 @@ public class MPDBMigrator {
      */
     public static class MigratorMySQL extends MySQL {
         public MigratorMySQL(HuskSyncBungeeCord instance, String host, int port, String database, String username, String password, Settings.SynchronisationCluster cluster) {
-            super(instance, cluster);
+            super(cluster, instance.getBungeeLogger());
             super.host = host;
             super.port = port;
             super.database = database;

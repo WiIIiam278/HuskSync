@@ -2,13 +2,13 @@ package me.william278.husksync.bungeecord.command;
 
 import de.themoep.minedown.MineDown;
 import me.william278.husksync.HuskSyncBungeeCord;
+import me.william278.husksync.Server;
 import me.william278.husksync.bungeecord.util.BungeeUpdateChecker;
 import me.william278.husksync.util.MessageManager;
 import me.william278.husksync.PlayerData;
 import me.william278.husksync.Settings;
 import me.william278.husksync.bungeecord.config.ConfigLoader;
 import me.william278.husksync.bungeecord.config.ConfigManager;
-import me.william278.husksync.bungeecord.data.DataManager;
 import me.william278.husksync.bungeecord.migrator.MPDBMigrator;
 import me.william278.husksync.redis.RedisMessage;
 import net.md_5.bungee.api.CommandSender;
@@ -60,7 +60,7 @@ public class HuskSyncCommand extends Command implements TabExecutor {
                             int updatesNeeded = 0;
                             String bukkitBrand = "Spigot";
                             String bukkitVersion = "1.0";
-                            for (HuskSyncBungeeCord.Server server : HuskSyncBungeeCord.synchronisedServers) {
+                            for (Server server : HuskSyncBungeeCord.synchronisedServers) {
                                 BungeeUpdateChecker updateChecker = new BungeeUpdateChecker(server.huskSyncVersion());
                                 if (!updateChecker.isUpToDate()) {
                                     updatesNeeded++;
@@ -156,7 +156,7 @@ public class HuskSyncCommand extends Command implements TabExecutor {
                         }
                         int playerDataSize = 0;
                         for (Settings.SynchronisationCluster cluster : Settings.clusters) {
-                            playerDataSize += DataManager.playerDataCache.get(cluster).playerData.size();
+                            playerDataSize += HuskSyncBungeeCord.dataManager.playerDataCache.get(cluster).playerData.size();
                         }
                         sender.sendMessage(new MineDown(MessageManager.PLUGIN_STATUS.toString()
                                 .replaceAll("%1%", String.valueOf(HuskSyncBungeeCord.synchronisedServers.size()))
@@ -180,7 +180,7 @@ public class HuskSyncCommand extends Command implements TabExecutor {
                                     "reload")
                                     .send();
                         } catch (IOException e) {
-                            plugin.getLogger().log(Level.WARNING, "Failed to serialize reload notification message data");
+                            plugin.getBungeeLogger().log(Level.WARNING, "Failed to serialize reload notification message data");
                         }
 
                         sender.sendMessage(new MineDown(MessageManager.getMessage("reload_complete")).toComponent());
@@ -324,7 +324,7 @@ public class HuskSyncCommand extends Command implements TabExecutor {
         ProxyServer.getInstance().getScheduler().runAsync(plugin, () -> {
             for (Settings.SynchronisationCluster cluster : Settings.clusters) {
                 if (!cluster.clusterId().equals(clusterId)) continue;
-                PlayerData playerData = DataManager.getPlayerDataByName(targetPlayerName, cluster.clusterId());
+                PlayerData playerData = HuskSyncBungeeCord.dataManager.getPlayerDataByName(targetPlayerName, cluster.clusterId());
                 if (playerData == null) {
                     viewer.sendMessage(new MineDown(MessageManager.getMessage("error_invalid_player")).toComponent());
                     return;
@@ -337,7 +337,7 @@ public class HuskSyncCommand extends Command implements TabExecutor {
                     viewer.sendMessage(new MineDown(MessageManager.getMessage("viewing_inventory_of").replaceAll("%1%",
                             targetPlayerName)).toComponent());
                 } catch (IOException e) {
-                    plugin.getLogger().log(Level.WARNING, "Failed to serialize inventory-see player data", e);
+                    plugin.getBungeeLogger().log(Level.WARNING, "Failed to serialize inventory-see player data", e);
                 }
                 return;
             }
@@ -358,7 +358,7 @@ public class HuskSyncCommand extends Command implements TabExecutor {
         ProxyServer.getInstance().getScheduler().runAsync(plugin, () -> {
             for (Settings.SynchronisationCluster cluster : Settings.clusters) {
                 if (!cluster.clusterId().equals(clusterId)) continue;
-                PlayerData playerData = DataManager.getPlayerDataByName(targetPlayerName, cluster.clusterId());
+                PlayerData playerData = HuskSyncBungeeCord.dataManager.getPlayerDataByName(targetPlayerName, cluster.clusterId());
                 if (playerData == null) {
                     viewer.sendMessage(new MineDown(MessageManager.getMessage("error_invalid_player")).toComponent());
                     return;
@@ -371,7 +371,7 @@ public class HuskSyncCommand extends Command implements TabExecutor {
                     viewer.sendMessage(new MineDown(MessageManager.getMessage("viewing_ender_chest_of").replaceAll("%1%",
                             targetPlayerName)).toComponent());
                 } catch (IOException e) {
-                    plugin.getLogger().log(Level.WARNING, "Failed to serialize inventory-see player data", e);
+                    plugin.getBungeeLogger().log(Level.WARNING, "Failed to serialize inventory-see player data", e);
                 }
                 return;
             }
@@ -390,7 +390,7 @@ public class HuskSyncCommand extends Command implements TabExecutor {
                     new RedisMessage.MessageTarget(Settings.ServerType.BUKKIT, player.getUniqueId(), null),
                     plugin.getProxy().getName(), plugin.getDescription().getVersion()).send();
         } catch (IOException e) {
-            plugin.getLogger().log(Level.WARNING, "Failed to serialize plugin information to send", e);
+            plugin.getBungeeLogger().log(Level.WARNING, "Failed to serialize plugin information to send", e);
         }
     }
 

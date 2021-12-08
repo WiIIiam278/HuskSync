@@ -1,8 +1,8 @@
-package me.william278.husksync.bungeecord.data.sql;
+package me.william278.husksync.proxy.data.sql;
 
 import com.zaxxer.hikari.HikariDataSource;
-import me.william278.husksync.HuskSyncBungeeCord;
 import me.william278.husksync.Settings;
+import me.william278.husksync.util.Logger;
 
 import java.io.File;
 import java.io.IOException;
@@ -54,22 +54,25 @@ public class SQLite extends Database {
         return cluster.databaseName() + "Data";
     }
 
+    private final File dataFolder;
+
     private HikariDataSource dataSource;
 
-    public SQLite(HuskSyncBungeeCord instance, Settings.SynchronisationCluster cluster) {
-        super(instance, cluster);
+    public SQLite(Settings.SynchronisationCluster cluster, File dataFolder, Logger logger) {
+        super(cluster, logger);
+        this.dataFolder = dataFolder;
     }
 
     // Create the database file if it does not exist yet
     private void createDatabaseFileIfNotExist() {
-        File databaseFile = new File(plugin.getDataFolder(), getDatabaseName() + ".db");
+        File databaseFile = new File(dataFolder, getDatabaseName() + ".db");
         if (!databaseFile.exists()) {
             try {
                 if (!databaseFile.createNewFile()) {
-                    plugin.getLogger().log(Level.SEVERE, "Failed to write new file: " + getDatabaseName() + ".db (file already exists)");
+                    logger.log(Level.SEVERE, "Failed to write new file: " + getDatabaseName() + ".db (file already exists)");
                 }
             } catch (IOException e) {
-                plugin.getLogger().log(Level.SEVERE, "An error occurred writing a file: " + getDatabaseName() + ".db (" + e.getCause() + ")");
+                logger.log(Level.SEVERE, "An error occurred writing a file: " + getDatabaseName() + ".db (" + e.getCause() + ")", e);
             }
         }
     }
@@ -85,7 +88,7 @@ public class SQLite extends Database {
         createDatabaseFileIfNotExist();
 
         // Create new HikariCP data source
-        final String jdbcUrl = "jdbc:sqlite:" + plugin.getDataFolder().getAbsolutePath() + File.separator + getDatabaseName() + ".db";
+        final String jdbcUrl = "jdbc:sqlite:" + dataFolder.getAbsolutePath() + File.separator + getDatabaseName() + ".db";
         dataSource = new HikariDataSource();
         dataSource.setDataSourceClassName("org.sqlite.SQLiteDataSource");
         dataSource.addDataSourceProperty("url", jdbcUrl);
@@ -109,7 +112,7 @@ public class SQLite extends Database {
                 }
             }
         } catch (SQLException e) {
-            plugin.getLogger().log(Level.SEVERE, "An error occurred creating tables on the SQLite database: ", e);
+            logger.log(Level.SEVERE, "An error occurred creating tables on the SQLite database", e);
         }
     }
 

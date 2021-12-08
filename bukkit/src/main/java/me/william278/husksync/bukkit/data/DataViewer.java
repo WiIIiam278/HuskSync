@@ -57,7 +57,7 @@ public class DataViewer {
 
         // Send a redis message with the updated data after the viewing
         new RedisMessage(RedisMessage.MessageType.PLAYER_DATA_UPDATE,
-                new RedisMessage.MessageTarget(Settings.ServerType.BUNGEECORD, null, Settings.cluster),
+                new RedisMessage.MessageTarget(Settings.ServerType.PROXY, null, Settings.cluster),
                 RedisMessage.serialize(playerData))
                 .send();
     }

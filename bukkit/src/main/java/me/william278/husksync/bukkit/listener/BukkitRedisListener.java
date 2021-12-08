@@ -97,7 +97,7 @@ public class BukkitRedisListener extends RedisListener {
                             try {
                                 MPDBPlayerData data = (MPDBPlayerData) RedisMessage.deserialize(encodedData);
                                 new RedisMessage(RedisMessage.MessageType.DECODED_MPDB_DATA_SET,
-                                        new RedisMessage.MessageTarget(Settings.ServerType.BUNGEECORD, null, Settings.cluster),
+                                        new RedisMessage.MessageTarget(Settings.ServerType.PROXY, null, Settings.cluster),
                                         RedisMessage.serialize(MPDBDeserializer.convertMPDBData(data)),
                                         data.playerName)
                                         .send();

@@ -2,7 +2,6 @@ package me.william278.husksync.bungeecord.listener;
 
 import me.william278.husksync.HuskSyncBungeeCord;
 import me.william278.husksync.PlayerData;
-import me.william278.husksync.bungeecord.data.DataManager;
 import me.william278.husksync.Settings;
 import me.william278.husksync.redis.RedisMessage;
 import net.md_5.bungee.api.ProxyServer;
@@ -24,15 +23,15 @@ public class BungeeEventListener implements Listener {
         final ProxiedPlayer player = event.getPlayer();
         ProxyServer.getInstance().getScheduler().runAsync(plugin, () -> {
             // Ensure the player has data on SQL and that it is up-to-date
-            DataManager.ensurePlayerExists(player.getUniqueId(), player.getName());
+            HuskSyncBungeeCord.dataManager.ensurePlayerExists(player.getUniqueId(), player.getName());
 
             // Get the player's data from SQL
-            final Map<Settings.SynchronisationCluster,PlayerData> data = DataManager.getPlayerData(player.getUniqueId());
+            final Map<Settings.SynchronisationCluster,PlayerData> data = HuskSyncBungeeCord.dataManager.getPlayerData(player.getUniqueId());
 
             // Update the player's data from SQL onto the cache
             assert data != null;
             for (Settings.SynchronisationCluster cluster : data.keySet()) {
-                DataManager.playerDataCache.get(cluster).updatePlayer(data.get(cluster));
+                HuskSyncBungeeCord.dataManager.playerDataCache.get(cluster).updatePlayer(data.get(cluster));
             }
 
             // Send a message asking the bukkit to request data on join
@@ -41,7 +40,7 @@ public class BungeeEventListener implements Listener {
                         new RedisMessage.MessageTarget(Settings.ServerType.BUKKIT, null, null),
                         RedisMessage.RequestOnJoinUpdateType.ADD_REQUESTER.toString(), player.getUniqueId().toString()).send();
             } catch (IOException e) {
-                plugin.getLogger().log(Level.SEVERE, "Failed to serialize request data on join message data");
+                plugin.getBungeeLogger().log(Level.SEVERE, "Failed to serialize request data on join message data");
                 e.printStackTrace();
             }
         });

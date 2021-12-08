@@ -1,21 +1,21 @@
-package me.william278.husksync.bungeecord.data.sql;
+package me.william278.husksync.proxy.data.sql;
 
-import me.william278.husksync.HuskSyncBungeeCord;
 import me.william278.husksync.Settings;
+import me.william278.husksync.util.Logger;
 
 import java.sql.Connection;
 import java.sql.SQLException;
 
 public abstract class Database {
-    protected HuskSyncBungeeCord plugin;
 
     public String dataPoolName;
     public Settings.SynchronisationCluster cluster;
+    public final Logger logger;
 
-    public Database(HuskSyncBungeeCord instance, Settings.SynchronisationCluster cluster) {
-        this.plugin = instance;
+    public Database(Settings.SynchronisationCluster cluster, Logger logger) {
         this.cluster = cluster;
         this.dataPoolName = cluster != null ? "HuskSyncHikariPool-" + cluster.clusterId() : "HuskSyncMigratorPool";
+        this.logger = logger;
     }
 
     public abstract Connection getConnection() throws SQLException;
