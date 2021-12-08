@@ -1,12 +1,12 @@
 package me.william278.husksync;
 
-import me.william278.husksync.bungeecord.command.HuskSyncCommand;
+import me.william278.husksync.bungeecord.command.BungeeCommand;
 import me.william278.husksync.bungeecord.config.ConfigLoader;
 import me.william278.husksync.bungeecord.config.ConfigManager;
 import me.william278.husksync.proxy.data.DataManager;
 import me.william278.husksync.bungeecord.listener.BungeeEventListener;
 import me.william278.husksync.bungeecord.listener.BungeeRedisListener;
-import me.william278.husksync.bungeecord.migrator.MPDBMigrator;
+import me.william278.husksync.migrator.MPDBMigrator;
 import me.william278.husksync.bungeecord.util.BungeeLogger;
 import me.william278.husksync.bungeecord.util.BungeeUpdateChecker;
 import me.william278.husksync.redis.RedisMessage;
@@ -104,10 +104,10 @@ public final class HuskSyncBungeeCord extends Plugin {
         getProxy().getPluginManager().registerListener(this, new BungeeEventListener());
 
         // Register command
-        getProxy().getPluginManager().registerCommand(this, new HuskSyncCommand());
+        getProxy().getPluginManager().registerCommand(this, new BungeeCommand());
 
         // Prepare the migrator for use if needed
-        mpdbMigrator = new MPDBMigrator();
+        mpdbMigrator = new MPDBMigrator(getBungeeLogger());
 
         // Initialize bStats metrics
         try {

@@ -3,7 +3,6 @@ package me.william278.husksync.velocity.config;
 import me.william278.husksync.HuskSyncVelocity;
 import me.william278.husksync.Settings;
 import ninja.leaping.configurate.ConfigurationNode;
-import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.yaml.YAMLConfigurationLoader;
 
 import java.io.File;
