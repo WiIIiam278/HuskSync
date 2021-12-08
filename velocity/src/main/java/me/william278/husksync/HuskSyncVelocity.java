@@ -32,7 +32,7 @@ import java.util.logging.Level;
 import static me.william278.husksync.HuskSyncVelocity.VERSION;
 
 @Plugin(
-        id = "velocity",
+        id = "husksync",
         name = "HuskSync",
         version = VERSION,
         description = "HuskSync for velocity",
