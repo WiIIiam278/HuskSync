@@ -1,4 +1,4 @@
-package me.william278.husksync.velocity;
+package me.william278.husksync.velocity.util;
 
 import me.william278.husksync.HuskSyncVelocity;
 import me.william278.husksync.util.UpdateChecker;

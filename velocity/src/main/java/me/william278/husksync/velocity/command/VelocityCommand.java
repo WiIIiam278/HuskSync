@@ -12,7 +12,7 @@ import me.william278.husksync.migrator.MPDBMigrator;
 import me.william278.husksync.proxy.command.HuskSyncCommand;
 import me.william278.husksync.redis.RedisMessage;
 import me.william278.husksync.util.MessageManager;
-import me.william278.husksync.velocity.VelocityUpdateChecker;
+import me.william278.husksync.velocity.util.VelocityUpdateChecker;
 import me.william278.husksync.velocity.config.ConfigLoader;
 import me.william278.husksync.velocity.config.ConfigManager;
 

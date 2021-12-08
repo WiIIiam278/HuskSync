@@ -12,7 +12,7 @@ import com.velocitypowered.api.proxy.ProxyServer;
 import me.william278.husksync.migrator.MPDBMigrator;
 import me.william278.husksync.proxy.data.DataManager;
 import me.william278.husksync.redis.RedisMessage;
-import me.william278.husksync.velocity.VelocityUpdateChecker;
+import me.william278.husksync.velocity.util.VelocityUpdateChecker;
 import me.william278.husksync.velocity.command.VelocityCommand;
 import me.william278.husksync.velocity.config.ConfigLoader;
 import me.william278.husksync.velocity.config.ConfigManager;
@@ -180,6 +180,7 @@ public class HuskSyncVelocity {
             }
         }
 
+        // Close database connections
         dataManager.closeDatabases();
 
         // Log to console
