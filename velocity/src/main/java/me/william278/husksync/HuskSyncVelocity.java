@@ -9,10 +9,11 @@ import com.velocitypowered.api.event.proxy.ProxyShutdownEvent;
 import com.velocitypowered.api.plugin.Plugin;
 import com.velocitypowered.api.plugin.annotation.DataDirectory;
 import com.velocitypowered.api.proxy.ProxyServer;
+import me.william278.husksync.migrator.MPDBMigrator;
 import me.william278.husksync.proxy.data.DataManager;
 import me.william278.husksync.redis.RedisMessage;
 import me.william278.husksync.velocity.VelocityUpdateChecker;
-import me.william278.husksync.velocity.command.HuskSyncCommand;
+import me.william278.husksync.velocity.command.VelocityCommand;
 import me.william278.husksync.velocity.config.ConfigLoader;
 import me.william278.husksync.velocity.config.ConfigManager;
 import me.william278.husksync.velocity.listener.VelocityEventListener;
@@ -65,7 +66,7 @@ public class HuskSyncVelocity {
 
     public static DataManager dataManager;
 
-    //public static MPDBMigrator mpdbMigrator;
+    public static MPDBMigrator mpdbMigrator;
 
     private final Logger logger;
     private final ProxyServer server;
@@ -108,13 +109,13 @@ public class HuskSyncVelocity {
         ConfigManager.loadConfig();
 
         // Load settings from config
-        ConfigLoader.loadSettings(ConfigManager.getConfig());
+        ConfigLoader.loadSettings(Objects.requireNonNull(ConfigManager.getConfig()));
 
         // Load messages
         ConfigManager.loadMessages();
 
         // Load locales from messages
-        ConfigLoader.loadMessageStrings(ConfigManager.getMessages());
+        ConfigLoader.loadMessageStrings(Objects.requireNonNull(ConfigManager.getMessages()));
 
         // Do update checker
         if (Settings.automaticUpdateChecks) {
@@ -143,10 +144,10 @@ public class HuskSyncVelocity {
         CommandMeta meta = commandManager.metaBuilder("husksync")
                 .aliases("hs")
                 .build();
-        commandManager.register(meta, new HuskSyncCommand());
+        commandManager.register(meta, new VelocityCommand());
 
         // Prepare the migrator for use if needed
-        //todo migrator
+        mpdbMigrator = new MPDBMigrator(getVelocityLogger());
 
         // Initialize bStats metrics
         try {

@@ -4,12 +4,13 @@ import de.themoep.minedown.MineDown;
 import me.william278.husksync.HuskSyncBungeeCord;
 import me.william278.husksync.Server;
 import me.william278.husksync.bungeecord.util.BungeeUpdateChecker;
+import me.william278.husksync.proxy.command.HuskSyncCommand;
 import me.william278.husksync.util.MessageManager;
 import me.william278.husksync.PlayerData;
 import me.william278.husksync.Settings;
 import me.william278.husksync.bungeecord.config.ConfigLoader;
 import me.william278.husksync.bungeecord.config.ConfigManager;
-import me.william278.husksync.bungeecord.migrator.MPDBMigrator;
+import me.william278.husksync.migrator.MPDBMigrator;
 import me.william278.husksync.redis.RedisMessage;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.ProxyServer;
@@ -25,17 +26,11 @@ import java.util.Objects;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
-public class HuskSyncCommand extends Command implements TabExecutor {
+public class BungeeCommand extends Command implements TabExecutor, HuskSyncCommand {
 
     private final static HuskSyncBungeeCord plugin = HuskSyncBungeeCord.getInstance();
-    private final static SubCommand[] SUB_COMMANDS = {new SubCommand("about", null),
-            new SubCommand("status", "husksync.command.admin"),
-            new SubCommand("reload", "husksync.command.admin"),
-            new SubCommand("update", "husksync.command.admin"),
-            new SubCommand("invsee", "husksync.command.inventory"),
-            new SubCommand("echest", "husksync.command.ender_chest")};
 
-    public HuskSyncCommand() {
+    public BungeeCommand() {
         super("husksync", null, "hs");
     }
 
@@ -195,6 +190,7 @@ public class HuskSyncCommand extends Command implements TabExecutor {
             // Database migration wizard
             if (args.length >= 1) {
                 if (args[0].equalsIgnoreCase("migrate")) {
+                    MPDBMigrator migrator = HuskSyncBungeeCord.mpdbMigrator;
                     if (args.length == 1) {
                         sender.sendMessage(new MineDown(
                                 """
@@ -210,7 +206,7 @@ public class HuskSyncCommand extends Command implements TabExecutor {
                                         Other non-vital data, such as current health, hunger
                                         & potion effects will not be migrated to ensure that
                                         migration does not take an excessive amount of time.
-                                        
+                                                                                
                                         To do this, you need to have MySqlPlayerDataBridge
                                         and HuskSync installed on one Spigot server as well
                                         as HuskSync installed on the proxy (which you have)
@@ -234,7 +230,7 @@ public class HuskSyncCommand extends Command implements TabExecutor {
                                             sourceInventoryTableName: %6%
                                             sourceEnderChestTableName: %7%
                                             sourceExperienceTableName: %8%
-                                            
+                                                                                        
                                             targetCluster: %9%
                                                                                             
                                             To change a setting, type:
@@ -256,37 +252,37 @@ public class HuskSyncCommand extends Command implements TabExecutor {
                                             data from the source MySQLPlayerDataBridge database.
                                                                                     
                                             >When done, type: husksync migrate start"""
-                                            .replaceAll("%1%", MPDBMigrator.migrationSettings.sourceHost)
-                                            .replaceAll("%2%", String.valueOf(MPDBMigrator.migrationSettings.sourcePort))
-                                            .replaceAll("%3%", MPDBMigrator.migrationSettings.sourceDatabase)
-                                            .replaceAll("%4%", MPDBMigrator.migrationSettings.sourceUsername)
-                                            .replaceAll("%5%", MPDBMigrator.migrationSettings.sourcePassword)
-                                            .replaceAll("%6%", MPDBMigrator.migrationSettings.inventoryDataTable)
-                                            .replaceAll("%7%", MPDBMigrator.migrationSettings.enderChestDataTable)
-                                            .replaceAll("%8%", MPDBMigrator.migrationSettings.expDataTable)
-                                            .replaceAll("%9%", MPDBMigrator.migrationSettings.targetCluster)
+                                            .replaceAll("%1%", migrator.migrationSettings.sourceHost)
+                                            .replaceAll("%2%", String.valueOf(migrator.migrationSettings.sourcePort))
+                                            .replaceAll("%3%", migrator.migrationSettings.sourceDatabase)
+                                            .replaceAll("%4%", migrator.migrationSettings.sourceUsername)
+                                            .replaceAll("%5%", migrator.migrationSettings.sourcePassword)
+                                            .replaceAll("%6%", migrator.migrationSettings.inventoryDataTable)
+                                            .replaceAll("%7%", migrator.migrationSettings.enderChestDataTable)
+                                            .replaceAll("%8%", migrator.migrationSettings.expDataTable)
+                                            .replaceAll("%9%", migrator.migrationSettings.targetCluster)
                                             .replaceAll("%10%", Settings.dataStorageType.toString())
                             ).toComponent());
                             case "setting" -> {
                                 if (args.length == 4) {
                                     String value = args[3];
                                     switch (args[2]) {
-                                        case "sourceHost", "host" -> MPDBMigrator.migrationSettings.sourceHost = value;
+                                        case "sourceHost", "host" -> migrator.migrationSettings.sourceHost = value;
                                         case "sourcePort", "port" -> {
                                             try {
-                                                MPDBMigrator.migrationSettings.sourcePort = Integer.parseInt(value);
+                                                migrator.migrationSettings.sourcePort = Integer.parseInt(value);
                                             } catch (NumberFormatException e) {
                                                 sender.sendMessage(new MineDown("Error: Invalid value; port must be a number").toComponent());
                                                 return;
                                             }
                                         }
-                                        case "sourceDatabase", "database" -> MPDBMigrator.migrationSettings.sourceDatabase = value;
-                                        case "sourceUsername", "username" -> MPDBMigrator.migrationSettings.sourceUsername = value;
-                                        case "sourcePassword", "password" -> MPDBMigrator.migrationSettings.sourcePassword = value;
-                                        case "sourceInventoryTableName", "inventoryTableName", "inventoryTable" -> MPDBMigrator.migrationSettings.inventoryDataTable = value;
-                                        case "sourceEnderChestTableName", "enderChestTableName", "enderChestTable" -> MPDBMigrator.migrationSettings.enderChestDataTable = value;
-                                        case "sourceExperienceTableName", "experienceTableName", "experienceTable" -> MPDBMigrator.migrationSettings.expDataTable = value;
-                                        case "targetCluster", "cluster" -> MPDBMigrator.migrationSettings.targetCluster = value;
+                                        case "sourceDatabase", "database" -> migrator.migrationSettings.sourceDatabase = value;
+                                        case "sourceUsername", "username" -> migrator.migrationSettings.sourceUsername = value;
+                                        case "sourcePassword", "password" -> migrator.migrationSettings.sourcePassword = value;
+                                        case "sourceInventoryTableName", "inventoryTableName", "inventoryTable" -> migrator.migrationSettings.inventoryDataTable = value;
+                                        case "sourceEnderChestTableName", "enderChestTableName", "enderChestTable" -> migrator.migrationSettings.enderChestDataTable = value;
+                                        case "sourceExperienceTableName", "experienceTableName", "experienceTable" -> migrator.migrationSettings.expDataTable = value;
+                                        case "targetCluster", "cluster" -> migrator.migrationSettings.targetCluster = value;
                                         default -> {
                                             sender.sendMessage(new MineDown("Error: Invalid setting; please use \"husksync migrate setup\" to view a list").toComponent());
                                             return;
@@ -299,7 +295,14 @@ public class HuskSyncCommand extends Command implements TabExecutor {
                             }
                             case "start" -> {
                                 sender.sendMessage(new MineDown("Starting MySQLPlayerDataBridge migration!...").toComponent());
-                                HuskSyncBungeeCord.mpdbMigrator.start();
+
+                                // If the migrator is ready, execute the migration asynchronously
+                                if (HuskSyncBungeeCord.mpdbMigrator.readyToMigrate(ProxyServer.getInstance().getOnlineCount(),
+                                        HuskSyncBungeeCord.synchronisedServers)) {
+                                    ProxyServer.getInstance().getScheduler().runAsync(plugin, () ->
+                                            HuskSyncBungeeCord.mpdbMigrator.executeMigrationOperations(HuskSyncBungeeCord.dataManager,
+                                                    HuskSyncBungeeCord.synchronisedServers));
+                                }
                             }
                             default -> sender.sendMessage(new MineDown("Error: Invalid argument for migration. Use \"husksync migrate\" to start the process").toComponent());
                         }
@@ -346,7 +349,7 @@ public class HuskSyncCommand extends Command implements TabExecutor {
     }
 
     // View the ender chest of a player specified by their name
-    private void openEnderChest(ProxiedPlayer viewer, String targetPlayerName, String clusterId) {
+    public void openEnderChest(ProxiedPlayer viewer, String targetPlayerName, String clusterId) {
         if (viewer.getName().equalsIgnoreCase(targetPlayerName)) {
             viewer.sendMessage(new MineDown(MessageManager.getMessage("error_cannot_view_own_ender_chest")).toComponent());
             return;
@@ -401,9 +404,12 @@ public class HuskSyncCommand extends Command implements TabExecutor {
             if (args.length == 1) {
                 final ArrayList<String> subCommands = new ArrayList<>();
                 for (SubCommand subCommand : SUB_COMMANDS) {
-                    if (subCommand.doesPlayerHavePermission(player)) {
-                        subCommands.add(subCommand.command());
+                    if (subCommand.permission() != null) {
+                        if (!player.hasPermission(subCommand.permission())) {
+                            continue;
+                        }
                     }
+                    subCommands.add(subCommand.command());
                 }
                 // Automatically filter the sub commands' order in tab completion by what the player has typed
                 return subCommands.stream().filter(val -> val.startsWith(args[0]))
@@ -413,21 +419,6 @@ public class HuskSyncCommand extends Command implements TabExecutor {
             }
         }
         return Collections.emptyList();
-    }
-
-    /**
-     * A sub command, that may require a permission
-     */
-    public record SubCommand(String command, String permission) {
-        /**
-         * Returns if the player can use the sub command
-         *
-         * @param player The {@link ProxiedPlayer} to check
-         * @return {@code true} if the player can use the sub command; {@code false} otherwise
-         */
-        public boolean doesPlayerHavePermission(ProxiedPlayer player) {
-            return permission == null || player.hasPermission(permission);
-        }
     }
 
 }

@@ -6,7 +6,7 @@ import me.william278.husksync.Server;
 import me.william278.husksync.util.MessageManager;
 import me.william278.husksync.PlayerData;
 import me.william278.husksync.Settings;
-import me.william278.husksync.bungeecord.migrator.MPDBMigrator;
+import me.william278.husksync.migrator.MPDBMigrator;
 import me.william278.husksync.redis.RedisListener;
 import me.william278.husksync.redis.RedisMessage;
 import net.md_5.bungee.api.ChatMessageType;
@@ -181,16 +181,20 @@ public class BungeeRedisListener extends RedisListener {
                     return;
                 }
 
+                // Get the migrator
+                MPDBMigrator migrator = HuskSyncBungeeCord.mpdbMigrator;
+
                 // Add the incoming data to the data to be saved
-                MPDBMigrator.incomingPlayerData.put(playerData, playerName);
+                migrator.incomingPlayerData.put(playerData, playerName);
 
                 // Increment players migrated
-                MPDBMigrator.playersMigrated++;
-                plugin.getBungeeLogger().log(Level.INFO, "Migrated " + MPDBMigrator.playersMigrated + "/" + MPDBMigrator.migratedDataSent + " players.");
+                migrator.playersMigrated++;
+                plugin.getBungeeLogger().log(Level.INFO, "Migrated " + migrator.playersMigrated + "/" + migrator.migratedDataSent + " players.");
 
                 // When all the data has been received, save it
-                if (MPDBMigrator.migratedDataSent == MPDBMigrator.playersMigrated) {
-                    MPDBMigrator.loadIncomingData(MPDBMigrator.incomingPlayerData);
+                if (migrator.migratedDataSent == migrator.playersMigrated) {
+                    ProxyServer.getInstance().getScheduler().runAsync(plugin, () -> migrator.loadIncomingData(migrator.incomingPlayerData,
+                            HuskSyncBungeeCord.dataManager));
                 }
             }
         }
