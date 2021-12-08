@@ -4,6 +4,7 @@ import me.william278.husksync.HuskSyncVelocity;
 import me.william278.husksync.Settings;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.yaml.YAMLConfigurationLoader;
+import org.yaml.snakeyaml.DumperOptions;
 
 import java.io.File;
 import java.io.IOException;
@@ -24,7 +25,7 @@ public class ConfigManager {
             }
             File configFile = new File(plugin.getDataFolder(), "config.yml");
             if (!configFile.exists()) {
-                Files.copy(Objects.requireNonNull(plugin.getClass().getResourceAsStream("proxy-config.yml")), configFile.toPath());
+                Files.copy(Objects.requireNonNull(HuskSyncVelocity.class.getClassLoader().getResourceAsStream("proxy-config.yml")), configFile.toPath());
                 plugin.getVelocityLogger().info("Created HuskSync config file");
             }
         } catch (Exception e) {
@@ -49,7 +50,7 @@ public class ConfigManager {
             }
             File messagesFile = new File(plugin.getDataFolder(), "messages_" + Settings.language + ".yml");
             if (!messagesFile.exists()) {
-                Files.copy(Objects.requireNonNull(plugin.getClass().getResourceAsStream("languages/" + Settings.language + ".yml")),
+                Files.copy(Objects.requireNonNull(HuskSyncVelocity.class.getClassLoader().getResourceAsStream("languages/" + Settings.language + ".yml")),
                         messagesFile.toPath());
                 plugin.getVelocityLogger().info("Created HuskSync messages file");
             }
@@ -62,6 +63,8 @@ public class ConfigManager {
         File configFile = new File(plugin.getDataFolder(), "config.yml");
         return YAMLConfigurationLoader.builder()
                 .setPath(configFile.toPath())
+                .setFlowStyle(DumperOptions.FlowStyle.BLOCK)
+                .setIndent(2)
                 .build();
     }
 

@@ -20,8 +20,8 @@ public class ConfigLoader {
                 configRoot.getNode("check_for_updates").setValue(true);
             }
             if (configVersion.equalsIgnoreCase("1.0") || configVersion.equalsIgnoreCase("1.0.1") || configVersion.equalsIgnoreCase("1.0.2") || configVersion.equalsIgnoreCase("1.0.3")) {
-                configRoot.getNode("clusters.main.player_table").setValue("husksync_players");
-                configRoot.getNode("clusters.main.data_table").setValue("husksync_data");
+                configRoot.getNode("clusters", "main", "player_table").setValue("husksync_players");
+                configRoot.getNode("clusters", "main", "data_table").setValue("husksync_data");
             }
             configRoot.getNode("config_file_version").setValue(HuskSyncVelocity.VERSION);
         }
@@ -49,6 +49,7 @@ public class ConfigLoader {
 
     public static void loadSettings(ConfigurationNode loadedConfig) throws IllegalArgumentException {
         ConfigurationNode config = copyDefaults(loadedConfig);
+        //ConfigurationNode config = copyDefaults(loadedConfig);
 
         Settings.language = getConfigString(config, "en-gb", "language");
 
