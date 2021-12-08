@@ -31,19 +31,20 @@ public class ConfigLoader {
     }
 
     private static String getConfigString(ConfigurationNode rootNode, String defaultValue, String... nodePath) {
-        return !rootNode.getNode(nodePath).isVirtual() ? rootNode.getNode(nodePath).getString() : defaultValue;
+        return !rootNode.getNode((Object[]) nodePath).isVirtual() ? rootNode.getNode((Object[])nodePath).getString() : defaultValue;
     }
 
+    @SuppressWarnings("SameParameterValue")
     private static boolean getConfigBoolean(ConfigurationNode rootNode, boolean defaultValue, String... nodePath) {
-        return !rootNode.getNode(nodePath).isVirtual() ? rootNode.getNode(nodePath).getBoolean() : defaultValue;
+        return !rootNode.getNode((Object[]) nodePath).isVirtual() ? rootNode.getNode((Object[])nodePath).getBoolean() : defaultValue;
     }
 
     private static int getConfigInt(ConfigurationNode rootNode, int defaultValue, String... nodePath) {
-        return !rootNode.getNode(nodePath).isVirtual() ? rootNode.getNode(nodePath).getInt() : defaultValue;
+        return !rootNode.getNode((Object[]) nodePath).isVirtual() ? rootNode.getNode((Object[])nodePath).getInt() : defaultValue;
     }
 
     private static long getConfigLong(ConfigurationNode rootNode, long defaultValue, String... nodePath) {
-        return !rootNode.getNode(nodePath).isVirtual() ? rootNode.getNode(nodePath).getLong() : defaultValue;
+        return !rootNode.getNode((Object[])nodePath).isVirtual() ? rootNode.getNode((Object[])nodePath).getLong() : defaultValue;
     }
 
     public static void loadSettings(ConfigurationNode loadedConfig) throws IllegalArgumentException {
