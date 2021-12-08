@@ -11,7 +11,7 @@ Are you a developer? [Read below for information about code bounty licensing](#C
 
 ## Setup
 ### Requirements
-* A BungeeCord-based proxy server
+* A BungeeCord or Velocity-based proxy server
 * A Spigot-based game server
 * A Redis server
 
@@ -99,7 +99,7 @@ Short answer: Not right now, but improved support for this is planned in the fut
 Long answer: This is a difficult question to unpack because of the wide variety of setups that involve multiple proxies, however currently the architecture of how messages are sent between servers assumes that one proxy will serve multiple Bukkit servers, so having multiple proxies will lead to data going out of sync, among other issues.
 
 #### Does it work with Velocity?
-I'd like to add support for Velocity in the future, but right now it is not supported.
+Yes! Servers running the Velocity proxy software are supported as of HuskSync 1.2+.
 
 #### Is this faster than MySqlPlayerDataBridge (MPDB)?
 It's difficult to say, and will depend on your server. 
