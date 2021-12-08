@@ -1,29 +1,27 @@
-package me.william278.husksync.bungeecord.listener;
+package me.william278.husksync.velocity.listener;
 
-import de.themoep.minedown.MineDown;
-import me.william278.husksync.HuskSyncBungeeCord;
-import me.william278.husksync.Server;
-import me.william278.husksync.util.MessageManager;
+import com.velocitypowered.api.proxy.Player;
+import de.themoep.minedown.adventure.MineDown;
+import me.william278.husksync.HuskSyncVelocity;
 import me.william278.husksync.PlayerData;
+import me.william278.husksync.Server;
 import me.william278.husksync.Settings;
-import me.william278.husksync.bungeecord.migrator.MPDBMigrator;
 import me.william278.husksync.redis.RedisListener;
 import me.william278.husksync.redis.RedisMessage;
-import net.md_5.bungee.api.ChatMessageType;
-import net.md_5.bungee.api.ProxyServer;
-import net.md_5.bungee.api.connection.ProxiedPlayer;
+import me.william278.husksync.util.MessageManager;
 
 import java.io.IOException;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.logging.Level;
 
-public class BungeeRedisListener extends RedisListener {
+public class VelocityRedisListener extends RedisListener {
 
-    private static final HuskSyncBungeeCord plugin = HuskSyncBungeeCord.getInstance();
+    private static final HuskSyncVelocity plugin = HuskSyncVelocity.getInstance();
 
     // Initialize the listener on the bungee
-    public BungeeRedisListener() {
+    public VelocityRedisListener() {
         listen();
     }
 
@@ -32,13 +30,13 @@ public class BungeeRedisListener extends RedisListener {
         for (Settings.SynchronisationCluster cluster : Settings.clusters) {
             if (cluster.clusterId().equals(clusterId)) {
                 // Get the player data from the cache
-                PlayerData cachedData = HuskSyncBungeeCord.dataManager.playerDataCache.get(cluster).getPlayer(uuid);
+                PlayerData cachedData = HuskSyncVelocity.dataManager.playerDataCache.get(cluster).getPlayer(uuid);
                 if (cachedData != null) {
                     return cachedData;
                 }
 
-                data = Objects.requireNonNull(HuskSyncBungeeCord.dataManager.getPlayerData(uuid)).get(cluster); // Get their player data from MySQL
-                HuskSyncBungeeCord.dataManager.playerDataCache.get(cluster).updatePlayer(data); // Update the cache
+                data = Objects.requireNonNull(HuskSyncVelocity.dataManager.getPlayerData(uuid)).get(cluster); // Get their player data from MySQL
+                HuskSyncVelocity.dataManager.playerDataCache.get(cluster).updatePlayer(data); // Update the cache
                 break;
             }
         }
@@ -57,7 +55,7 @@ public class BungeeRedisListener extends RedisListener {
             return;
         }
         // Only process redis messages when ready
-        if (!HuskSyncBungeeCord.readyForRedis) {
+        if (!HuskSyncVelocity.readyForRedis) {
             return;
         }
 
@@ -65,7 +63,7 @@ public class BungeeRedisListener extends RedisListener {
             case PLAYER_DATA_REQUEST -> {
                 // Get the UUID of the requesting player
                 final UUID requestingPlayerUUID = UUID.fromString(message.getMessageData());
-                ProxyServer.getInstance().getScheduler().runAsync(plugin, () -> {
+                plugin.getProxyServer().getScheduler().buildTask(plugin, () -> {
                     try {
                         // Send the reply, serializing the message data
                         new RedisMessage(RedisMessage.MessageType.PLAYER_DATA_SET,
@@ -80,12 +78,8 @@ public class BungeeRedisListener extends RedisListener {
                                 .send();
 
                         // Send synchronisation complete message
-                        ProxiedPlayer player = ProxyServer.getInstance().getPlayer(requestingPlayerUUID);
-                        if (player != null) {
-                            if (player.isConnected()) {
-                                player.sendMessage(ChatMessageType.ACTION_BAR, new MineDown(MessageManager.getMessage("synchronisation_complete")).toComponent());
-                            }
-                        }
+                        Optional<Player> player = plugin.getProxyServer().getPlayer(requestingPlayerUUID);
+                        player.ifPresent(value -> value.sendActionBar(new MineDown(MessageManager.getMessage("synchronisation_complete")).toComponent()));
                     } catch (IOException e) {
                         log(Level.SEVERE, "Failed to serialize data when replying to a data request");
                         e.printStackTrace();
@@ -107,33 +101,32 @@ public class BungeeRedisListener extends RedisListener {
                 // Update the data in the cache and SQL
                 for (Settings.SynchronisationCluster cluster : Settings.clusters) {
                     if (cluster.clusterId().equals(message.getMessageTarget().targetClusterId())) {
-                        HuskSyncBungeeCord.dataManager.updatePlayerData(playerData, cluster);
+                        HuskSyncVelocity.dataManager.updatePlayerData(playerData, cluster);
                         break;
                     }
                 }
 
                 // Reply with the player data if they are still online (switching server)
-                try {
-                    ProxiedPlayer player = ProxyServer.getInstance().getPlayer(playerData.getPlayerUUID());
-                    if (player != null) {
-                        if (player.isConnected()) {
-                            new RedisMessage(RedisMessage.MessageType.PLAYER_DATA_SET,
-                                    new RedisMessage.MessageTarget(Settings.ServerType.BUKKIT, playerData.getPlayerUUID(), message.getMessageTarget().targetClusterId()),
-                                    RedisMessage.serialize(playerData))
-                                    .send();
+                Optional<Player> updatingPlayer = plugin.getProxyServer().getPlayer(playerData.getPlayerUUID());
+                updatingPlayer.ifPresent(player -> {
+                    try {
+                        new RedisMessage(RedisMessage.MessageType.PLAYER_DATA_SET,
+                                new RedisMessage.MessageTarget(Settings.ServerType.BUKKIT, playerData.getPlayerUUID(), message.getMessageTarget().targetClusterId()),
+                                RedisMessage.serialize(playerData))
+                                .send();
 
-                            // Send synchronisation complete message
-                            player.sendMessage(ChatMessageType.ACTION_BAR, new MineDown(MessageManager.getMessage("synchronisation_complete")).toComponent());
-                        }
+                        // Send synchronisation complete message
+                        player.sendActionBar(new MineDown(MessageManager.getMessage("synchronisation_complete")).toComponent());
+                    } catch (IOException e) {
+                        log(Level.SEVERE, "Failed to re-serialize PlayerData when handling a player update request");
+                        e.printStackTrace();
                     }
-                } catch (IOException e) {
-                    log(Level.SEVERE, "Failed to re-serialize PlayerData when handling a player update request");
-                    e.printStackTrace();
-                }
+                });
+
             }
             case CONNECTION_HANDSHAKE -> {
                 // Reply to a Bukkit server's connection handshake to complete the process
-                if (HuskSyncBungeeCord.isDisabling) return; // Return if the Proxy is disabling
+                if (HuskSyncVelocity.isDisabling) return; // Return if the Proxy is disabling
                 final UUID serverUUID = UUID.fromString(message.getMessageDataElements()[0]);
                 final boolean hasMySqlPlayerDataBridge = Boolean.parseBoolean(message.getMessageDataElements()[1]);
                 final String bukkitBrand = message.getMessageDataElements()[2];
@@ -141,9 +134,9 @@ public class BungeeRedisListener extends RedisListener {
                 try {
                     new RedisMessage(RedisMessage.MessageType.CONNECTION_HANDSHAKE,
                             new RedisMessage.MessageTarget(Settings.ServerType.BUKKIT, null, message.getMessageTarget().targetClusterId()),
-                            serverUUID.toString(), plugin.getProxy().getName())
+                            serverUUID.toString(), "Velocity")
                             .send();
-                    HuskSyncBungeeCord.synchronisedServers.add(
+                    HuskSyncVelocity.synchronisedServers.add(
                             new Server(serverUUID, hasMySqlPlayerDataBridge,
                                     huskSyncVersion, bukkitBrand, message.getMessageTarget().targetClusterId()));
                     log(Level.INFO, "Completed handshake with " + bukkitBrand + " server (" + serverUUID + ")");
@@ -159,13 +152,13 @@ public class BungeeRedisListener extends RedisListener {
 
                 // Remove a server from the synchronised server list
                 Server serverToRemove = null;
-                for (Server server : HuskSyncBungeeCord.synchronisedServers) {
+                for (Server server : HuskSyncVelocity.synchronisedServers) {
                     if (server.serverUUID().equals(serverUUID)) {
                         serverToRemove = server;
                         break;
                     }
                 }
-                HuskSyncBungeeCord.synchronisedServers.remove(serverToRemove);
+                HuskSyncVelocity.synchronisedServers.remove(serverToRemove);
                 log(Level.INFO, "Terminated the handshake with " + bukkitBrand + " server (" + serverUUID + ")");
             }
             case DECODED_MPDB_DATA_SET -> {
@@ -181,7 +174,8 @@ public class BungeeRedisListener extends RedisListener {
                     return;
                 }
 
-                // Add the incoming data to the data to be saved
+                //todo Migrator
+                /*// Add the incoming data to the data to be saved
                 MPDBMigrator.incomingPlayerData.put(playerData, playerName);
 
                 // Increment players migrated
@@ -191,7 +185,7 @@ public class BungeeRedisListener extends RedisListener {
                 // When all the data has been received, save it
                 if (MPDBMigrator.migratedDataSent == MPDBMigrator.playersMigrated) {
                     MPDBMigrator.loadIncomingData(MPDBMigrator.incomingPlayerData);
-                }
+                }*/
             }
         }
     }
@@ -204,6 +198,6 @@ public class BungeeRedisListener extends RedisListener {
      */
     @Override
     public void log(Level level, String message) {
-        plugin.getBungeeLogger().log(level, message);
+        plugin.getVelocityLogger().log(level, message);
     }
 }

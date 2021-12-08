@@ -1,10 +1,13 @@
-package me.william278.husksync.bungeecord.data;
+package me.william278.husksync.proxy.data;
 
 import me.william278.husksync.PlayerData;
-import me.william278.husksync.HuskSyncBungeeCord;
 import me.william278.husksync.Settings;
-import me.william278.husksync.bungeecord.data.sql.Database;
+import me.william278.husksync.proxy.data.sql.Database;
+import me.william278.husksync.proxy.data.sql.MySQL;
+import me.william278.husksync.proxy.data.sql.SQLite;
+import me.william278.husksync.util.Logger;
 
+import java.io.File;
 import java.sql.*;
 import java.time.Instant;
 import java.util.*;
@@ -12,12 +15,65 @@ import java.util.logging.Level;
 
 public class DataManager {
 
-    private static final HuskSyncBungeeCord plugin = HuskSyncBungeeCord.getInstance();
-
     /**
      * The player data cache for each cluster ID
      */
-    public static HashMap<Settings.SynchronisationCluster, PlayerDataCache> playerDataCache = new HashMap<>();
+    public HashMap<Settings.SynchronisationCluster, PlayerDataCache> playerDataCache = new HashMap<>();
+
+    /**
+     * Map of the database assigned for each cluster
+     */
+    private final HashMap<String, Database> clusterDatabases;
+
+    // Retrieve database connection for a cluster
+    public Connection getConnection(String clusterId) throws SQLException {
+        return clusterDatabases.get(clusterId).getConnection();
+    }
+
+    // Console logger for errors
+    private final Logger logger;
+
+    // Plugin data folder
+    private final File dataFolder;
+
+    // Flag variable identifying if the data manager failed to initialize
+    public boolean hasFailedInitialization = false;
+
+    public DataManager(Logger logger, File dataFolder) {
+        this.logger = logger;
+        this.dataFolder = dataFolder;
+        clusterDatabases = new HashMap<>();
+        initializeDatabases();
+    }
+
+    private void initializeDatabases() {
+        for (Settings.SynchronisationCluster cluster : Settings.clusters) {
+            Database clusterDatabase = switch (Settings.dataStorageType) {
+                case SQLITE -> new SQLite(cluster, dataFolder, logger);
+                case MYSQL -> new MySQL(cluster, logger);
+            };
+            clusterDatabase.load();
+            clusterDatabase.createTables();
+            clusterDatabases.put(cluster.clusterId(), clusterDatabase);
+        }
+
+        // Abort loading if the database failed to initialize
+        for (Database database : clusterDatabases.values()) {
+            if (database.isInactive()) {
+                hasFailedInitialization = true;
+                return;
+            }
+        }
+    }
+
+    /**
+     * Close the database connections
+     */
+    public void closeDatabases() {
+        for (Database database : clusterDatabases.values()) {
+            database.close();
+        }
+    }
 
     /**
      * Checks if the player is registered on the database.
@@ -26,7 +82,7 @@ public class DataManager {
      *
      * @param playerUUID The UUID of the player to register
      */
-    public static void ensurePlayerExists(UUID playerUUID, String playerName) {
+    public void ensurePlayerExists(UUID playerUUID, String playerName) {
         for (Settings.SynchronisationCluster cluster : Settings.clusters) {
             if (!playerExists(playerUUID, cluster)) {
                 createPlayerEntry(playerUUID, playerName, cluster);
@@ -42,8 +98,8 @@ public class DataManager {
      * @param playerUUID The UUID of the player
      * @return {@code true} if the player is on the player table
      */
-    private static boolean playerExists(UUID playerUUID, Settings.SynchronisationCluster cluster) {
-        try (Connection connection = HuskSyncBungeeCord.getConnection(cluster.clusterId())) {
+    private boolean playerExists(UUID playerUUID, Settings.SynchronisationCluster cluster) {
+        try (Connection connection = getConnection(cluster.clusterId())) {
             try (PreparedStatement statement = connection.prepareStatement(
                     "SELECT * FROM " + cluster.playerTableName() + " WHERE `uuid`=?;")) {
                 statement.setString(1, playerUUID.toString());
@@ -51,13 +107,13 @@ public class DataManager {
                 return resultSet.next();
             }
         } catch (SQLException e) {
-            plugin.getLogger().log(Level.SEVERE, "An SQL exception occurred", e);
+            logger.log(Level.SEVERE, "An SQL exception occurred", e);
             return false;
         }
     }
 
-    private static void createPlayerEntry(UUID playerUUID, String playerName, Settings.SynchronisationCluster cluster) {
-        try (Connection connection = HuskSyncBungeeCord.getConnection(cluster.clusterId())) {
+    private void createPlayerEntry(UUID playerUUID, String playerName, Settings.SynchronisationCluster cluster) {
+        try (Connection connection = getConnection(cluster.clusterId())) {
             try (PreparedStatement statement = connection.prepareStatement(
                     "INSERT INTO " + cluster.playerTableName() + " (`uuid`,`username`) VALUES(?,?);")) {
                 statement.setString(1, playerUUID.toString());
@@ -65,12 +121,12 @@ public class DataManager {
                 statement.executeUpdate();
             }
         } catch (SQLException e) {
-            plugin.getLogger().log(Level.SEVERE, "An SQL exception occurred", e);
+            logger.log(Level.SEVERE, "An SQL exception occurred", e);
         }
     }
 
-    public static void updatePlayerName(UUID playerUUID, String playerName, Settings.SynchronisationCluster cluster) {
-        try (Connection connection = HuskSyncBungeeCord.getConnection(cluster.clusterId())) {
+    public void updatePlayerName(UUID playerUUID, String playerName, Settings.SynchronisationCluster cluster) {
+        try (Connection connection = getConnection(cluster.clusterId())) {
             try (PreparedStatement statement = connection.prepareStatement(
                     "UPDATE " + cluster.playerTableName() + " SET `username`=? WHERE `uuid`=?;")) {
                 statement.setString(1, playerName);
@@ -78,7 +134,7 @@ public class DataManager {
                 statement.executeUpdate();
             }
         } catch (SQLException e) {
-            plugin.getLogger().log(Level.SEVERE, "An SQL exception occurred", e);
+            logger.log(Level.SEVERE, "An SQL exception occurred", e);
         }
     }
 
@@ -88,11 +144,11 @@ public class DataManager {
      * @param playerName The PlayerName of the data to get
      * @return Their {@link PlayerData}; or {@code null} if the player does not exist
      */
-    public static PlayerData getPlayerDataByName(String playerName, String clusterId) {
+    public PlayerData getPlayerDataByName(String playerName, String clusterId) {
         PlayerData playerData = null;
         for (Settings.SynchronisationCluster cluster : Settings.clusters) {
             if (cluster.clusterId().equals(clusterId)) {
-                try (Connection connection = HuskSyncBungeeCord.getConnection(clusterId)) {
+                try (Connection connection = getConnection(clusterId)) {
                     try (PreparedStatement statement = connection.prepareStatement(
                             "SELECT * FROM " + cluster.playerTableName() + " WHERE `username`=? LIMIT 1;")) {
                         statement.setString(1, playerName);
@@ -110,7 +166,7 @@ public class DataManager {
                         }
                     }
                 } catch (SQLException e) {
-                    plugin.getLogger().log(Level.SEVERE, "An SQL exception occurred", e);
+                    logger.log(Level.SEVERE, "An SQL exception occurred", e);
                 }
                 break;
             }
@@ -119,10 +175,10 @@ public class DataManager {
         return playerData;
     }
 
-    public static Map<Settings.SynchronisationCluster, PlayerData> getPlayerData(UUID playerUUID) {
+    public Map<Settings.SynchronisationCluster, PlayerData> getPlayerData(UUID playerUUID) {
         HashMap<Settings.SynchronisationCluster, PlayerData> data = new HashMap<>();
         for (Settings.SynchronisationCluster cluster : Settings.clusters) {
-            try (Connection connection = HuskSyncBungeeCord.getConnection(cluster.clusterId())) {
+            try (Connection connection = getConnection(cluster.clusterId())) {
                 try (PreparedStatement statement = connection.prepareStatement(
                         "SELECT * FROM " + cluster.dataTableName() + " WHERE `player_id`=(SELECT `id` FROM " + cluster.playerTableName() + " WHERE `uuid`=?);")) {
                     statement.setString(1, playerUUID.toString());
@@ -158,14 +214,14 @@ public class DataManager {
                     }
                 }
             } catch (SQLException e) {
-                plugin.getLogger().log(Level.SEVERE, "An SQL exception occurred", e);
+                logger.log(Level.SEVERE, "An SQL exception occurred", e);
                 return null;
             }
         }
         return data;
     }
 
-    public static void updatePlayerData(PlayerData playerData, Settings.SynchronisationCluster cluster) {
+    public void updatePlayerData(PlayerData playerData, Settings.SynchronisationCluster cluster) {
         // Ignore if the Spigot server didn't properly sync the previous data
 
         // Add the new player data to the cache
@@ -179,8 +235,8 @@ public class DataManager {
         }
     }
 
-    private static void updatePlayerSQLData(PlayerData playerData, Settings.SynchronisationCluster cluster) {
-        try (Connection connection = HuskSyncBungeeCord.getConnection(cluster.clusterId())) {
+    private void updatePlayerSQLData(PlayerData playerData, Settings.SynchronisationCluster cluster) {
+        try (Connection connection = getConnection(cluster.clusterId())) {
             try (PreparedStatement statement = connection.prepareStatement(
                     "UPDATE " + cluster.dataTableName() + " SET `version_uuid`=?, `timestamp`=?, `inventory`=?, `ender_chest`=?, `health`=?, `max_health`=?, `health_scale`=?, `hunger`=?, `saturation`=?, `saturation_exhaustion`=?, `selected_slot`=?, `status_effects`=?, `total_experience`=?, `exp_level`=?, `exp_progress`=?, `game_mode`=?, `statistics`=?, `is_flying`=?, `advancements`=?, `location`=? WHERE `player_id`=(SELECT `id` FROM " + cluster.playerTableName() + " WHERE `uuid`=?);")) {
                 statement.setString(1, playerData.getDataVersionUUID().toString());
@@ -208,12 +264,12 @@ public class DataManager {
                 statement.executeUpdate();
             }
         } catch (SQLException e) {
-            plugin.getLogger().log(Level.SEVERE, "An SQL exception occurred", e);
+            logger.log(Level.SEVERE, "An SQL exception occurred", e);
         }
     }
 
-    private static void insertPlayerData(PlayerData playerData, Settings.SynchronisationCluster cluster) {
-        try (Connection connection = HuskSyncBungeeCord.getConnection(cluster.clusterId())) {
+    private void insertPlayerData(PlayerData playerData, Settings.SynchronisationCluster cluster) {
+        try (Connection connection = getConnection(cluster.clusterId())) {
             try (PreparedStatement statement = connection.prepareStatement(
                     "INSERT INTO " + cluster.dataTableName() + " (`player_id`,`version_uuid`,`timestamp`,`inventory`,`ender_chest`,`health`,`max_health`,`health_scale`,`hunger`,`saturation`,`saturation_exhaustion`,`selected_slot`,`status_effects`,`total_experience`,`exp_level`,`exp_progress`,`game_mode`,`statistics`,`is_flying`,`advancements`,`location`) VALUES((SELECT `id` FROM " + cluster.playerTableName() + " WHERE `uuid`=?),?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);")) {
                 statement.setString(1, playerData.getPlayerUUID().toString());
@@ -241,7 +297,7 @@ public class DataManager {
                 statement.executeUpdate();
             }
         } catch (SQLException e) {
-            plugin.getLogger().log(Level.SEVERE, "An SQL exception occurred", e);
+            logger.log(Level.SEVERE, "An SQL exception occurred", e);
         }
     }
 
@@ -251,8 +307,8 @@ public class DataManager {
      * @param playerUUID The UUID of the player
      * @return {@code true} if the player has an entry in the data table
      */
-    private static boolean playerHasCachedData(UUID playerUUID, Settings.SynchronisationCluster cluster) {
-        try (Connection connection = HuskSyncBungeeCord.getConnection(cluster.clusterId())) {
+    private boolean playerHasCachedData(UUID playerUUID, Settings.SynchronisationCluster cluster) {
+        try (Connection connection = getConnection(cluster.clusterId())) {
             try (PreparedStatement statement = connection.prepareStatement(
                     "SELECT * FROM " + cluster.dataTableName() + " WHERE `player_id`=(SELECT `id` FROM " + cluster.playerTableName() + " WHERE `uuid`=?);")) {
                 statement.setString(1, playerUUID.toString());
@@ -260,7 +316,7 @@ public class DataManager {
                 return resultSet.next();
             }
         } catch (SQLException e) {
-            plugin.getLogger().log(Level.SEVERE, "An SQL exception occurred", e);
+            logger.log(Level.SEVERE, "An SQL exception occurred", e);
             return false;
         }
     }

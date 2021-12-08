@@ -1,8 +1,8 @@
-package me.william278.husksync.bungeecord.data.sql;
+package me.william278.husksync.proxy.data.sql;
 
 import com.zaxxer.hikari.HikariDataSource;
-import me.william278.husksync.HuskSyncBungeeCord;
 import me.william278.husksync.Settings;
+import me.william278.husksync.util.Logger;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -58,8 +58,8 @@ public class MySQL extends Database {
 
     private HikariDataSource dataSource;
 
-    public MySQL(HuskSyncBungeeCord instance, Settings.SynchronisationCluster cluster) {
-        super(instance, cluster);
+    public MySQL(Settings.SynchronisationCluster cluster, Logger logger) {
+        super(cluster, logger);
     }
 
     @Override
@@ -96,7 +96,7 @@ public class MySQL extends Database {
                 }
             }
         } catch (SQLException e) {
-            plugin.getLogger().log(Level.SEVERE, "An error occurred creating tables on the MySQL database: ", e);
+            logger.log(Level.SEVERE, "An error occurred creating tables on the MySQL database: ", e);
         }
     }
 

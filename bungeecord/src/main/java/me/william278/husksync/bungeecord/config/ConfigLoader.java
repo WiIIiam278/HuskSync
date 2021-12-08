@@ -37,7 +37,7 @@ public class ConfigLoader {
 
         Settings.language = config.getString("language", "en-gb");
 
-        Settings.serverType = Settings.ServerType.BUNGEECORD;
+        Settings.serverType = Settings.ServerType.PROXY;
         Settings.automaticUpdateChecks = config.getBoolean("check_for_updates", true);
         Settings.redisHost = config.getString("redis_settings.host", "localhost");
         Settings.redisPort = config.getInt("redis_settings.port", 6379);

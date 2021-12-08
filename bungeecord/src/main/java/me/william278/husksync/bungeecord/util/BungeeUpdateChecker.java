@@ -15,6 +15,6 @@ public class BungeeUpdateChecker extends UpdateChecker {
 
     @Override
     public void log(Level level, String message) {
-        plugin.getLogger().log(level, message);
+        plugin.getBungeeLogger().log(level, message);
     }
 }

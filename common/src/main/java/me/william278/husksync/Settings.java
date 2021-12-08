@@ -79,7 +79,7 @@ public class Settings {
 
     public enum ServerType {
         BUKKIT,
-        BUNGEECORD
+        PROXY,
     }
 
     public enum DataStorageType {
