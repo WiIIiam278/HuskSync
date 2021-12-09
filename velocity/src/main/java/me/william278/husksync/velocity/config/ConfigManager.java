@@ -82,6 +82,8 @@ public class ConfigManager {
             File configFile = new File(plugin.getDataFolder(), "messages_" + Settings.language + ".yml");
             return YAMLConfigurationLoader.builder()
                     .setPath(configFile.toPath())
+                    .setFlowStyle(DumperOptions.FlowStyle.BLOCK)
+                    .setIndent(2)
                     .build()
                     .load();
         } catch (IOException e) {

@@ -6,6 +6,7 @@ import me.william278.husksync.HuskSyncVelocity;
 import me.william278.husksync.PlayerData;
 import me.william278.husksync.Server;
 import me.william278.husksync.Settings;
+import me.william278.husksync.migrator.MPDBMigrator;
 import me.william278.husksync.redis.RedisListener;
 import me.william278.husksync.redis.RedisMessage;
 import me.william278.husksync.util.MessageManager;
@@ -84,7 +85,7 @@ public class VelocityRedisListener extends RedisListener {
                         log(Level.SEVERE, "Failed to serialize data when replying to a data request");
                         e.printStackTrace();
                     }
-                });
+                }).schedule();
             }
             case PLAYER_DATA_UPDATE -> {
                 // Deserialize the PlayerData received
@@ -174,18 +175,20 @@ public class VelocityRedisListener extends RedisListener {
                     return;
                 }
 
-                //todo Migrator
-                /*// Add the incoming data to the data to be saved
-                MPDBMigrator.incomingPlayerData.put(playerData, playerName);
+                // Get the MPDB migrator
+                MPDBMigrator migrator = HuskSyncVelocity.mpdbMigrator;
+
+                // Add the incoming data to the data to be saved
+                migrator.incomingPlayerData.put(playerData, playerName);
 
                 // Increment players migrated
-                MPDBMigrator.playersMigrated++;
-                plugin.getBungeeLogger().log(Level.INFO, "Migrated " + MPDBMigrator.playersMigrated + "/" + MPDBMigrator.migratedDataSent + " players.");
+                migrator.playersMigrated++;
+                plugin.getVelocityLogger().log(Level.INFO, "Migrated " + migrator.playersMigrated + "/" + migrator.migratedDataSent + " players.");
 
                 // When all the data has been received, save it
-                if (MPDBMigrator.migratedDataSent == MPDBMigrator.playersMigrated) {
-                    MPDBMigrator.loadIncomingData(MPDBMigrator.incomingPlayerData);
-                }*/
+                if (migrator.migratedDataSent == migrator.playersMigrated) {
+                    migrator.loadIncomingData(migrator.incomingPlayerData, HuskSyncVelocity.dataManager);
+                }
             }
         }
     }

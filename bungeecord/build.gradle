@@ -5,6 +5,7 @@ dependencies {
     compileOnly 'redis.clients:jedis:3.7.0'
     implementation 'org.bstats:bstats-bungeecord:2.2.1'
     implementation 'de.themoep:minedown:1.7.1-SNAPSHOT'
+    implementation 'net.byteflux:libby-bungee:1.1.4'
 
     compileOnly 'net.md-5:bungeecord-api:1.16-R0.5-SNAPSHOT'
 }
@@ -13,6 +14,7 @@ shadowJar {
     relocate 'com.zaxxer', 'me.William278.husksync.libraries.hikari'
     relocate 'org.bstats', 'me.William278.husksync.libraries.plan'
     relocate 'de.themoep', 'me.William278.husksync.libraries.minedown'
+    relocate 'net.byteflux.libby', 'me.William278.husksync.libraries.libby.bungee'
 }
 
 tasks.register('prepareKotlinBuildScriptModel'){}
