@@ -11,6 +11,8 @@ import me.william278.husksync.bungeecord.util.BungeeLogger;
 import me.william278.husksync.bungeecord.util.BungeeUpdateChecker;
 import me.william278.husksync.redis.RedisMessage;
 import me.william278.husksync.util.Logger;
+import net.byteflux.libby.BungeeLibraryManager;
+import net.byteflux.libby.Library;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.plugin.Plugin;
 import org.bstats.bungeecord.Metrics;
@@ -56,6 +58,7 @@ public final class HuskSyncBungeeCord extends Plugin {
     public void onLoad() {
         instance = this;
         logger = new BungeeLogger(getLogger());
+        fetchDependencies();
     }
 
     @Override
@@ -146,4 +149,24 @@ public final class HuskSyncBungeeCord extends Plugin {
         getBungeeLogger().info("Disabled HuskSync (" + getProxy().getName() + ") v" + getDescription().getVersion());
     }
 
+    // Load dependencies
+    private void fetchDependencies() {
+        BungeeLibraryManager manager = new BungeeLibraryManager(getInstance());
+
+        Library mySqlLib = Library.builder()
+                .groupId("mysql")
+                .artifactId("mysql-connector-java")
+                .version("8.0.25")
+                .build();
+
+        Library sqLiteLib = Library.builder()
+                .groupId("org.xerial")
+                .artifactId("sqlite-jdbc")
+                .version("3.36.0.3")
+                .build();
+
+        manager.addMavenCentral();
+        manager.loadLibrary(mySqlLib);
+        manager.loadLibrary(sqLiteLib);
+    }
 }

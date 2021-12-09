@@ -6,6 +6,7 @@ dependencies {
     implementation 'org.bstats:bstats-velocity:2.2.1'
     implementation 'com.zaxxer:HikariCP:5.0.0'
     implementation 'de.themoep:minedown-adventure:1.7.1-SNAPSHOT'
+    implementation 'net.byteflux:libby-velocity:1.1.4'
 
     compileOnly 'com.velocitypowered:velocity-api:3.1.0'
     annotationProcessor 'com.velocitypowered:velocity-api:3.1.0'
@@ -15,6 +16,7 @@ shadowJar {
     relocate 'com.zaxxer', 'me.William278.husksync.libraries.hikari'
     relocate 'org.bstats', 'me.William278.husksync.libraries.plan'
     relocate 'de.themoep', 'me.William278.husksync.libraries.minedown'
+    relocate 'net.byteflux.libby', 'me.William278.husksync.libraries.libby.velocity'
 }
 
 tasks.register('prepareKotlinBuildScriptModel'){}

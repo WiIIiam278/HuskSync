@@ -1,6 +1,7 @@
 package me.william278.husksync;
 
 import com.google.inject.Inject;
+import com.google.inject.Provides;
 import com.velocitypowered.api.command.CommandManager;
 import com.velocitypowered.api.command.CommandMeta;
 import com.velocitypowered.api.event.Subscribe;
@@ -19,6 +20,8 @@ import me.william278.husksync.velocity.config.ConfigManager;
 import me.william278.husksync.velocity.listener.VelocityEventListener;
 import me.william278.husksync.velocity.listener.VelocityRedisListener;
 import me.william278.husksync.velocity.util.VelocityLogger;
+import net.byteflux.libby.Library;
+import net.byteflux.libby.VelocityLibraryManager;
 import org.bstats.velocity.Metrics;
 import org.slf4j.Logger;
 
@@ -72,6 +75,8 @@ public class HuskSyncVelocity {
     private final ProxyServer server;
     private final Path dataDirectory;
 
+    private final VelocityLibraryManager<HuskSyncVelocity> manager;
+
     // Get the data folder
     public File getDataFolder() {
         return dataDirectory.toFile();
@@ -90,11 +95,13 @@ public class HuskSyncVelocity {
     }
 
     @Inject
-    public HuskSyncVelocity(ProxyServer server, Logger logger, @DataDirectory Path dataDirectory, Metrics.Factory metricsFactory) {
+    public HuskSyncVelocity(ProxyServer server, Logger logger, @DataDirectory Path dataDirectory, Metrics.Factory metricsFactory,  VelocityLibraryManager<HuskSyncVelocity> manager) {
         this.server = server;
         this.logger = logger;
         this.dataDirectory = dataDirectory;
         this.metricsFactory = metricsFactory;
+        this.manager = manager;
+        fetchDependencies();
     }
 
     @Subscribe
@@ -104,6 +111,9 @@ public class HuskSyncVelocity {
 
         // Setup logger
         velocityLogger = new VelocityLogger(logger);
+
+        // Prepare synchronised servers tracker
+        synchronisedServers = new HashSet<>();
 
         // Load config
         ConfigManager.loadConfig();
@@ -124,6 +134,12 @@ public class HuskSyncVelocity {
 
         // Setup data manager
         dataManager = new DataManager(getVelocityLogger(), getDataFolder());
+
+        // Ensure the data manager initialized correctly
+        if (dataManager.hasFailedInitialization) {
+            getVelocityLogger().severe("Failed to initialize the HuskSync database(s).\n" +
+                    "HuskSync will now abort loading itself (Velocity) v" + VERSION);
+        }
 
         // Setup player data cache
         for (Settings.SynchronisationCluster cluster : Settings.clusters) {
@@ -185,5 +201,24 @@ public class HuskSyncVelocity {
 
         // Log to console
         getVelocityLogger().info("Disabled HuskSync (Velocity) v" + VERSION);
+    }
+
+    // Load dependencies
+    private void fetchDependencies() {
+        Library mySqlLib = Library.builder()
+                .groupId("mysql")
+                .artifactId("mysql-connector-java")
+                .version("8.0.25")
+                .build();
+
+        Library sqLiteLib = Library.builder()
+                .groupId("org.xerial")
+                .artifactId("sqlite-jdbc")
+                .version("3.36.0.3")
+                .build();
+
+        manager.addMavenCentral();
+        manager.loadLibrary(mySqlLib);
+        manager.loadLibrary(sqLiteLib);
     }
 }

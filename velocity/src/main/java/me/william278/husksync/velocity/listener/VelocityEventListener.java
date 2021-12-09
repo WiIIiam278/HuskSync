@@ -41,6 +41,6 @@ public class VelocityEventListener {
                 plugin.getVelocityLogger().log(Level.SEVERE, "Failed to serialize request data on join message data");
                 e.printStackTrace();
             }
-        });
+        }).schedule();
     }
 }

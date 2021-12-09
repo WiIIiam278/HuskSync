@@ -3,6 +3,3 @@ version: @version@
 main: me.william278.husksync.HuskSyncBungeeCord
 author: William278
 description: 'A modern, cross-server player data synchronization system'
-libraries:
-  - mysql:mysql-connector-java:8.0.25
-  - org.xerial:sqlite-jdbc:3.36.0.3

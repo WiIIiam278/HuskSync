@@ -78,7 +78,7 @@ public class ConfigLoader {
         // Read cluster data
         ConfigurationNode clusterSection = config.getNode("clusters");
         final String settingDatabaseName = Settings.mySQLDatabase != null ? Settings.mySQLDatabase : "HuskSync";
-        for (ConfigurationNode cluster : clusterSection.getChildrenList()) {
+        for (ConfigurationNode cluster : clusterSection.getChildrenMap().values()) {
             final String clusterId = (String) cluster.getKey();
             final String playerTableName = getConfigString(config, "husksync_players", "clusters", clusterId, "player_table");
             final String dataTableName = getConfigString(config, "husksync_data", "clusters", clusterId, "data_table");
@@ -89,7 +89,7 @@ public class ConfigLoader {
 
     public static void loadMessageStrings(ConfigurationNode config) {
         final HashMap<String, String> messages = new HashMap<>();
-        for (ConfigurationNode message : config.getChildrenList()) {
+        for (ConfigurationNode message : config.getChildrenMap().values()) {
             final String messageId = (String) message.getKey();
             messages.put(messageId, getConfigString(config, "", messageId));
         }

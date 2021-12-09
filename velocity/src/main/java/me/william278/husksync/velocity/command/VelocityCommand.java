@@ -71,7 +71,7 @@ public class VelocityCommand implements SimpleCommand, HuskSyncCommand {
                                 }
                                 sender.sendMessage(new MineDown("[•](white) [Download links:](#00fb9a) [[⏩ Spigot]](gray open_url=https://www.spigotmc.org/resources/husktowns.92672/updates) [•](#262626) [[⏩ Polymart]](gray open_url=https://polymart.org/resource/husktowns.1056/updates)").toComponent());
                             }
-                        });
+                        }).schedule();
                     }
                     case "invsee", "openinv", "inventory" -> {
                         if (!player.hasPermission("husksync.command.inventory")) {
@@ -294,7 +294,7 @@ public class VelocityCommand implements SimpleCommand, HuskSyncCommand {
                                         HuskSyncVelocity.synchronisedServers)) {
                                     plugin.getProxyServer().getScheduler().buildTask(plugin, () ->
                                             HuskSyncVelocity.mpdbMigrator.executeMigrationOperations(HuskSyncVelocity.dataManager,
-                                                    HuskSyncVelocity.synchronisedServers));
+                                                    HuskSyncVelocity.synchronisedServers)).schedule();
                                 }
                             }
                             default -> sender.sendMessage(new MineDown("Error: Invalid argument for migration. Use \"husksync migrate\" to start the process").toComponent());
@@ -338,7 +338,7 @@ public class VelocityCommand implements SimpleCommand, HuskSyncCommand {
                 return;
             }
             viewer.sendMessage(new MineDown(MessageManager.getMessage("error_invalid_cluster")).toComponent());
-        });
+        }).schedule();
     }
 
     // View the ender chest of a player specified by their name
@@ -372,7 +372,7 @@ public class VelocityCommand implements SimpleCommand, HuskSyncCommand {
                 return;
             }
             viewer.sendMessage(new MineDown(MessageManager.getMessage("error_invalid_cluster")).toComponent());
-        });
+        }).schedule();
     }
 
     /**
@@ -406,6 +406,11 @@ public class VelocityCommand implements SimpleCommand, HuskSyncCommand {
                     }
                     subCommands.add(subCommand.command());
                 }
+                // Return list of subcommands
+                if (args[0].length() == 0) {
+                    return subCommands;
+                }
+
                 // Automatically filter the sub commands' order in tab completion by what the player has typed
                 return subCommands.stream().filter(val -> val.startsWith(args[0]))
                         .sorted().collect(Collectors.toList());
