@@ -6,7 +6,6 @@ import me.william278.husksync.bukkit.config.ConfigLoader;
 import me.william278.husksync.bukkit.data.BukkitDataCache;
 import me.william278.husksync.bukkit.listener.BukkitRedisListener;
 import me.william278.husksync.bukkit.listener.BukkitEventListener;
-import me.william278.husksync.bukkit.migrator.MPDBDeserializer;
 import me.william278.husksync.redis.RedisMessage;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
@@ -102,14 +101,6 @@ public final class HuskSyncBukkit extends JavaPlugin {
         // Do update checker
         if (Settings.automaticUpdateChecks) {
             new BukkitUpdateChecker().logToConsole();
-        }
-
-        // Check if MySqlPlayerDataBridge is installed
-        Plugin mySqlPlayerDataBridge = Bukkit.getPluginManager().getPlugin("MySqlPlayerDataBridge");
-        if (mySqlPlayerDataBridge != null) {
-            isMySqlPlayerDataBridgeInstalled = mySqlPlayerDataBridge.isEnabled();
-            MPDBDeserializer.setMySqlPlayerDataBridge();
-            getLogger().info("MySQLPlayerDataBridge detected! Disabled data synchronisation to prevent data loss. To perform a migration, run \"husksync migrate\" in your Proxy (Bungeecord, Waterfall, etc) server console.");
         }
 
         // Initialize last data update UUID cache
