@@ -8,8 +8,6 @@ import me.william278.husksync.Settings;
 import me.william278.husksync.bukkit.config.ConfigLoader;
 import me.william278.husksync.bukkit.data.DataViewer;
 import me.william278.husksync.bukkit.util.PlayerSetter;
-import me.william278.husksync.bukkit.migrator.MPDBDeserializer;
-import me.william278.husksync.migrator.MPDBPlayerData;
 import me.william278.husksync.redis.RedisListener;
 import me.william278.husksync.redis.RedisMessage;
 import org.bukkit.Bukkit;
@@ -88,24 +86,6 @@ public class BukkitRedisListener extends RedisListener {
                         // Attempt to re-establish communications via another handshake
                         Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, HuskSyncBukkit::establishRedisHandshake, 20);
                     }
-                }
-                case DECODE_MPDB_DATA -> {
-                    UUID serverUUID = UUID.fromString(message.getMessageDataElements()[0]);
-                    String encodedData = message.getMessageDataElements()[1];
-                    Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
-                        if (serverUUID.equals(HuskSyncBukkit.serverUUID)) {
-                            try {
-                                MPDBPlayerData data = (MPDBPlayerData) RedisMessage.deserialize(encodedData);
-                                new RedisMessage(RedisMessage.MessageType.DECODED_MPDB_DATA_SET,
-                                        new RedisMessage.MessageTarget(Settings.ServerType.BUNGEECORD, null, Settings.cluster),
-                                        RedisMessage.serialize(MPDBDeserializer.convertMPDBData(data)),
-                                        data.playerName)
-                                        .send();
-                            } catch (IOException | ClassNotFoundException e) {
-                                log(Level.SEVERE, "Failed to serialize encoded MPDB data");
-                            }
-                        }
-                    });
                 }
                 case RELOAD_CONFIG -> {
                     plugin.reloadConfig();

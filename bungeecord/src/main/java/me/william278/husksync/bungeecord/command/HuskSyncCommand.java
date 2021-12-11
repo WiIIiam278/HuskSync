@@ -9,7 +9,6 @@ import me.william278.husksync.Settings;
 import me.william278.husksync.bungeecord.config.ConfigLoader;
 import me.william278.husksync.bungeecord.config.ConfigManager;
 import me.william278.husksync.bungeecord.data.DataManager;
-import me.william278.husksync.bungeecord.migrator.MPDBMigrator;
 import me.william278.husksync.redis.RedisMessage;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.ProxyServer;
@@ -191,123 +190,6 @@ public class HuskSyncCommand extends Command implements TabExecutor {
             } else {
                 sendAboutInformation(player);
             }
-        } else {
-            // Database migration wizard
-            if (args.length >= 1) {
-                if (args[0].equalsIgnoreCase("migrate")) {
-                    if (args.length == 1) {
-                        sender.sendMessage(new MineDown(
-                                """
-                                        === MySQLPlayerDataBridge Migration Wizard ==========
-                                        This will migrate data from the MySQLPlayerDataBridge
-                                        plugin to HuskSync.
-                                                                                
-                                        Data that will be migrated:
-                                        - Inventories
-                                        - Ender Chests
-                                        - Experience points
-                                                                                
-                                        Other non-vital data, such as current health, hunger
-                                        & potion effects will not be migrated to ensure that
-                                        migration does not take an excessive amount of time.
-                                        
-                                        To do this, you need to have MySqlPlayerDataBridge
-                                        and HuskSync installed on one Spigot server as well
-                                        as HuskSync installed on the proxy (which you have)
-                                                                                
-                                        >To proceed, type: husksync migrate setup""").toComponent());
-                    } else {
-                        switch (args[1].toLowerCase()) {
-                            case "setup" -> sender.sendMessage(new MineDown(
-                                    """
-                                            === MySQLPlayerDataBridge Migration Wizard ==========
-                                            The following database settings will be used.
-                                            Please make sure they match the correct settings to
-                                            access your MySQLPlayerDataBridge Data
-                                                                                            
-                                            sourceHost: %1%
-                                            sourcePort: %2%
-                                            sourceDatabase: %3%
-                                            sourceUsername: %4%
-                                            sourcePassword: %5%
-                                                                                            
-                                            sourceInventoryTableName: %6%
-                                            sourceEnderChestTableName: %7%
-                                            sourceExperienceTableName: %8%
-                                            
-                                            targetCluster: %9%
-                                                                                            
-                                            To change a setting, type:
-                                            husksync migrate setting <settingName> <value>
-                                                                                            
-                                            Please ensure no players are logged in to the network
-                                            and that at least one Spigot server is online with
-                                            both HuskSync AND MySqlPlayerDataBridge installed AND
-                                            that the server has been configured with the correct
-                                            Redis credentials.
-                                                                                            
-                                            Warning: Data will be saved to your configured data
-                                            source, which is currently a %10% database.
-                                            Please make sure you are happy with this, or stop
-                                            the proxy server and edit this in config.yml
-                                                                                            
-                                            Warning: Migration will overwrite any current data
-                                            saved by HuskSync. It will not, however, delete any
-                                            data from the source MySQLPlayerDataBridge database.
-                                                                                    
-                                            >When done, type: husksync migrate start"""
-                                            .replaceAll("%1%", MPDBMigrator.migrationSettings.sourceHost)
-                                            .replaceAll("%2%", String.valueOf(MPDBMigrator.migrationSettings.sourcePort))
-                                            .replaceAll("%3%", MPDBMigrator.migrationSettings.sourceDatabase)
-                                            .replaceAll("%4%", MPDBMigrator.migrationSettings.sourceUsername)
-                                            .replaceAll("%5%", MPDBMigrator.migrationSettings.sourcePassword)
-                                            .replaceAll("%6%", MPDBMigrator.migrationSettings.inventoryDataTable)
-                                            .replaceAll("%7%", MPDBMigrator.migrationSettings.enderChestDataTable)
-                                            .replaceAll("%8%", MPDBMigrator.migrationSettings.expDataTable)
-                                            .replaceAll("%9%", MPDBMigrator.migrationSettings.targetCluster)
-                                            .replaceAll("%10%", Settings.dataStorageType.toString())
-                            ).toComponent());
-                            case "setting" -> {
-                                if (args.length == 4) {
-                                    String value = args[3];
-                                    switch (args[2]) {
-                                        case "sourceHost", "host" -> MPDBMigrator.migrationSettings.sourceHost = value;
-                                        case "sourcePort", "port" -> {
-                                            try {
-                                                MPDBMigrator.migrationSettings.sourcePort = Integer.parseInt(value);
-                                            } catch (NumberFormatException e) {
-                                                sender.sendMessage(new MineDown("Error: Invalid value; port must be a number").toComponent());
-                                                return;
-                                            }
-                                        }
-                                        case "sourceDatabase", "database" -> MPDBMigrator.migrationSettings.sourceDatabase = value;
-                                        case "sourceUsername", "username" -> MPDBMigrator.migrationSettings.sourceUsername = value;
-                                        case "sourcePassword", "password" -> MPDBMigrator.migrationSettings.sourcePassword = value;
-                                        case "sourceInventoryTableName", "inventoryTableName", "inventoryTable" -> MPDBMigrator.migrationSettings.inventoryDataTable = value;
-                                        case "sourceEnderChestTableName", "enderChestTableName", "enderChestTable" -> MPDBMigrator.migrationSettings.enderChestDataTable = value;
-                                        case "sourceExperienceTableName", "experienceTableName", "experienceTable" -> MPDBMigrator.migrationSettings.expDataTable = value;
-                                        case "targetCluster", "cluster" -> MPDBMigrator.migrationSettings.targetCluster = value;
-                                        default -> {
-                                            sender.sendMessage(new MineDown("Error: Invalid setting; please use \"husksync migrate setup\" to view a list").toComponent());
-                                            return;
-                                        }
-                                    }
-                                    sender.sendMessage(new MineDown("Successfully updated setting: \"" + args[2] + "\" --> \"" + value + "\"").toComponent());
-                                } else {
-                                    sender.sendMessage(new MineDown("Error: Invalid usage. Syntax: husksync migrate setting <settingName> <value>").toComponent());
-                                }
-                            }
-                            case "start" -> {
-                                sender.sendMessage(new MineDown("Starting MySQLPlayerDataBridge migration!...").toComponent());
-                                HuskSyncBungeeCord.mpdbMigrator.start();
-                            }
-                            default -> sender.sendMessage(new MineDown("Error: Invalid argument for migration. Use \"husksync migrate\" to start the process").toComponent());
-                        }
-                    }
-                    return;
-                }
-            }
-            sender.sendMessage(new MineDown("Error: Invalid syntax. Usage: husksync migrate <args>").toComponent());
         }
     }
 

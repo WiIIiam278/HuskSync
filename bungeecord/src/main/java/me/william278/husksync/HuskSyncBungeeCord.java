@@ -9,7 +9,6 @@ import me.william278.husksync.bungeecord.data.sql.MySQL;
 import me.william278.husksync.bungeecord.data.sql.SQLite;
 import me.william278.husksync.bungeecord.listener.BungeeEventListener;
 import me.william278.husksync.bungeecord.listener.BungeeRedisListener;
-import me.william278.husksync.bungeecord.migrator.MPDBMigrator;
 import me.william278.husksync.bungeecord.util.BungeeUpdateChecker;
 import me.william278.husksync.redis.RedisMessage;
 import net.md_5.bungee.api.ProxyServer;
@@ -52,8 +51,6 @@ public final class HuskSyncBungeeCord extends Plugin {
     public static Connection getConnection(String clusterId) throws SQLException {
         return clusterDatabases.get(clusterId).getConnection();
     }
-
-    public static MPDBMigrator mpdbMigrator;
 
     @Override
     public void onLoad() {
@@ -119,9 +116,6 @@ public final class HuskSyncBungeeCord extends Plugin {
 
         // Register command
         getProxy().getPluginManager().registerCommand(this, new HuskSyncCommand());
-
-        // Prepare the migrator for use if needed
-        mpdbMigrator = new MPDBMigrator();
 
         // Initialize bStats metrics
         try {

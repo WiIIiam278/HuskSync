@@ -6,7 +6,6 @@ import me.william278.husksync.util.MessageManager;
 import me.william278.husksync.PlayerData;
 import me.william278.husksync.Settings;
 import me.william278.husksync.bungeecord.data.DataManager;
-import me.william278.husksync.bungeecord.migrator.MPDBMigrator;
 import me.william278.husksync.redis.RedisListener;
 import me.william278.husksync.redis.RedisMessage;
 import net.md_5.bungee.api.ChatMessageType;
@@ -167,31 +166,6 @@ public class BungeeRedisListener extends RedisListener {
                 }
                 HuskSyncBungeeCord.synchronisedServers.remove(serverToRemove);
                 log(Level.INFO, "Terminated the handshake with " + bukkitBrand + " server (" + serverUUID + ")");
-            }
-            case DECODED_MPDB_DATA_SET -> {
-                // Deserialize the PlayerData received
-                PlayerData playerData;
-                final String serializedPlayerData = message.getMessageDataElements()[0];
-                final String playerName = message.getMessageDataElements()[1];
-                try {
-                    playerData = (PlayerData) RedisMessage.deserialize(serializedPlayerData);
-                } catch (IOException | ClassNotFoundException e) {
-                    log(Level.SEVERE, "Failed to deserialize PlayerData when handling incoming decoded MPDB data");
-                    e.printStackTrace();
-                    return;
-                }
-
-                // Add the incoming data to the data to be saved
-                MPDBMigrator.incomingPlayerData.put(playerData, playerName);
-
-                // Increment players migrated
-                MPDBMigrator.playersMigrated++;
-                plugin.getLogger().log(Level.INFO, "Migrated " + MPDBMigrator.playersMigrated + "/" + MPDBMigrator.migratedDataSent + " players.");
-
-                // When all the data has been received, save it
-                if (MPDBMigrator.migratedDataSent == MPDBMigrator.playersMigrated) {
-                    MPDBMigrator.loadIncomingData(MPDBMigrator.incomingPlayerData);
-                }
             }
         }
     }
