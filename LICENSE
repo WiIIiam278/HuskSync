@@ -1,0 +1,21 @@
+Copyright © William278 2021. All rights reserved
+
+LICENSE
+This source code is provided as reference to licensed individuals that have purchased the HuskSync
+plugin once from any of the official sources it is provided. The availability of this code does 
+not grant you the rights to modify, re-distribute, compile or redistribute this source code or 
+"plugin" outside this intended purpose. This license does not cover libraries developed by third
+parties that are utilised in the plugin.
+
+CONTRIBUTOR AGREEMENT
+By contributing code to this repository, contributors agree that they forefeit their contributions
+to the copyright holder and only the copyright holder.
+In exchange for contributing, the copyright holder may give, at their discretion, permission to use
+the plugin in commercial contexts
+
+DEFINITIONS
+"plugin"; the jar file compiled from this source code
+"source code"; the java source code and gradle configurations provided in this repository, however
+excludes libraries
+"copyright holder"; William278
+"contributor(s)"; person(s) who submit (contribute) code through a pull request to this repository
