@@ -6,6 +6,7 @@ import me.william278.husksync.Settings;
 import me.william278.husksync.api.events.SyncCompleteEvent;
 import me.william278.husksync.api.events.SyncEvent;
 import me.william278.husksync.bukkit.data.DataSerializer;
+import me.william278.husksync.bukkit.util.nms.AdvancementUtils;
 import me.william278.husksync.redis.RedisMessage;
 import org.bukkit.*;
 import org.bukkit.advancement.Advancement;
@@ -19,10 +20,9 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.Objects;
-import java.util.UUID;
+import java.time.Instant;
+import java.time.Period;
+import java.util.*;
 import java.util.logging.Level;
 
 public class PlayerSetter {
@@ -160,7 +160,25 @@ public class PlayerSetter {
             // Set the player's data from the PlayerData
             try {
                 if (Settings.syncAdvancements) {
-                    setPlayerAdvancements(player, DataSerializer.deserializeAdvancementData(data.getSerializedAdvancements()), data);
+                    ArrayList<DataSerializer.AdvancementRecord> advancementRecords
+                            = DataSerializer.deserializeAdvancementData(data.getSerializedAdvancements());
+
+                    if (Settings.useNativeImplementation) {
+                        try {
+                            nativeSyncPlayerAdvancements(player, advancementRecords);
+                        } catch (Exception e) {
+                            plugin.getLogger().log(Level.WARNING,
+                                    "Your server does not support a native implementation of achievements synchronization");
+                            plugin.getLogger().log(Level.WARNING,
+                                    "Your server version {0}. Please disable using native implementation!", Bukkit.getVersion());
+
+                            Settings.useNativeImplementation = false;
+                            setPlayerAdvancements(player, advancementRecords, data);
+                            plugin.getLogger().fine(e.toString());
+                            e.printStackTrace();
+                        }
+                    }
+                    else setPlayerAdvancements(player, advancementRecords, data);
                 }
                 if (Settings.syncInventories) {
                     setPlayerInventory(player, DataSerializer.deserializeInventory(data.getSerializedInventory()));
@@ -258,6 +276,47 @@ public class PlayerSetter {
         for (PotionEffect effect : effects) {
             player.addPotionEffect(effect);
         }
+    }
+
+    private static void nativeSyncPlayerAdvancements(final Player player, final List<DataSerializer.AdvancementRecord> advancementRecords) {
+        final Object playerAdvancements = AdvancementUtils.getPlayerAdvancements(player);
+
+        // Clear
+        AdvancementUtils.clearPlayerAdvancementsMap(playerAdvancements);
+
+        final Map<Object, List<String>> syncAdvancementMap = new HashMap<>();
+        advancementRecords.forEach(advancementRecord -> {
+            NamespacedKey namespacedKey = Objects.requireNonNull(
+                    NamespacedKey.fromString(advancementRecord.advancementKey()),
+                    "Invalid Namespaced key of " + advancementRecord.advancementKey()
+            );
+
+            Advancement bukkitAdvancement = Bukkit.getAdvancement(namespacedKey);
+            if (bukkitAdvancement == null) {
+                // todo: write logging
+                return;
+            }
+
+            syncAdvancementMap.put(
+                    AdvancementUtils.getHandle(bukkitAdvancement),
+                    advancementRecord.awardedAdvancementCriteria()
+            );
+        });
+
+        // todo: sync date of get advancement
+        Date date = Date.from(Instant.now().minus(Period.ofWeeks(1)));
+
+        syncAdvancementMap.forEach((advancement, criteriaList) -> {
+            Map<String, Object> nativeCriteriaMap = new HashMap<>();
+            criteriaList.forEach(criteria ->
+                    nativeCriteriaMap.put(criteria, AdvancementUtils.newCriterionProgress(date))
+            );
+            Object nativeAdvancementProgress = AdvancementUtils.newAdvancementProgress(nativeCriteriaMap);
+
+            AdvancementUtils.startProgress(playerAdvancements, advancement, nativeAdvancementProgress);
+        });
+
+        AdvancementUtils.ensureAllVisible(playerAdvancements);
     }
 
     /**

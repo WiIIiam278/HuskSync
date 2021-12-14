@@ -1,16 +1,15 @@
 package me.william278.husksync;
 
-import me.william278.husksync.bukkit.util.BukkitUpdateChecker;
-import me.william278.husksync.bukkit.util.PlayerSetter;
 import me.william278.husksync.bukkit.config.ConfigLoader;
 import me.william278.husksync.bukkit.data.BukkitDataCache;
-import me.william278.husksync.bukkit.listener.BukkitRedisListener;
 import me.william278.husksync.bukkit.listener.BukkitEventListener;
+import me.william278.husksync.bukkit.listener.BukkitRedisListener;
+import me.william278.husksync.bukkit.util.BukkitUpdateChecker;
+import me.william278.husksync.bukkit.util.PlayerSetter;
 import me.william278.husksync.redis.RedisMessage;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
 
