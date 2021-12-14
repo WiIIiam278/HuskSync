@@ -17,7 +17,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class DataSerializer {
 
@@ -262,21 +261,21 @@ public class DataSerializer {
             switch (statistic.getType()) {
                 case ITEM -> {
                     HashMap<Material, Integer> itemValues = new HashMap<>();
-                    for (Material itemMaterial : Arrays.stream(Material.values()).filter(Material::isItem).collect(Collectors.toList())) {
+                    for (Material itemMaterial : Arrays.stream(Material.values()).filter(Material::isItem).toList()) {
                         itemValues.put(itemMaterial, player.getStatistic(statistic, itemMaterial));
                     }
                     itemStatisticValues.put(statistic, itemValues);
                 }
                 case BLOCK -> {
                     HashMap<Material, Integer> blockValues = new HashMap<>();
-                    for (Material blockMaterial : Arrays.stream(Material.values()).filter(Material::isBlock).collect(Collectors.toList())) {
+                    for (Material blockMaterial : Arrays.stream(Material.values()).filter(Material::isBlock).toList()) {
                         blockValues.put(blockMaterial, player.getStatistic(statistic, blockMaterial));
                     }
                     blockStatisticValues.put(statistic, blockValues);
                 }
                 case ENTITY -> {
                     HashMap<EntityType, Integer> entityValues = new HashMap<>();
-                    for (EntityType type : Arrays.stream(EntityType.values()).filter(EntityType::isAlive).collect(Collectors.toList())) {
+                    for (EntityType type : Arrays.stream(EntityType.values()).filter(EntityType::isAlive).toList()) {
                         entityValues.put(type, player.getStatistic(statistic, type));
                     }
                     entityStatisticValues.put(statistic, entityValues);

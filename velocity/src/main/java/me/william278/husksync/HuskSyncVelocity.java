@@ -1,7 +1,6 @@
 package me.william278.husksync;
 
 import com.google.inject.Inject;
-import com.google.inject.Provides;
 import com.velocitypowered.api.command.CommandManager;
 import com.velocitypowered.api.command.CommandMeta;
 import com.velocitypowered.api.event.Subscribe;
@@ -13,13 +12,13 @@ import com.velocitypowered.api.proxy.ProxyServer;
 import me.william278.husksync.migrator.MPDBMigrator;
 import me.william278.husksync.proxy.data.DataManager;
 import me.william278.husksync.redis.RedisMessage;
-import me.william278.husksync.velocity.util.VelocityUpdateChecker;
 import me.william278.husksync.velocity.command.VelocityCommand;
 import me.william278.husksync.velocity.config.ConfigLoader;
 import me.william278.husksync.velocity.config.ConfigManager;
 import me.william278.husksync.velocity.listener.VelocityEventListener;
 import me.william278.husksync.velocity.listener.VelocityRedisListener;
 import me.william278.husksync.velocity.util.VelocityLogger;
+import me.william278.husksync.velocity.util.VelocityUpdateChecker;
 import net.byteflux.libby.Library;
 import net.byteflux.libby.VelocityLibraryManager;
 import org.bstats.velocity.Metrics;
@@ -75,8 +74,6 @@ public class HuskSyncVelocity {
     private final ProxyServer server;
     private final Path dataDirectory;
 
-    private final VelocityLibraryManager<HuskSyncVelocity> manager;
-
     // Get the data folder
     public File getDataFolder() {
         return dataDirectory.toFile();
@@ -95,19 +92,20 @@ public class HuskSyncVelocity {
     }
 
     @Inject
-    public HuskSyncVelocity(ProxyServer server, Logger logger, @DataDirectory Path dataDirectory, Metrics.Factory metricsFactory,  VelocityLibraryManager<HuskSyncVelocity> manager) {
+    public HuskSyncVelocity(ProxyServer server, Logger logger, @DataDirectory Path dataDirectory, Metrics.Factory metricsFactory) {
         this.server = server;
         this.logger = logger;
         this.dataDirectory = dataDirectory;
         this.metricsFactory = metricsFactory;
-        this.manager = manager;
-        fetchDependencies();
     }
 
     @Subscribe
     public void onProxyInitialization(ProxyInitializeEvent event) {
         // Set instance
         instance = this;
+
+        // Load dependencies
+        fetchDependencies();
 
         // Setup logger
         velocityLogger = new VelocityLogger(logger);
@@ -205,6 +203,8 @@ public class HuskSyncVelocity {
 
     // Load dependencies
     private void fetchDependencies() {
+        VelocityLibraryManager<HuskSyncVelocity> manager = new VelocityLibraryManager<>(logger, dataDirectory, getProxyServer().getPluginManager(), getInstance(), "lib");
+
         Library mySqlLib = Library.builder()
                 .groupId("mysql")
                 .artifactId("mysql-connector-java")
