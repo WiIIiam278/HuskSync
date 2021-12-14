@@ -34,7 +34,6 @@ subprojects {
         mavenCentral()
         maven { url 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/' }
         maven { url 'https://repo.velocitypowered.com/snapshots/' }
-        maven { url 'https://repo.alessiodp.com/releases/' }
         maven { url 'https://repo.minebench.de/' }
         maven { url 'https://repo.codemc.org/repository/maven-public' }
         maven { url 'https://repo.alessiodp.com/releases/' }
