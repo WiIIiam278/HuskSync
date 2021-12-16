@@ -16,6 +16,7 @@ public class AdvancementUtils {
     private final static Field PLAYER_ADVANCEMENTS;
     private final static Field CRITERIA_MAP;
     private final static Field CRITERIA_DATE;
+    private final static Field IS_FIRST_PACKET;
 
     private final static Method GET_HANDLE;
     private final static Method START_PROGRESS;
@@ -51,6 +52,17 @@ public class AdvancementUtils {
 
         ENSURE_ALL_VISIBLE = ThrowSupplier.get(() -> PLAYER_ADVANCEMENTS.getDeclaredMethod("c"));
         ENSURE_ALL_VISIBLE.setAccessible(true);
+
+        IS_FIRST_PACKET = ThrowSupplier.get(() -> PLAYER_ADVANCEMENTS.getDeclaredField("n"));
+        IS_FIRST_PACKET.setAccessible(true);
+    }
+
+    public static void markPlayerAdvancementsFirst(Object playerAdvancements) {
+        try {
+            IS_FIRST_PACKET.set(playerAdvancements, true);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
     }
 
     public static Object getPlayerAdvancements (Player player) {
