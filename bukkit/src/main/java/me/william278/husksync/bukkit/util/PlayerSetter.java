@@ -163,21 +163,21 @@ public class PlayerSetter {
                     ArrayList<DataSerializer.AdvancementRecord> advancementRecords
                             = DataSerializer.deserializeAdvancementData(data.getSerializedAdvancements());
 
-                    if (Settings.useNativeImplementation) {
-                        try {
-                            nativeSyncPlayerAdvancements(player, advancementRecords);
-                        } catch (Exception e) {
-                            plugin.getLogger().log(Level.WARNING,
-                                    "Your server does not support a native implementation of achievements synchronization");
-                            plugin.getLogger().log(Level.WARNING,
-                                    "Your server version {0}. Please disable using native implementation!", Bukkit.getVersion());
+                    if (Settings.useNativeImplementation)
+                        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+                            try {
+                                nativeSyncPlayerAdvancements(player, advancementRecords);
+                            } catch (Exception e) {
+                                plugin.getLogger().log(Level.WARNING,
+                                        "Your server does not support a native implementation of achievements synchronization");
+                                plugin.getLogger().log(Level.WARNING,
+                                        "Your server version {0}. Please disable using native implementation!", Bukkit.getVersion());
 
-                            Settings.useNativeImplementation = false;
-                            setPlayerAdvancements(player, advancementRecords, data);
-                            plugin.getLogger().fine(e.toString());
-                            e.printStackTrace();
-                        }
-                    }
+                                Settings.useNativeImplementation = false;
+                                setPlayerAdvancements(player, advancementRecords, data);
+                                plugin.getLogger().fine(e.toString());
+                            }
+                        });
                     else setPlayerAdvancements(player, advancementRecords, data);
                 }
                 if (Settings.syncInventories) {
@@ -316,6 +316,7 @@ public class PlayerSetter {
             AdvancementUtils.startProgress(playerAdvancements, advancement, nativeAdvancementProgress);
         });
 
+        AdvancementUtils.markPlayerAdvancementsFirst(playerAdvancements);
         AdvancementUtils.ensureAllVisible(playerAdvancements);
     }
 
