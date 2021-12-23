@@ -43,7 +43,7 @@ import static me.william278.husksync.HuskSyncVelocity.VERSION;
 public class HuskSyncVelocity {
 
     // Plugin version
-    public static final String VERSION = "1.2";
+    public static final String VERSION = "1.2.1";
 
     // Velocity bStats ID (different from Bukkit and BungeeCord)
     private static final int METRICS_ID = 13489;
@@ -208,7 +208,7 @@ public class HuskSyncVelocity {
         Library mySqlLib = Library.builder()
                 .groupId("mysql")
                 .artifactId("mysql-connector-java")
-                .version("8.0.25")
+                .version("8.0.27")
                 .build();
 
         Library sqLiteLib = Library.builder()

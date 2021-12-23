@@ -77,6 +77,9 @@ public class MySQL extends Database {
         dataSource.setUsername(username);
         dataSource.setPassword(password);
 
+        // Set data source driver path
+        dataSource.setDriverClassName("com.mysql.cj.jdbc.Driver");
+
         // Set various additional parameters
         dataSource.setMaximumPoolSize(hikariMaximumPoolSize);
         dataSource.setMinimumIdle(hikariMinimumIdle);
