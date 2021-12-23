@@ -2,6 +2,7 @@ package me.william278.husksync.redis;
 
 import me.william278.husksync.Settings;
 import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisClientConfig;
 import redis.clients.jedis.JedisPubSub;
 import redis.clients.jedis.exceptions.JedisException;
 
@@ -17,13 +18,15 @@ public abstract class RedisListener {
 
     /**
      * Handle an incoming {@link RedisMessage}
+     *
      * @param message The {@link RedisMessage} to handle
      */
     public abstract void handleMessage(RedisMessage message);
 
     /**
      * Log to console
-     * @param level The {@link Level} to log
+     *
+     * @param level   The {@link Level} to log
      * @param message Message to log
      */
     public abstract void log(Level level, String message);
@@ -32,15 +35,15 @@ public abstract class RedisListener {
      * Start the Redis listener
      */
     public final void listen() {
-        try(Jedis jedis = new Jedis(Settings.redisHost, Settings.redisPort)) {
+        try (Jedis jedis = new Jedis(Settings.redisHost, Settings.redisPort)) {
             final String jedisPassword = Settings.redisPassword;
-            if (!jedisPassword.equals("")) {
-                jedis.auth(jedisPassword);
-            }
             jedis.connect();
             if (jedis.isConnected()) {
+                if (!jedisPassword.equals("")) {
+                    jedis.auth(jedisPassword);
+                }
                 isActiveAndEnabled = true;
-                log(Level.INFO,"Enabled Redis listener successfully!");
+                log(Level.INFO, "Enabled Redis listener successfully!");
                 new Thread(() -> jedis.subscribe(new JedisPubSub() {
                     @Override
                     public void onMessage(String channel, String message) {
