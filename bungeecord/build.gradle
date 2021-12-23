@@ -2,7 +2,7 @@ dependencies {
     compileOnly project(':common')
     implementation project(path: ':common', configuration: 'shadow')
 
-    compileOnly 'redis.clients:jedis:4.0.0'
+    compileOnly 'redis.clients:jedis:3.7.1'
     implementation 'org.bstats:bstats-bungeecord:2.2.1'
     implementation 'de.themoep:minedown:1.7.1-SNAPSHOT'
     implementation 'net.byteflux:libby-bungee:1.1.5'
