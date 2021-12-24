@@ -65,7 +65,7 @@ public class AdvancementUtils {
         }
     }
 
-    public static Object getPlayerAdvancements (Player player) {
+    public static Object getPlayerAdvancements(Player player) {
         Object nativePlayer = EntityUtils.getHandle(player);
         try {
             return PLAYER_ADVANCEMENTS.get(nativePlayer);
@@ -74,16 +74,16 @@ public class AdvancementUtils {
         }
     }
 
-    public static void clearPlayerAdvancementsMap (final Object playerAdvancement) {
+    public static void clearPlayerAdvancementsMap(final Object playerAdvancement) {
         try {
-            ((Map<?,?>) PLAYER_ADVANCEMENTS_MAP.get(playerAdvancement))
+            ((Map<?, ?>) PLAYER_ADVANCEMENTS_MAP.get(playerAdvancement))
                     .clear();
         } catch (IllegalAccessException e) {
             throw new RuntimeException(e.getMessage(), e);
         }
     }
 
-    public static Object getHandle (Advancement advancement) {
+    public static Object getHandle(Advancement advancement) {
         try {
             return GET_HANDLE.invoke(advancement);
         } catch (IllegalAccessException | InvocationTargetException e) {
@@ -91,7 +91,7 @@ public class AdvancementUtils {
         }
     }
 
-    public static Object newCriterionProgress (final Date date) {
+    public static Object newCriterionProgress(final Date date) {
         try {
             Object nativeCriterionProgress = CRITERION_PROGRESS.getDeclaredConstructor().newInstance();
             CRITERIA_DATE.set(nativeCriterionProgress, date);
@@ -101,7 +101,7 @@ public class AdvancementUtils {
         }
     }
 
-    public static Object newAdvancementProgress (final Map<String, Object> criteria) {
+    public static Object newAdvancementProgress(final Map<String, Object> criteria) {
         try {
             Object nativeAdvancementProgress = ADVANCEMENT_PROGRESS.getDeclaredConstructor().newInstance();
 
@@ -114,7 +114,7 @@ public class AdvancementUtils {
         }
     }
 
-    public static void startProgress (final Object playerAdvancements, final Object advancement, final Object advancementProgress) {
+    public static void startProgress(final Object playerAdvancements, final Object advancement, final Object advancementProgress) {
         try {
             START_PROGRESS.invoke(playerAdvancements, advancement, advancementProgress);
         } catch (IllegalAccessException | InvocationTargetException e) {
@@ -122,7 +122,7 @@ public class AdvancementUtils {
         }
     }
 
-    public static void ensureAllVisible (final Object playerAdvancements) {
+    public static void ensureAllVisible(final Object playerAdvancements) {
         try {
             ENSURE_ALL_VISIBLE.invoke(playerAdvancements);
         } catch (IllegalAccessException | InvocationTargetException e) {

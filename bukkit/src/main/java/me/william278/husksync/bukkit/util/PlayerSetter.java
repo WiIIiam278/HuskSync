@@ -163,8 +163,7 @@ public class PlayerSetter {
                     ArrayList<DataSerializer.AdvancementRecord> advancementRecords
                             = DataSerializer.deserializeAdvancementData(data.getSerializedAdvancements());
 
-                    if (Settings.useNativeImplementation)
-                        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+                    if (Settings.useNativeImplementation) {
                             try {
                                 nativeSyncPlayerAdvancements(player, advancementRecords);
                             } catch (Exception e) {
@@ -175,10 +174,11 @@ public class PlayerSetter {
 
                                 Settings.useNativeImplementation = false;
                                 setPlayerAdvancements(player, advancementRecords, data);
-                                plugin.getLogger().fine(e.toString());
+                                plugin.getLogger().log(Level.SEVERE, e.getMessage(), e);
                             }
-                        });
-                    else setPlayerAdvancements(player, advancementRecords, data);
+                    } else {
+                        setPlayerAdvancements(player, advancementRecords, data);
+                    }
                 }
                 if (Settings.syncInventories) {
                     setPlayerInventory(player, DataSerializer.deserializeInventory(data.getSerializedInventory()));
@@ -293,7 +293,7 @@ public class PlayerSetter {
 
             Advancement bukkitAdvancement = Bukkit.getAdvancement(namespacedKey);
             if (bukkitAdvancement == null) {
-                // todo: write logging
+                plugin.getLogger().log(Level.WARNING, "Ignored advancement '{0}' - it doesn't exist anymore?", namespacedKey);
                 return;
             }
 
