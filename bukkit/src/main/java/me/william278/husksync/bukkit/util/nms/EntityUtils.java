@@ -15,7 +15,7 @@ public class EntityUtils {
         GET_HANDLE = ThrowSupplier.get(() -> CRAFT_ENTITY.getDeclaredMethod("getHandle"));
     }
 
-    public static Object getHandle (LivingEntity livingEntity) throws RuntimeException {
+    public static Object getHandle(LivingEntity livingEntity) throws RuntimeException {
         try {
             return GET_HANDLE.invoke(livingEntity);
         } catch (IllegalAccessException | InvocationTargetException e) {
