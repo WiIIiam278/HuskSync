@@ -284,7 +284,6 @@ public class PlayerSetter {
         // Clear
         AdvancementUtils.clearPlayerAdvancementsMap(playerAdvancements);
 
-        final Map<Object, List<String>> syncAdvancementMap = new HashMap<>();
         advancementRecords.forEach(advancementRecord -> {
             NamespacedKey namespacedKey = Objects.requireNonNull(
                     NamespacedKey.fromString(advancementRecord.advancementKey()),
@@ -297,23 +296,21 @@ public class PlayerSetter {
                 return;
             }
 
-            syncAdvancementMap.put(
-                    AdvancementUtils.getHandle(bukkitAdvancement),
-                    advancementRecord.awardedAdvancementCriteria()
-            );
-        });
+            // todo: sync date of get advancement
+            Date date = Date.from(Instant.now().minus(Period.ofWeeks(1)));
 
-        // todo: sync date of get advancement
-        Date date = Date.from(Instant.now().minus(Period.ofWeeks(1)));
+            Object advancement = AdvancementUtils.getHandle(bukkitAdvancement);
+            List<String> criteriaList = advancementRecord.awardedAdvancementCriteria();
+            {
+                Map<String, Object> nativeCriteriaMap = new HashMap<>();
+                criteriaList.forEach(criteria ->
+                        nativeCriteriaMap.put(criteria, AdvancementUtils.newCriterionProgress(date))
+                );
+                Object nativeAdvancementProgress = AdvancementUtils.newAdvancementProgress(nativeCriteriaMap);
 
-        syncAdvancementMap.forEach((advancement, criteriaList) -> {
-            Map<String, Object> nativeCriteriaMap = new HashMap<>();
-            criteriaList.forEach(criteria ->
-                    nativeCriteriaMap.put(criteria, AdvancementUtils.newCriterionProgress(date))
-            );
-            Object nativeAdvancementProgress = AdvancementUtils.newAdvancementProgress(nativeCriteriaMap);
+                AdvancementUtils.startProgress(playerAdvancements, advancement, nativeAdvancementProgress);
 
-            AdvancementUtils.startProgress(playerAdvancements, advancement, nativeAdvancementProgress);
+            }
         });
 
         AdvancementUtils.markPlayerAdvancementsFirst(playerAdvancements);
