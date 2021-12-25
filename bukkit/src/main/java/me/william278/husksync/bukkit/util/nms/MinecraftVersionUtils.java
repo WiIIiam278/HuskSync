@@ -13,7 +13,7 @@ public class MinecraftVersionUtils {
     public final static String SERVER_VERSION = Bukkit.getBukkitVersion().split("-")[0];
 
     public static int compare(String version) {
-        if (version == null) return 1;
+        if (version == null || SERVER_VERSION == null) return 1;
 
         String[] as = SERVER_VERSION.split("\\.");
         String[] bs = version.split("\\.");
