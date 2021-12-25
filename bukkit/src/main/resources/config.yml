@@ -16,3 +16,4 @@ synchronisation_settings:
   flight: false
 cluster_id: 'main'
 check_for_updates: true
+native_advancement_synchronization: false
