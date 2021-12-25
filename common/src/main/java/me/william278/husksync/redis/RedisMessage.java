@@ -63,10 +63,10 @@ public class RedisMessage {
     public void send() throws IOException {
             try (Jedis publisher = new Jedis(Settings.redisHost, Settings.redisPort)) {
                 final String jedisPassword = Settings.redisPassword;
+                publisher.connect();
                 if (!jedisPassword.equals("")) {
                     publisher.auth(jedisPassword);
                 }
-                publisher.connect();
                 publisher.publish(REDIS_CHANNEL, getFullMessage());
             }
     }

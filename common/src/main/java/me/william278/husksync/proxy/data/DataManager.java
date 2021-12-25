@@ -341,8 +341,9 @@ public class DataManager {
             // Remove the old data if it exists
             PlayerData oldData = null;
             for (PlayerData data : playerData) {
-                if (data.getPlayerUUID() == newData.getPlayerUUID()) {
+                if (data.getPlayerUUID().equals(newData.getPlayerUUID())) {
                     oldData = data;
+                    break;
                 }
             }
             if (oldData != null) {
@@ -361,7 +362,7 @@ public class DataManager {
          */
         public PlayerData getPlayer(UUID playerUUID) {
             for (PlayerData data : playerData) {
-                if (data.getPlayerUUID() == playerUUID) {
+                if (data.getPlayerUUID().equals(playerUUID)) {
                     return data;
                 }
             }

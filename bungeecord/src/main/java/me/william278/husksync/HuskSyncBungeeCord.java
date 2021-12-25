@@ -156,7 +156,7 @@ public final class HuskSyncBungeeCord extends Plugin {
         Library mySqlLib = Library.builder()
                 .groupId("mysql")
                 .artifactId("mysql-connector-java")
-                .version("8.0.25")
+                .version("8.0.27")
                 .build();
 
         Library sqLiteLib = Library.builder()
