@@ -171,7 +171,7 @@ public class PlayerSetter {
                                 plugin.getLogger().log(Level.WARNING,
                                         "Your server does not support a native implementation of achievements synchronization");
                                 plugin.getLogger().log(Level.WARNING,
-                                        "Your server version {0}. Please disable using native implementation!", Bukkit.getVersion());
+                                        "Your server version is {0}. Please disable using native implementation!", Bukkit.getVersion());
 
                                 Settings.useNativeImplementation = false;
                                 setPlayerAdvancements(player, advancementRecords, data);
