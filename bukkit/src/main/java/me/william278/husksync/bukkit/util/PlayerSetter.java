@@ -316,8 +316,8 @@ public class PlayerSetter {
         });
 
         synchronized (playerAdvancements) {
-            AdvancementUtils.markPlayerAdvancementsFirst(playerAdvancements);
-            AdvancementUtils.ensureAllVisible(playerAdvancements);
+            AdvancementUtils.ensureAllVisible(playerAdvancements); // Set all completed advancement is visible
+            AdvancementUtils.markPlayerAdvancementsFirst(playerAdvancements); // Mark the sending of visible advancement as the first
         }
     }
 

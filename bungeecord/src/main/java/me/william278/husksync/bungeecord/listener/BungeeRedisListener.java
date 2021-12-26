@@ -119,7 +119,7 @@ public class BungeeRedisListener extends RedisListener {
                         if (player.isConnected()) {
                             new RedisMessage(RedisMessage.MessageType.PLAYER_DATA_SET,
                                     new RedisMessage.MessageTarget(Settings.ServerType.BUKKIT, playerData.getPlayerUUID(), message.getMessageTarget().targetClusterId()),
-                                    RedisMessage.serialize(playerData))
+                                    serializedPlayerData)
                                     .send();
 
                             // Send synchronisation complete message
