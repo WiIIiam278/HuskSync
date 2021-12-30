@@ -12,7 +12,7 @@ dependencies {
 }
 
 shadowJar {
-    relocate 'org.bstats', 'me.William278.husksync.libraries.plan'
+    relocate 'org.bstats', 'me.William278.husksync.libraries.bstats.bukkit'
     relocate 'de.themoep', 'me.William278.husksync.libraries.minedown.standard'
 }
 

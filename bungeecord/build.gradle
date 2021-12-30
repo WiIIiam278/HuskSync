@@ -12,7 +12,7 @@ dependencies {
 
 shadowJar {
     relocate 'com.zaxxer', 'me.William278.husksync.libraries.hikari'
-    relocate 'org.bstats', 'me.William278.husksync.libraries.plan'
+    relocate 'org.bstats', 'me.William278.husksync.libraries.bstats.bungee'
     relocate 'de.themoep', 'me.William278.husksync.libraries.minedown.standard'
     relocate 'net.byteflux', 'me.William278.husksync.libraries.libby.bungee'
 }
