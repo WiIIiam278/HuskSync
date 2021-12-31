@@ -43,17 +43,17 @@ public class AdvancementUtils {
 
         Class<?> ADVANCEMENT = ThrowSupplier.get(() -> Class.forName("net.minecraft.advancements.Advancement"));
 
-        Class<?> PLAYER_ADVANCEMENTS = MinecraftVersionUtils.getMinecraftClass("AdvancementDataPlayer");
-        PLAYER_ADVANCEMENTS_MAP = ThrowSupplier.get(() -> PLAYER_ADVANCEMENTS.getDeclaredField("h"));
+        Class<?> PLAYER_ADVANCEMENT = MinecraftVersionUtils.getMinecraftClass("AdvancementDataPlayer");
+        PLAYER_ADVANCEMENTS_MAP = ThrowSupplier.get(() -> PLAYER_ADVANCEMENT.getDeclaredField("h"));
         PLAYER_ADVANCEMENTS_MAP.setAccessible(true);
 
-        START_PROGRESS = ThrowSupplier.get(() -> PLAYER_ADVANCEMENTS.getDeclaredMethod("a", ADVANCEMENT, ADVANCEMENT_PROGRESS));
+        START_PROGRESS = ThrowSupplier.get(() -> PLAYER_ADVANCEMENT.getDeclaredMethod("a", ADVANCEMENT, ADVANCEMENT_PROGRESS));
         START_PROGRESS.setAccessible(true);
 
-        ENSURE_ALL_VISIBLE = ThrowSupplier.get(() -> PLAYER_ADVANCEMENTS.getDeclaredMethod("c"));
+        ENSURE_ALL_VISIBLE = ThrowSupplier.get(() -> PLAYER_ADVANCEMENT.getDeclaredMethod("c"));
         ENSURE_ALL_VISIBLE.setAccessible(true);
 
-        IS_FIRST_PACKET = ThrowSupplier.get(() -> PLAYER_ADVANCEMENTS.getDeclaredField("n"));
+        IS_FIRST_PACKET = ThrowSupplier.get(() -> PLAYER_ADVANCEMENT.getDeclaredField("n"));
         IS_FIRST_PACKET.setAccessible(true);
     }
 

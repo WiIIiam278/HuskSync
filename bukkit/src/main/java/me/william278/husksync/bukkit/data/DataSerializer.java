@@ -16,6 +16,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.*;
 
 public class DataSerializer {
@@ -207,17 +208,23 @@ public class DataSerializer {
                 playerLocation.getYaw(), playerLocation.getPitch(), player.getWorld().getName(), player.getWorld().getEnvironment()));
     }
 
-    public record PlayerLocation(double x, double y, double z, float yaw, float pitch,
-                                 String worldName, World.Environment environment) implements Serializable {
-    }
-
     @SuppressWarnings("unchecked") // Ignore the unchecked cast here
-    public static ArrayList<DataSerializer.AdvancementRecord> deserializeAdvancementData(String serializedAdvancementData) throws IOException {
+    public static List<DataSerializer.AdvancementRecordDate> deserializeAdvancementData(String serializedAdvancementData) throws IOException {
         if (serializedAdvancementData.isEmpty()) {
             return new ArrayList<>();
         }
         try {
-            return (ArrayList<DataSerializer.AdvancementRecord>) RedisMessage.deserialize(serializedAdvancementData);
+            List<?> deserialize = (List<?>) RedisMessage.deserialize(serializedAdvancementData);
+
+            if (!deserialize.isEmpty() && deserialize.get(0) instanceof AdvancementRecord) {
+                deserialize = ((List<AdvancementRecord>) deserialize).stream()
+                        .map(o -> new AdvancementRecordDate(
+                                o.advancementKey,
+                                o.awardedAdvancementCriteria
+                        )).toList();
+            }
+
+            return (List<AdvancementRecordDate>) deserialize;
         } catch (ClassNotFoundException e) {
             throw new IOException("Unable to decode class type.", e);
         }
@@ -225,20 +232,19 @@ public class DataSerializer {
 
     public static String getSerializedAdvancements(Player player) throws IOException {
         Iterator<Advancement> serverAdvancements = Bukkit.getServer().advancementIterator();
-        ArrayList<DataSerializer.AdvancementRecord> advancementData = new ArrayList<>();
+        ArrayList<DataSerializer.AdvancementRecordDate> advancementData = new ArrayList<>();
 
         while (serverAdvancements.hasNext()) {
             final AdvancementProgress progress = player.getAdvancementProgress(serverAdvancements.next());
             final NamespacedKey advancementKey = progress.getAdvancement().getKey();
-            final ArrayList<String> awardedCriteria = new ArrayList<>(progress.getAwardedCriteria());
-            advancementData.add(new DataSerializer.AdvancementRecord(advancementKey.getNamespace() + ":" + advancementKey.getKey(), awardedCriteria));
+
+            final Map<String, Date> awardedCriteria = new HashMap<>();
+            progress.getAwardedCriteria().forEach(s -> awardedCriteria.put(s, progress.getDateAwarded(s)));
+
+            advancementData.add(new DataSerializer.AdvancementRecordDate(advancementKey.getNamespace() + ":" + advancementKey.getKey(), awardedCriteria));
         }
 
         return RedisMessage.serialize(advancementData);
-    }
-
-    public record AdvancementRecord(String advancementKey,
-                                    ArrayList<String> awardedAdvancementCriteria) implements Serializable {
     }
 
     public static DataSerializer.StatisticData deserializeStatisticData(String serializedStatisticData) throws IOException {
@@ -286,6 +292,22 @@ public class DataSerializer {
 
         DataSerializer.StatisticData statisticData = new DataSerializer.StatisticData(untypedStatisticValues, blockStatisticValues, itemStatisticValues, entityStatisticValues);
         return RedisMessage.serialize(statisticData);
+    }
+
+    public record PlayerLocation(double x, double y, double z, float yaw, float pitch,
+                                 String worldName, World.Environment environment) implements Serializable {
+    }
+
+    public record AdvancementRecord(String advancementKey,
+                                    ArrayList<String> awardedAdvancementCriteria) implements Serializable {
+    }
+
+    public record AdvancementRecordDate(String key, Map<String, Date> criteriaMap) implements Serializable {
+        AdvancementRecordDate(String key, List<String> criteriaList) {
+            this(key, new HashMap<>() {{
+                criteriaList.forEach(s -> put(s, Date.from(Instant.EPOCH)));
+            }});
+        }
     }
 
     public record StatisticData(HashMap<Statistic, Integer> untypedStatisticValues,
