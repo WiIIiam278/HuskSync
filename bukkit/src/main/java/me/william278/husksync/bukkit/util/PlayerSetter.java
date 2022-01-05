@@ -20,8 +20,6 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
 import java.io.IOException;
-import java.time.Instant;
-import java.time.Period;
 import java.util.*;
 import java.util.logging.Level;
 
@@ -164,20 +162,18 @@ public class PlayerSetter {
                             = DataSerializer.deserializeAdvancementData(data.getSerializedAdvancements());
 
                     if (Settings.useNativeImplementation) {
-                        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
-                            try {
-                                nativeSyncPlayerAdvancements(player, advancementRecords);
-                            } catch (Exception e) {
-                                plugin.getLogger().log(Level.WARNING,
-                                        "Your server does not support a native implementation of achievements synchronization");
-                                plugin.getLogger().log(Level.WARNING,
-                                        "Your server version is {0}. Please disable using native implementation!", Bukkit.getVersion());
+                        try {
+                            nativeSyncPlayerAdvancements(player, advancementRecords);
+                        } catch (Exception e) {
+                            plugin.getLogger().log(Level.WARNING,
+                                    "Your server does not support a native implementation of achievements synchronization");
+                            plugin.getLogger().log(Level.WARNING,
+                                    "Your server version is {0}. Please disable using native implementation!", Bukkit.getVersion());
 
-                                Settings.useNativeImplementation = false;
-                                setPlayerAdvancements(player, advancementRecords, data);
-                                plugin.getLogger().log(Level.SEVERE, e.getMessage(), e);
-                            }
-                        });
+                            Settings.useNativeImplementation = false;
+                            setPlayerAdvancements(player, advancementRecords, data);
+                            plugin.getLogger().log(Level.SEVERE, e.getMessage(), e);
+                        }
                     } else {
                         setPlayerAdvancements(player, advancementRecords, data);
                     }
@@ -310,11 +306,8 @@ public class PlayerSetter {
                 AdvancementUtils.startProgress(playerAdvancements, advancement, nativeAdvancementProgress);
             }
         });
-
-        synchronized (playerAdvancements) {
-            AdvancementUtils.ensureAllVisible(playerAdvancements); // Set all completed advancement is visible
-            AdvancementUtils.markPlayerAdvancementsFirst(playerAdvancements); // Mark the sending of visible advancement as the first
-        }
+        AdvancementUtils.ensureAllVisible(playerAdvancements); // Set all completed advancement is visible
+        AdvancementUtils.markPlayerAdvancementsFirst(playerAdvancements); // Mark the sending of visible advancement as the first
     }
 
     /**
