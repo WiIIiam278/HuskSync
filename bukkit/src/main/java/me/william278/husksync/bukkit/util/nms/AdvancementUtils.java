@@ -15,7 +15,7 @@ public class AdvancementUtils {
 
     public final static Class<?> PLAYER_ADVANCEMENT;
     private final static Field PLAYER_ADVANCEMENTS_MAP;
-    private final static Field PLAYER_VISIBLE_ADVANCEMENTS_SET;
+    private final static Field PLAYER_VISIBLE_SET;
     private final static Field PLAYER_ADVANCEMENTS;
     private final static Field CRITERIA_MAP;
     private final static Field CRITERIA_DATE;
@@ -48,8 +48,8 @@ public class AdvancementUtils {
         PLAYER_ADVANCEMENTS_MAP = ThrowSupplier.get(() -> PLAYER_ADVANCEMENT.getDeclaredField("h"));
         PLAYER_ADVANCEMENTS_MAP.setAccessible(true);
 
-        PLAYER_VISIBLE_ADVANCEMENTS_SET = ThrowSupplier.get(() -> PLAYER_ADVANCEMENT.getDeclaredField("i"));
-        PLAYER_VISIBLE_ADVANCEMENTS_SET.setAccessible(true);
+        PLAYER_VISIBLE_SET = ThrowSupplier.get(() -> PLAYER_ADVANCEMENT.getDeclaredField("i"));
+        PLAYER_VISIBLE_SET.setAccessible(true);
 
         START_PROGRESS = ThrowSupplier.get(() -> PLAYER_ADVANCEMENT.getDeclaredMethod("a", ADVANCEMENT, ADVANCEMENT_PROGRESS));
         START_PROGRESS.setAccessible(true);
@@ -78,7 +78,7 @@ public class AdvancementUtils {
         }
     }
 
-    public static void clearPlayerAdvancementsMap(final Object playerAdvancement) {
+    public static void clearPlayerAdvancements(final Object playerAdvancement) {
         try {
             ((Map<?, ?>) PLAYER_ADVANCEMENTS_MAP.get(playerAdvancement))
                     .clear();
@@ -134,9 +134,9 @@ public class AdvancementUtils {
         }
     }
 
-    public static void clearVisibleAdvancementsSet(final Object playerAdvancements) {
+    public static void clearVisibleAdvancements(final Object playerAdvancements) {
         try {
-            ((Set<?>) PLAYER_VISIBLE_ADVANCEMENTS_SET.get(playerAdvancements))
+            ((Set<?>) PLAYER_VISIBLE_SET.get(playerAdvancements))
                     .clear();
         } catch (IllegalAccessException e) {
             throw new RuntimeException(e.getMessage(), e);

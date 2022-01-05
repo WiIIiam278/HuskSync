@@ -282,8 +282,8 @@ public class PlayerSetter {
         final Object playerAdvancements = AdvancementUtils.getPlayerAdvancements(player);
 
         // Clear
-        AdvancementUtils.clearPlayerAdvancementsMap(playerAdvancements);
-        AdvancementUtils.clearVisibleAdvancementsSet(playerAdvancements);
+        AdvancementUtils.clearPlayerAdvancements(playerAdvancements);
+        AdvancementUtils.clearVisibleAdvancements(playerAdvancements);
 
         advancementRecords.forEach(advancementRecord -> {
             NamespacedKey namespacedKey = Objects.requireNonNull(
