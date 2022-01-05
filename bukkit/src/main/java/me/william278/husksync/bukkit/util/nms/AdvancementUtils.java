@@ -9,19 +9,20 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Date;
 import java.util.Map;
+import java.util.Set;
 
 public class AdvancementUtils {
 
+    public final static Class<?> PLAYER_ADVANCEMENT;
     private final static Field PLAYER_ADVANCEMENTS_MAP;
+    private final static Field PLAYER_VISIBLE_ADVANCEMENTS_SET;
     private final static Field PLAYER_ADVANCEMENTS;
     private final static Field CRITERIA_MAP;
     private final static Field CRITERIA_DATE;
     private final static Field IS_FIRST_PACKET;
-
     private final static Method GET_HANDLE;
     private final static Method START_PROGRESS;
     private final static Method ENSURE_ALL_VISIBLE;
-
     private final static Class<?> ADVANCEMENT_PROGRESS;
     private final static Class<?> CRITERION_PROGRESS;
 
@@ -43,9 +44,12 @@ public class AdvancementUtils {
 
         Class<?> ADVANCEMENT = ThrowSupplier.get(() -> Class.forName("net.minecraft.advancements.Advancement"));
 
-        Class<?> PLAYER_ADVANCEMENT = MinecraftVersionUtils.getMinecraftClass("AdvancementDataPlayer");
+        PLAYER_ADVANCEMENT = MinecraftVersionUtils.getMinecraftClass("AdvancementDataPlayer");
         PLAYER_ADVANCEMENTS_MAP = ThrowSupplier.get(() -> PLAYER_ADVANCEMENT.getDeclaredField("h"));
         PLAYER_ADVANCEMENTS_MAP.setAccessible(true);
+
+        PLAYER_VISIBLE_ADVANCEMENTS_SET = ThrowSupplier.get(() -> PLAYER_ADVANCEMENT.getDeclaredField("i"));
+        PLAYER_VISIBLE_ADVANCEMENTS_SET.setAccessible(true);
 
         START_PROGRESS = ThrowSupplier.get(() -> PLAYER_ADVANCEMENT.getDeclaredMethod("a", ADVANCEMENT, ADVANCEMENT_PROGRESS));
         START_PROGRESS.setAccessible(true);
@@ -57,7 +61,7 @@ public class AdvancementUtils {
         IS_FIRST_PACKET.setAccessible(true);
     }
 
-    public static void markPlayerAdvancementsFirst(Object playerAdvancements) {
+    public static void markPlayerAdvancementsFirst(final Object playerAdvancements) {
         try {
             IS_FIRST_PACKET.set(playerAdvancements, true);
         } catch (IllegalAccessException e) {
@@ -130,4 +134,12 @@ public class AdvancementUtils {
         }
     }
 
+    public static void clearVisibleAdvancementsSet(final Object playerAdvancements) {
+        try {
+            ((Set<?>) PLAYER_VISIBLE_ADVANCEMENTS_SET.get(playerAdvancements))
+                    .clear();
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
+    }
 }

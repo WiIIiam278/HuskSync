@@ -162,18 +162,20 @@ public class PlayerSetter {
                             = DataSerializer.deserializeAdvancementData(data.getSerializedAdvancements());
 
                     if (Settings.useNativeImplementation) {
-                        try {
-                            nativeSyncPlayerAdvancements(player, advancementRecords);
-                        } catch (Exception e) {
-                            plugin.getLogger().log(Level.WARNING,
-                                    "Your server does not support a native implementation of achievements synchronization");
-                            plugin.getLogger().log(Level.WARNING,
-                                    "Your server version is {0}. Please disable using native implementation!", Bukkit.getVersion());
+                        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+                            try {
+                                nativeSyncPlayerAdvancements(player, advancementRecords);
+                            } catch (Exception e) {
+                                plugin.getLogger().log(Level.WARNING,
+                                        "Your server does not support a native implementation of achievements synchronization");
+                                plugin.getLogger().log(Level.WARNING,
+                                        "Your server version is {0}. Please disable using native implementation!", Bukkit.getVersion());
 
-                            Settings.useNativeImplementation = false;
-                            setPlayerAdvancements(player, advancementRecords, data);
-                            plugin.getLogger().log(Level.SEVERE, e.getMessage(), e);
-                        }
+                                Settings.useNativeImplementation = false;
+                                setPlayerAdvancements(player, advancementRecords, data);
+                                plugin.getLogger().log(Level.SEVERE, e.getMessage(), e);
+                            }
+                        });
                     } else {
                         setPlayerAdvancements(player, advancementRecords, data);
                     }
@@ -281,6 +283,7 @@ public class PlayerSetter {
 
         // Clear
         AdvancementUtils.clearPlayerAdvancementsMap(playerAdvancements);
+        AdvancementUtils.clearVisibleAdvancementsSet(playerAdvancements);
 
         advancementRecords.forEach(advancementRecord -> {
             NamespacedKey namespacedKey = Objects.requireNonNull(
@@ -306,8 +309,10 @@ public class PlayerSetter {
                 AdvancementUtils.startProgress(playerAdvancements, advancement, nativeAdvancementProgress);
             }
         });
-        AdvancementUtils.ensureAllVisible(playerAdvancements); // Set all completed advancement is visible
-        AdvancementUtils.markPlayerAdvancementsFirst(playerAdvancements); // Mark the sending of visible advancement as the first
+        synchronized (playerAdvancements) {
+            AdvancementUtils.ensureAllVisible(playerAdvancements); // Set all completed advancement is visible
+            AdvancementUtils.markPlayerAdvancementsFirst(playerAdvancements); // Mark the sending of visible advancement as the first
+        }
     }
 
     /**
