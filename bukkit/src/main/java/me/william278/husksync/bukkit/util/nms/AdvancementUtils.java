@@ -105,6 +105,7 @@ public class AdvancementUtils {
         }
     }
 
+    @SuppressWarnings("unchecked") // Suppress unchecked cast warnings here
     public static Object newAdvancementProgress(final Map<String, Object> criteria) {
         try {
             Object nativeAdvancementProgress = ADVANCEMENT_PROGRESS.getDeclaredConstructor().newInstance();
