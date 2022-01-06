@@ -25,7 +25,6 @@ public class ConfigLoader {
         Settings.syncLocation = config.getBoolean("synchronisation_settings.location", false);
         Settings.syncFlight = config.getBoolean("synchronisation_settings.flight", false);
 
-        // Future
         Settings.useNativeImplementation = config.getBoolean("native_advancement_synchronization", false);
     }
 
