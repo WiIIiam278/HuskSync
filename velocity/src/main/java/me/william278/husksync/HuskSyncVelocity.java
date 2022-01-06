@@ -43,7 +43,7 @@ import static me.william278.husksync.HuskSyncVelocity.VERSION;
 public class HuskSyncVelocity {
 
     // Plugin version
-    public static final String VERSION = "1.2.2";
+    public static final String VERSION = "1.3";
 
     // Velocity bStats ID (different from Bukkit and BungeeCord)
     private static final int METRICS_ID = 13489;
