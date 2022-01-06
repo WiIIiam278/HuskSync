@@ -20,8 +20,6 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
 import java.io.IOException;
-import java.time.Instant;
-import java.time.Period;
 import java.util.*;
 import java.util.logging.Level;
 
@@ -160,7 +158,7 @@ public class PlayerSetter {
             // Set the player's data from the PlayerData
             try {
                 if (Settings.syncAdvancements) {
-                    ArrayList<DataSerializer.AdvancementRecord> advancementRecords
+                    List<DataSerializer.AdvancementRecordDate> advancementRecords
                             = DataSerializer.deserializeAdvancementData(data.getSerializedAdvancements());
 
                     if (Settings.useNativeImplementation) {
@@ -171,7 +169,7 @@ public class PlayerSetter {
                                 plugin.getLogger().log(Level.WARNING,
                                         "Your server does not support a native implementation of achievements synchronization");
                                 plugin.getLogger().log(Level.WARNING,
-                                        "Your server version {0}. Please disable using native implementation!", Bukkit.getVersion());
+                                        "Your server version is {0}. Please disable using native implementation!", Bukkit.getVersion());
 
                                 Settings.useNativeImplementation = false;
                                 setPlayerAdvancements(player, advancementRecords, data);
@@ -280,16 +278,17 @@ public class PlayerSetter {
         }
     }
 
-    private static void nativeSyncPlayerAdvancements(final Player player, final List<DataSerializer.AdvancementRecord> advancementRecords) {
+    private static void nativeSyncPlayerAdvancements(final Player player, final List<DataSerializer.AdvancementRecordDate> advancementRecords) {
         final Object playerAdvancements = AdvancementUtils.getPlayerAdvancements(player);
 
         // Clear
-        AdvancementUtils.clearPlayerAdvancementsMap(playerAdvancements);
+        AdvancementUtils.clearPlayerAdvancements(playerAdvancements);
+        AdvancementUtils.clearVisibleAdvancements(playerAdvancements);
 
         advancementRecords.forEach(advancementRecord -> {
             NamespacedKey namespacedKey = Objects.requireNonNull(
-                    NamespacedKey.fromString(advancementRecord.advancementKey()),
-                    "Invalid Namespaced key of " + advancementRecord.advancementKey()
+                    NamespacedKey.fromString(advancementRecord.key()),
+                    "Invalid Namespaced key of " + advancementRecord.key()
             );
 
             Advancement bukkitAdvancement = Bukkit.getAdvancement(namespacedKey);
@@ -298,26 +297,21 @@ public class PlayerSetter {
                 return;
             }
 
-            // todo: sync date of get advancement
-            Date date = Date.from(Instant.now().minus(Period.ofWeeks(1)));
-
             Object advancement = AdvancementUtils.getHandle(bukkitAdvancement);
-            List<String> criteriaList = advancementRecord.awardedAdvancementCriteria();
+            Map<String, Date> criteriaList = advancementRecord.criteriaMap();
             {
                 Map<String, Object> nativeCriteriaMap = new HashMap<>();
-                criteriaList.forEach(criteria ->
+                criteriaList.forEach((criteria, date) ->
                         nativeCriteriaMap.put(criteria, AdvancementUtils.newCriterionProgress(date))
                 );
                 Object nativeAdvancementProgress = AdvancementUtils.newAdvancementProgress(nativeCriteriaMap);
 
                 AdvancementUtils.startProgress(playerAdvancements, advancement, nativeAdvancementProgress);
-
             }
         });
-
         synchronized (playerAdvancements) {
-            AdvancementUtils.markPlayerAdvancementsFirst(playerAdvancements);
-            AdvancementUtils.ensureAllVisible(playerAdvancements);
+            AdvancementUtils.ensureAllVisible(playerAdvancements); // Set all completed advancement is visible
+            AdvancementUtils.markPlayerAdvancementsFirst(playerAdvancements); // Mark the sending of visible advancement as the first
         }
     }
 
@@ -327,7 +321,7 @@ public class PlayerSetter {
      * @param player          The player to set the advancements of
      * @param advancementData The ArrayList of {@link DataSerializer.AdvancementRecord}s to set
      */
-    private static void setPlayerAdvancements(Player player, ArrayList<DataSerializer.AdvancementRecord> advancementData, PlayerData data) {
+    private static void setPlayerAdvancements(Player player, List<DataSerializer.AdvancementRecordDate> advancementData, PlayerData data) {
         // Temporarily disable advancement announcing if needed
         boolean announceAdvancementUpdate = false;
         if (Boolean.TRUE.equals(player.getWorld().getGameRuleValue(GameRule.ANNOUNCE_ADVANCEMENTS))) {
@@ -345,13 +339,13 @@ public class PlayerSetter {
                 boolean correctExperienceCheck = false; // Determines whether the experience might have changed warranting an update
                 Advancement advancement = serverAdvancements.next();
                 AdvancementProgress playerProgress = player.getAdvancementProgress(advancement);
-                for (DataSerializer.AdvancementRecord record : advancementData) {
+                for (DataSerializer.AdvancementRecordDate record : advancementData) {
                     // If the advancement is one on the data
-                    if (record.advancementKey().equals(advancement.getKey().getNamespace() + ":" + advancement.getKey().getKey())) {
+                    if (record.key().equals(advancement.getKey().getNamespace() + ":" + advancement.getKey().getKey())) {
 
                         // Award all criteria that the player does not have that they do on the cache
                         ArrayList<String> currentlyAwardedCriteria = new ArrayList<>(playerProgress.getAwardedCriteria());
-                        for (String awardCriteria : record.awardedAdvancementCriteria()) {
+                        for (String awardCriteria : record.criteriaMap().keySet()) {
                             if (!playerProgress.getAwardedCriteria().contains(awardCriteria)) {
                                 Bukkit.getScheduler().runTask(plugin, () -> player.getAdvancementProgress(advancement).awardCriteria(awardCriteria));
                                 correctExperienceCheck = true;

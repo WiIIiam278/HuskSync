@@ -9,19 +9,20 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Date;
 import java.util.Map;
+import java.util.Set;
 
 public class AdvancementUtils {
 
+    public final static Class<?> PLAYER_ADVANCEMENT;
     private final static Field PLAYER_ADVANCEMENTS_MAP;
+    private final static Field PLAYER_VISIBLE_SET;
     private final static Field PLAYER_ADVANCEMENTS;
     private final static Field CRITERIA_MAP;
     private final static Field CRITERIA_DATE;
     private final static Field IS_FIRST_PACKET;
-
     private final static Method GET_HANDLE;
     private final static Method START_PROGRESS;
     private final static Method ENSURE_ALL_VISIBLE;
-
     private final static Class<?> ADVANCEMENT_PROGRESS;
     private final static Class<?> CRITERION_PROGRESS;
 
@@ -43,21 +44,24 @@ public class AdvancementUtils {
 
         Class<?> ADVANCEMENT = ThrowSupplier.get(() -> Class.forName("net.minecraft.advancements.Advancement"));
 
-        Class<?> PLAYER_ADVANCEMENTS = MinecraftVersionUtils.getMinecraftClass("AdvancementDataPlayer");
-        PLAYER_ADVANCEMENTS_MAP = ThrowSupplier.get(() -> PLAYER_ADVANCEMENTS.getDeclaredField("h"));
+        PLAYER_ADVANCEMENT = MinecraftVersionUtils.getMinecraftClass("AdvancementDataPlayer");
+        PLAYER_ADVANCEMENTS_MAP = ThrowSupplier.get(() -> PLAYER_ADVANCEMENT.getDeclaredField("h"));
         PLAYER_ADVANCEMENTS_MAP.setAccessible(true);
 
-        START_PROGRESS = ThrowSupplier.get(() -> PLAYER_ADVANCEMENTS.getDeclaredMethod("a", ADVANCEMENT, ADVANCEMENT_PROGRESS));
+        PLAYER_VISIBLE_SET = ThrowSupplier.get(() -> PLAYER_ADVANCEMENT.getDeclaredField("i"));
+        PLAYER_VISIBLE_SET.setAccessible(true);
+
+        START_PROGRESS = ThrowSupplier.get(() -> PLAYER_ADVANCEMENT.getDeclaredMethod("a", ADVANCEMENT, ADVANCEMENT_PROGRESS));
         START_PROGRESS.setAccessible(true);
 
-        ENSURE_ALL_VISIBLE = ThrowSupplier.get(() -> PLAYER_ADVANCEMENTS.getDeclaredMethod("c"));
+        ENSURE_ALL_VISIBLE = ThrowSupplier.get(() -> PLAYER_ADVANCEMENT.getDeclaredMethod("c"));
         ENSURE_ALL_VISIBLE.setAccessible(true);
 
-        IS_FIRST_PACKET = ThrowSupplier.get(() -> PLAYER_ADVANCEMENTS.getDeclaredField("n"));
+        IS_FIRST_PACKET = ThrowSupplier.get(() -> PLAYER_ADVANCEMENT.getDeclaredField("n"));
         IS_FIRST_PACKET.setAccessible(true);
     }
 
-    public static void markPlayerAdvancementsFirst(Object playerAdvancements) {
+    public static void markPlayerAdvancementsFirst(final Object playerAdvancements) {
         try {
             IS_FIRST_PACKET.set(playerAdvancements, true);
         } catch (IllegalAccessException e) {
@@ -74,7 +78,7 @@ public class AdvancementUtils {
         }
     }
 
-    public static void clearPlayerAdvancementsMap(final Object playerAdvancement) {
+    public static void clearPlayerAdvancements(final Object playerAdvancement) {
         try {
             ((Map<?, ?>) PLAYER_ADVANCEMENTS_MAP.get(playerAdvancement))
                     .clear();
@@ -130,4 +134,12 @@ public class AdvancementUtils {
         }
     }
 
+    public static void clearVisibleAdvancements(final Object playerAdvancements) {
+        try {
+            ((Set<?>) PLAYER_VISIBLE_SET.get(playerAdvancements))
+                    .clear();
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
+    }
 }
