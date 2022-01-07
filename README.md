@@ -114,9 +114,71 @@ Most likely not - and I cannot support it - but feel free to test it, as dependi
 
 ## Developers
 ### API
-HuskSync currently has a few API events (located in the api module) which developers can use to detect when player data synchronisation has completed, or to update Player Data:
+HuskSync has an API for Bukkit providing events that fire when synchronisation takes place as well as a method to access and deserialize player data on demand. There is no API for the proxy side currently.
+
+HuskSync's API is available on [JitPack](https://jitpack.io/#WiIIiam278/HuskSync/Tag). You can view the [HuskSync JavaDocs here](https://javadoc.jitpack.io/com/github/WiIIiam278/HuskSync/latest/javadoc/index.html). You should only use stuff in the `husksync.bukkit.api` and `husksync.bukkit.data` packages (as well as the PlayerData class located in the `husksync` root package.
+
+#### Including the API in your project
+With Maven, add the repository to your pom.xml:
+```xml
+	<repositories>
+		<repository>
+		    <id>jitpack.io</id>
+		    <url>https://jitpack.io</url>
+		</repository>
+	</repositories>
+```
+Then, add the dependency. Replace `version` with the latest version of HuskSync: [![](https://jitpack.io/v/WiIIiam278/HuskSync.svg)](https://jitpack.io/#WiIIiam278/HuskSync)
+```xml
+	<dependency>
+	    <groupId>com.github.WiIIiam278</groupId>
+	    <artifactId>HuskSync</artifactId>
+	    <version>version</version>
+        <scope>provided</scope>
+	</dependency>
+```
+
+Or, with Gradle, add the dependency like so to your build.gradle:
+```
+	allprojects {
+		repositories {
+			...
+			maven { url 'https://jitpack.io' }
+		}
+	}
+```
+Then add the dependency as follows. Replace `version` with the latest version of HuskSync: [![](https://jitpack.io/v/WiIIiam278/HuskSync.svg)](https://jitpack.io/#WiIIiam278/HuskSync)
+```
+    dependencies {
+	        compileOnly 'com.github.WiIIiam278:HuskSync:version'
+	}
+```
+
+#### API Events
 * **SyncCompleteEvent** - Fires when a player's data has finished synchronising. Use #getData to get the PlayerData being set.
 * **SyncEvent** - Fires just before a player's data is synchronised. Can be cancelled. Use #getData to get the PlayerData being set, and #setData to set it.
+
+#### Fetching player data on demand
+To fetch PlayerData from a UUID as you need it, create an instance of the HuskSyncAPI class and use the `#getPlayerData` method. Note that data returned in this method is only the data from the central cache. That is to say, if the player is online, the data returned in this way will not necessarily be the same as the player's actual current data.
+```
+HuskSyncAPI huskSyncApi = HuskSyncAPI.getInstance();
+try {
+    CompletableFuture<PlayerData> playerDataCompletableFuture = huskSyncApi.getPlayerData(playerUUID);
+    // thenAccept blocks the main thread until HuskSync has grabbed the data, so you may wish to run this asynchronously.
+    playerDataCompletableFuture.thenAccept(playerData -> {
+        // You now have a PlayerData object which you can get serialized data from and deserialize with the DataSerializer static methods 
+    });
+} catch (IOException e) {
+    Bukkit.getLogger().severe("An error occurred fetching player data!");
+}
+```
+
+#### Getting ItemStacks and usable data from PlayerData
+Use the static methods provided in the [DataSerializer class](https://javadoc.jitpack.io/com/github/WiIIiam278/HuskSync/latest/javadoc/me/william278/husksync/bukkit/data/DataSerializer.html). For instance, to get a player's inventory as an `ItemStack[]` from a `PlayerData` object.
+```
+ItemStack[] inventoryItems = DataSerializer.serializeInventory(playerData.getSerializedInventory());
+ItemStack[] enderChestItems = DataSerializer.serializeInventory(playerData.getSerializedEnderChest());
+```
 
 ### Contributing
 A code bounty program is in place for HuskSync, where developers making significant code contributions to HuskSync may be entitled to a discretionary license to use HuskSync in commercial contexts without having to purchase the resource, so please feel free to submit pull requests with improvements, fixes and features!
