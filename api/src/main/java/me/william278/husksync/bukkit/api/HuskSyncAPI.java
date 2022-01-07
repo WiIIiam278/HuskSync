@@ -57,4 +57,17 @@ public class HuskSyncAPI {
         return playerDataCompletableFuture;
     }
 
+    /**
+     * Updates a player's {@link PlayerData} to the central cache and database. If the player is online on the Proxy network, they will be updated and overwritten with this data.
+     *
+     * @param playerData The {@link PlayerData} (which contains the {@link UUID}) of the player data to update to the central cache and database
+     * @throws IOException If an exception occurs with serializing during processing of the update
+     */
+    public void updatePlayerData(PlayerData playerData) throws IOException {
+        final String serializedPlayerData = RedisMessage.serialize(playerData);
+        new RedisMessage(RedisMessage.MessageType.PLAYER_DATA_UPDATE,
+                new RedisMessage.MessageTarget(Settings.ServerType.PROXY, null, Settings.cluster),
+                serializedPlayerData).send();
+    }
+
 }

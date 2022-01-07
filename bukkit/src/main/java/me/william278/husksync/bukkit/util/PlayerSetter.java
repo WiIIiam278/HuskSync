@@ -142,7 +142,7 @@ public class PlayerSetter {
             }
 
             // If the data is flagged as being default data, skip setting
-            if (data.isUseDefaultData()) {
+            if (data.useDefaultData) {
                 HuskSyncBukkit.bukkitCache.removeAwaitingDataFetch(player.getUniqueId());
                 return;
             }

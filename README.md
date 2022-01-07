@@ -180,6 +180,20 @@ ItemStack[] inventoryItems = DataSerializer.serializeInventory(playerData.getSer
 ItemStack[] enderChestItems = DataSerializer.serializeInventory(playerData.getSerializedEnderChest());
 ```
 
+#### Updating PlayerData
+You can then update PlayerData back to the central cache using the `HuskSyncAPI#updatePlayerData(playerData)` method. For example:
+```
+// Update a value in the player data object
+playerData.setHealth(20);
+try {
+    // Update the player data to the cache
+    huskSyncApi.updatePlayerData(playerData);
+} catch (IOException e) {
+    Bukkit.getLogger().severe("An error occurred updating player data!");
+}
+```
+
+
 ### Contributing
 A code bounty program is in place for HuskSync, where developers making significant code contributions to HuskSync may be entitled to a discretionary license to use HuskSync in commercial contexts without having to purchase the resource, so please feel free to submit pull requests with improvements, fixes and features!
 

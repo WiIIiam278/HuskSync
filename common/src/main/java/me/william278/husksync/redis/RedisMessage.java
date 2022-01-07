@@ -90,7 +90,7 @@ public class RedisMessage {
      */
     public enum MessageType implements Serializable {
         /**
-         * Sent by Bukkit servers to proxy when a player disconnects with a player's updated data, alongside the UUID of the last loaded {@link PlayerData} for the user
+         * Sent by Bukkit servers to proxy when a user disconnects with that player's updated {@link PlayerData}.
          */
         PLAYER_DATA_UPDATE,
 
@@ -105,12 +105,12 @@ public class RedisMessage {
         PLAYER_DATA_SET,
 
         /**
-         * Sent by Bukkit servers to proxy to request {@link PlayerData} from the proxy via the API
+         * Sent by Bukkit servers to proxy to request {@link PlayerData} from the proxy via the API.
          */
         API_DATA_REQUEST,
 
         /**
-         * Sent by the Proxy to fulfill an {@code MessageType.API_DATA_REQUEST}, containing the latest {@link PlayerData} for the requested UUID
+         * Sent by the Proxy to fulfill an {@code MessageType.API_DATA_REQUEST}, containing the latest {@link PlayerData} for the requested UUID.
          */
         API_DATA_RETURN,
 
@@ -120,47 +120,47 @@ public class RedisMessage {
         API_DATA_CANCEL,
 
         /**
-         * Sent by the proxy to a Bukkit server to have them request data on join; contains no data otherwise
+         * Sent by the proxy to a Bukkit server to have them request data on join; contains no data otherwise.
          */
         REQUEST_DATA_ON_JOIN,
 
         /**
-         * Sent by the proxy to ask the Bukkit server to send the full plugin information, contains information about the proxy brand and version
+         * Sent by the proxy to ask the Bukkit server to send the full plugin information, contains information about the proxy brand and version.
          */
         SEND_PLUGIN_INFORMATION,
 
         /**
-         * Sent by the proxy to show a player the contents of another player's inventory, contains their username and {@link PlayerData}
+         * Sent by the proxy to show a player the contents of another player's inventory, contains their username and {@link PlayerData}.
          */
         OPEN_INVENTORY,
 
         /**
-         * Sent by the proxy to show a player the contents of another player's ender chest, contains their username and {@link PlayerData}
+         * Sent by the proxy to show a player the contents of another player's ender chest, contains their username and {@link PlayerData}.
          */
         OPEN_ENDER_CHEST,
 
         /**
-         * Sent by both the proxy and bukkit servers to confirm cross-server communication has been established
+         * Sent by both the proxy and bukkit servers to confirm cross-server communication has been established.
          */
         CONNECTION_HANDSHAKE,
 
         /**
-         * Sent by both the proxy and bukkit servers to terminate communications (if a bukkit / the proxy goes offline)
+         * Sent by both the proxy and bukkit servers to terminate communications (if a bukkit / the proxy goes offline).
          */
         TERMINATE_HANDSHAKE,
 
         /**
-         * Sent by a proxy to a bukkit server to decode MPDB data
+         * Sent by a proxy to a bukkit server to decode MPDB data.
          */
         DECODE_MPDB_DATA,
 
         /**
-         * Sent by a bukkit server back to the proxy with the correctly decoded MPDB data
+         * Sent by a bukkit server back to the proxy with the correctly decoded MPDB data.
          */
         DECODED_MPDB_DATA_SET,
 
         /**
-         * Sent by the proxy to a bukkit server to initiate a reload
+         * Sent by the proxy to a bukkit server to initiate a reload.
          */
         RELOAD_CONFIG
     }
@@ -171,8 +171,7 @@ public class RedisMessage {
     }
 
     /**
-     * A record that defines the target of a plugin message; a spigot server or the proxy server(s).
-     * For Bukkit servers, the name of the server must also be specified
+     * A record that defines the target of a plugin message; a spigot server or the proxy server(s). For Bukkit servers, the name of the server must also be specified
      */
     public record MessageTarget(Settings.ServerType targetServerType, UUID targetPlayerUUID, String targetClusterId) implements Serializable { }
 

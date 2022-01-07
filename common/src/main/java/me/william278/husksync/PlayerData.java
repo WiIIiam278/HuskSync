@@ -3,6 +3,9 @@ package me.william278.husksync;
 import java.io.*;
 import java.util.UUID;
 
+/**
+ * Cross-platform class used to represent a player's data. Data from this can be deserialized using the DataSerializer class on Bukkit platforms.
+ */
 public class PlayerData implements Serializable {
 
     /**
@@ -15,10 +18,14 @@ public class PlayerData implements Serializable {
      */
     private final UUID dataVersionUUID;
 
-    // Flag to indicate if the Bukkit server should use default data
+    /**
+     * A special flag that will be {@code true} if the player is new to the network and should not have their data set when joining the Bukkit
+     */
     public boolean useDefaultData = false;
 
-    // Player data
+    /*
+     * Player data records
+     */
     private String serializedInventory;
     private String serializedEnderChest;
     private double health;
@@ -55,7 +62,7 @@ public class PlayerData implements Serializable {
      * @param totalExperience         Their total experience points ("Score")
      * @param expLevel                Their exp level
      * @param expProgress             Their exp progress to the next level
-     * @param gameMode                Their game mode ({@code SURVIVAL}, {@code CREATIVE}, etc)
+     * @param gameMode                Their game mode ({@code SURVIVAL}, {@code CREATIVE}, etc.)
      * @param serializedStatistics    Their serialized statistics data (Displayed in Statistics menu in ESC menu)
      */
     public PlayerData(UUID playerUUID, String serializedInventory, String serializedEnderChest, double health, double maxHealth,
@@ -147,156 +154,344 @@ public class PlayerData implements Serializable {
         return data;
     }
 
+    /**
+     * Get the {@link UUID} of the player whose data this is
+     *
+     * @return the player's {@link UUID}
+     */
     public UUID getPlayerUUID() {
         return playerUUID;
     }
 
+    /**
+     * Get the unique version {@link UUID} of the PlayerData
+     *
+     * @return The unique data version
+     */
     public UUID getDataVersionUUID() {
         return dataVersionUUID;
     }
 
+    /**
+     * Returns the serialized player {@code ItemStack[]} inventory
+     *
+     * @return The player's serialized inventory
+     */
     public String getSerializedInventory() {
         return serializedInventory;
     }
 
+    /**
+     * Returns the serialized player {@code ItemStack[]} ender chest
+     *
+     * @return The player's serialized ender chest
+     */
     public String getSerializedEnderChest() {
         return serializedEnderChest;
     }
 
+    /**
+     * Returns the player's health value
+     *
+     * @return the player's health
+     */
     public double getHealth() {
         return health;
     }
 
+    /**
+     * Returns the player's max health value
+     *
+     * @return the player's max health
+     */
     public double getMaxHealth() {
         return maxHealth;
     }
 
-    public double getHealthScale() { return healthScale; }
+    /**
+     * Returns the player's health scale value {@see https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/entity/Player.html#getHealthScale()}
+     *
+     * @return the player's health scaling value
+     */
+    public double getHealthScale() {
+        return healthScale;
+    }
 
+    /**
+     * Returns the player's hunger points
+     *
+     * @return the player's hunger level
+     */
     public int getHunger() {
         return hunger;
     }
 
+    /**
+     * Returns the player's saturation points
+     *
+     * @return the player's saturation level
+     */
     public float getSaturation() {
         return saturation;
     }
 
+    /**
+     * Returns the player's saturation exhaustion value {@see https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/entity/HumanEntity.html#getExhaustion()}
+     *
+     * @return the player's saturation exhaustion
+     */
     public float getSaturationExhaustion() {
         return saturationExhaustion;
     }
 
+    /**
+     * Returns the number of the player's currently selected hotbar slot
+     *
+     * @return the player's selected hotbar slot
+     */
     public int getSelectedSlot() {
         return selectedSlot;
     }
 
+    /**
+     * Returns a serialized {@link String} of the player's current status effects
+     *
+     * @return the player's serialized status effect data
+     */
     public String getSerializedEffectData() {
         return serializedEffectData;
     }
 
+    /**
+     * Returns the player's total experience score (used for presenting the death screen score value)
+     *
+     * @return the player's total experience score
+     */
     public int getTotalExperience() {
         return totalExperience;
     }
 
+    /**
+     * Returns a serialized {@link String} of the player's statistics
+     *
+     * @return the player's serialized statistic records
+     */
     public String getSerializedStatistics() {
         return serializedStatistics;
     }
 
+    /**
+     * Returns the player's current experience level
+     *
+     * @return the player's exp level
+     */
     public int getExpLevel() {
         return expLevel;
     }
 
+    /**
+     * Returns the player's progress to the next experience level
+     *
+     * @return the player's exp progress
+     */
     public float getExpProgress() {
         return expProgress;
     }
 
+    /**
+     * Returns the player's current game mode as a string ({@code SURVIVAL}, {@code CREATIVE}, etc.)
+     *
+     * @return the player's game mode
+     */
     public String getGameMode() {
         return gameMode;
     }
 
+    /**
+     * Returns if the player is currently flying
+     *
+     * @return {@code true} if the player is in flight; {@code false} otherwise
+     */
     public boolean isFlying() {
         return isFlying;
     }
 
+    /**
+     * Returns a serialized {@link String} of the player's advancements
+     *
+     * @return the player's serialized advancement data
+     */
     public String getSerializedAdvancements() {
         return serializedAdvancements;
     }
 
+    /**
+     * Returns a serialized {@link String} of the player's current location
+     *
+     * @return the player's serialized location
+     */
     public String getSerializedLocation() {
         return serializedLocation;
     }
 
-    public boolean isUseDefaultData() {
-        return useDefaultData;
-    }
-
+    /**
+     * Update the player's inventory data
+     *
+     * @param serializedInventory A serialized {@code String}; new inventory data
+     */
     public void setSerializedInventory(String serializedInventory) {
         this.serializedInventory = serializedInventory;
     }
 
+    /**
+     * Update the player's ender chest data
+     *
+     * @param serializedEnderChest A serialized {@code String}; new ender chest inventory data
+     */
     public void setSerializedEnderChest(String serializedEnderChest) {
         this.serializedEnderChest = serializedEnderChest;
     }
 
+    /**
+     * Update the player's health
+     *
+     * @param health new health value
+     */
     public void setHealth(double health) {
         this.health = health;
     }
 
+    /**
+     * Update the player's max health
+     *
+     * @param maxHealth new maximum health value
+     */
     public void setMaxHealth(double maxHealth) {
         this.maxHealth = maxHealth;
     }
 
+    /**
+     * Update the player's health scale
+     *
+     * @param healthScale new health scaling value
+     */
     public void setHealthScale(double healthScale) {
         this.healthScale = healthScale;
     }
 
+    /**
+     * Update the player's hunger meter
+     *
+     * @param hunger new hunger value
+     */
     public void setHunger(int hunger) {
         this.hunger = hunger;
     }
 
+    /**
+     * Update the player's saturation level
+     *
+     * @param saturation new saturation value
+     */
     public void setSaturation(float saturation) {
         this.saturation = saturation;
     }
 
+    /**
+     * Update the player's saturation exhaustion value
+     *
+     * @param saturationExhaustion new exhaustion value
+     */
     public void setSaturationExhaustion(float saturationExhaustion) {
         this.saturationExhaustion = saturationExhaustion;
     }
 
+    /**
+     * Update the player's selected hotbar slot
+     *
+     * @param selectedSlot new hotbar slot number (0-9)
+     */
     public void setSelectedSlot(int selectedSlot) {
         this.selectedSlot = selectedSlot;
     }
 
+    /**
+     * Update the player's status effect data
+     *
+     * @param serializedEffectData A serialized {@code String} of the player's new status effect data
+     */
     public void setSerializedEffectData(String serializedEffectData) {
         this.serializedEffectData = serializedEffectData;
     }
 
+    /**
+     * Set the player's total experience points (used to display score on death screen)
+     *
+     * @param totalExperience the player's new total experience score
+     */
     public void setTotalExperience(int totalExperience) {
         this.totalExperience = totalExperience;
     }
 
+    /**
+     * Set the player's exp level
+     *
+     * @param expLevel the player's new exp level
+     */
     public void setExpLevel(int expLevel) {
         this.expLevel = expLevel;
     }
 
+    /**
+     * Set the player's progress to their next exp level
+     *
+     * @param expProgress the player's new experience progress
+     */
     public void setExpProgress(float expProgress) {
         this.expProgress = expProgress;
     }
 
+    /**
+     * Set the player's game mode
+     *
+     * @param gameMode the player's new game mode ({@code SURVIVAL}, {@code CREATIVE}, etc.)
+     */
     public void setGameMode(String gameMode) {
         this.gameMode = gameMode;
     }
 
+    /**
+     * Update the player's statistics data
+     *
+     * @param serializedStatistics A serialized {@code String}; new statistic data
+     */
     public void setSerializedStatistics(String serializedStatistics) {
         this.serializedStatistics = serializedStatistics;
     }
 
+    /**
+     * Set if the player is flying
+     *
+     * @param flying whether the player is flying
+     */
     public void setFlying(boolean flying) {
         isFlying = flying;
     }
 
+    /**
+     * Update the player's advancement data
+     *
+     * @param serializedAdvancements A serialized {@code String}; new advancement data
+     */
     public void setSerializedAdvancements(String serializedAdvancements) {
         this.serializedAdvancements = serializedAdvancements;
     }
 
+    /**
+     * Update the player's location data
+     *
+     * @param serializedLocation A serialized {@code String}; new location data
+     */
     public void setSerializedLocation(String serializedLocation) {
         this.serializedLocation = serializedLocation;
     }
