@@ -149,7 +149,7 @@ Or, with Gradle, add the dependency like so to your build.gradle:
 ```
 Then add the dependency as follows. Replace `version` with the latest version of HuskSync: [![](https://jitpack.io/v/WiIIiam278/HuskSync.svg)](https://jitpack.io/#WiIIiam278/HuskSync)
 ```
-    dependencies {
+        dependencies {
 	        compileOnly 'com.github.WiIIiam278:HuskSync:version'
 	}
 ```
@@ -160,7 +160,7 @@ Then add the dependency as follows. Replace `version` with the latest version of
 
 #### Fetching player data on demand
 To fetch PlayerData from a UUID as you need it, create an instance of the HuskSyncAPI class and use the `#getPlayerData` method. Note that data returned in this method is only the data from the central cache. That is to say, if the player is online, the data returned in this way will not necessarily be the same as the player's actual current data.
-```
+```java
 HuskSyncAPI huskSyncApi = HuskSyncAPI.getInstance();
 try {
     CompletableFuture<PlayerData> playerDataCompletableFuture = huskSyncApi.getPlayerData(playerUUID);
@@ -175,14 +175,14 @@ try {
 
 #### Getting ItemStacks and usable data from PlayerData
 Use the static methods provided in the [DataSerializer class](https://javadoc.jitpack.io/com/github/WiIIiam278/HuskSync/latest/javadoc/me/william278/husksync/bukkit/data/DataSerializer.html). For instance, to get a player's inventory as an `ItemStack[]` from a `PlayerData` object.
-```
+```java
 ItemStack[] inventoryItems = DataSerializer.serializeInventory(playerData.getSerializedInventory());
 ItemStack[] enderChestItems = DataSerializer.serializeInventory(playerData.getSerializedEnderChest());
 ```
 
 #### Updating PlayerData
 You can then update PlayerData back to the central cache using the `HuskSyncAPI#updatePlayerData(playerData)` method. For example:
-```
+```java
 // Update a value in the player data object
 playerData.setHealth(20);
 try {
