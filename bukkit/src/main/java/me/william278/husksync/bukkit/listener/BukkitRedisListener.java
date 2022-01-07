@@ -2,16 +2,17 @@ package me.william278.husksync.bukkit.listener;
 
 import de.themoep.minedown.MineDown;
 import me.william278.husksync.HuskSyncBukkit;
-import me.william278.husksync.util.MessageManager;
 import me.william278.husksync.PlayerData;
 import me.william278.husksync.Settings;
+import me.william278.husksync.bukkit.api.HuskSyncAPI;
 import me.william278.husksync.bukkit.config.ConfigLoader;
 import me.william278.husksync.bukkit.data.DataViewer;
-import me.william278.husksync.bukkit.util.PlayerSetter;
 import me.william278.husksync.bukkit.migrator.MPDBDeserializer;
+import me.william278.husksync.bukkit.util.PlayerSetter;
 import me.william278.husksync.migrator.MPDBPlayerData;
 import me.william278.husksync.redis.RedisListener;
 import me.william278.husksync.redis.RedisMessage;
+import me.william278.husksync.util.MessageManager;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
@@ -106,6 +107,25 @@ public class BukkitRedisListener extends RedisListener {
                             }
                         }
                     });
+                }
+                case API_DATA_RETURN -> {
+                    final UUID requestUUID = UUID.fromString(message.getMessageDataElements()[0]);
+                    if (HuskSyncAPI.apiRequests.containsKey(requestUUID)) {
+                        try {
+                            final PlayerData data = (PlayerData) RedisMessage.deserialize(message.getMessageDataElements()[1]);
+                            HuskSyncAPI.apiRequests.get(requestUUID).complete(data);
+                        } catch (IOException | ClassNotFoundException e) {
+                            log(Level.SEVERE, "Failed to serialize returned API-requested player data");
+                        }
+                    }
+
+                }
+                case API_DATA_CANCEL -> {
+                    final UUID requestUUID = UUID.fromString(message.getMessageDataElements()[0]);
+                    // Cancel requests if no data could be found on the proxy
+                    if (HuskSyncAPI.apiRequests.containsKey(requestUUID)) {
+                        HuskSyncAPI.apiRequests.get(requestUUID).cancel(true);
+                    }
                 }
                 case RELOAD_CONFIG -> {
                     plugin.reloadConfig();

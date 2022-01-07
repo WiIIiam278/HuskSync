@@ -1,17 +1,14 @@
-package me.william278.husksync.api.events;
+package me.william278.husksync.bukkit.api.events;
 
 import me.william278.husksync.PlayerData;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.player.PlayerEvent;
-import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Represents an event that will be fired before a {@link Player} is about
- * to be synchronised with their {@link PlayerData}.
+ * Represents an event that will be fired before a {@link Player} is about to be synchronised with their {@link PlayerData}.
  */
 public class SyncEvent extends PlayerEvent implements Cancellable {
 
@@ -26,6 +23,7 @@ public class SyncEvent extends PlayerEvent implements Cancellable {
 
     /**
      * Returns the {@link PlayerData} which has just been set on the {@link Player}
+     *
      * @return The {@link PlayerData} that has been set
      */
     public PlayerData getData() {
@@ -34,6 +32,7 @@ public class SyncEvent extends PlayerEvent implements Cancellable {
 
     /**
      * Sets the {@link PlayerData} to be synchronised to this player
+     *
      * @param data The {@link PlayerData} to set to the player
      */
     public void setData(PlayerData data) {
@@ -50,8 +49,7 @@ public class SyncEvent extends PlayerEvent implements Cancellable {
     }
 
     /**
-     * Gets the cancellation state of this event. A cancelled event will not
-     * be executed in the server, but will still pass to other plugins
+     * Gets the cancellation state of this event. A cancelled event will not be executed in the server, but will still pass to other plugins
      *
      * @return true if this event is cancelled
      */
@@ -61,8 +59,7 @@ public class SyncEvent extends PlayerEvent implements Cancellable {
     }
 
     /**
-     * Sets the cancellation state of this event. A cancelled event will not
-     * be executed in the server, but will still pass to other plugins.
+     * Sets the cancellation state of this event. A cancelled event will not be executed in the server, but will still pass to other plugins.
      *
      * @param cancel true if you wish to cancel this event
      */

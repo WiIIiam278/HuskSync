@@ -17,6 +17,7 @@ import org.bukkit.scheduler.BukkitTask;
 
 import java.io.IOException;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 
 public final class HuskSyncBukkit extends JavaPlugin {

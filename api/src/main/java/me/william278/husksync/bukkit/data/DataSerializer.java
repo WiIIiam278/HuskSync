@@ -19,6 +19,9 @@ import java.io.Serializable;
 import java.time.Instant;
 import java.util.*;
 
+/**
+ * Class that contains static methods for serializing and deserializing data from {@link me.william278.husksync.PlayerData}
+ */
 public class DataSerializer {
 
     /**
@@ -208,6 +211,13 @@ public class DataSerializer {
                 playerLocation.getYaw(), playerLocation.getPitch(), player.getWorld().getName(), player.getWorld().getEnvironment()));
     }
 
+    /**
+     * Deserializes a player's advancement data as serialized with {@link #getSerializedAdvancements(Player)} into {@link AdvancementRecordDate} data.
+     *
+     * @param serializedAdvancementData The serialized advancement data {@link String}
+     * @return The deserialized {@link AdvancementRecordDate} for the player
+     * @throws IOException If the deserialization fails
+     */
     @SuppressWarnings("unchecked") // Ignore the unchecked cast here
     public static List<DataSerializer.AdvancementRecordDate> deserializeAdvancementData(String serializedAdvancementData) throws IOException {
         if (serializedAdvancementData.isEmpty()) {
@@ -216,6 +226,7 @@ public class DataSerializer {
         try {
             List<?> deserialize = (List<?>) RedisMessage.deserialize(serializedAdvancementData);
 
+            // Migrate old AdvancementRecord into date format
             if (!deserialize.isEmpty() && deserialize.get(0) instanceof AdvancementRecord) {
                 deserialize = ((List<AdvancementRecord>) deserialize).stream()
                         .map(o -> new AdvancementRecordDate(
@@ -230,6 +241,13 @@ public class DataSerializer {
         }
     }
 
+    /**
+     * Returns a serialized {@link String} of a player's advancements that can be deserialized with {@link #deserializeStatisticData(String)}
+     *
+     * @param player {@link Player} to serialize advancement data of
+     * @return The serialized advancement data as a {@link String}
+     * @throws IOException If the serialization fails
+     */
     public static String getSerializedAdvancements(Player player) throws IOException {
         Iterator<Advancement> serverAdvancements = Bukkit.getServer().advancementIterator();
         ArrayList<DataSerializer.AdvancementRecordDate> advancementData = new ArrayList<>();
@@ -247,6 +265,13 @@ public class DataSerializer {
         return RedisMessage.serialize(advancementData);
     }
 
+    /**
+     * Deserializes a player's statistic data as serialized with {@link #getSerializedStatisticData(Player)} into {@link StatisticData}.
+     *
+     * @param serializedStatisticData The serialized statistic data {@link String}
+     * @return The deserialized {@link StatisticData} for the player
+     * @throws IOException If the deserialization fails
+     */
     public static DataSerializer.StatisticData deserializeStatisticData(String serializedStatisticData) throws IOException {
         if (serializedStatisticData.isEmpty()) {
             return new DataSerializer.StatisticData(new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>());
@@ -258,6 +283,13 @@ public class DataSerializer {
         }
     }
 
+    /**
+     * Returns a serialized {@link String} of a player's statistic data that can be deserialized with {@link #deserializeStatisticData(String)}
+     *
+     * @param player {@link Player} to serialize statistic data of
+     * @return The serialized statistic data as a {@link String}
+     * @throws IOException If the serialization fails
+     */
     public static String getSerializedStatisticData(Player player) throws IOException {
         HashMap<Statistic, Integer> untypedStatisticValues = new HashMap<>();
         HashMap<Statistic, HashMap<Material, Integer>> blockStatisticValues = new HashMap<>();
@@ -294,14 +326,27 @@ public class DataSerializer {
         return RedisMessage.serialize(statisticData);
     }
 
+    /**
+     * A record used to store data for a player's location
+     */
     public record PlayerLocation(double x, double y, double z, float yaw, float pitch,
                                  String worldName, World.Environment environment) implements Serializable {
     }
 
+    /**
+     * A record used to store data for advancement synchronisation
+     *
+     * @deprecated Old format - Use {@link AdvancementRecordDate} instead
+     */
+    @Deprecated
+    @SuppressWarnings("DeprecatedIsStillUsed") // Suppress deprecation warnings here (still used for backwards compatibility)
     public record AdvancementRecord(String advancementKey,
                                     ArrayList<String> awardedAdvancementCriteria) implements Serializable {
     }
 
+    /**
+     * A record used to store data for native advancement synchronisation, tracking advancement date progress
+     */
     public record AdvancementRecordDate(String key, Map<String, Date> criteriaMap) implements Serializable {
         AdvancementRecordDate(String key, List<String> criteriaList) {
             this(key, new HashMap<>() {{
@@ -310,6 +355,9 @@ public class DataSerializer {
         }
     }
 
+    /**
+     * A record used to store data for a player's statistics
+     */
     public record StatisticData(HashMap<Statistic, Integer> untypedStatisticValues,
                                 HashMap<Statistic, HashMap<Material, Integer>> blockStatisticValues,
                                 HashMap<Statistic, HashMap<Material, Integer>> itemStatisticValues,

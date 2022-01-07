@@ -197,6 +197,30 @@ public class BungeeRedisListener extends RedisListener {
                             HuskSyncBungeeCord.dataManager));
                 }
             }
+            case API_DATA_REQUEST -> {
+                final UUID playerUUID = UUID.fromString(message.getMessageDataElements()[0]);
+                final UUID requestUUID = UUID.fromString(message.getMessageDataElements()[1]);
+
+                try {
+                    final PlayerData data = getPlayerCachedData(playerUUID, message.getMessageTarget().targetClusterId());
+
+                    if (data == null) {
+                        new RedisMessage(RedisMessage.MessageType.API_DATA_CANCEL,
+                                new RedisMessage.MessageTarget(Settings.ServerType.BUKKIT, null, message.getMessageTarget().targetClusterId()),
+                                requestUUID.toString())
+                                .send();
+                    } else {
+                        // Send the reply alongside the request UUID, serializing the requested message data
+                        new RedisMessage(RedisMessage.MessageType.API_DATA_RETURN,
+                                new RedisMessage.MessageTarget(Settings.ServerType.BUKKIT, null, message.getMessageTarget().targetClusterId()),
+                                requestUUID.toString(),
+                                RedisMessage.serialize(data))
+                                .send();
+                    }
+                } catch (IOException e) {
+                    plugin.getBungeeLogger().log(Level.SEVERE, "Failed to serialize PlayerData requested via the API");
+                }
+            }
         }
     }
 

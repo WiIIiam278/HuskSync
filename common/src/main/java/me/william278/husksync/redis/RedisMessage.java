@@ -105,6 +105,21 @@ public class RedisMessage {
         PLAYER_DATA_SET,
 
         /**
+         * Sent by Bukkit servers to proxy to request {@link PlayerData} from the proxy via the API
+         */
+        API_DATA_REQUEST,
+
+        /**
+         * Sent by the Proxy to fulfill an {@code MessageType.API_DATA_REQUEST}, containing the latest {@link PlayerData} for the requested UUID
+         */
+        API_DATA_RETURN,
+
+        /**
+         * Sent by the Proxy to cancel an {@code MessageType.API_DATA_REQUEST} if no data can be returned.
+         */
+        API_DATA_CANCEL,
+
+        /**
          * Sent by the proxy to a Bukkit server to have them request data on join; contains no data otherwise
          */
         REQUEST_DATA_ON_JOIN,

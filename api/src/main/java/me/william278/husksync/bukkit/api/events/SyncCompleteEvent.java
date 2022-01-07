@@ -1,4 +1,4 @@
-package me.william278.husksync.api.events;
+package me.william278.husksync.bukkit.api.events;
 
 import me.william278.husksync.PlayerData;
 import org.bukkit.entity.Player;
@@ -7,8 +7,7 @@ import org.bukkit.event.player.PlayerEvent;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Represents an event that will be fired when a {@link Player} has finished
- * being synchronised with the correct {@link PlayerData}.
+ * Represents an event that will be fired when a {@link Player} has finished being synchronised with the correct {@link PlayerData}.
  */
 public class SyncCompleteEvent extends PlayerEvent {
 

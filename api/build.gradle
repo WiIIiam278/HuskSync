@@ -2,5 +2,43 @@ dependencies {
     implementation project(':common')
 
     compileOnly 'org.spigotmc:spigot-api:1.16.5-R0.1-SNAPSHOT'
-    compileOnly 'org.jetbrains:annotations:20.1.0'
+    compileOnly 'org.jetbrains:annotations:22.0.0'
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            shadow.component(it)
+            afterEvaluate {
+                artifact javadocsJar
+            }
+        }
+    }
+    repositories {
+        mavenLocal()
+    }
+}
+
+shadowJar {
+    classifier = null
+    relocate ':common', 'me.william278.husksync'
+}
+
+repositories {
+    mavenCentral()
+    maven { url 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/' }
+}
+
+task javadocs(type: Javadoc) {
+    options.addStringOption('Xdoclint:none', '-quiet')
+    source = project(':common').sourceSets.main.allJava
+    source += project(':api').sourceSets.main.allJava
+    classpath = files(project(':common').sourceSets.main.compileClasspath)
+    classpath += files(project(':api').sourceSets.main.compileClasspath)
+    destinationDir = file("${buildDir}/docs/javadoc")
+}
+
+task javadocsJar(type: Jar, dependsOn: javadocs) {
+    classifier = 'javadoc'
+    from javadocs.destinationDir
 }

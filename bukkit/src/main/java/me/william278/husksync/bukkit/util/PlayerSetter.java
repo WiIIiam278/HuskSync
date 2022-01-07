@@ -3,8 +3,8 @@ package me.william278.husksync.bukkit.util;
 import me.william278.husksync.HuskSyncBukkit;
 import me.william278.husksync.PlayerData;
 import me.william278.husksync.Settings;
-import me.william278.husksync.api.events.SyncCompleteEvent;
-import me.william278.husksync.api.events.SyncEvent;
+import me.william278.husksync.bukkit.api.events.SyncCompleteEvent;
+import me.william278.husksync.bukkit.api.events.SyncEvent;
 import me.william278.husksync.bukkit.data.DataSerializer;
 import me.william278.husksync.bukkit.util.nms.AdvancementUtils;
 import me.william278.husksync.redis.RedisMessage;
@@ -315,7 +315,7 @@ public class PlayerSetter {
      * Update a player's advancements and progress to match the advancementData
      *
      * @param player          The player to set the advancements of
-     * @param advancementData The ArrayList of {@link DataSerializer.AdvancementRecord}s to set
+     * @param advancementData The ArrayList of {@link DataSerializer.AdvancementRecordDate}s to set
      */
     private static void setPlayerAdvancements(Player player, List<DataSerializer.AdvancementRecordDate> advancementData, PlayerData data) {
         // Temporarily disable advancement announcing if needed
