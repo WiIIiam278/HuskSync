@@ -164,7 +164,7 @@ To fetch PlayerData from a UUID as you need it, create an instance of the HuskSy
 HuskSyncAPI huskSyncApi = HuskSyncAPI.getInstance();
 try {
     CompletableFuture<PlayerData> playerDataCompletableFuture = huskSyncApi.getPlayerData(playerUUID);
-    // thenAccept blocks the main thread until HuskSync has grabbed the data, so you may wish to run this asynchronously.
+    // thenAccept blocks the thread until HuskSync has grabbed the data, so you may wish to run this asynchronously (e.g. Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {});.
     playerDataCompletableFuture.thenAccept(playerData -> {
         // You now have a PlayerData object which you can get serialized data from and deserialize with the DataSerializer static methods 
     });

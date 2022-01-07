@@ -44,17 +44,19 @@ public class HuskSyncAPI {
      * @throws IOException If an exception occurs with serializing during processing of the request
      */
     public CompletableFuture<PlayerData> getPlayerData(UUID playerUUID) throws IOException {
+        // Create the request to be completed
         final UUID requestUUID = UUID.randomUUID();
-        CompletableFuture<PlayerData> playerDataCompletableFuture = new CompletableFuture<>();
-        playerDataCompletableFuture.whenComplete((playerData, throwable) -> apiRequests.remove(requestUUID));
+        apiRequests.put(requestUUID,  new CompletableFuture<>());
+
+        // Remove the request from the map on completion
+        apiRequests.get(requestUUID).whenComplete((playerData, throwable) -> apiRequests.remove(requestUUID));
 
         // Request the data via the proxy
         new RedisMessage(RedisMessage.MessageType.API_DATA_REQUEST,
                 new RedisMessage.MessageTarget(Settings.ServerType.PROXY, null, Settings.cluster),
                 playerUUID.toString(), requestUUID.toString()).send();
 
-        apiRequests.put(requestUUID, playerDataCompletableFuture);
-        return playerDataCompletableFuture;
+        return apiRequests.get(requestUUID);
     }
 
     /**
@@ -64,6 +66,7 @@ public class HuskSyncAPI {
      * @throws IOException If an exception occurs with serializing during processing of the update
      */
     public void updatePlayerData(PlayerData playerData) throws IOException {
+        // Serialize and send the updated player data
         final String serializedPlayerData = RedisMessage.serialize(playerData);
         new RedisMessage(RedisMessage.MessageType.PLAYER_DATA_UPDATE,
                 new RedisMessage.MessageTarget(Settings.ServerType.PROXY, null, Settings.cluster),

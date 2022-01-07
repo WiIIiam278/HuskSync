@@ -56,7 +56,7 @@ public class DataSerializer {
     }
 
     /**
-     * Returns an array of ItemStacks from serialized inventory data
+     * Returns an array of ItemStacks from serialized inventory data. Note: empty slots will be represented by {@code null}
      *
      * @param inventoryData The serialized {@link ItemStack[]} array
      * @return The inventory contents as an array of {@link ItemStack}s
