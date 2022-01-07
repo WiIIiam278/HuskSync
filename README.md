@@ -131,10 +131,10 @@ With Maven, add the repository to your pom.xml:
 Then, add the dependency. Replace `version` with the latest version of HuskSync: [![](https://jitpack.io/v/WiIIiam278/HuskSync.svg)](https://jitpack.io/#WiIIiam278/HuskSync)
 ```xml
 	<dependency>
-	    <groupId>com.github.WiIIiam278</groupId>
-	    <artifactId>HuskSync</artifactId>
-	    <version>version</version>
-        <scope>provided</scope>
+            <groupId>com.github.WiIIiam278</groupId>
+            <artifactId>HuskSync</artifactId>
+            <version>version</version>
+            <scope>provided</scope>
 	</dependency>
 ```
 
