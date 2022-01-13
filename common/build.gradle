@@ -1,6 +1,6 @@
 dependencies {
     implementation 'redis.clients:jedis:3.7.1'
-    implementation 'com.zaxxer:HikariCP:5.0.0'
+    implementation 'com.zaxxer:HikariCP:5.0.1'
 }
 
 import org.apache.tools.ant.filters.ReplaceTokens

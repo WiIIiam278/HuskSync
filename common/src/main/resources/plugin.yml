@@ -4,4 +4,5 @@ main: me.william278.husksync.HuskSyncBukkit
 api-version: 1.16
 author: William278
 description: 'A modern, cross-server player data synchronization system'
+website: 'https://william278.net'
 softdepend: [MysqlPlayerDataBridge]

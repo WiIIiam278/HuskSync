@@ -38,12 +38,13 @@ import static me.william278.husksync.HuskSyncVelocity.VERSION;
         name = "HuskSync",
         version = VERSION,
         description = "HuskSync for velocity",
-        authors = {"William278"}
+        authors = {"William278"},
+        url = "https://william278.net"
 )
 public class HuskSyncVelocity {
 
     // Plugin version
-    public static final String VERSION = "1.3";
+    public static final String VERSION = "1.3.1";
 
     // Velocity bStats ID (different from Bukkit and BungeeCord)
     private static final int METRICS_ID = 13489;
