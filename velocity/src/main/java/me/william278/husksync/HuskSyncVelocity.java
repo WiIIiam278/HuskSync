@@ -37,7 +37,7 @@ import static me.william278.husksync.HuskSyncVelocity.VERSION;
         id = "husksync",
         name = "HuskSync",
         version = VERSION,
-        description = "HuskSync for velocity",
+        description = "A modern, cross-server player data synchronization system",
         authors = {"William278"},
         url = "https://william278.net"
 )
