@@ -24,6 +24,7 @@ public class BungeeRedisListener extends RedisListener {
 
     // Initialize the listener on the bungee
     public BungeeRedisListener() {
+        super();
         listen();
     }
 

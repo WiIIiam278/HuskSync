@@ -69,6 +69,8 @@ public class HuskSyncVelocity {
 
     public static DataManager dataManager;
 
+    public static VelocityRedisListener redisListener;
+
     public static MPDBMigrator mpdbMigrator;
 
     private final Logger logger;
@@ -146,7 +148,8 @@ public class HuskSyncVelocity {
         }
 
         // Initialize the redis listener
-        if (!new VelocityRedisListener().isActiveAndEnabled) {
+        redisListener = new VelocityRedisListener();
+        if (!redisListener.isActiveAndEnabled) {
             getVelocityLogger().severe("Failed to initialize Redis; HuskSync will now abort loading itself (Velocity) v" + VERSION);
             return;
         }

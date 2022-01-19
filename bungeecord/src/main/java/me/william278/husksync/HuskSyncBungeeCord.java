@@ -3,12 +3,12 @@ package me.william278.husksync;
 import me.william278.husksync.bungeecord.command.BungeeCommand;
 import me.william278.husksync.bungeecord.config.ConfigLoader;
 import me.william278.husksync.bungeecord.config.ConfigManager;
-import me.william278.husksync.proxy.data.DataManager;
 import me.william278.husksync.bungeecord.listener.BungeeEventListener;
 import me.william278.husksync.bungeecord.listener.BungeeRedisListener;
-import me.william278.husksync.migrator.MPDBMigrator;
 import me.william278.husksync.bungeecord.util.BungeeLogger;
 import me.william278.husksync.bungeecord.util.BungeeUpdateChecker;
+import me.william278.husksync.migrator.MPDBMigrator;
+import me.william278.husksync.proxy.data.DataManager;
 import me.william278.husksync.redis.RedisMessage;
 import me.william278.husksync.util.Logger;
 import net.byteflux.libby.BungeeLibraryManager;
@@ -47,6 +47,8 @@ public final class HuskSyncBungeeCord extends Plugin {
     public static DataManager dataManager;
 
     public static MPDBMigrator mpdbMigrator;
+
+    public static BungeeRedisListener redisListener;
 
     private Logger logger;
 
@@ -98,7 +100,8 @@ public final class HuskSyncBungeeCord extends Plugin {
         }
 
         // Initialize the redis listener
-        if (!new BungeeRedisListener().isActiveAndEnabled) {
+        redisListener = new BungeeRedisListener();
+        if (!redisListener.isActiveAndEnabled) {
             getBungeeLogger().severe("Failed to initialize Redis; HuskSync will now abort loading itself (" + getProxy().getName() + ") v" + getDescription().getVersion());
             return;
         }

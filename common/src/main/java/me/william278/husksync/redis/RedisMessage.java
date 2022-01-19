@@ -22,8 +22,9 @@ public class RedisMessage {
 
     /**
      * Create a new RedisMessage
-     * @param type The type of the message
-     * @param target Who will receive this message
+     *
+     * @param type        The type of the message
+     * @param target      Who will receive this message
      * @param messageData The message data elements
      */
     public RedisMessage(MessageType type, MessageTarget target, String... messageData) {
@@ -38,6 +39,7 @@ public class RedisMessage {
 
     /**
      * Get a new RedisMessage from an incoming message string
+     *
      * @param messageString The message string to parse
      */
     public RedisMessage(String messageString) throws IOException, ClassNotFoundException {
@@ -49,6 +51,7 @@ public class RedisMessage {
 
     /**
      * Returns the full, formatted message string with type, target & data
+     *
      * @return The fully formatted message
      */
     private String getFullMessage() throws IOException {
@@ -61,21 +64,23 @@ public class RedisMessage {
      * Send the redis message
      */
     public void send() throws IOException {
-            try (Jedis publisher = new Jedis(Settings.redisHost, Settings.redisPort)) {
-                final String jedisPassword = Settings.redisPassword;
-                publisher.connect();
-                if (!jedisPassword.equals("")) {
-                    publisher.auth(jedisPassword);
-                }
-                publisher.publish(REDIS_CHANNEL, getFullMessage());
+        try (Jedis publisher = RedisListener.getJedisConnection()) {
+            final String jedisPassword = Settings.redisPassword;
+            publisher.connect();
+            if (!jedisPassword.equals("")) {
+                publisher.auth(jedisPassword);
             }
+            publisher.publish(REDIS_CHANNEL, getFullMessage());
+        }
     }
 
     public String getMessageData() {
         return messageData;
     }
 
-    public String[] getMessageDataElements() { return messageData.split(MESSAGE_DATA_SEPARATOR); }
+    public String[] getMessageDataElements() {
+        return messageData.split(MESSAGE_DATA_SEPARATOR);
+    }
 
     public MessageType getMessageType() {
         return messageType;
@@ -173,7 +178,9 @@ public class RedisMessage {
     /**
      * A record that defines the target of a plugin message; a spigot server or the proxy server(s). For Bukkit servers, the name of the server must also be specified
      */
-    public record MessageTarget(Settings.ServerType targetServerType, UUID targetPlayerUUID, String targetClusterId) implements Serializable { }
+    public record MessageTarget(Settings.ServerType targetServerType, UUID targetPlayerUUID,
+                                String targetClusterId) implements Serializable {
+    }
 
     /**
      * Deserialize an object from a Base64 string

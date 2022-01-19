@@ -6,6 +6,7 @@ import me.william278.husksync.Settings;
 import me.william278.husksync.proxy.data.DataManager;
 import me.william278.husksync.proxy.data.sql.Database;
 import me.william278.husksync.proxy.data.sql.MySQL;
+import me.william278.husksync.redis.RedisListener;
 import me.william278.husksync.redis.RedisMessage;
 import me.william278.husksync.util.Logger;
 
@@ -95,7 +96,7 @@ public class MPDBMigrator {
     }
 
     // Carry out the migration
-    public void executeMigrationOperations(DataManager dataManager, HashSet<Server> synchronisedServers) {
+    public void executeMigrationOperations(DataManager dataManager, HashSet<Server> synchronisedServers, RedisListener redisListener) {
         // Prepare the target database for insertion
         prepareTargetDatabase(dataManager);
 
@@ -109,7 +110,7 @@ public class MPDBMigrator {
         getExperienceData();
 
         // Send the encoded data to the Bukkit servers for conversion
-        sendEncodedData(synchronisedServers);
+        sendEncodedData(synchronisedServers, redisListener);
     }
 
     // Clear the new database out of current data
@@ -200,7 +201,7 @@ public class MPDBMigrator {
         }
     }
 
-    private void sendEncodedData(HashSet<Server> synchronisedServers) {
+    private void sendEncodedData(HashSet<Server> synchronisedServers, RedisListener redisListener) {
         for (Server processingServer : synchronisedServers) {
             if (processingServer.hasMySqlPlayerDataBridge()) {
                 for (MPDBPlayerData data : mpdbPlayerData) {

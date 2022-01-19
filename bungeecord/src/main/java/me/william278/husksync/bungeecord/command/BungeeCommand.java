@@ -2,16 +2,16 @@ package me.william278.husksync.bungeecord.command;
 
 import de.themoep.minedown.MineDown;
 import me.william278.husksync.HuskSyncBungeeCord;
-import me.william278.husksync.Server;
-import me.william278.husksync.bungeecord.util.BungeeUpdateChecker;
-import me.william278.husksync.proxy.command.HuskSyncCommand;
-import me.william278.husksync.util.MessageManager;
 import me.william278.husksync.PlayerData;
+import me.william278.husksync.Server;
 import me.william278.husksync.Settings;
 import me.william278.husksync.bungeecord.config.ConfigLoader;
 import me.william278.husksync.bungeecord.config.ConfigManager;
+import me.william278.husksync.bungeecord.util.BungeeUpdateChecker;
 import me.william278.husksync.migrator.MPDBMigrator;
+import me.william278.husksync.proxy.command.HuskSyncCommand;
 import me.william278.husksync.redis.RedisMessage;
+import me.william278.husksync.util.MessageManager;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
@@ -301,7 +301,7 @@ public class BungeeCommand extends Command implements TabExecutor, HuskSyncComma
                                         HuskSyncBungeeCord.synchronisedServers)) {
                                     ProxyServer.getInstance().getScheduler().runAsync(plugin, () ->
                                             HuskSyncBungeeCord.mpdbMigrator.executeMigrationOperations(HuskSyncBungeeCord.dataManager,
-                                                    HuskSyncBungeeCord.synchronisedServers));
+                                                    HuskSyncBungeeCord.synchronisedServers, HuskSyncBungeeCord.redisListener));
                                 }
                             }
                             default -> sender.sendMessage(new MineDown("Error: Invalid argument for migration. Use \"husksync migrate\" to start the process").toComponent());

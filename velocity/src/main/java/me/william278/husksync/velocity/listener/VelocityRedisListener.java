@@ -23,6 +23,7 @@ public class VelocityRedisListener extends RedisListener {
 
     // Initialize the listener on the bungee
     public VelocityRedisListener() {
+        super();
         listen();
     }
 

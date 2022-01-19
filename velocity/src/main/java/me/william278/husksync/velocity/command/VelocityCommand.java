@@ -294,7 +294,7 @@ public class VelocityCommand implements SimpleCommand, HuskSyncCommand {
                                         HuskSyncVelocity.synchronisedServers)) {
                                     plugin.getProxyServer().getScheduler().buildTask(plugin, () ->
                                             HuskSyncVelocity.mpdbMigrator.executeMigrationOperations(HuskSyncVelocity.dataManager,
-                                                    HuskSyncVelocity.synchronisedServers)).schedule();
+                                                    HuskSyncVelocity.synchronisedServers, HuskSyncVelocity.redisListener)).schedule();
                                 }
                             }
                             default -> sender.sendMessage(new MineDown("Error: Invalid argument for migration. Use \"husksync migrate\" to start the process").toComponent());

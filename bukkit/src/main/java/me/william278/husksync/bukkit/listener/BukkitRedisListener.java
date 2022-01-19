@@ -26,6 +26,7 @@ public class BukkitRedisListener extends RedisListener {
 
     // Initialize the listener on the bukkit server
     public BukkitRedisListener() {
+        super();
         listen();
     }
 

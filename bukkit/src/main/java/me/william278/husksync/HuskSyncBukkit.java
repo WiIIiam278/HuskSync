@@ -17,7 +17,6 @@ import org.bukkit.scheduler.BukkitTask;
 
 import java.io.IOException;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 
 public final class HuskSyncBukkit extends JavaPlugin {
@@ -31,6 +30,8 @@ public final class HuskSyncBukkit extends JavaPlugin {
     }
 
     public static BukkitDataCache bukkitCache;
+
+    public static BukkitRedisListener redisListener;
 
     // Used for establishing a handshake with redis
     public static UUID serverUUID;
@@ -120,7 +121,8 @@ public final class HuskSyncBukkit extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new BukkitEventListener(), this);
 
         // Initialize the redis listener
-        if (!new BukkitRedisListener().isActiveAndEnabled) {
+        redisListener = new BukkitRedisListener();
+        if (!redisListener.isActiveAndEnabled) {
             getPluginLoader().disablePlugin(this);
             getLogger().severe("Failed to initialize Redis; disabling HuskSync (" + getServer().getName() + ") v" + getDescription().getVersion());
             return;
