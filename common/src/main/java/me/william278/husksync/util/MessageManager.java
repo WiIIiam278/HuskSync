@@ -23,7 +23,7 @@ public class MessageManager {
             .append("[• Support Discord:](white) [[Link]](#00fb9a show_text=&7Click to join open_url=https://discord.gg/tVYhJfyDWG)");
 
     public static StringBuilder PLUGIN_STATUS = new StringBuilder().append("[HuskSync](#00fb9a bold) [| Current system status:](#00fb9a)\n")
-            .append("[• Connected servers:](white) [%1%](#00fb9a)")
+            .append("[• Connected servers:](white) [%1%](#00fb9a)\n")
             .append("[• Cached player data:](white) [%2%](#00fb9a)");
 
 }
