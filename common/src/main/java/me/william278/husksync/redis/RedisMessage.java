@@ -65,11 +65,6 @@ public class RedisMessage {
      */
     public void send() throws IOException {
         try (Jedis publisher = RedisListener.getJedisConnection()) {
-            final String jedisPassword = Settings.redisPassword;
-            publisher.connect();
-            if (!jedisPassword.equals("")) {
-                publisher.auth(jedisPassword);
-            }
             publisher.publish(REDIS_CHANNEL, getFullMessage());
         }
     }

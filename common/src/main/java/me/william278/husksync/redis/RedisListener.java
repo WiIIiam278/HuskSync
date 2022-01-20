@@ -23,7 +23,18 @@ public abstract class RedisListener {
      * Creates a new RedisListener and initialises the Redis connection
      */
     public RedisListener() {
-        jedisPool = new JedisPool(new JedisPoolConfig(), Settings.redisHost, Settings.redisPort);
+        if (Settings.redisPassword.isEmpty()) {
+            jedisPool = new JedisPool(new JedisPoolConfig(),
+                    Settings.redisHost,
+                    Settings.redisPort,
+                    0);
+        } else {
+            jedisPool = new JedisPool(new JedisPoolConfig(),
+                    Settings.redisHost,
+                    Settings.redisPort,
+                    0,
+                    Settings.redisPassword);
+        }
     }
 
     /**
@@ -54,12 +65,8 @@ public abstract class RedisListener {
      * Start the Redis listener
      */
     public final void listen() {
-        final String jedisPassword = Settings.redisPassword;
         new Thread(() -> {
             try (Jedis jedis = getJedisConnection()) {
-                if (!jedisPassword.equals("")) {
-                    jedis.auth(jedisPassword);
-                }
                 if (jedis.isConnected()) {
                     isActiveAndEnabled = true;
                     log(Level.INFO, "Enabled Redis listener successfully!");
