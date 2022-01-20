@@ -149,10 +149,6 @@ public class HuskSyncVelocity {
 
         // Initialize the redis listener
         redisListener = new VelocityRedisListener();
-        if (!redisListener.isActiveAndEnabled) {
-            getVelocityLogger().severe("Failed to initialize Redis; HuskSync will now abort loading itself (Velocity) v" + VERSION);
-            return;
-        }
 
         // Register listener
         server.getEventManager().register(this, new VelocityEventListener());

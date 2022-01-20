@@ -72,7 +72,10 @@ public abstract class RedisListener {
                     log(Level.INFO, "Enabled Redis listener successfully!");
                 } else {
                     isActiveAndEnabled = false;
-                    log(Level.SEVERE, "Connection to the Redis server could not be established, please check the credentials.");
+                    log(Level.SEVERE, """
+                            Failed to establish connection to the Redis server.
+                            HuskSync will now abort initialization.
+                            Please check the credentials are correct and restart your server.""");
                     return;
                 }
                 jedis.subscribe(new JedisPubSub() {

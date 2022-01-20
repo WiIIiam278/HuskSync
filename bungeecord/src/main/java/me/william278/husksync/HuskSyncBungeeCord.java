@@ -101,10 +101,6 @@ public final class HuskSyncBungeeCord extends Plugin {
 
         // Initialize the redis listener
         redisListener = new BungeeRedisListener();
-        if (!redisListener.isActiveAndEnabled) {
-            getBungeeLogger().severe("Failed to initialize Redis; HuskSync will now abort loading itself (" + getProxy().getName() + ") v" + getDescription().getVersion());
-            return;
-        }
 
         // Register listener
         getProxy().getPluginManager().registerListener(this, new BungeeEventListener());

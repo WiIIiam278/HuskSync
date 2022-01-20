@@ -122,11 +122,6 @@ public final class HuskSyncBukkit extends JavaPlugin {
 
         // Initialize the redis listener
         redisListener = new BukkitRedisListener();
-        if (!redisListener.isActiveAndEnabled) {
-            getPluginLoader().disablePlugin(this);
-            getLogger().severe("Failed to initialize Redis; disabling HuskSync (" + getServer().getName() + ") v" + getDescription().getVersion());
-            return;
-        }
 
         // Ensure redis is connected; establish a handshake
         establishRedisHandshake();
