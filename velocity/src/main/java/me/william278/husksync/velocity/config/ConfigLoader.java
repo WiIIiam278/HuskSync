@@ -31,25 +31,24 @@ public class ConfigLoader {
     }
 
     private static String getConfigString(ConfigurationNode rootNode, String defaultValue, String... nodePath) {
-        return !rootNode.getNode((Object[]) nodePath).isVirtual() ? rootNode.getNode((Object[])nodePath).getString() : defaultValue;
+        return !rootNode.getNode((Object[]) nodePath).isVirtual() ? rootNode.getNode((Object[]) nodePath).getString() : defaultValue;
     }
 
     @SuppressWarnings("SameParameterValue")
     private static boolean getConfigBoolean(ConfigurationNode rootNode, boolean defaultValue, String... nodePath) {
-        return !rootNode.getNode((Object[]) nodePath).isVirtual() ? rootNode.getNode((Object[])nodePath).getBoolean() : defaultValue;
+        return !rootNode.getNode((Object[]) nodePath).isVirtual() ? rootNode.getNode((Object[]) nodePath).getBoolean() : defaultValue;
     }
 
     private static int getConfigInt(ConfigurationNode rootNode, int defaultValue, String... nodePath) {
-        return !rootNode.getNode((Object[]) nodePath).isVirtual() ? rootNode.getNode((Object[])nodePath).getInt() : defaultValue;
+        return !rootNode.getNode((Object[]) nodePath).isVirtual() ? rootNode.getNode((Object[]) nodePath).getInt() : defaultValue;
     }
 
     private static long getConfigLong(ConfigurationNode rootNode, long defaultValue, String... nodePath) {
-        return !rootNode.getNode((Object[])nodePath).isVirtual() ? rootNode.getNode((Object[])nodePath).getLong() : defaultValue;
+        return !rootNode.getNode((Object[]) nodePath).isVirtual() ? rootNode.getNode((Object[]) nodePath).getLong() : defaultValue;
     }
 
     public static void loadSettings(ConfigurationNode loadedConfig) throws IllegalArgumentException {
         ConfigurationNode config = copyDefaults(loadedConfig);
-        //ConfigurationNode config = copyDefaults(loadedConfig);
 
         Settings.language = getConfigString(config, "en-gb", "language");
 
@@ -58,6 +57,7 @@ public class ConfigLoader {
         Settings.redisHost = getConfigString(config, "localhost", "redis_settings", "host");
         Settings.redisPort = getConfigInt(config, 6379, "redis_settings", "port");
         Settings.redisPassword = getConfigString(config, "", "redis_settings", "password");
+        Settings.redisSSL = getConfigBoolean(config, false, "redis_settings", "use_ssl");
 
         Settings.dataStorageType = Settings.DataStorageType.valueOf(getConfigString(config, "sqlite", "data_storage_settings", "database_type").toUpperCase());
         if (Settings.dataStorageType == Settings.DataStorageType.MYSQL) {

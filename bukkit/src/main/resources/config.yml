@@ -2,6 +2,7 @@ redis_settings:
   host: 'localhost'
   port: 6379
   password: ''
+  use_ssl: false
 synchronisation_settings:
   inventories: true
   ender_chests: true

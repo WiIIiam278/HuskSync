@@ -42,6 +42,7 @@ public class ConfigLoader {
         Settings.redisHost = config.getString("redis_settings.host", "localhost");
         Settings.redisPort = config.getInt("redis_settings.port", 6379);
         Settings.redisPassword = config.getString("redis_settings.password", "");
+        Settings.redisSSL = config.getBoolean("redis_settings.use_ssl", false);
 
         Settings.dataStorageType = Settings.DataStorageType.valueOf(config.getString("data_storage_settings.database_type", "sqlite").toUpperCase());
         if (Settings.dataStorageType == Settings.DataStorageType.MYSQL) {

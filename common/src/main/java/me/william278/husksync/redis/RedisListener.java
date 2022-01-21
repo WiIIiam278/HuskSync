@@ -27,13 +27,15 @@ public abstract class RedisListener {
             jedisPool = new JedisPool(new JedisPoolConfig(),
                     Settings.redisHost,
                     Settings.redisPort,
-                    0);
+                    0,
+                    Settings.redisSSL);
         } else {
             jedisPool = new JedisPool(new JedisPoolConfig(),
                     Settings.redisHost,
                     Settings.redisPort,
                     0,
-                    Settings.redisPassword);
+                    Settings.redisPassword,
+                    Settings.redisSSL);
         }
     }
 

@@ -3,6 +3,7 @@ redis_settings:
   host: 'localhost'
   port: 6379
   password: ''
+  use_ssl: false
 data_storage_settings:
   database_type: 'sqlite'
   mysql_settings:

@@ -21,6 +21,7 @@ public class Settings {
     public static String redisHost;
     public static int redisPort;
     public static String redisPassword;
+    public static boolean redisSSL;
 
     /*
      * Bungee / Proxy server-only settings
