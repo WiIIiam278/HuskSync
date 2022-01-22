@@ -98,14 +98,14 @@ public class BukkitEventListener implements Listener {
      * Events to cancel if the player has not been set yet
      */
 
-    @EventHandler(priority = EventPriority.MONITOR)
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onDropItem(PlayerDropItemEvent event) {
         if (!plugin.isEnabled() || !HuskSyncBukkit.handshakeCompleted || HuskSyncBukkit.bukkitCache.isAwaitingDataFetch(event.getPlayer().getUniqueId())) {
             event.setCancelled(true); // If the plugin / player has not been set
         }
     }
 
-    @EventHandler(priority = EventPriority.MONITOR)
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onPickupItem(EntityPickupItemEvent event) {
         if (event.getEntity() instanceof Player player) {
             if (!plugin.isEnabled() || !HuskSyncBukkit.handshakeCompleted || HuskSyncBukkit.bukkitCache.isAwaitingDataFetch(player.getUniqueId())) {
@@ -114,28 +114,28 @@ public class BukkitEventListener implements Listener {
         }
     }
 
-    @EventHandler(priority = EventPriority.MONITOR)
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onPlayerInteract(PlayerInteractEvent event) {
         if (!plugin.isEnabled() || !HuskSyncBukkit.handshakeCompleted || HuskSyncBukkit.bukkitCache.isAwaitingDataFetch(event.getPlayer().getUniqueId())) {
             event.setCancelled(true); // If the plugin / player has not been set
         }
     }
 
-    @EventHandler(priority = EventPriority.MONITOR)
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onBlockPlace(BlockPlaceEvent event) {
         if (!plugin.isEnabled() || !HuskSyncBukkit.handshakeCompleted || HuskSyncBukkit.bukkitCache.isAwaitingDataFetch(event.getPlayer().getUniqueId())) {
             event.setCancelled(true); // If the plugin / player has not been set
         }
     }
 
-    @EventHandler(priority = EventPriority.MONITOR)
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onBlockBreak(BlockBreakEvent event) {
         if (!plugin.isEnabled() || !HuskSyncBukkit.handshakeCompleted || HuskSyncBukkit.bukkitCache.isAwaitingDataFetch(event.getPlayer().getUniqueId())) {
             event.setCancelled(true); // If the plugin / player has not been set
         }
     }
 
-    @EventHandler(priority = EventPriority.MONITOR)
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onInventoryOpen(InventoryOpenEvent event) {
         if (!plugin.isEnabled() || !HuskSyncBukkit.handshakeCompleted || HuskSyncBukkit.bukkitCache.isAwaitingDataFetch(event.getPlayer().getUniqueId())) {
             event.setCancelled(true); // If the plugin / player has not been set
