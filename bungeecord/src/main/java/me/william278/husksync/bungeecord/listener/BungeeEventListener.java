@@ -9,6 +9,7 @@ import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.event.PostLoginEvent;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
+import net.md_5.bungee.event.EventPriority;
 
 import java.io.IOException;
 import java.util.Map;
@@ -18,7 +19,7 @@ public class BungeeEventListener implements Listener {
 
     private static final HuskSyncBungeeCord plugin = HuskSyncBungeeCord.getInstance();
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.LOWEST)
     public void onPostLogin(PostLoginEvent event) {
         final ProxiedPlayer player = event.getPlayer();
         ProxyServer.getInstance().getScheduler().runAsync(plugin, () -> {
@@ -26,7 +27,7 @@ public class BungeeEventListener implements Listener {
             HuskSyncBungeeCord.dataManager.ensurePlayerExists(player.getUniqueId(), player.getName());
 
             // Get the player's data from SQL
-            final Map<Settings.SynchronisationCluster,PlayerData> data = HuskSyncBungeeCord.dataManager.getPlayerData(player.getUniqueId());
+            final Map<Settings.SynchronisationCluster, PlayerData> data = HuskSyncBungeeCord.dataManager.getPlayerData(player.getUniqueId());
 
             // Update the player's data from SQL onto the cache
             assert data != null;
