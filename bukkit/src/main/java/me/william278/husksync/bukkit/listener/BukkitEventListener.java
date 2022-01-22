@@ -22,7 +22,7 @@ public class BukkitEventListener implements Listener {
 
     private static final HuskSyncBukkit plugin = HuskSyncBukkit.getInstance();
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.LOWEST)
     public void onPlayerQuit(PlayerQuitEvent event) {
         // When a player leaves a Bukkit server
         final Player player = event.getPlayer();
@@ -33,13 +33,14 @@ public class BukkitEventListener implements Listener {
             return;
         }
 
-        if (!plugin.isEnabled() || !HuskSyncBukkit.handshakeCompleted || HuskSyncBukkit.isMySqlPlayerDataBridgeInstalled) return; // If the plugin has not been initialized correctly
+        if (!plugin.isEnabled() || !HuskSyncBukkit.handshakeCompleted || HuskSyncBukkit.isMySqlPlayerDataBridgeInstalled)
+            return; // If the plugin has not been initialized correctly
 
         // Update the player's data
         PlayerSetter.updatePlayerData(player);
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.LOWEST)
     public void onPlayerJoin(PlayerJoinEvent event) {
         if (!plugin.isEnabled()) return; // If the plugin has not been initialized correctly
 
@@ -49,7 +50,8 @@ public class BukkitEventListener implements Listener {
         // Mark the player as awaiting data fetch
         HuskSyncBukkit.bukkitCache.setAwaitingDataFetch(player.getUniqueId());
 
-        if (!HuskSyncBukkit.handshakeCompleted || HuskSyncBukkit.isMySqlPlayerDataBridgeInstalled) return; // If the data handshake has not been completed yet (or MySqlPlayerDataBridge is installed)
+        if (!HuskSyncBukkit.handshakeCompleted || HuskSyncBukkit.isMySqlPlayerDataBridgeInstalled)
+            return; // If the data handshake has not been completed yet (or MySqlPlayerDataBridge is installed)
 
         // Send a redis message requesting the player data (if they need to)
         if (HuskSyncBukkit.bukkitCache.isPlayerRequestingOnJoin(player.getUniqueId())) {
@@ -76,7 +78,8 @@ public class BukkitEventListener implements Listener {
 
     @EventHandler
     public void onInventoryClose(InventoryCloseEvent event) {
-        if (!plugin.isEnabled() || !HuskSyncBukkit.handshakeCompleted || HuskSyncBukkit.bukkitCache.isAwaitingDataFetch(event.getPlayer().getUniqueId())) return; // If the plugin has not been initialized correctly
+        if (!plugin.isEnabled() || !HuskSyncBukkit.handshakeCompleted || HuskSyncBukkit.bukkitCache.isAwaitingDataFetch(event.getPlayer().getUniqueId()))
+            return; // If the plugin has not been initialized correctly
 
         // When a player closes an Inventory
         final Player player = (Player) event.getPlayer();
