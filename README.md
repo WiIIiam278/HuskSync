@@ -215,6 +215,7 @@ Then, to build the plugin, run the following in the root of the repository:
 This plugin uses bStats to provide me with metrics about its usage:
 * [View Bukkit metrics](https://bstats.org/plugin/bukkit/HuskSync%20-%20Bukkit/13140)
 * [View BungeeCord metrics](https://bstats.org/plugin/bungeecord/HuskSync%20-%20BungeeCord/13141)
+* [View Velocity metrics](https://bstats.org/plugin/velocity/HuskSync%20-%20Velocity/13489)
 
 You can turn metric collection off by navigating to `plugins/bStats/config.yml` and editing the config to disable plugin metrics.
 
