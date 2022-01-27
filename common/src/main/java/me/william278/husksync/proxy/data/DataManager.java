@@ -9,7 +9,6 @@ import me.william278.husksync.util.Logger;
 
 import java.io.File;
 import java.sql.*;
-import java.time.Instant;
 import java.util.*;
 import java.util.logging.Level;
 
@@ -240,7 +239,7 @@ public class DataManager {
             try (PreparedStatement statement = connection.prepareStatement(
                     "UPDATE " + cluster.dataTableName() + " SET `version_uuid`=?, `timestamp`=?, `inventory`=?, `ender_chest`=?, `health`=?, `max_health`=?, `health_scale`=?, `hunger`=?, `saturation`=?, `saturation_exhaustion`=?, `selected_slot`=?, `status_effects`=?, `total_experience`=?, `exp_level`=?, `exp_progress`=?, `game_mode`=?, `statistics`=?, `is_flying`=?, `advancements`=?, `location`=? WHERE `player_id`=(SELECT `id` FROM " + cluster.playerTableName() + " WHERE `uuid`=?);")) {
                 statement.setString(1, playerData.getDataVersionUUID().toString());
-                statement.setTimestamp(2, new Timestamp(Instant.now().getEpochSecond()));
+                statement.setTimestamp(2, new Timestamp(System.currentTimeMillis()));
                 statement.setString(3, playerData.getSerializedInventory());
                 statement.setString(4, playerData.getSerializedEnderChest());
                 statement.setDouble(5, playerData.getHealth()); // Health
@@ -274,7 +273,7 @@ public class DataManager {
                     "INSERT INTO " + cluster.dataTableName() + " (`player_id`,`version_uuid`,`timestamp`,`inventory`,`ender_chest`,`health`,`max_health`,`health_scale`,`hunger`,`saturation`,`saturation_exhaustion`,`selected_slot`,`status_effects`,`total_experience`,`exp_level`,`exp_progress`,`game_mode`,`statistics`,`is_flying`,`advancements`,`location`) VALUES((SELECT `id` FROM " + cluster.playerTableName() + " WHERE `uuid`=?),?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);")) {
                 statement.setString(1, playerData.getPlayerUUID().toString());
                 statement.setString(2, playerData.getDataVersionUUID().toString());
-                statement.setTimestamp(3, new Timestamp(Instant.now().getEpochSecond()));
+                statement.setTimestamp(3, new Timestamp(System.currentTimeMillis()));
                 statement.setString(4, playerData.getSerializedInventory());
                 statement.setString(5, playerData.getSerializedEnderChest());
                 statement.setDouble(6, playerData.getHealth()); // Health
