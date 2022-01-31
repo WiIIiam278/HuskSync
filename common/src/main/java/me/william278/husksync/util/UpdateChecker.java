@@ -11,38 +11,35 @@ public abstract class UpdateChecker {
 
     private final static int SPIGOT_PROJECT_ID = 97144;
 
-    private final String currentVersion;
-    private String latestVersion;
+    private final VersionUtils.Version currentVersion;
+    private VersionUtils.Version latestVersion;
 
     public UpdateChecker(String currentVersion) {
-        this.currentVersion = currentVersion;
+        this.currentVersion = VersionUtils.Version.of(currentVersion);
 
         try {
             final URL url = new URL("https://api.spigotmc.org/legacy/update.php?resource=" + SPIGOT_PROJECT_ID);
             URLConnection urlConnection = url.openConnection();
-            this.latestVersion = new BufferedReader(new InputStreamReader(urlConnection.getInputStream())).readLine();
+            this.latestVersion = VersionUtils.Version.of(new BufferedReader(new InputStreamReader(urlConnection.getInputStream())).readLine());
         } catch (IOException e) {
             log(Level.WARNING, "Failed to check for updates: An IOException occurred.");
-            this.latestVersion = "Unknown";
+            this.latestVersion = new VersionUtils.Version();
         } catch (Exception e) {
             log(Level.WARNING, "Failed to check for updates: An exception occurred.");
-            this.latestVersion = "Unknown";
+            this.latestVersion = new VersionUtils.Version();
         }
     }
 
     public boolean isUpToDate() {
-        if (latestVersion.equalsIgnoreCase("Unknown")) {
-            return true;
-        }
-        return latestVersion.equals(currentVersion);
+        return this.currentVersion.compareTo(latestVersion) >= 0;
     }
 
     public String getLatestVersion() {
-        return latestVersion;
+        return latestVersion.toString();
     }
 
     public String getCurrentVersion() {
-        return currentVersion;
+        return currentVersion.toString();
     }
 
     public abstract void log(Level level, String message);
