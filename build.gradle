@@ -1,33 +1,24 @@
-buildscript {
-    repositories {
-        mavenCentral()
-    }
-}
-
 plugins {
-    id 'com.github.johnrengelman.shadow' version '7.1.0' apply false
+    id 'org.ajoberstar.grgit' version '4.1.1'
     id 'java'
 }
 
-allprojects {
-    group 'me.William278'
-    version '1.3.2'
+group 'me.william278'
+version "$ext.plugin_version+${versionMetadata()}"
 
-    compileJava { options.encoding = 'UTF-8' }
-    tasks.withType(JavaCompile) { options.encoding = 'UTF-8' }
-    javadoc { options.encoding = 'UTF-8' }
+ext {
+    set 'version', version.toString()
 }
 
-logger.lifecycle('Building HuskSync v' + version.toString())
-
-subprojects {
-    apply plugin: 'com.github.johnrengelman.shadow'
+import org.apache.tools.ant.filters.ReplaceTokens
+allprojects {
     apply plugin: 'java'
     apply plugin: 'maven-publish'
 
-    compileJava {
-        options.release = 16
-    }
+    compileJava.options.encoding = 'UTF-8'
+    javadoc.options.encoding = 'UTF-8'
+
+    compileJava.options.release.set 16
 
     repositories {
         mavenLocal()
@@ -39,4 +30,28 @@ subprojects {
         maven { url 'https://repo.alessiodp.com/releases/' }
         maven { url 'https://jitpack.io' }
     }
+
+    dependencies {
+        implementation 'redis.clients:jedis:3.7.1'
+    }
+
+    processResources {
+        filter ReplaceTokens as Class, beginToken: '${', endToken: '}',
+                tokens: rootProject.ext.properties
+    }
+}
+
+subprojects {
+    version rootProject.version
+    archivesBaseName = "${rootProject.name}-${project.name.capitalize()}"
+}
+
+logger.lifecycle("Building HuskSync ${version} by Willam278")
+
+def versionMetadata() {
+    if (grgit == null) {
+        return System.getenv("GITHUB_RUN_NUMBER") ? 'build.' + System.getenv("GITHUB_RUN_NUMBER") : 'unknown'
+    }
+
+    return 'rev.'+ grgit.head().abbreviatedId + (grgit.status().clean ? '' : '-indev')
 }
