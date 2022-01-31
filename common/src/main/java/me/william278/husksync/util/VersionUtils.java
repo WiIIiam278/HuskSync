@@ -53,7 +53,8 @@ public class VersionUtils {
             for (int version : this.versions) {
                 stringBuffer.append(version).append('.');
             }
-            return stringBuffer.append(this.metadata).toString();
+            stringBuffer.deleteCharAt(stringBuffer.length() - 1);
+            return stringBuffer.append('+').append(this.metadata).toString();
         }
     }
 
