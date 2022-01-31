@@ -1,3 +1,8 @@
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+}
+
 dependencies {
     implementation project(':common')
 
@@ -5,28 +10,26 @@ dependencies {
     compileOnly 'org.jetbrains:annotations:22.0.0'
 }
 
-publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            shadow.component(it)
-            afterEvaluate {
-                artifact javadocsJar
-            }
-        }
-    }
-    repositories {
-        mavenLocal()
-    }
-}
-
-shadowJar {
-    classifier = null
-    relocate ':common', 'me.william278.husksync'
-}
-
 repositories {
     mavenCentral()
     maven { url 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/' }
+}
+
+afterEvaluate {
+    publishing {
+        publications {
+            maven(MavenPublication) {
+                groupId = "${rootProject.group}.${rootProject.name.toLowerCase()}"
+                artifactId = project.name
+
+                from components.java
+                artifact javadocsJar
+            }
+        }
+        repositories {
+            mavenLocal()
+        }
+    }
 }
 
 task javadocs(type: Javadoc) {
@@ -39,6 +42,6 @@ task javadocs(type: Javadoc) {
 }
 
 task javadocsJar(type: Jar, dependsOn: javadocs) {
-    classifier = 'javadoc'
+    archiveClassifier.set 'javadoc'
     from javadocs.destinationDir
 }
