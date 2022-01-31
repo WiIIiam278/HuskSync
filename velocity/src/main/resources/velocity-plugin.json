@@ -1,0 +1,12 @@
+{
+  "id": "husksync",
+  "name": "HuskSync",
+  "version": "${version}",
+  "description": "A modern, cross-server player data synchronization system",
+  "url": "https://william278.net",
+  "authors": [
+    "William278"
+  ],
+  "dependencies": [],
+  "main": "me.william278.husksync.HuskSyncVelocity"
+}

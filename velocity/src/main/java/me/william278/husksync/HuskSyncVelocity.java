@@ -7,6 +7,7 @@ import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
 import com.velocitypowered.api.event.proxy.ProxyShutdownEvent;
 import com.velocitypowered.api.plugin.Plugin;
+import com.velocitypowered.api.plugin.PluginContainer;
 import com.velocitypowered.api.plugin.annotation.DataDirectory;
 import com.velocitypowered.api.proxy.ProxyServer;
 import me.william278.husksync.migrator.MPDBMigrator;
@@ -31,20 +32,11 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.logging.Level;
 
-import static me.william278.husksync.HuskSyncVelocity.VERSION;
-
-@Plugin(
-        id = "husksync",
-        name = "HuskSync",
-        version = VERSION,
-        description = "A modern, cross-server player data synchronization system",
-        authors = {"William278"},
-        url = "https://william278.net"
-)
+@Plugin(id = "husksync")
 public class HuskSyncVelocity {
 
     // Plugin version
-    public static final String VERSION = "1.3.2";
+    public static String VERSION = null;
 
     // Velocity bStats ID (different from Bukkit and BungeeCord)
     private static final int METRICS_ID = 13489;
@@ -95,11 +87,13 @@ public class HuskSyncVelocity {
     }
 
     @Inject
-    public HuskSyncVelocity(ProxyServer server, Logger logger, @DataDirectory Path dataDirectory, Metrics.Factory metricsFactory) {
+    public HuskSyncVelocity(ProxyServer server, Logger logger, @DataDirectory Path dataDirectory, Metrics.Factory metricsFactory, PluginContainer pluginContainer) {
         this.server = server;
         this.logger = logger;
         this.dataDirectory = dataDirectory;
         this.metricsFactory = metricsFactory;
+
+        pluginContainer.getDescription().getVersion().ifPresent(s -> VERSION = s);
     }
 
     @Subscribe

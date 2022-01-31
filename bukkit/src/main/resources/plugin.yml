@@ -1,5 +1,5 @@
 name: HuskSync
-version: '@version@'
+version: ${version}
 main: me.william278.husksync.HuskSyncBukkit
 api-version: 1.16
 author: William278
