@@ -1,9 +1,7 @@
 dependencies {
-    compileOnly project(':common')
-    compileOnly project(':api')
+    implementation project(':api')
     implementation project(path: ':common', configuration: 'shadow')
 
-    compileOnly 'redis.clients:jedis:3.7.1'
     implementation 'org.bstats:bstats-bukkit:2.2.1'
     implementation 'de.themoep:minedown:1.7.1-SNAPSHOT'
 
@@ -13,8 +11,9 @@ dependencies {
 }
 
 shadowJar {
-    relocate 'org.bstats', 'me.William278.husksync.libraries.bstats.bukkit'
-    relocate 'de.themoep', 'me.William278.husksync.libraries.minedown.standard'
-}
+    relocate 'de.themoep', 'me.william278.husksync.libraries'
+    relocate 'org.bstats', 'me.william278.husksync.libraries.bstats'
 
-tasks.register('prepareKotlinBuildScriptModel'){}
+    relocate 'redis.clients', 'me.william278.husksync.libraries'
+    relocate 'org.apache', 'me.william278.husksync.libraries'
+}

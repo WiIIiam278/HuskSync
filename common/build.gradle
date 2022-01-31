@@ -1,28 +1,7 @@
 dependencies {
-    implementation 'redis.clients:jedis:4.0.1'
-    implementation 'com.zaxxer:HikariCP:5.0.1'
-}
-
-import org.apache.tools.ant.filters.ReplaceTokens
-task updateVersion(type: Copy) {
-    from('src/main/resources') {
-        include 'plugin.yml'
-        include 'bungee.yml'
-    }
-    into 'build/sources/resources/'
-    filter(ReplaceTokens, tokens: [version: '' + project.version])
-}
-
-processResources {
-    duplicatesStrategy = DuplicatesStrategy.INCLUDE
-    dependsOn updateVersion
-    from 'build/sources/resources'
+    compileOnly 'com.zaxxer:HikariCP:5.0.1'
 }
 
 shadowJar {
-    dependsOn processResources
-
-    // Exclude some unnecessary files
-    exclude "**/module-info.class"
-    exclude "module-info.class"
+    relocate 'com.zaxxer', 'me.william278.husksync.libraries'
 }

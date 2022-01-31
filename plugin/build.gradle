@@ -1,30 +1,27 @@
+//file:noinspection GroovyAssignabilityCheck
+plugins {
+    id 'maven-publish'
+}
+
 dependencies {
-    implementation project(path: ":common", configuration: 'shadow')
-    implementation project(path: ":api", configuration: 'shadow')
-    implementation project(path: ":bukkit", configuration: 'shadow')
-    implementation project(path: ":bungeecord", configuration: 'shadow')
-    implementation project(path: ":velocity", configuration: 'shadow')
+    implementation project(path: ':bukkit', configuration: 'shadow')
+    implementation project(path: ':bungeecord', configuration: 'shadow')
+    implementation project(path: ':velocity', configuration: 'shadow')
 }
 
 shadowJar {
-    // Relocations
-    relocate 'redis.clients', 'me.William278.husksync.libraries.jedis'
-
-    destinationDirectory.set(file("$rootDir/target/"))
-    archiveBaseName.set('HuskSync')
-    archiveClassifier.set('')
-
-    build {
-        dependsOn tasks.named("shadowJar")
+    dependencies {
+        exclude dependency(':jedis')
+        exclude dependency(':commons-pool2')
     }
 }
 
 publishing {
     publications {
         mavenJava(MavenPublication) {
-            groupId = 'me.William278'
-            artifactId = 'HuskSync-plugin'
-            version = "$project.version"
+            groupId = 'me.william278'
+            artifactId = 'husksync-plugin'
+            version = "$rootProject.version"
 
             artifact shadowJar
         }
