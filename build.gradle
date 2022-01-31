@@ -1,4 +1,5 @@
 plugins {
+    id 'com.github.johnrengelman.shadow' version '7.1.0'
     id 'org.ajoberstar.grgit' version '4.1.1'
     id 'java'
 }
@@ -11,9 +12,10 @@ ext {
 }
 
 import org.apache.tools.ant.filters.ReplaceTokens
+
 allprojects {
+    apply plugin: 'com.github.johnrengelman.shadow'
     apply plugin: 'java'
-    apply plugin: 'maven-publish'
 
     compileJava.options.encoding = 'UTF-8'
     javadoc.options.encoding = 'UTF-8'
@@ -32,7 +34,10 @@ allprojects {
     }
 
     dependencies {
-        implementation 'redis.clients:jedis:3.7.1'
+        implementation('redis.clients:jedis:3.7.1') {
+            //noinspection GroovyAssignabilityCheck
+            exclude module: 'slf4j-api'
+        }
     }
 
     processResources {
@@ -44,14 +49,23 @@ allprojects {
 subprojects {
     version rootProject.version
     archivesBaseName = "${rootProject.name}-${project.name.capitalize()}"
+
+    if (['bukkit', 'bungeecord', 'velocity', 'plugin'].contains(project.name)) {
+        shadowJar {
+            destinationDirectory.set(file("$rootDir/target"))
+            archiveClassifier.set('')
+        }
+        jar.dependsOn shadowJar
+        clean.delete "$rootDir/target"
+    }
 }
 
 logger.lifecycle("Building HuskSync ${version} by Willam278")
 
+@SuppressWarnings('GrMethodMayBeStatic')
 def versionMetadata() {
     if (grgit == null) {
         return System.getenv("GITHUB_RUN_NUMBER") ? 'build.' + System.getenv("GITHUB_RUN_NUMBER") : 'unknown'
     }
-
-    return 'rev.'+ grgit.head().abbreviatedId + (grgit.status().clean ? '' : '-indev')
+    return 'rev.' + grgit.head().abbreviatedId + (grgit.status().clean ? '' : '-indev')
 }
