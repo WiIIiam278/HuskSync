@@ -34,7 +34,7 @@ allprojects {
     }
 
     dependencies {
-        implementation('redis.clients:jedis:3.7.1') {
+        implementation('redis.clients:jedis:4.1.1') {
             //noinspection GroovyAssignabilityCheck
             exclude module: 'slf4j-api'
         }
@@ -60,7 +60,7 @@ subprojects {
     }
 }
 
-logger.lifecycle("Building HuskSync ${version} by Willam278")
+logger.lifecycle("Building HuskSync ${version} by William278")
 
 @SuppressWarnings('GrMethodMayBeStatic')
 def versionMetadata() {
