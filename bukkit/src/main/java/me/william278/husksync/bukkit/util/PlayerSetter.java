@@ -66,7 +66,7 @@ public class PlayerSetter {
     private static double getMaxHealth(Player player) {
         double maxHealth = Objects.requireNonNull(player.getAttribute(Attribute.GENERIC_MAX_HEALTH)).getBaseValue();
 
-        // If the player has additional health bonuses from synchronised potion effects, subtract these from this number as they are synchronised seperately
+        // If the player has additional health bonuses from synchronised potion effects, subtract these from this number as they are synchronised separately
         if (player.hasPotionEffect(PotionEffectType.HEALTH_BOOST) && maxHealth > 20D) {
             PotionEffect healthBoostEffect = player.getPotionEffect(PotionEffectType.HEALTH_BOOST);
             assert healthBoostEffect != null;
