@@ -2,7 +2,7 @@ dependencies {
     implementation project(path: ':common', configuration: 'shadow')
 
     implementation 'com.zaxxer:HikariCP:5.0.1'
-    implementation 'org.bstats:bstats-velocity:2.2.1'
+    implementation 'org.bstats:bstats-velocity:3.0.0'
     implementation 'de.themoep:minedown-adventure:1.7.1-SNAPSHOT'
     implementation 'net.byteflux:libby-velocity:1.1.5'
 
