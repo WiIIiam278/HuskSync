@@ -24,14 +24,18 @@ public abstract class RedisListener {
      * Creates a new RedisListener and initialises the Redis connection
      */
     public RedisListener() {
+        JedisPoolConfig config = new JedisPoolConfig();
+        config.setMaxIdle(0);
+        config.setTestOnBorrow(true);
+        config.setTestOnReturn(true);
         if (Settings.redisPassword.isEmpty()) {
-            jedisPool = new JedisPool(new JedisPoolConfig(),
+            jedisPool = new JedisPool(config,
                     Settings.redisHost,
                     Settings.redisPort,
                     0,
                     Settings.redisSSL);
         } else {
-            jedisPool = new JedisPool(new JedisPoolConfig(),
+            jedisPool = new JedisPool(config,
                     Settings.redisHost,
                     Settings.redisPort,
                     0,
