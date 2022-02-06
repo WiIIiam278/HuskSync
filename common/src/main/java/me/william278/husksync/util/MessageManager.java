@@ -18,6 +18,7 @@ public class MessageManager {
             .append("[%plugin_description%](gray)\n")
             .append("[• Author:](white) [William278](gray show_text=&7Click to visit website open_url=https://william278.net)\n")
             .append("[• Contributors:](white) [HarvelsX](gray show_text=&7Code)\n")
+            .append("[• Translators:](white) [Namiu/うにたろう](gray show_text=&7Japanese, ja-jp)\n")
             .append("[• Plugin Info:](white) [[Link]](#00fb9a show_text=&7Click to open link open_url=https://github.com/WiIIiam278/HuskSync/)\n")
             .append("[• Report Issues:](white) [[Link]](#00fb9a show_text=&7Click to open link open_url=https://github.com/WiIIiam278/HuskSync/issues)\n")
             .append("[• Support Discord:](white) [[Link]](#00fb9a show_text=&7Click to join open_url=https://discord.gg/tVYhJfyDWG)");
