@@ -34,6 +34,7 @@ afterEvaluate {
 }
 
 task javadocs(type: Javadoc) {
+    options.encoding = 'UTF-8'
     options.addStringOption('Xdoclint:none', '-quiet')
     source = project(':common').sourceSets.main.allJava
     source += project(':api').sourceSets.main.allJava
