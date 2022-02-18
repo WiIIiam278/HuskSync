@@ -68,7 +68,7 @@ public class Settings {
     public static boolean syncLocation;
     public static boolean syncFlight;
 
-    // Future
+    public static long synchronizationTimeoutRetryDelay;
     public static boolean useNativeImplementation;
 
     // This Cluster ID

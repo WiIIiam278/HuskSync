@@ -1,6 +1,7 @@
 package me.william278.husksync.bukkit.listener;
 
 import me.william278.husksync.HuskSyncBukkit;
+import me.william278.husksync.Settings;
 import me.william278.husksync.bukkit.data.DataViewer;
 import me.william278.husksync.bukkit.util.PlayerSetter;
 import org.bukkit.Bukkit;
@@ -37,7 +38,7 @@ public class BukkitEventListener implements Listener {
             return; // If the plugin has not been initialized correctly
 
         // Update the player's data
-        PlayerSetter.updatePlayerData(player);
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> PlayerSetter.updatePlayerData(player));
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
@@ -55,14 +56,16 @@ public class BukkitEventListener implements Listener {
 
         // Send a redis message requesting the player data (if they need to)
         if (HuskSyncBukkit.bukkitCache.isPlayerRequestingOnJoin(player.getUniqueId())) {
-            try {
-                PlayerSetter.requestPlayerData(player.getUniqueId());
-            } catch (IOException e) {
-                plugin.getLogger().log(Level.SEVERE, "Failed to send a PlayerData fetch request", e);
-            }
+            Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+                try {
+                    PlayerSetter.requestPlayerData(player.getUniqueId());
+                } catch (IOException e) {
+                    plugin.getLogger().log(Level.SEVERE, "Failed to send a PlayerData fetch request", e);
+                }
+            });
         } else {
-            // If the player's data wasn't set after 10 ticks, ensure it will be
-            Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, () -> {
+            // If the player's data wasn't set after 20 ticks, ensure it will be
+            Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, () -> {
                 if (player.isOnline()) {
                     try {
                         if (HuskSyncBukkit.bukkitCache.isAwaitingDataFetch(player.getUniqueId())) {
@@ -72,7 +75,7 @@ public class BukkitEventListener implements Listener {
                         plugin.getLogger().log(Level.SEVERE, "Failed to send a PlayerData fetch request", e);
                     }
                 }
-            }, 5);
+            }, Settings.synchronizationTimeoutRetryDelay);
         }
     }
 

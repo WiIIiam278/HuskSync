@@ -27,6 +27,7 @@ public class ConfigLoader {
         Settings.syncFlight = config.getBoolean("synchronisation_settings.flight", false);
 
         Settings.useNativeImplementation = config.getBoolean("native_advancement_synchronization", false);
+        Settings.synchronizationTimeoutRetryDelay = config.getLong("synchronization_timeout_retry_delay", 15L);
     }
 
 }
