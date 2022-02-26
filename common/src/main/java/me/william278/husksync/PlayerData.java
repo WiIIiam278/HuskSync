@@ -1,6 +1,7 @@
 package me.william278.husksync;
 
 import java.io.*;
+import java.time.Instant;
 import java.util.UUID;
 
 /**
@@ -17,6 +18,11 @@ public class PlayerData implements Serializable {
      * The unique version UUID of this data
      */
     private final UUID dataVersionUUID;
+
+    /**
+     * Epoch time identifying when the data was last updated or created
+     */
+    private long timestamp;
 
     /**
      * A special flag that will be {@code true} if the player is new to the network and should not have their data set when joining the Bukkit
@@ -70,6 +76,7 @@ public class PlayerData implements Serializable {
                       String serializedStatusEffects, int totalExperience, int expLevel, float expProgress, String gameMode,
                       String serializedStatistics, boolean isFlying, String serializedAdvancements, String serializedLocation) {
         this.dataVersionUUID = UUID.randomUUID();
+        this.timestamp = Instant.now().getEpochSecond();
         this.playerUUID = playerUUID;
         this.serializedInventory = serializedInventory;
         this.serializedEnderChest = serializedEnderChest;
@@ -109,16 +116,17 @@ public class PlayerData implements Serializable {
      * @param totalExperience         Their total experience points ("Score")
      * @param expLevel                Their exp level
      * @param expProgress             Their exp progress to the next level
-     * @param gameMode                Their game mode ({@code SURVIVAL}, {@code CREATIVE}, etc)
+     * @param gameMode                Their game mode ({@code SURVIVAL}, {@code CREATIVE}, etc.)
      * @param serializedStatistics    Their serialized statistics data (Displayed in Statistics menu in ESC menu)
      */
-    public PlayerData(UUID playerUUID, UUID dataVersionUUID, String serializedInventory, String serializedEnderChest,
+    public PlayerData(UUID playerUUID, UUID dataVersionUUID, long timestamp, String serializedInventory, String serializedEnderChest,
                       double health, double maxHealth, double healthScale, int hunger, float saturation, float saturationExhaustion,
                       int selectedSlot, String serializedStatusEffects, int totalExperience, int expLevel, float expProgress,
                       String gameMode, String serializedStatistics, boolean isFlying, String serializedAdvancements,
                       String serializedLocation) {
         this.playerUUID = playerUUID;
         this.dataVersionUUID = dataVersionUUID;
+        this.timestamp = timestamp;
         this.serializedInventory = serializedInventory;
         this.serializedEnderChest = serializedEnderChest;
         this.health = health;
@@ -170,6 +178,15 @@ public class PlayerData implements Serializable {
      */
     public UUID getDataVersionUUID() {
         return dataVersionUUID;
+    }
+
+    /**
+     * Get the timestamp when this data was created or last updated
+     *
+     * @return time since epoch of last data update or creation
+     */
+    public long getDataTimestamp() {
+        return timestamp;
     }
 
     /**
@@ -341,6 +358,7 @@ public class PlayerData implements Serializable {
      */
     public void setSerializedInventory(String serializedInventory) {
         this.serializedInventory = serializedInventory;
+        this.timestamp = Instant.now().getEpochSecond();
     }
 
     /**
@@ -350,6 +368,7 @@ public class PlayerData implements Serializable {
      */
     public void setSerializedEnderChest(String serializedEnderChest) {
         this.serializedEnderChest = serializedEnderChest;
+        this.timestamp = Instant.now().getEpochSecond();
     }
 
     /**
@@ -359,6 +378,7 @@ public class PlayerData implements Serializable {
      */
     public void setHealth(double health) {
         this.health = health;
+        this.timestamp = Instant.now().getEpochSecond();
     }
 
     /**
@@ -368,6 +388,7 @@ public class PlayerData implements Serializable {
      */
     public void setMaxHealth(double maxHealth) {
         this.maxHealth = maxHealth;
+        this.timestamp = Instant.now().getEpochSecond();
     }
 
     /**
@@ -377,6 +398,7 @@ public class PlayerData implements Serializable {
      */
     public void setHealthScale(double healthScale) {
         this.healthScale = healthScale;
+        this.timestamp = Instant.now().getEpochSecond();
     }
 
     /**
@@ -386,6 +408,7 @@ public class PlayerData implements Serializable {
      */
     public void setHunger(int hunger) {
         this.hunger = hunger;
+        this.timestamp = Instant.now().getEpochSecond();
     }
 
     /**
@@ -395,6 +418,7 @@ public class PlayerData implements Serializable {
      */
     public void setSaturation(float saturation) {
         this.saturation = saturation;
+        this.timestamp = Instant.now().getEpochSecond();
     }
 
     /**
@@ -404,6 +428,7 @@ public class PlayerData implements Serializable {
      */
     public void setSaturationExhaustion(float saturationExhaustion) {
         this.saturationExhaustion = saturationExhaustion;
+        this.timestamp = Instant.now().getEpochSecond();
     }
 
     /**
@@ -413,6 +438,7 @@ public class PlayerData implements Serializable {
      */
     public void setSelectedSlot(int selectedSlot) {
         this.selectedSlot = selectedSlot;
+        this.timestamp = Instant.now().getEpochSecond();
     }
 
     /**
@@ -422,6 +448,7 @@ public class PlayerData implements Serializable {
      */
     public void setSerializedEffectData(String serializedEffectData) {
         this.serializedEffectData = serializedEffectData;
+        this.timestamp = Instant.now().getEpochSecond();
     }
 
     /**
@@ -431,6 +458,7 @@ public class PlayerData implements Serializable {
      */
     public void setTotalExperience(int totalExperience) {
         this.totalExperience = totalExperience;
+        this.timestamp = Instant.now().getEpochSecond();
     }
 
     /**
@@ -440,6 +468,7 @@ public class PlayerData implements Serializable {
      */
     public void setExpLevel(int expLevel) {
         this.expLevel = expLevel;
+        this.timestamp = Instant.now().getEpochSecond();
     }
 
     /**
@@ -449,6 +478,7 @@ public class PlayerData implements Serializable {
      */
     public void setExpProgress(float expProgress) {
         this.expProgress = expProgress;
+        this.timestamp = Instant.now().getEpochSecond();
     }
 
     /**
@@ -458,6 +488,7 @@ public class PlayerData implements Serializable {
      */
     public void setGameMode(String gameMode) {
         this.gameMode = gameMode;
+        this.timestamp = Instant.now().getEpochSecond();
     }
 
     /**
@@ -467,6 +498,7 @@ public class PlayerData implements Serializable {
      */
     public void setSerializedStatistics(String serializedStatistics) {
         this.serializedStatistics = serializedStatistics;
+        this.timestamp = Instant.now().getEpochSecond();
     }
 
     /**
@@ -476,6 +508,7 @@ public class PlayerData implements Serializable {
      */
     public void setFlying(boolean flying) {
         isFlying = flying;
+        this.timestamp = Instant.now().getEpochSecond();
     }
 
     /**
@@ -485,6 +518,7 @@ public class PlayerData implements Serializable {
      */
     public void setSerializedAdvancements(String serializedAdvancements) {
         this.serializedAdvancements = serializedAdvancements;
+        this.timestamp = Instant.now().getEpochSecond();
     }
 
     /**
@@ -494,5 +528,6 @@ public class PlayerData implements Serializable {
      */
     public void setSerializedLocation(String serializedLocation) {
         this.serializedLocation = serializedLocation;
+        this.timestamp = Instant.now().getEpochSecond();
     }
 }

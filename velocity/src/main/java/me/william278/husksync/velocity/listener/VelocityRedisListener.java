@@ -62,33 +62,31 @@ public class VelocityRedisListener extends RedisListener {
         }
 
         switch (message.getMessageType()) {
-            case PLAYER_DATA_REQUEST -> {
+            case PLAYER_DATA_REQUEST -> plugin.getProxyServer().getScheduler().buildTask(plugin, () -> {
                 // Get the UUID of the requesting player
                 final UUID requestingPlayerUUID = UUID.fromString(message.getMessageData());
-                plugin.getProxyServer().getScheduler().buildTask(plugin, () -> {
-                    try {
-                        // Send the reply, serializing the message data
-                        new RedisMessage(RedisMessage.MessageType.PLAYER_DATA_SET,
-                                new RedisMessage.MessageTarget(Settings.ServerType.BUKKIT, requestingPlayerUUID, message.getMessageTarget().targetClusterId()),
-                                RedisMessage.serialize(getPlayerCachedData(requestingPlayerUUID, message.getMessageTarget().targetClusterId())))
-                                .send();
+                try {
+                    // Send the reply, serializing the message data
+                    new RedisMessage(RedisMessage.MessageType.PLAYER_DATA_SET,
+                            new RedisMessage.MessageTarget(Settings.ServerType.BUKKIT, requestingPlayerUUID, message.getMessageTarget().targetClusterId()),
+                            RedisMessage.serialize(getPlayerCachedData(requestingPlayerUUID, message.getMessageTarget().targetClusterId())))
+                            .send();
 
-                        // Send an update to all bukkit servers removing the player from the requester cache
-                        new RedisMessage(RedisMessage.MessageType.REQUEST_DATA_ON_JOIN,
-                                new RedisMessage.MessageTarget(Settings.ServerType.BUKKIT, null, message.getMessageTarget().targetClusterId()),
-                                RedisMessage.RequestOnJoinUpdateType.REMOVE_REQUESTER.toString(), requestingPlayerUUID.toString())
-                                .send();
+                    // Send an update to all bukkit servers removing the player from the requester cache
+                    new RedisMessage(RedisMessage.MessageType.REQUEST_DATA_ON_JOIN,
+                            new RedisMessage.MessageTarget(Settings.ServerType.BUKKIT, null, message.getMessageTarget().targetClusterId()),
+                            RedisMessage.RequestOnJoinUpdateType.REMOVE_REQUESTER.toString(), requestingPlayerUUID.toString())
+                            .send();
 
-                        // Send synchronisation complete message
-                        Optional<Player> player = plugin.getProxyServer().getPlayer(requestingPlayerUUID);
-                        player.ifPresent(value -> value.sendActionBar(new MineDown(MessageManager.getMessage("synchronisation_complete")).toComponent()));
-                    } catch (IOException e) {
-                        log(Level.SEVERE, "Failed to serialize data when replying to a data request");
-                        e.printStackTrace();
-                    }
-                }).schedule();
-            }
-            case PLAYER_DATA_UPDATE -> {
+                    // Send synchronisation complete message
+                    Optional<Player> player = plugin.getProxyServer().getPlayer(requestingPlayerUUID);
+                    player.ifPresent(value -> value.sendActionBar(new MineDown(MessageManager.getMessage("synchronisation_complete")).toComponent()));
+                } catch (IOException e) {
+                    log(Level.SEVERE, "Failed to serialize data when replying to a data request");
+                    e.printStackTrace();
+                }
+            }).schedule();
+            case PLAYER_DATA_UPDATE -> plugin.getProxyServer().getScheduler().buildTask(plugin, () -> {
                 // Deserialize the PlayerData received
                 PlayerData playerData;
                 final String serializedPlayerData = message.getMessageData();
@@ -109,23 +107,24 @@ public class VelocityRedisListener extends RedisListener {
                 }
 
                 // Reply with the player data if they are still online (switching server)
-                Optional<Player> updatingPlayer = plugin.getProxyServer().getPlayer(playerData.getPlayerUUID());
-                updatingPlayer.ifPresent(player -> {
-                    try {
-                        new RedisMessage(RedisMessage.MessageType.PLAYER_DATA_SET,
-                                new RedisMessage.MessageTarget(Settings.ServerType.BUKKIT, playerData.getPlayerUUID(), message.getMessageTarget().targetClusterId()),
-                                RedisMessage.serialize(playerData))
-                                .send();
+                if (Settings.bounceBackSynchronisation) {
+                    Optional<Player> updatingPlayer = plugin.getProxyServer().getPlayer(playerData.getPlayerUUID());
+                    updatingPlayer.ifPresent(player -> {
+                        try {
+                            new RedisMessage(RedisMessage.MessageType.PLAYER_DATA_SET,
+                                    new RedisMessage.MessageTarget(Settings.ServerType.BUKKIT, playerData.getPlayerUUID(), message.getMessageTarget().targetClusterId()),
+                                    RedisMessage.serialize(playerData))
+                                    .send();
 
-                        // Send synchronisation complete message
-                        player.sendActionBar(new MineDown(MessageManager.getMessage("synchronisation_complete")).toComponent());
-                    } catch (IOException e) {
-                        log(Level.SEVERE, "Failed to re-serialize PlayerData when handling a player update request");
-                        e.printStackTrace();
-                    }
-                });
-
-            }
+                            // Send synchronisation complete message
+                            player.sendActionBar(new MineDown(MessageManager.getMessage("synchronisation_complete")).toComponent());
+                        } catch (IOException e) {
+                            log(Level.SEVERE, "Failed to re-serialize PlayerData when handling a player update request");
+                            e.printStackTrace();
+                        }
+                    });
+                }
+            }).schedule();
             case CONNECTION_HANDSHAKE -> {
                 // Reply to a Bukkit server's connection handshake to complete the process
                 if (HuskSyncVelocity.isDisabling) return; // Return if the Proxy is disabling
@@ -191,7 +190,7 @@ public class VelocityRedisListener extends RedisListener {
                     migrator.loadIncomingData(migrator.incomingPlayerData, HuskSyncVelocity.dataManager);
                 }
             }
-            case API_DATA_REQUEST -> {
+            case API_DATA_REQUEST -> plugin.getProxyServer().getScheduler().buildTask(plugin, () -> {
                 final UUID playerUUID = UUID.fromString(message.getMessageDataElements()[0]);
                 final UUID requestUUID = UUID.fromString(message.getMessageDataElements()[1]);
 
@@ -214,7 +213,7 @@ public class VelocityRedisListener extends RedisListener {
                 } catch (IOException e) {
                     plugin.getVelocityLogger().log(Level.SEVERE, "Failed to serialize PlayerData requested via the API");
                 }
-            }
+            }).schedule();
         }
     }
 

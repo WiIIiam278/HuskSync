@@ -63,37 +63,33 @@ public class BungeeRedisListener extends RedisListener {
         }
 
         switch (message.getMessageType()) {
-            case PLAYER_DATA_REQUEST -> {
+            case PLAYER_DATA_REQUEST -> ProxyServer.getInstance().getScheduler().runAsync(plugin, () -> {
                 // Get the UUID of the requesting player
                 final UUID requestingPlayerUUID = UUID.fromString(message.getMessageData());
-                ProxyServer.getInstance().getScheduler().runAsync(plugin, () -> {
-                    try {
-                        // Send the reply, serializing the message data
-                        new RedisMessage(RedisMessage.MessageType.PLAYER_DATA_SET,
-                                new RedisMessage.MessageTarget(Settings.ServerType.BUKKIT, requestingPlayerUUID, message.getMessageTarget().targetClusterId()),
-                                RedisMessage.serialize(getPlayerCachedData(requestingPlayerUUID, message.getMessageTarget().targetClusterId())))
-                                .send();
+                try {
+                    // Send the reply, serializing the message data
+                    new RedisMessage(RedisMessage.MessageType.PLAYER_DATA_SET,
+                            new RedisMessage.MessageTarget(Settings.ServerType.BUKKIT, requestingPlayerUUID, message.getMessageTarget().targetClusterId()),
+                            RedisMessage.serialize(getPlayerCachedData(requestingPlayerUUID, message.getMessageTarget().targetClusterId())))
+                            .send();
 
-                        // Send an update to all bukkit servers removing the player from the requester cache
-                        new RedisMessage(RedisMessage.MessageType.REQUEST_DATA_ON_JOIN,
-                                new RedisMessage.MessageTarget(Settings.ServerType.BUKKIT, null, message.getMessageTarget().targetClusterId()),
-                                RedisMessage.RequestOnJoinUpdateType.REMOVE_REQUESTER.toString(), requestingPlayerUUID.toString())
-                                .send();
+                    // Send an update to all bukkit servers removing the player from the requester cache
+                    new RedisMessage(RedisMessage.MessageType.REQUEST_DATA_ON_JOIN,
+                            new RedisMessage.MessageTarget(Settings.ServerType.BUKKIT, null, message.getMessageTarget().targetClusterId()),
+                            RedisMessage.RequestOnJoinUpdateType.REMOVE_REQUESTER.toString(), requestingPlayerUUID.toString())
+                            .send();
 
-                        // Send synchronisation complete message
-                        ProxiedPlayer player = ProxyServer.getInstance().getPlayer(requestingPlayerUUID);
-                        if (player != null) {
-                            if (player.isConnected()) {
-                                player.sendMessage(ChatMessageType.ACTION_BAR, new MineDown(MessageManager.getMessage("synchronisation_complete")).toComponent());
-                            }
-                        }
-                    } catch (IOException e) {
-                        log(Level.SEVERE, "Failed to serialize data when replying to a data request");
-                        e.printStackTrace();
+                    // Send synchronisation complete message
+                    ProxiedPlayer player = ProxyServer.getInstance().getPlayer(requestingPlayerUUID);
+                    if (player != null) {
+                        player.sendMessage(ChatMessageType.ACTION_BAR, new MineDown(MessageManager.getMessage("synchronisation_complete")).toComponent());
                     }
-                });
-            }
-            case PLAYER_DATA_UPDATE -> {
+                } catch (IOException e) {
+                    log(Level.SEVERE, "Failed to serialize data when replying to a data request");
+                    e.printStackTrace();
+                }
+            });
+            case PLAYER_DATA_UPDATE -> ProxyServer.getInstance().getScheduler().runAsync(plugin, () -> {
                 // Deserialize the PlayerData received
                 PlayerData playerData;
                 final String serializedPlayerData = message.getMessageData();
@@ -114,10 +110,10 @@ public class BungeeRedisListener extends RedisListener {
                 }
 
                 // Reply with the player data if they are still online (switching server)
-                try {
-                    ProxiedPlayer player = ProxyServer.getInstance().getPlayer(playerData.getPlayerUUID());
-                    if (player != null) {
-                        if (player.isConnected()) {
+                if (Settings.bounceBackSynchronisation) {
+                    try {
+                        ProxiedPlayer player = ProxyServer.getInstance().getPlayer(playerData.getPlayerUUID());
+                        if (player != null) {
                             new RedisMessage(RedisMessage.MessageType.PLAYER_DATA_SET,
                                     new RedisMessage.MessageTarget(Settings.ServerType.BUKKIT, playerData.getPlayerUUID(), message.getMessageTarget().targetClusterId()),
                                     serializedPlayerData)
@@ -126,12 +122,12 @@ public class BungeeRedisListener extends RedisListener {
                             // Send synchronisation complete message
                             player.sendMessage(ChatMessageType.ACTION_BAR, new MineDown(MessageManager.getMessage("synchronisation_complete")).toComponent());
                         }
+                    } catch (IOException e) {
+                        log(Level.SEVERE, "Failed to re-serialize PlayerData when handling a player update request");
+                        e.printStackTrace();
                     }
-                } catch (IOException e) {
-                    log(Level.SEVERE, "Failed to re-serialize PlayerData when handling a player update request");
-                    e.printStackTrace();
                 }
-            }
+            });
             case CONNECTION_HANDSHAKE -> {
                 // Reply to a Bukkit server's connection handshake to complete the process
                 if (HuskSyncBungeeCord.isDisabling) return; // Return if the Proxy is disabling
@@ -198,10 +194,9 @@ public class BungeeRedisListener extends RedisListener {
                             HuskSyncBungeeCord.dataManager));
                 }
             }
-            case API_DATA_REQUEST -> {
+            case API_DATA_REQUEST -> ProxyServer.getInstance().getScheduler().runAsync(plugin, () -> {
                 final UUID playerUUID = UUID.fromString(message.getMessageDataElements()[0]);
                 final UUID requestUUID = UUID.fromString(message.getMessageDataElements()[1]);
-
                 try {
                     final PlayerData data = getPlayerCachedData(playerUUID, message.getMessageTarget().targetClusterId());
 
@@ -221,7 +216,7 @@ public class BungeeRedisListener extends RedisListener {
                 } catch (IOException e) {
                     plugin.getBungeeLogger().log(Level.SEVERE, "Failed to serialize PlayerData requested via the API");
                 }
-            }
+            });
         }
     }
 

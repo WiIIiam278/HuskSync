@@ -51,8 +51,9 @@ public class BukkitEventListener implements Listener {
         // Mark the player as awaiting data fetch
         HuskSyncBukkit.bukkitCache.setAwaitingDataFetch(player.getUniqueId());
 
-        if (!HuskSyncBukkit.handshakeCompleted || HuskSyncBukkit.isMySqlPlayerDataBridgeInstalled)
+        if (!HuskSyncBukkit.handshakeCompleted || HuskSyncBukkit.isMySqlPlayerDataBridgeInstalled) {
             return; // If the data handshake has not been completed yet (or MySqlPlayerDataBridge is installed)
+        }
 
         // Send a redis message requesting the player data (if they need to)
         if (HuskSyncBukkit.bukkitCache.isPlayerRequestingOnJoin(player.getUniqueId())) {
@@ -64,7 +65,7 @@ public class BukkitEventListener implements Listener {
                 }
             });
         } else {
-            // If the player's data wasn't set after 20 ticks, ensure it will be
+            // If the player's data wasn't set after the synchronization timeout retry delay ticks, ensure it will be
             Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, () -> {
                 if (player.isOnline()) {
                     try {

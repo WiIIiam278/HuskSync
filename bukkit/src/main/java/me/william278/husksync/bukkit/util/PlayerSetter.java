@@ -330,7 +330,7 @@ public class PlayerSetter {
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
 
             // Apply the advancements to the player
-            Iterator<Advancement> serverAdvancements = Bukkit.getServer().advancementIterator();
+            final Iterator<Advancement> serverAdvancements = Bukkit.getServer().advancementIterator();
             while (serverAdvancements.hasNext()) { // Iterate through all advancements
                 boolean correctExperienceCheck = false; // Determines whether the experience might have changed warranting an update
                 Advancement advancement = serverAdvancements.next();

@@ -36,6 +36,9 @@ public class Settings {
     // SQL settings
     public static DataStorageType dataStorageType;
 
+    // Bounce-back synchronisation (default)
+    public static boolean bounceBackSynchronisation;
+
     // MySQL specific settings
     public static String mySQLHost;
     public static String mySQLDatabase;

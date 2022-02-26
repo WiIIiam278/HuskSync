@@ -19,6 +19,7 @@ data_storage_settings:
     maximum_lifetime: 1800000
     keepalive_time: 0
     connection_timeout: 5000
+bounce_back_synchronization: true
 clusters:
   main:
     player_table: 'husksync_players'

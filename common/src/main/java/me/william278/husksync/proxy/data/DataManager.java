@@ -184,7 +184,7 @@ public class DataManager {
                     ResultSet resultSet = statement.executeQuery();
                     if (resultSet.next()) {
                         final UUID dataVersionUUID = UUID.fromString(resultSet.getString("version_uuid"));
-                        //final Timestamp dataSaveTimestamp = resultSet.getTimestamp("timestamp");
+                        final Timestamp dataSaveTimestamp = resultSet.getTimestamp("timestamp");
                         final String serializedInventory = resultSet.getString("inventory");
                         final String serializedEnderChest = resultSet.getString("ender_chest");
                         final double health = resultSet.getDouble("health");
@@ -204,10 +204,10 @@ public class DataManager {
                         final String serializedLocationData = resultSet.getString("location");
                         final String serializedStatisticData = resultSet.getString("statistics");
 
-                        data.put(cluster, new PlayerData(playerUUID, dataVersionUUID, serializedInventory, serializedEnderChest,
-                                health, maxHealth, healthScale, hunger, saturation, saturationExhaustion, selectedSlot, serializedStatusEffects,
-                                totalExperience, expLevel, expProgress, gameMode, serializedStatisticData, isFlying,
-                                serializedAdvancementData, serializedLocationData));
+                        data.put(cluster, new PlayerData(playerUUID, dataVersionUUID, dataSaveTimestamp.toInstant().getEpochSecond(),
+                                serializedInventory, serializedEnderChest, health, maxHealth, healthScale, hunger, saturation,
+                                saturationExhaustion, selectedSlot, serializedStatusEffects, totalExperience, expLevel, expProgress,
+                                gameMode, serializedStatisticData, isFlying, serializedAdvancementData, serializedLocationData));
                     } else {
                         data.put(cluster, PlayerData.DEFAULT_PLAYER_DATA(playerUUID));
                     }

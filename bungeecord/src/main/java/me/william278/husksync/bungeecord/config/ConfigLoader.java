@@ -60,6 +60,8 @@ public class ConfigLoader {
         Settings.hikariKeepAliveTime = config.getLong("data_storage_settings.hikari_pool_settings.keepalive_time", 0);
         Settings.hikariConnectionTimeOut = config.getLong("data_storage_settings.hikari_pool_settings.connection_timeout", 5000);
 
+        Settings.bounceBackSynchronisation = config.getBoolean("bounce_back_synchronization", true);
+
         // Read cluster data
         Configuration section = config.getSection("clusters");
         final String settingDatabaseName = Settings.mySQLDatabase != null ? Settings.mySQLDatabase : "HuskSync";
