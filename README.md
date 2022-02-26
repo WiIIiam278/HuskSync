@@ -37,9 +37,14 @@ To migrate from MySQLPLayerDataBridge, you need a Proxy server with HuskSync ins
 #### Commands do not function
 Please check that the plugin is installed and enabled on both the proxy and bukkit server you are trying to execute the command from and that both plugins connected to Redis. (A connection handshake confirmation message is logged to console when communications are successfully established.)
 
-#### SQL errors in proxy console / data not synchronising
+#### Data not being synced on player join and SQL errors in proxy console
 This issue frequently occurs in users running Cracked (illegal) servers. I do not support piracy and so will be limited in my ability to help you.
 If you are running an offline server for a legitimate reason, however, make sure that in the `paper.yml` of your Bukkit servers `bungee-online-mode` is set to the correct value - and that both your Proxy (BungeeCord, Waterfall, etc.) server and Bukkit (Spigot, paper, etc.) servers are set up correctly to work with offline mode.
+
+#### Data sometimes not syncing between servers
+There are two primary reasons this may happen:
+* On your proxy server, you are running _FlameCord_ or a similar fork of Waterfall. Due to the nature of these forks changing security parameters, they can block or interfere with Redis packets being sent to and from your server. FlameCord, XCord and other forks are not compatible with HuskSync. For security-conscious users, I recommend Velocity.
+* Your backend servers/proxy and Redis server have noticeably different amounts of latency between each other. This is particularly relevant for users running across multiple machines, where some backend servers / the proxy are installed with Redis and other backend servers are on a different machine. The solution to this is to have your BungeeCord and Redis alone on one machine, and your backend servers across the others - or have a separate machine with equal latency to the others that has Redis on. In the future, I may have a look at automatically correcting and accounting for differences in latency.
 
 ## How it works
 ![Flow chart showing different processes of how the plugin works](images/flow-chart.png)
