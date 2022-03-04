@@ -18,4 +18,4 @@ synchronisation_settings:
 cluster_id: 'main'
 check_for_updates: true
 synchronization_timeout_retry_delay: 15
-native_advancement_synchronization: true
+native_advancement_synchronization: false
