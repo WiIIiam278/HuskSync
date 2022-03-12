@@ -1,6 +1,6 @@
 synchronisation_complete: '[資料已同步!!](#00fb9a)'
-viewing_inventory_of: '[查看](#00fb9a) [%1% 的背包](#00fb9a bold)'
-viewing_ender_chest_of: '[查看](#00fb9a) [%1% 的終界箱](#00fb9a bold)'
+viewing_inventory_of: '[查看](#00fb9a) [%1%](#00fb9a bold) [的背包](#00fb9a)'
+viewing_ender_chest_of: '[查看](#00fb9a) [%1%](#00fb9a bold) [的終界箱](#00fb9a)'
 reload_complete: '[HuskSync](#00fb9a bold) [| 已重新載入配置和訊息文件](#00fb9a)'
 error_invalid_syntax: '[錯誤:](#ff3300) [語法不正確，用法: %1%](#ff7e5e)'
 error_invalid_player: '[錯誤:](#ff3300) [找不到這位玩家](#ff7e5e)'
