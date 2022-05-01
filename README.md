@@ -74,15 +74,15 @@ Everything except player locations are synchronised by default. You can enable o
 ### Commands
 Commands are handled by the proxy server, rather than each spigot server. Some will only work on Spigot servers with HuskSync installed. Please remember that you will need a Proxy permission plugin (e.g. LuckPermsBungee) to set permissions for proxy commands.
 
-| Command             | Description                          | Permission                     |
-|---------------------|--------------------------------------|--------------------------------|
-| `/husksync about`   | View plugin information              | _None_                         |
-| `/husksync update`  | Check if an update is available      | `husksync.command.admin`       |
-| `/husksync status`  | View system status information       | `husksync.command.admin`       |
-| `/husksync reload`  | Reload config & message files        | `husksync.command.admin`       |
-| `/husksync invsee`  | View an offline player's inventory   | `husksync.command.inventory`   |
-| `/husksync echest`  | View an offline player's ender chest | `husksync.command.ender_chest` |
-| `/husksync migrate` | Migrate data from MPDB               | _Console-only_                 |
+| Command                               | Description                          | Permission                     |
+|---------------------------------------|--------------------------------------|--------------------------------|
+| `/husksync about`                     | View plugin information              | _None_                         |
+| `/husksync update`                    | Check if an update is available      | `husksync.command.admin`       |
+| `/husksync status`                    | View system status information       | `husksync.command.admin`       |
+| `/husksync reload`                    | Reload config & message files        | `husksync.command.admin`       |
+| `/husksync invsee <player> [cluster]` | View an offline player's inventory   | `husksync.command.inventory`   |
+| `/husksync echest <player> [cluster]` | View an offline player's ender chest | `husksync.command.ender_chest` |
+| `/husksync migrate [args]           ` | Migrate data from MPDB               | _Console-only_                 |
 
 ### Frequently Asked Questions (FAQs)
 #### Is Redis required?
