@@ -2,16 +2,16 @@ package net.william278.husksync.bukkit.migrator;
 
 import net.william278.husksync.HuskSyncBukkit;
 import net.william278.husksync.PlayerData;
-import net.william278.husksync.bukkit.util.PlayerSetter;
 import net.william278.husksync.bukkit.data.DataSerializer;
+import net.william278.husksync.bukkit.util.PlayerSetter;
 import net.william278.husksync.migrator.MPDBPlayerData;
-import net.craftersland.data.bridge.PD;
+import net.william278.mpdbconverter.MPDBConverter;
 import org.bukkit.Bukkit;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.plugin.Plugin;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.logging.Level;
 
 public class MPDBDeserializer {
@@ -19,10 +19,12 @@ public class MPDBDeserializer {
     private static final HuskSyncBukkit plugin = HuskSyncBukkit.getInstance();
 
     // Instance of MySqlPlayerDataBridge
-    private static PD mySqlPlayerDataBridge;
+    private static MPDBConverter mpdbConverter;
 
     public static void setMySqlPlayerDataBridge() {
-        mySqlPlayerDataBridge = (PD) Bukkit.getPluginManager().getPlugin("MySqlPlayerDataBridge");
+        Plugin mpdbPlugin = Bukkit.getPluginManager().getPlugin("MySqlPlayerDataBridge");
+        assert mpdbPlugin != null;
+        mpdbConverter = MPDBConverter.getInstance(mpdbPlugin);
     }
 
     /**
@@ -44,13 +46,13 @@ public class MPDBDeserializer {
             // Set inventory contents
             Inventory inventory = Bukkit.createInventory(null, InventoryType.PLAYER);
             if (!mpdbPlayerData.inventoryData.isEmpty() && !mpdbPlayerData.inventoryData.equalsIgnoreCase("none")) {
-                PlayerSetter.setInventory(inventory, getItemStackArrayFromMPDBBase64String(mpdbPlayerData.inventoryData));
+                PlayerSetter.setInventory(inventory, mpdbConverter.getItemStackFromSerializedData(mpdbPlayerData.inventoryData));
             }
 
             // Set armor (if there is data; MPDB stores empty data with literally the word "none". Obviously.)
             int armorSlot = 36;
             if (!mpdbPlayerData.armorData.isEmpty() && !mpdbPlayerData.armorData.equalsIgnoreCase("none")) {
-                ItemStack[] armorItems = getItemStackArrayFromMPDBBase64String(mpdbPlayerData.armorData);
+                ItemStack[] armorItems = mpdbConverter.getItemStackFromSerializedData(mpdbPlayerData.armorData);
                 for (ItemStack armorPiece : armorItems) {
                     if (armorPiece != null) {
                         inventory.setItem(armorSlot, armorPiece);
@@ -66,7 +68,7 @@ public class MPDBDeserializer {
             // Set ender chest (again, if there is data)
             ItemStack[] enderChestData;
             if (!mpdbPlayerData.enderChestData.isEmpty() && !mpdbPlayerData.enderChestData.equalsIgnoreCase("none")) {
-                enderChestData = getItemStackArrayFromMPDBBase64String(mpdbPlayerData.enderChestData);
+                enderChestData = mpdbConverter.getItemStackFromSerializedData(mpdbPlayerData.enderChestData);
             } else {
                 enderChestData = new ItemStack[0];
             }
@@ -81,20 +83,5 @@ public class MPDBDeserializer {
             e.printStackTrace();
         }
         return playerData;
-    }
-
-    /**
-     * Returns an ItemStack array from a decoded base 64 string in MySQLPlayerDataBridge's format
-     *
-     * @param data The encoded ItemStack[] string from MySQLPlayerDataBridge
-     * @return The {@link ItemStack[]} array
-     * @throws InvocationTargetException If an error occurs during decoding
-     * @throws IllegalAccessException    If an error occurs during decoding
-     */
-    public static ItemStack[] getItemStackArrayFromMPDBBase64String(String data) throws InvocationTargetException, IllegalAccessException {
-        if (data.isEmpty()) {
-            return new ItemStack[0];
-        }
-        return mySqlPlayerDataBridge.getItemStackSerializer().fromBase64(data);
     }
 }

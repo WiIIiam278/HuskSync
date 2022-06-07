@@ -3,8 +3,8 @@ dependencies {
 
     implementation 'org.bstats:bstats-bukkit:3.0.0'
     implementation 'de.themoep:minedown:1.7.1-SNAPSHOT'
+    implementation 'net.william278:mpdbdataconverter:1.0'
 
-    compileOnly 'net.craftersland.data:bridge:4.0.1'
     compileOnly 'org.spigotmc:spigot-api:1.16.5-R0.1-SNAPSHOT'
     compileOnly 'org.jetbrains:annotations:23.0.0'
 }
@@ -14,4 +14,6 @@ shadowJar {
     relocate 'org.bstats', 'net.william278.husksync.libraries.bstats'
     relocate 'redis.clients', 'net.william278.husksync.libraries'
     relocate 'org.apache', 'net.william278.husksync.libraries'
+    relocate 'net.william278.mpdbdataconverter', 'net.william278.husksync.libraries.mpdbdataconverter'
+
 }
