@@ -317,7 +317,7 @@ public class BungeeCommand extends Command implements TabExecutor, HuskSyncComma
     // View the inventory of a player specified by their name
     private void openInventory(ProxiedPlayer viewer, String targetPlayerName, String clusterId) {
         if (viewer.getName().equalsIgnoreCase(targetPlayerName)) {
-            viewer.sendMessage(new MineDown(MessageManager.getMessage("error_cannot_view_own_ender_chest")).toComponent());
+            viewer.sendMessage(new MineDown(MessageManager.getMessage("error_cannot_view_own_inventory")).toComponent());
             return;
         }
         if (ProxyServer.getInstance().getPlayer(targetPlayerName) != null) {

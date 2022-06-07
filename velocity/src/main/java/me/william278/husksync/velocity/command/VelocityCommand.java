@@ -310,7 +310,7 @@ public class VelocityCommand implements SimpleCommand, HuskSyncCommand {
     // View the inventory of a player specified by their name
     private void openInventory(Player viewer, String targetPlayerName, String clusterId) {
         if (viewer.getUsername().equalsIgnoreCase(targetPlayerName)) {
-            viewer.sendMessage(new MineDown(MessageManager.getMessage("error_cannot_view_own_ender_chest")).toComponent());
+            viewer.sendMessage(new MineDown(MessageManager.getMessage("error_cannot_view_own_inventory")).toComponent());
             return;
         }
         if (plugin.getProxyServer().getPlayer(targetPlayerName).isPresent()) {
