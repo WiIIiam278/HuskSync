@@ -464,12 +464,13 @@ public class PlayerSetter {
      */
     private static void setPlayerHealth(Player player, double health, double maxHealth, double healthScale) {
         // Set max health
-        if (maxHealth != 0.0D) {
+        if (maxHealth != 0D) {
             Objects.requireNonNull(player.getAttribute(Attribute.GENERIC_MAX_HEALTH)).setBaseValue(maxHealth);
         }
 
         // Set health
-        player.setHealth(player.getHealth() > maxHealth ? maxHealth : health);
+        double currentHealth = player.getHealth();
+        if (health != currentHealth) player.setHealth(currentHealth > maxHealth ? maxHealth : health);
 
         // Set health scaling if needed
         if (healthScale != 0D) {
