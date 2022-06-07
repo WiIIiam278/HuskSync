@@ -1,49 +1,14 @@
-//file:noinspection GroovyAssignabilityCheck
 plugins {
-    id 'java-library'
     id 'maven-publish'
 }
 
 dependencies {
-    implementation project(path: ':common')
+    compileOnly project(path: ':common')
+    implementation project(path: ':bukkit')
 
     compileOnly 'org.spigotmc:spigot-api:1.16.5-R0.1-SNAPSHOT'
     compileOnly 'org.jetbrains:annotations:23.0.0'
 }
 
-repositories {
-    mavenCentral()
-    maven { url 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/' }
-}
-
-afterEvaluate {
-    publishing {
-        publications {
-            maven(MavenPublication) {
-                groupId = "${rootProject.group}.${rootProject.name.toLowerCase()}"
-                artifactId = project.name
-
-                from components.java
-                artifact javadocsJar
-            }
-        }
-        repositories {
-            mavenLocal()
-        }
-    }
-}
-
-task javadocs(type: Javadoc) {
-    options.encoding = 'UTF-8'
-    options.addStringOption('Xdoclint:none', '-quiet')
-    source = project(':common').sourceSets.main.allJava
-    source += project(':api').sourceSets.main.allJava
-    classpath = files(project(':common').sourceSets.main.compileClasspath)
-    classpath += files(project(':api').sourceSets.main.compileClasspath)
-    destinationDir = file("${buildDir}/docs/javadoc")
-}
-
-task javadocsJar(type: Jar, dependsOn: javadocs) {
-    archiveClassifier.set 'javadoc'
-    from javadocs.destinationDir
+shadowJar {
 }

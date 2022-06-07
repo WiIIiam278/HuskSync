@@ -1,4 +1,4 @@
-package net.william278.husksync.bukkit.api.events;
+package net.william278.husksync.bukkit.events;
 
 import net.william278.husksync.PlayerData;
 import org.bukkit.entity.Player;

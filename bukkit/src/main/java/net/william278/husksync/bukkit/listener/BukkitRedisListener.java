@@ -4,7 +4,6 @@ import de.themoep.minedown.MineDown;
 import net.william278.husksync.HuskSyncBukkit;
 import net.william278.husksync.PlayerData;
 import net.william278.husksync.Settings;
-import net.william278.husksync.bukkit.api.HuskSyncAPI;
 import net.william278.husksync.bukkit.config.ConfigLoader;
 import net.william278.husksync.bukkit.data.DataViewer;
 import net.william278.husksync.bukkit.migrator.MPDBDeserializer;
@@ -17,12 +16,16 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 
 public class BukkitRedisListener extends RedisListener {
 
     private static final HuskSyncBukkit plugin = HuskSyncBukkit.getInstance();
+
+    public static HashMap<UUID, CompletableFuture<PlayerData>> apiRequests = new HashMap<>();
 
     // Initialize the listener on the bukkit server
     public BukkitRedisListener() {
@@ -111,10 +114,10 @@ public class BukkitRedisListener extends RedisListener {
                 }
                 case API_DATA_RETURN -> {
                     final UUID requestUUID = UUID.fromString(message.getMessageDataElements()[0]);
-                    if (HuskSyncAPI.apiRequests.containsKey(requestUUID)) {
+                    if (apiRequests.containsKey(requestUUID)) {
                         try {
                             final PlayerData data = (PlayerData) RedisMessage.deserialize(message.getMessageDataElements()[1]);
-                            HuskSyncAPI.apiRequests.get(requestUUID).complete(data);
+                            apiRequests.get(requestUUID).complete(data);
                         } catch (IOException | ClassNotFoundException e) {
                             log(Level.SEVERE, "Failed to serialize returned API-requested player data");
                         }
@@ -124,8 +127,8 @@ public class BukkitRedisListener extends RedisListener {
                 case API_DATA_CANCEL -> {
                     final UUID requestUUID = UUID.fromString(message.getMessageDataElements()[0]);
                     // Cancel requests if no data could be found on the proxy
-                    if (HuskSyncAPI.apiRequests.containsKey(requestUUID)) {
-                        HuskSyncAPI.apiRequests.get(requestUUID).cancel(true);
+                    if (apiRequests.containsKey(requestUUID)) {
+                        apiRequests.get(requestUUID).cancel(true);
                     }
                 }
                 case RELOAD_CONFIG -> {

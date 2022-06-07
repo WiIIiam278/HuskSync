@@ -1,5 +1,4 @@
 dependencies {
-    implementation project(':api')
     implementation project(path: ':common')
 
     implementation 'org.bstats:bstats-bukkit:3.0.0'

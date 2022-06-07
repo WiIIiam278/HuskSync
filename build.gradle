@@ -19,6 +19,7 @@ allprojects {
 
     compileJava.options.encoding = 'UTF-8'
     javadoc.options.encoding = 'UTF-8'
+    javadoc.options.addStringOption('Xdoclint:none', '-quiet')
 
     compileJava.options.release.set 16
 
@@ -50,7 +51,7 @@ subprojects {
     version rootProject.version
     archivesBaseName = "${rootProject.name}-${project.name.capitalize()}"
 
-    if (['bukkit', 'bungeecord', 'velocity', 'api', 'plugin'].contains(project.name)) {
+    if (['bukkit', 'api', 'bungeecord', 'velocity', 'plugin'].contains(project.name)) {
         shadowJar {
             destinationDirectory.set(file("$rootDir/target"))
             archiveClassifier.set('')

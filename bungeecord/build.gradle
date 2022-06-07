@@ -13,10 +13,8 @@ shadowJar {
     relocate 'de.themoep', 'net.william278.husksync.libraries'
     relocate 'net.byteflux', 'net.william278.husksync.libraries'
     relocate 'org.bstats', 'net.william278.husksync.libraries.bstats'
-
     relocate 'redis.clients', 'net.william278.husksync.libraries'
     relocate 'org.apache', 'net.william278.husksync.libraries'
-
     relocate 'com.zaxxer', 'net.william278.husksync.libraries'
 
     dependencies {
