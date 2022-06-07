@@ -206,7 +206,9 @@ A code bounty program is in place for HuskSync, where developers making signific
 While the code bounty program is not available for translation contributors, they are still strongly appreciated in making the plugin more accessible. If you'd like to contribute translated message strings for your language, you can submit a Pull Request that creates a .yml file in `bungeecord/src/main/resources/languages` with the correct translations.
 
 ### Building
-To build HuskSync you will first need to download MySqlPlayerDataBridge and `mvn install:install-file` the jar file to your local maven repository.
+You can build HuskSync yourself, though please read the license and buy yourself a copy as HuskSync is indeed a premium resource. 
+
+To build HuskSync, you'll need to get the [MPDBConverter](https://github.com/WiIIiam278/MPDBDataConverter) library, either by authenticating through GitHub packages or by downloading and running `mvn install-file` to publish it to your local maven repository.
 ```
 mvn install:install-file -Dfile=MysqlPlayerDataBridge-v4.0.1.jar -DgroupId=net.craftersland.data -DartifactId=bridge -Dversion=4.0.1 -Dpackaging=jar
 ```
