@@ -33,7 +33,7 @@ public class HuskSyncAPI {
     }
 
     /**
-     * (INTERNAL) Map of API requests that are processed by the bukkit plugin that implements the API.
+     * <b>(Internal only)</b> Map of API requests that are processed by the bukkit plugin that implements the API.
      */
     public static HashMap<UUID, CompletableFuture<PlayerData>> apiRequests = new HashMap<>();
 
@@ -47,7 +47,7 @@ public class HuskSyncAPI {
     public CompletableFuture<PlayerData> getPlayerData(UUID playerUUID) throws IOException {
         // Create the request to be completed
         final UUID requestUUID = UUID.randomUUID();
-        apiRequests.put(requestUUID,  new CompletableFuture<>());
+        apiRequests.put(requestUUID, new CompletableFuture<>());
 
         // Remove the request from the map on completion
         apiRequests.get(requestUUID).whenComplete((playerData, throwable) -> apiRequests.remove(requestUUID));

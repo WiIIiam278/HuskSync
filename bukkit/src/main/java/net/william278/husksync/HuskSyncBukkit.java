@@ -144,7 +144,7 @@ public final class HuskSyncBukkit extends JavaPlugin {
         if (HuskSyncBukkit.handshakeCompleted && !HuskSyncBukkit.isMySqlPlayerDataBridgeInstalled && Bukkit.getOnlinePlayers().size() > 0) {
             getLogger().info("Saving data for remaining online players...");
             for (Player player : Bukkit.getOnlinePlayers()) {
-                PlayerSetter.updatePlayerData(player);
+                PlayerSetter.updatePlayerData(player, false);
             }
             getLogger().info("Data save complete!");
         }

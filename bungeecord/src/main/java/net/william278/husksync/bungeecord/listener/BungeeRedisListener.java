@@ -92,7 +92,8 @@ public class BungeeRedisListener extends RedisListener {
             case PLAYER_DATA_UPDATE -> ProxyServer.getInstance().getScheduler().runAsync(plugin, () -> {
                 // Deserialize the PlayerData received
                 PlayerData playerData;
-                final String serializedPlayerData = message.getMessageData();
+                final String serializedPlayerData = message.getMessageDataElements()[0];
+                final boolean bounceBack = Boolean.parseBoolean(message.getMessageDataElements()[1]);
                 try {
                     playerData = (PlayerData) RedisMessage.deserialize(serializedPlayerData);
                 } catch (IOException | ClassNotFoundException e) {
@@ -110,7 +111,7 @@ public class BungeeRedisListener extends RedisListener {
                 }
 
                 // Reply with the player data if they are still online (switching server)
-                if (Settings.bounceBackSynchronisation) {
+                if (Settings.bounceBackSynchronisation && bounceBack) {
                     try {
                         ProxiedPlayer player = ProxyServer.getInstance().getPlayer(playerData.getPlayerUUID());
                         if (player != null) {

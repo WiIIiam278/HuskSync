@@ -18,4 +18,5 @@ synchronisation_settings:
 cluster_id: 'main'
 check_for_updates: true
 synchronization_timeout_retry_delay: 15
+save_on_world_save: true
 native_advancement_synchronization: false

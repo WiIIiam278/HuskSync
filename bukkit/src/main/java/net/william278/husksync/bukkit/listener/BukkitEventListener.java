@@ -15,6 +15,7 @@ import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.*;
+import org.bukkit.event.world.WorldSaveEvent;
 
 import java.io.IOException;
 import java.util.logging.Level;
@@ -38,7 +39,7 @@ public class BukkitEventListener implements Listener {
             return; // If the plugin has not been initialized correctly
 
         // Update the player's data
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> PlayerSetter.updatePlayerData(player));
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> PlayerSetter.updatePlayerData(player, true));
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
@@ -143,6 +144,16 @@ public class BukkitEventListener implements Listener {
     public void onInventoryOpen(InventoryOpenEvent event) {
         if (!plugin.isEnabled() || !HuskSyncBukkit.handshakeCompleted || HuskSyncBukkit.bukkitCache.isAwaitingDataFetch(event.getPlayer().getUniqueId())) {
             event.setCancelled(true); // If the plugin / player has not been set
+        }
+    }
+
+    @EventHandler(priority = EventPriority.NORMAL)
+    public void onWorldSave(WorldSaveEvent event) {
+        if (!plugin.isEnabled() || !HuskSyncBukkit.handshakeCompleted) {
+            return;
+        }
+        for (Player playerInWorld : event.getWorld().getPlayers()) {
+            PlayerSetter.updatePlayerData(playerInWorld, false);
         }
     }
 }

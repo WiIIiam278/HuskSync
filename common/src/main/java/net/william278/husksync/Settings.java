@@ -70,8 +70,8 @@ public class Settings {
     public static boolean syncAdvancements;
     public static boolean syncLocation;
     public static boolean syncFlight;
-
     public static long synchronizationTimeoutRetryDelay;
+    public static boolean saveOnWorldSave;
     public static boolean useNativeImplementation;
 
     // This Cluster ID

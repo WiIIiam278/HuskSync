@@ -95,15 +95,16 @@ public class PlayerSetter {
     /**
      * Update a {@link Player}'s data, sending it to the proxy
      *
-     * @param player {@link Player} to send data to proxy
+     * @param player     {@link Player} to send data to proxy
+     * @param bounceBack whether the plugin should bounce-back the updated data to the player (used for server switching)
      */
-    public static void updatePlayerData(Player player) {
+    public static void updatePlayerData(Player player, boolean bounceBack) {
         // Send a redis message with the player's last updated PlayerData version UUID and their new PlayerData
         try {
             final String serializedPlayerData = getNewSerializedPlayerData(player);
             new RedisMessage(RedisMessage.MessageType.PLAYER_DATA_UPDATE,
                     new RedisMessage.MessageTarget(Settings.ServerType.PROXY, null, Settings.cluster),
-                    serializedPlayerData).send();
+                    serializedPlayerData, Boolean.toString(bounceBack)).send();
         } catch (IOException e) {
             plugin.getLogger().log(Level.SEVERE, "Failed to send a PlayerData update to the proxy", e);
         }
@@ -280,7 +281,7 @@ public class PlayerSetter {
         final Object playerAdvancements = AdvancementUtils.getPlayerAdvancements(player);
 
         // Clear
-	    AdvancementUtils.clearPlayerAdvancements(playerAdvancements);
+        AdvancementUtils.clearPlayerAdvancements(playerAdvancements);
         AdvancementUtils.clearVisibleAdvancements(playerAdvancements);
 
         advancementRecords.forEach(advancementRecord -> {
