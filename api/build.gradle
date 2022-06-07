@@ -1,8 +1,6 @@
 dependencies {
     compileOnly project(path: ':common')
-    implementation (project(path: ':bukkit')) {
-        exclude (group: 'net.craftersland.data', module: 'bridge')
-    }
+    implementation project(path: ':bukkit')
 
     compileOnly 'org.spigotmc:spigot-api:1.16.5-R0.1-SNAPSHOT'
     compileOnly 'org.jetbrains:annotations:23.0.0'

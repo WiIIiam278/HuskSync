@@ -4,9 +4,7 @@ plugins {
 }
 
 dependencies {
-    implementation (project(path: ':bukkit', configuration: 'shadow')) {
-        exclude(group: 'net.craftersland.data', module: 'bridge')
-    }
+    implementation project(path: ':bukkit', configuration: 'shadow')
     implementation project(path: ':api', configuration: 'shadow')
     implementation project(path: ':bungeecord', configuration: 'shadow')
     implementation project(path: ':velocity', configuration: 'shadow')
