@@ -3,5 +3,5 @@ dependencies {
 }
 
 shadowJar {
-    relocate 'com.zaxxer', 'me.william278.husksync.libraries'
+    relocate 'com.zaxxer', 'net.william278.husksync.libraries'
 }

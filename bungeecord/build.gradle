@@ -1,5 +1,5 @@
 dependencies {
-    implementation project(path: ':common', configuration: 'shadow')
+    implementation project(path: ':common')
 
     implementation 'com.zaxxer:HikariCP:5.0.1'
     implementation 'org.bstats:bstats-bungeecord:3.0.0'
@@ -10,14 +10,14 @@ dependencies {
 }
 
 shadowJar {
-    relocate 'de.themoep', 'me.william278.husksync.libraries'
-    relocate 'net.byteflux', 'me.william278.husksync.libraries'
-    relocate 'org.bstats', 'me.william278.husksync.libraries.bstats'
+    relocate 'de.themoep', 'net.william278.husksync.libraries'
+    relocate 'net.byteflux', 'net.william278.husksync.libraries'
+    relocate 'org.bstats', 'net.william278.husksync.libraries.bstats'
 
-    relocate 'redis.clients', 'me.william278.husksync.libraries'
-    relocate 'org.apache', 'me.william278.husksync.libraries'
+    relocate 'redis.clients', 'net.william278.husksync.libraries'
+    relocate 'org.apache', 'net.william278.husksync.libraries'
 
-    relocate 'com.zaxxer', 'me.william278.husksync.libraries'
+    relocate 'com.zaxxer', 'net.william278.husksync.libraries'
 
     dependencies {
         //noinspection GroovyAssignabilityCheck

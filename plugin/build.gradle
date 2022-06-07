@@ -19,7 +19,7 @@ shadowJar {
 publishing {
     publications {
         mavenJava(MavenPublication) {
-            groupId = 'me.william278'
+            groupId = 'net.william278'
             artifactId = 'husksync-plugin'
             version = "$rootProject.version"
 

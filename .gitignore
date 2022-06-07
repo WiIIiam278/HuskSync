@@ -106,7 +106,7 @@ build/
 # Ignore Gradle GUI config
 gradle-app.setting
 
-# me.william278.crossserversync.bungeecord.data.DataManager.PlayerDataCache of project
+# net.william278.crossserversync.bungeecord.data.DataManager.PlayerDataCache of project
 .gradletasknamecache
 
 **/build/

@@ -4,7 +4,7 @@ plugins {
     id 'java'
 }
 
-group 'me.william278'
+group 'net.william278'
 version "$ext.plugin_version+${versionMetadata()}"
 
 ext {
@@ -34,7 +34,7 @@ allprojects {
     }
 
     dependencies {
-        implementation('redis.clients:jedis:4.1.1') {
+        implementation('redis.clients:jedis:4.2.3') {
             //noinspection GroovyAssignabilityCheck
             exclude module: 'slf4j-api'
         }
@@ -50,7 +50,7 @@ subprojects {
     version rootProject.version
     archivesBaseName = "${rootProject.name}-${project.name.capitalize()}"
 
-    if (['bukkit', 'bungeecord', 'velocity', 'plugin'].contains(project.name)) {
+    if (['bukkit', 'bungeecord', 'velocity', 'api', 'plugin'].contains(project.name)) {
         shadowJar {
             destinationDirectory.set(file("$rootDir/target"))
             archiveClassifier.set('')

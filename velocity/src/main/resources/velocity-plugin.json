@@ -8,5 +8,5 @@
     "William278"
   ],
   "dependencies": [],
-  "main": "me.william278.husksync.HuskSyncVelocity"
+  "main": "net.william278.husksync.HuskSyncVelocity"
 }

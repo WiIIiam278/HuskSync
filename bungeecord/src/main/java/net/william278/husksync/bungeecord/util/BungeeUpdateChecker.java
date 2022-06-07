@@ -1,0 +1,20 @@
+package net.william278.husksync.bungeecord.util;
+
+import net.william278.husksync.HuskSyncBungeeCord;
+import net.william278.husksync.util.UpdateChecker;
+
+import java.util.logging.Level;
+
+public class BungeeUpdateChecker extends UpdateChecker {
+
+    private static final HuskSyncBungeeCord plugin = HuskSyncBungeeCord.getInstance();
+
+    public BungeeUpdateChecker(String versionToCheck) {
+        super(versionToCheck);
+    }
+
+    @Override
+    public void log(Level level, String message) {
+        plugin.getBungeeLogger().log(level, message);
+    }
+}
