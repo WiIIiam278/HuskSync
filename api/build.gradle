@@ -1,7 +1,3 @@
-plugins {
-    id 'maven-publish'
-}
-
 dependencies {
     compileOnly project(path: ':common')
     implementation project(path: ':bukkit')
