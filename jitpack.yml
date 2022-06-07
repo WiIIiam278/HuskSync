@@ -6,9 +6,7 @@ before_install:
   - 'chmod +x gradlew'
   - 'chmod +x ./.jitpack/ensure-java-16'
   - 'bash ./.jitpack/ensure-java-16 install'
-  - 'FILE="-Dfile=lib/mpdbdataconverter-1.0.jar"'
-  - 'curl https://github.com/WiIIiam278/MPDBDataConverter/releases/download/1.0/mpdbdataconverter-1.0.jar -O $FILE'
-  - 'mvn install:install-file $FILE -DgroupId=net.william278 -DartifactId=mpdbdataconverter -Dversion=1.0 -Dpackaging=jar -DgeneratePom=true'
+  - 'bash ./.jitpack/install-mpdb-converter-converter'
 install:
   - 'if ! ./.jitpack/ensure-java-16 use; then source ~/.sdkman/bin/sdkman-init.sh; fi'
   - 'java -version'

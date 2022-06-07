@@ -136,7 +136,7 @@ With Maven, add the repository to your pom.xml:
 Then, add the dependency. Replace `version` with the latest version of HuskSync: [![](https://jitpack.io/v/WiIIiam278/HuskSync.svg)](https://jitpack.io/#WiIIiam278/HuskSync)
 ```xml
 	<dependency>
-            <groupId>com.github.WiIIiam278</groupId>
+            <groupId>net.william278</groupId>
             <artifactId>HuskSync</artifactId>
             <version>version</version>
             <scope>provided</scope>
@@ -152,10 +152,10 @@ Or, with Gradle, add the dependency like so to your build.gradle:
 		}
 	}
 ```
-Then add the dependency as follows. Replace `version` with the latest version of HuskSync: [![](https://jitpack.io/v/WiIIiam278/HuskSync.svg)](https://jitpack.io/#WiIIiam278/HuskSync)
+Then add the dependency as follows. Replace `version` with the latest version of HuskSync: [![](https://jitpack.io/v/net.william278/HuskSync.svg)](https://jitpack.io/#net.william278/HuskSync)
 ```
-        dependencies {
-	        compileOnly 'com.github.WiIIiam278:HuskSync:version'
+    dependencies {
+	    compileOnly 'net.william278:HuskSync:version'
 	}
 ```
 
@@ -179,7 +179,7 @@ try {
 ```
 
 #### Getting ItemStacks and usable data from PlayerData
-Use the static methods provided in the [DataSerializer class](https://javadoc.jitpack.io/com/github/WiIIiam278/HuskSync/latest/javadoc/me/william278/husksync/bukkit/data/DataSerializer.html). For instance, to get a player's inventory as an `ItemStack[]` from a `PlayerData` object.
+Use the static methods provided in the [DataSerializer class](https://javadoc.jitpack.io/net.william278/HuskSync/latest/javadoc/net/william278/husksync/bukkit/data/DataSerializer.html). For instance, to get a player's inventory as an `ItemStack[]` from a `PlayerData` object.
 ```java
 ItemStack[] inventoryItems = DataSerializer.serializeInventory(playerData.getSerializedInventory());
 ItemStack[] enderChestItems = DataSerializer.serializeInventory(playerData.getSerializedEnderChest());
@@ -209,9 +209,6 @@ While the code bounty program is not available for translation contributors, the
 You can build HuskSync yourself, though please read the license and buy yourself a copy as HuskSync is indeed a premium resource. 
 
 To build HuskSync, you'll need to get the [MPDBConverter](https://github.com/WiIIiam278/MPDBDataConverter) library, either by authenticating through GitHub packages or by downloading and running `mvn install-file` to publish it to your local maven repository.
-```
-mvn install:install-file -Dfile=MysqlPlayerDataBridge-v4.0.1.jar -DgroupId=net.craftersland.data -DartifactId=bridge -Dversion=4.0.1 -Dpackaging=jar
-```
 
 Then, to build the plugin, run the following in the root of the repository:
 ```
@@ -224,7 +221,7 @@ This plugin uses bStats to provide me with metrics about its usage:
 * [View BungeeCord metrics](https://bstats.org/plugin/bungeecord/HuskSync%20-%20BungeeCord/13141)
 * [View Velocity metrics](https://bstats.org/plugin/velocity/HuskSync%20-%20Velocity/13489)
 
-You can turn metric collection off by navigating to `plugins/bStats/config.yml` and editing the config to disable plugin metrics.
+You can turn metric collection off by navigating to `~/plugins/bStats/config.yml` and editing the config to disable plugin metrics.
 
 ## Support
 * Report bugs: [Click here](https://github.com/WiIIiam278/HuskSync/issues)
