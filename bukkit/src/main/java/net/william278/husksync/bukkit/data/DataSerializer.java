@@ -15,8 +15,6 @@ import org.yaml.snakeyaml.external.biz.base64Coder.Base64Coder;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.Serializable;
-import java.time.Instant;
 import java.util.*;
 
 /**
@@ -194,12 +192,12 @@ public class DataSerializer {
         return serializedPotionEffect != null ? new PotionEffect((Map<String, Object>) serializedPotionEffect) : null;
     }
 
-    public static DataSerializer.PlayerLocation deserializePlayerLocationData(String serializedLocationData) throws IOException {
+    public static me.william278.husksync.bukkit.data.DataSerializer.PlayerLocation deserializePlayerLocationData(String serializedLocationData) throws IOException {
         if (serializedLocationData.isEmpty()) {
             return null;
         }
         try {
-            return (DataSerializer.PlayerLocation) RedisMessage.deserialize(serializedLocationData);
+            return (me.william278.husksync.bukkit.data.DataSerializer.PlayerLocation) RedisMessage.deserialize(serializedLocationData);
         } catch (ClassNotFoundException e) {
             throw new IOException("Unable to decode class type.", e);
         }
@@ -207,19 +205,19 @@ public class DataSerializer {
 
     public static String getSerializedLocation(Player player) throws IOException {
         final Location playerLocation = player.getLocation();
-        return RedisMessage.serialize(new DataSerializer.PlayerLocation(playerLocation.getX(), playerLocation.getY(), playerLocation.getZ(),
+        return RedisMessage.serialize(new me.william278.husksync.bukkit.data.DataSerializer.PlayerLocation(playerLocation.getX(), playerLocation.getY(), playerLocation.getZ(),
                 playerLocation.getYaw(), playerLocation.getPitch(), player.getWorld().getName(), player.getWorld().getEnvironment()));
     }
 
     /**
-     * Deserializes a player's advancement data as serialized with {@link #getSerializedAdvancements(Player)} into {@link AdvancementRecordDate} data.
+     * Deserializes a player's advancement data as serialized with {@link #getSerializedAdvancements(Player)} into {@link me.william278.husksync.bukkit.data.DataSerializer.AdvancementRecordDate} data.
      *
      * @param serializedAdvancementData The serialized advancement data {@link String}
-     * @return The deserialized {@link AdvancementRecordDate} for the player
+     * @return The deserialized {@link me.william278.husksync.bukkit.data.DataSerializer.AdvancementRecordDate} for the player
      * @throws IOException If the deserialization fails
      */
     @SuppressWarnings("unchecked") // Ignore the unchecked cast here
-    public static List<DataSerializer.AdvancementRecordDate> deserializeAdvancementData(String serializedAdvancementData) throws IOException {
+    public static List<me.william278.husksync.bukkit.data.DataSerializer.AdvancementRecordDate> deserializeAdvancementData(String serializedAdvancementData) throws IOException {
         if (serializedAdvancementData.isEmpty()) {
             return new ArrayList<>();
         }
@@ -227,15 +225,15 @@ public class DataSerializer {
             List<?> deserialize = (List<?>) RedisMessage.deserialize(serializedAdvancementData);
 
             // Migrate old AdvancementRecord into date format
-            if (!deserialize.isEmpty() && deserialize.get(0) instanceof AdvancementRecord) {
-                deserialize = ((List<AdvancementRecord>) deserialize).stream()
-                        .map(o -> new AdvancementRecordDate(
-                                o.advancementKey,
-                                o.awardedAdvancementCriteria
+            if (!deserialize.isEmpty() && deserialize.get(0) instanceof me.william278.husksync.bukkit.data.DataSerializer.AdvancementRecord) {
+                deserialize = ((List<me.william278.husksync.bukkit.data.DataSerializer.AdvancementRecord>) deserialize).stream()
+                        .map(o -> new me.william278.husksync.bukkit.data.DataSerializer.AdvancementRecordDate(
+                                o.advancementKey(),
+                                o.awardedAdvancementCriteria()
                         )).toList();
             }
 
-            return (List<AdvancementRecordDate>) deserialize;
+            return (List<me.william278.husksync.bukkit.data.DataSerializer.AdvancementRecordDate>) deserialize;
         } catch (ClassNotFoundException e) {
             throw new IOException("Unable to decode class type.", e);
         }
@@ -250,7 +248,7 @@ public class DataSerializer {
      */
     public static String getSerializedAdvancements(Player player) throws IOException {
         Iterator<Advancement> serverAdvancements = Bukkit.getServer().advancementIterator();
-        ArrayList<DataSerializer.AdvancementRecordDate> advancementData = new ArrayList<>();
+        ArrayList<me.william278.husksync.bukkit.data.DataSerializer.AdvancementRecordDate> advancementData = new ArrayList<>();
 
         while (serverAdvancements.hasNext()) {
             final AdvancementProgress progress = player.getAdvancementProgress(serverAdvancements.next());
@@ -259,25 +257,25 @@ public class DataSerializer {
             final Map<String, Date> awardedCriteria = new HashMap<>();
             progress.getAwardedCriteria().forEach(s -> awardedCriteria.put(s, progress.getDateAwarded(s)));
 
-            advancementData.add(new DataSerializer.AdvancementRecordDate(advancementKey.getNamespace() + ":" + advancementKey.getKey(), awardedCriteria));
+            advancementData.add(new me.william278.husksync.bukkit.data.DataSerializer.AdvancementRecordDate(advancementKey.getNamespace() + ":" + advancementKey.getKey(), awardedCriteria));
         }
 
         return RedisMessage.serialize(advancementData);
     }
 
     /**
-     * Deserializes a player's statistic data as serialized with {@link #getSerializedStatisticData(Player)} into {@link StatisticData}.
+     * Deserializes a player's statistic data as serialized with {@link #getSerializedStatisticData(Player)} into {@link me.william278.husksync.bukkit.data.DataSerializer.StatisticData}.
      *
      * @param serializedStatisticData The serialized statistic data {@link String}
-     * @return The deserialized {@link StatisticData} for the player
+     * @return The deserialized {@link me.william278.husksync.bukkit.data.DataSerializer.StatisticData} for the player
      * @throws IOException If the deserialization fails
      */
-    public static DataSerializer.StatisticData deserializeStatisticData(String serializedStatisticData) throws IOException {
+    public static me.william278.husksync.bukkit.data.DataSerializer.StatisticData deserializeStatisticData(String serializedStatisticData) throws IOException {
         if (serializedStatisticData.isEmpty()) {
-            return new DataSerializer.StatisticData(new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>());
+            return new me.william278.husksync.bukkit.data.DataSerializer.StatisticData(new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>());
         }
         try {
-            return (DataSerializer.StatisticData) RedisMessage.deserialize(serializedStatisticData);
+            return (me.william278.husksync.bukkit.data.DataSerializer.StatisticData) RedisMessage.deserialize(serializedStatisticData);
         } catch (ClassNotFoundException e) {
             throw new IOException("Unable to decode class type.", e);
         }
@@ -322,46 +320,8 @@ public class DataSerializer {
             }
         }
 
-        DataSerializer.StatisticData statisticData = new DataSerializer.StatisticData(untypedStatisticValues, blockStatisticValues, itemStatisticValues, entityStatisticValues);
+        me.william278.husksync.bukkit.data.DataSerializer.StatisticData statisticData = new me.william278.husksync.bukkit.data.DataSerializer.StatisticData(untypedStatisticValues, blockStatisticValues, itemStatisticValues, entityStatisticValues);
         return RedisMessage.serialize(statisticData);
-    }
-
-    /**
-     * A record used to store data for a player's location
-     */
-    public record PlayerLocation(double x, double y, double z, float yaw, float pitch,
-                                 String worldName, World.Environment environment) implements Serializable {
-    }
-
-    /**
-     * A record used to store data for advancement synchronisation
-     *
-     * @deprecated Old format - Use {@link AdvancementRecordDate} instead
-     */
-    @Deprecated
-    @SuppressWarnings("DeprecatedIsStillUsed") // Suppress deprecation warnings here (still used for backwards compatibility)
-    public record AdvancementRecord(String advancementKey,
-                                    ArrayList<String> awardedAdvancementCriteria) implements Serializable {
-    }
-
-    /**
-     * A record used to store data for native advancement synchronisation, tracking advancement date progress
-     */
-    public record AdvancementRecordDate(String key, Map<String, Date> criteriaMap) implements Serializable {
-        AdvancementRecordDate(String key, List<String> criteriaList) {
-            this(key, new HashMap<>() {{
-                criteriaList.forEach(s -> put(s, Date.from(Instant.EPOCH)));
-            }});
-        }
-    }
-
-    /**
-     * A record used to store data for a player's statistics
-     */
-    public record StatisticData(HashMap<Statistic, Integer> untypedStatisticValues,
-                                HashMap<Statistic, HashMap<Material, Integer>> blockStatisticValues,
-                                HashMap<Statistic, HashMap<Material, Integer>> itemStatisticValues,
-                                HashMap<Statistic, HashMap<EntityType, Integer>> entityStatisticValues) implements Serializable {
     }
 
 }

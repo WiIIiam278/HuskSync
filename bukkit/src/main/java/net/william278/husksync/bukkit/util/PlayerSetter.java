@@ -159,7 +159,7 @@ public class PlayerSetter {
             // Set the player's data from the PlayerData
             try {
                 if (Settings.syncAdvancements) {
-                    List<DataSerializer.AdvancementRecordDate> advancementRecords
+                    List<me.william278.husksync.bukkit.data.DataSerializer.AdvancementRecordDate> advancementRecords
                             = DataSerializer.deserializeAdvancementData(data.getSerializedAdvancements());
 
                     if (Settings.useNativeImplementation) {
@@ -277,7 +277,7 @@ public class PlayerSetter {
         }
     }
 
-    private static void nativeSyncPlayerAdvancements(final Player player, final List<DataSerializer.AdvancementRecordDate> advancementRecords) {
+    private static void nativeSyncPlayerAdvancements(final Player player, final List<me.william278.husksync.bukkit.data.DataSerializer.AdvancementRecordDate> advancementRecords) {
         final Object playerAdvancements = AdvancementUtils.getPlayerAdvancements(player);
 
         // Clear
@@ -316,9 +316,9 @@ public class PlayerSetter {
      * Update a player's advancements and progress to match the advancementData
      *
      * @param player          The player to set the advancements of
-     * @param advancementData The ArrayList of {@link DataSerializer.AdvancementRecordDate}s to set
+     * @param advancementData The ArrayList of {@link me.william278.husksync.bukkit.data.DataSerializer.AdvancementRecordDate}s to set
      */
-    private static void setPlayerAdvancements(Player player, List<DataSerializer.AdvancementRecordDate> advancementData, PlayerData data) {
+    private static void setPlayerAdvancements(Player player, List<me.william278.husksync.bukkit.data.DataSerializer.AdvancementRecordDate> advancementData, PlayerData data) {
         // Temporarily disable advancement announcing if needed
         boolean announceAdvancementUpdate = false;
         if (Boolean.TRUE.equals(player.getWorld().getGameRuleValue(GameRule.ANNOUNCE_ADVANCEMENTS))) {
@@ -336,7 +336,7 @@ public class PlayerSetter {
                 boolean correctExperienceCheck = false; // Determines whether the experience might have changed warranting an update
                 Advancement advancement = serverAdvancements.next();
                 AdvancementProgress playerProgress = player.getAdvancementProgress(advancement);
-                for (DataSerializer.AdvancementRecordDate record : advancementData) {
+                for (me.william278.husksync.bukkit.data.DataSerializer.AdvancementRecordDate record : advancementData) {
                     // If the advancement is one on the data
                     if (record.key().equals(advancement.getKey().getNamespace() + ":" + advancement.getKey().getKey())) {
 
@@ -379,9 +379,9 @@ public class PlayerSetter {
      * Set a player's statistics (in the Statistic menu)
      *
      * @param player        The player to set the statistics of
-     * @param statisticData The {@link DataSerializer.StatisticData} to set
+     * @param statisticData The {@link me.william278.husksync.bukkit.data.DataSerializer.StatisticData} to set
      */
-    private static void setPlayerStatistics(Player player, DataSerializer.StatisticData statisticData) {
+    private static void setPlayerStatistics(Player player, me.william278.husksync.bukkit.data.DataSerializer.StatisticData statisticData) {
         // Set untyped statistics
         for (Statistic statistic : statisticData.untypedStatisticValues().keySet()) {
             player.setStatistic(statistic, statisticData.untypedStatisticValues().get(statistic));
@@ -422,12 +422,12 @@ public class PlayerSetter {
     }
 
     /**
-     * Set a player's location from {@link DataSerializer.PlayerLocation} data
+     * Set a player's location from {@link me.william278.husksync.bukkit.data.DataSerializer.PlayerLocation} data
      *
      * @param player   The {@link Player} to teleport
-     * @param location The {@link DataSerializer.PlayerLocation}
+     * @param location The {@link me.william278.husksync.bukkit.data.DataSerializer.PlayerLocation}
      */
-    private static void setPlayerLocation(Player player, DataSerializer.PlayerLocation location) {
+    private static void setPlayerLocation(Player player, me.william278.husksync.bukkit.data.DataSerializer.PlayerLocation location) {
         // Don't teleport if the location is invalid
         if (location == null) {
             return;
