@@ -39,7 +39,14 @@ public class BukkitEventListener implements Listener {
             return; // If the plugin has not been initialized correctly
 
         // Update the player's data
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> PlayerSetter.updatePlayerData(player, true));
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            // Update data to proxy
+            PlayerSetter.updatePlayerData(player, true);
+
+            // Clear player inventory and ender chest
+            player.getInventory().clear();
+            player.getEnderChest().clear();
+        });
     }
 
     @EventHandler(priority = EventPriority.LOWEST)

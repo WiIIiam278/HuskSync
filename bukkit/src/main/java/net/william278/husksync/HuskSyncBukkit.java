@@ -145,6 +145,10 @@ public final class HuskSyncBukkit extends JavaPlugin {
             getLogger().info("Saving data for remaining online players...");
             for (Player player : Bukkit.getOnlinePlayers()) {
                 PlayerSetter.updatePlayerData(player, false);
+
+                // Clear player inventory and ender chest
+                player.getInventory().clear();
+                player.getEnderChest().clear();
             }
             getLogger().info("Data save complete!");
         }

@@ -108,10 +108,6 @@ public class PlayerSetter {
         } catch (IOException e) {
             plugin.getLogger().log(Level.SEVERE, "Failed to send a PlayerData update to the proxy", e);
         }
-
-        // Clear player inventory and ender chest
-        player.getInventory().clear();
-        player.getEnderChest().clear();
     }
 
     /**
