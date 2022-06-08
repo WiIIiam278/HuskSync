@@ -6,10 +6,6 @@ dependencies {
     compileOnly 'com.zaxxer:HikariCP:5.0.1'
 }
 
-java {
-    withJavadocJar()
-}
-
 shadowJar {
     relocate 'com.zaxxer', 'net.william278.husksync.libraries'
 }
