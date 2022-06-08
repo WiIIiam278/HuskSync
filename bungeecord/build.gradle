@@ -15,7 +15,6 @@ shadowJar {
     relocate 'org.bstats', 'net.william278.husksync.libraries.bstats'
     relocate 'redis.clients', 'net.william278.husksync.libraries'
     relocate 'org.apache', 'net.william278.husksync.libraries'
-    relocate 'com.zaxxer', 'net.william278.husksync.libraries'
 
     dependencies {
         //noinspection GroovyAssignabilityCheck

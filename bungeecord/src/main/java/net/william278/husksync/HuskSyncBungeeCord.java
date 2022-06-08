@@ -1,7 +1,9 @@
 package net.william278.husksync;
 
-import net.william278.husksync.Server;
-import net.william278.husksync.Settings;
+import net.byteflux.libby.BungeeLibraryManager;
+import net.byteflux.libby.Library;
+import net.md_5.bungee.api.ProxyServer;
+import net.md_5.bungee.api.plugin.Plugin;
 import net.william278.husksync.bungeecord.command.BungeeCommand;
 import net.william278.husksync.bungeecord.config.ConfigLoader;
 import net.william278.husksync.bungeecord.config.ConfigManager;
@@ -13,10 +15,6 @@ import net.william278.husksync.migrator.MPDBMigrator;
 import net.william278.husksync.proxy.data.DataManager;
 import net.william278.husksync.redis.RedisMessage;
 import net.william278.husksync.util.Logger;
-import net.byteflux.libby.BungeeLibraryManager;
-import net.byteflux.libby.Library;
-import net.md_5.bungee.api.ProxyServer;
-import net.md_5.bungee.api.plugin.Plugin;
 import org.bstats.bungeecord.Metrics;
 
 import java.io.IOException;
