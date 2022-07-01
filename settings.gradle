@@ -8,7 +8,5 @@ rootProject.name = 'HuskSync'
 
 include 'common'
 include 'bukkit'
-include 'bungeecord'
-include 'velocity'
 include 'api'
 include 'plugin'

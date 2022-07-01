@@ -1,11 +1,23 @@
-plugins {
-    id 'java'
-}
-
 dependencies {
-    compileOnly 'com.zaxxer:HikariCP:5.0.1'
+    implementation 'commons-io:commons-io:2.11.0'
+    implementation 'dev.dejvokep:boosted-yaml:1.2'
+    implementation 'de.themoep:minedown:1.7.1-SNAPSHOT'
+    implementation 'com.zaxxer:HikariCP:5.0.1'
+    implementation 'com.google.code.gson:gson:2.9.0'
+
+    compileOnly 'org.jetbrains:annotations:23.0.0'
+    compileOnly 'org.xerial:sqlite-jdbc:' + sqlite_driver_version
+    compileOnly 'redis.clients:jedis:' + jedis_version
 }
 
 shadowJar {
-    relocate 'com.zaxxer', 'net.william278.husksync.libraries'
+    relocate 'redis.clients', 'net.william278.husksync.libraries'
+    relocate 'org.apache', 'net.william278.huskhomes.libraries'
+    relocate 'dev.dejvokep', 'net.william278.huskhomes.libraries'
+    relocate 'de.themoep', 'net.william278.huskhomes.libraries'
+    relocate 'org.jetbrains', 'net.william278.huskhomes.libraries'
+    relocate 'org.intellij', 'net.william278.huskhomes.libraries'
+    relocate 'com.zaxxer', 'net.william278.huskhomes.libraries'
+    relocate 'org.slf4j', 'net.william278.huskhomes.libraries.slf4j'
+    relocate 'com.google', 'net.william278.huskhomes.libraries'
 }

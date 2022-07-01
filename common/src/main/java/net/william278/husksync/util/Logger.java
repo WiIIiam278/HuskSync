@@ -3,7 +3,7 @@ package net.william278.husksync.util;
 import java.util.logging.Level;
 
 /**
- * Logger interface to allow for implementation of different logger platforms used by Bungee and Velocity
+ * An abstract, cross-platform representation of a logger
  */
 public interface Logger {
 
@@ -16,4 +16,5 @@ public interface Logger {
     void severe(String message);
 
     void config(String message);
+
 }

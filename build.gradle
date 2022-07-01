@@ -9,6 +9,8 @@ version "$ext.plugin_version+${versionMetadata()}"
 
 ext {
     set 'version', version.toString()
+    set 'jedis_version', jedis_version.toString()
+    set 'sqlite_driver_version', sqlite_driver_version.toString()
 }
 
 import org.apache.tools.ant.filters.ReplaceTokens
@@ -27,9 +29,7 @@ allprojects {
         mavenLocal()
         mavenCentral()
         maven { url 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/' }
-        maven { url 'https://repo.velocitypowered.com/snapshots/' }
         maven { url 'https://repo.minebench.de/' }
-        maven { url 'https://repo.codemc.org/repository/maven-public' }
         maven { url 'https://repo.alessiodp.com/releases/' }
         maven { url 'https://jitpack.io' }
     }
@@ -51,7 +51,7 @@ subprojects {
     version rootProject.version
     archivesBaseName = "${rootProject.name}-${project.name.capitalize()}"
 
-    if (['bukkit', 'api', 'bungeecord', 'velocity', 'plugin'].contains(project.name)) {
+    if (['bukkit', 'api', 'plugin'].contains(project.name)) {
         shadowJar {
             destinationDirectory.set(file("$rootDir/target"))
             archiveClassifier.set('')

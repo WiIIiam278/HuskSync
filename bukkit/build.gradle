@@ -2,7 +2,6 @@ dependencies {
     implementation project(path: ':common')
 
     implementation 'org.bstats:bstats-bukkit:3.0.0'
-    implementation 'de.themoep:minedown:1.7.1-SNAPSHOT'
     implementation 'net.william278:mpdbdataconverter:1.0'
 
     compileOnly 'org.spigotmc:spigot-api:1.16.5-R0.1-SNAPSHOT'
@@ -10,9 +9,13 @@ dependencies {
 }
 
 shadowJar {
-    relocate 'de.themoep', 'net.william278.husksync.libraries'
-    relocate 'org.bstats', 'net.william278.husksync.libraries.bstats'
     relocate 'redis.clients', 'net.william278.husksync.libraries'
-    relocate 'org.apache', 'net.william278.husksync.libraries'
-    relocate 'net.william278.mpdbconverter', 'net.william278.husksync.libraries.mpdbconverter'
+    relocate 'org.apache', 'net.william278.huskhomes.libraries'
+    relocate 'dev.dejvokep', 'net.william278.huskhomes.libraries'
+    relocate 'de.themoep', 'net.william278.huskhomes.libraries'
+    relocate 'org.jetbrains', 'net.william278.huskhomes.libraries'
+    relocate 'org.intellij', 'net.william278.huskhomes.libraries'
+    relocate 'com.zaxxer', 'net.william278.huskhomes.libraries'
+    relocate 'org.slf4j', 'net.william278.huskhomes.libraries.slf4j'
+    relocate 'com.google', 'net.william278.huskhomes.libraries'
 }

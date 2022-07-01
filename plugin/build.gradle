@@ -1,20 +1,13 @@
-//file:noinspection GroovyAssignabilityCheck
 plugins {
     id 'maven-publish'
 }
 
 dependencies {
     implementation project(path: ':bukkit', configuration: 'shadow')
-    implementation project(path: ':api', configuration: 'shadow')
-    implementation project(path: ':bungeecord', configuration: 'shadow')
-    implementation project(path: ':velocity', configuration: 'shadow')
+    //implementation project(path: ':api', configuration: 'shadow')
 }
 
 shadowJar {
-    dependencies {
-        exclude dependency(':jedis')
-        exclude dependency(':commons-pool2')
-    }
 }
 
 publishing {
@@ -23,7 +16,6 @@ publishing {
             groupId = 'net.william278'
             artifactId = 'husksync-plugin'
             version = "$rootProject.version"
-
             artifact shadowJar
         }
     }

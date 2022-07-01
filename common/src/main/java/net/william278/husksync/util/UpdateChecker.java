@@ -1,53 +1,59 @@
 package net.william278.husksync.util;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 
-public abstract class UpdateChecker {
+public class UpdateChecker {
 
     private final static int SPIGOT_PROJECT_ID = 97144;
 
+    private final Logger logger;
     private final VersionUtils.Version currentVersion;
-    private VersionUtils.Version latestVersion;
 
-    public UpdateChecker(String currentVersion) {
+    public UpdateChecker(@NotNull String currentVersion, @NotNull Logger logger) {
         this.currentVersion = VersionUtils.Version.of(currentVersion);
-
-        try {
-            final URL url = new URL("https://api.spigotmc.org/legacy/update.php?resource=" + SPIGOT_PROJECT_ID);
-            URLConnection urlConnection = url.openConnection();
-            this.latestVersion = VersionUtils.Version.of(new BufferedReader(new InputStreamReader(urlConnection.getInputStream())).readLine());
-        } catch (IOException e) {
-            log(Level.WARNING, "Failed to check for updates: An IOException occurred.");
-            this.latestVersion = new VersionUtils.Version();
-        } catch (Exception e) {
-            log(Level.WARNING, "Failed to check for updates: An exception occurred.");
-            this.latestVersion = new VersionUtils.Version();
-        }
+        this.logger = logger;
     }
 
-    public boolean isUpToDate() {
-        return this.currentVersion.compareTo(latestVersion) >= 0;
+    public CompletableFuture<VersionUtils.Version> fetchLatestVersion() {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                final URL url = new URL("https://api.spigotmc.org/legacy/update.php?resource=" + SPIGOT_PROJECT_ID);
+                URLConnection urlConnection = url.openConnection();
+                return VersionUtils.Version.of(new BufferedReader(new InputStreamReader(urlConnection.getInputStream())).readLine());
+            } catch (Exception e) {
+                logger.log(Level.WARNING, "Failed to fetch the latest plugin version", e);
+            }
+            return new VersionUtils.Version();
+        });
     }
 
-    public String getLatestVersion() {
-        return latestVersion.toString();
+    public boolean isUpdateAvailable(@NotNull VersionUtils.Version latestVersion) {
+        return latestVersion.compareTo(currentVersion) > 0;
     }
 
-    public String getCurrentVersion() {
-        return currentVersion.toString();
+    public VersionUtils.Version getCurrentVersion() {
+        return currentVersion;
     }
 
-    public abstract void log(Level level, String message);
+    public CompletableFuture<Boolean> isUpToDate() {
+        return fetchLatestVersion().thenApply(this::isUpdateAvailable);
+    }
 
     public void logToConsole() {
-        if (!isUpToDate()) {
-            log(Level.WARNING, "A new version of HuskSync is available: Version "
-                    + latestVersion + " (Currently running: " + currentVersion + ")");
-        }
+        fetchLatestVersion().thenAccept(latestVersion -> {
+            if (isUpdateAvailable(latestVersion)) {
+                logger.log(Level.WARNING, "A new version of HuskSync is available: v" + latestVersion);
+            } else {
+                logger.log(Level.INFO, "HuskSync is up-to-date! (Running: v" + currentVersion + ")");
+            }
+        });
     }
 }
