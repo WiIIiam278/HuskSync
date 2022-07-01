@@ -21,8 +21,8 @@ public abstract class Database {
     public abstract Connection getConnection() throws SQLException;
 
     public boolean isInactive() {
-        try {
-            return getConnection() == null;
+        try (Connection connection = getConnection()) {
+            return connection == null || !connection.isValid(0);
         } catch (SQLException e) {
             return true;
         }
