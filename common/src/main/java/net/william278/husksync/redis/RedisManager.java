@@ -12,6 +12,7 @@ import redis.clients.jedis.exceptions.JedisException;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Date;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -76,14 +77,14 @@ public class RedisManager {
      * @param redisKeyType the type of key to set the data with. This determines the time to live for the data.
      * @return a future returning void when complete
      */
-    public CompletableFuture<Void> setUserData(@NotNull User user, @NotNull UserData userData,
-                                               @NotNull RedisKeyType redisKeyType) {
+    public CompletableFuture<Void> setUserData(@NotNull User user, @NotNull UserData userData) {
         try {
             return CompletableFuture.runAsync(() -> {
                 try (Jedis jedis = jedisPool.getResource()) {
                     // Set the user's data as a compressed byte array of the json using Snappy
-                    jedis.setex(getKey(redisKeyType, user.uuid), redisKeyType.timeToLive,
+                    jedis.setex(getKey(RedisKeyType.DATA_UPDATE, user.uuid), RedisKeyType.DATA_UPDATE.timeToLive,
                             Snappy.compress(userData.toJson().getBytes(StandardCharsets.UTF_8)));
+                    System.out.println("Set key at " + new Date().getTime());
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
@@ -94,26 +95,54 @@ public class RedisManager {
         return null;
     }
 
+    public CompletableFuture<Void> setUserServerSwitch(@NotNull User user) {
+        return CompletableFuture.runAsync(() -> {
+            try (Jedis jedis = jedisPool.getResource()) {
+                jedis.setex(getKey(RedisKeyType.SERVER_SWITCH, user.uuid),
+                        RedisKeyType.SERVER_SWITCH.timeToLive, new byte[0]);
+            }
+        });
+    }
+
     /**
-     * Fetch a user's data from the Redis server
+     * Fetch a user's data from the Redis server and consume the key if found
      *
      * @param user         The user to fetch data for
      * @param redisKeyType The type of key to fetch
      * @return The user's data, if it's present on the database. Otherwise, an empty optional.
      */
-    public CompletableFuture<Optional<UserData>> getUserData(@NotNull User user,
-                                                             @NotNull RedisKeyType redisKeyType) {
+    public CompletableFuture<Optional<UserData>> getUserData(@NotNull User user) {
         return CompletableFuture.supplyAsync(() -> {
             try (Jedis jedis = jedisPool.getResource()) {
-                final byte[] compressedJson = jedis.get(getKey(redisKeyType, user.uuid));
+                final byte[] key = getKey(RedisKeyType.DATA_UPDATE, user.uuid);
+                System.out.println("Reading key at " + new Date().getTime());
+                final byte[] compressedJson = jedis.get(key);
                 if (compressedJson == null) {
                     return Optional.empty();
                 }
+                // Consume the key (delete from redis)
+                jedis.del(key);
+
                 // Use Snappy to decompress the json
                 return Optional.of(UserData.fromJson(new String(Snappy.uncompress(compressedJson),
                         StandardCharsets.UTF_8)));
             } catch (IOException e) {
                 throw new RuntimeException(e);
+            }
+        });
+    }
+
+    public CompletableFuture<Boolean> getUserServerSwitch(@NotNull User user) {
+        return CompletableFuture.supplyAsync(() -> {
+            try (Jedis jedis = jedisPool.getResource()) {
+                final byte[] key = getKey(RedisKeyType.SERVER_SWITCH, user.uuid);
+                final byte[] compressedJson = jedis.get(key);
+                if (compressedJson == null) {
+                    return false;
+                }
+                // Consume the key (delete from redis)
+                jedis.del(key);
+                return true;
             }
         });
     }
@@ -132,7 +161,8 @@ public class RedisManager {
 
     public enum RedisKeyType {
         CACHE(60 * 60 * 24),
-        SERVER_CHANGE(2);
+        DATA_UPDATE(10),
+        SERVER_SWITCH(10);
 
         public final int timeToLive;
 

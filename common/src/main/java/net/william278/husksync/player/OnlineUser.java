@@ -39,7 +39,8 @@ public abstract class OnlineUser extends User {
     public abstract CompletableFuture<Void> setStatus(@NotNull StatusData statusData,
                                                       final boolean setHealth, final boolean setMaxHealth,
                                                       final boolean setHunger, final boolean setExperience,
-                                                      final boolean setGameMode, boolean setFlying);
+                                                      final boolean setGameMode, final boolean setFlying,
+                                                      final boolean setSelectedItemSlot);
 
     /**
      * Get the player's inventory {@link InventoryData} contents
@@ -148,6 +149,20 @@ public abstract class OnlineUser extends User {
     public abstract CompletableFuture<Void> setPersistentDataContainer(@NotNull PersistentDataContainerData persistentDataContainerData);
 
     /**
+     * Indicates if the player is currently dead
+     *
+     * @return {@code true} if the player is dead (health <= 0); {@code false} otherwise
+     */
+    public abstract boolean isDead();
+
+    /**
+     * Indicates if the player has gone offline
+     *
+     * @return {@code true} if the player has left the server; {@code false} otherwise
+     */
+    public abstract boolean isOffline();
+
+    /**
      * Set {@link UserData} to a player
      *
      * @param data     The data to set
@@ -156,32 +171,45 @@ public abstract class OnlineUser extends User {
      */
     public final CompletableFuture<Void> setData(@NotNull UserData data, @NotNull Settings settings) {
         return CompletableFuture.runAsync(() -> {
-            if (settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_INVENTORIES)) {
-                setInventory(data.getInventoryData()).join();
-            }
-            if (settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_ENDER_CHESTS)) {
-                setEnderChest(data.getEnderChestData()).join();
-            }
-            setStatus(data.getStatusData(), settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_HEALTH),
-                    settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_MAX_HEALTH),
-                    settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_HUNGER),
-                    settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_EXPERIENCE),
-                    settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_GAME_MODE),
-                    settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_LOCATION)).join();
-            if (settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_POTION_EFFECTS)) {
-                setPotionEffects(data.getPotionEffectData()).join();
-            }
-            if (settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_ADVANCEMENTS)) {
-                setAdvancements(data.getAdvancementData()).join();
-            }
-            if (settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_STATISTICS)) {
-                setStatistics(data.getStatisticData()).join();
-            }
-            if (settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_PERSISTENT_DATA_CONTAINER)) {
-                setPersistentDataContainer(data.getPersistentDataContainerData()).join();
-            }
-            if (settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_LOCATION)) {
-                setLocation(data.getLocationData()).join();
+            try {
+                // Don't set offline players
+                if (isOffline()) {
+                    return;
+                }
+                // Don't set dead players
+                if (isDead()) {
+                    return;
+                }
+                if (settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_INVENTORIES)) {
+                    setInventory(data.getInventoryData()).join();
+                }
+                if (settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_ENDER_CHESTS)) {
+                    setEnderChest(data.getEnderChestData()).join();
+                }
+                setStatus(data.getStatusData(), settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_HEALTH),
+                        settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_MAX_HEALTH),
+                        settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_HUNGER),
+                        settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_EXPERIENCE),
+                        settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_GAME_MODE),
+                        settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_LOCATION),
+                        settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_INVENTORIES)).join();
+                if (settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_POTION_EFFECTS)) {
+                    setPotionEffects(data.getPotionEffectData()).join();
+                }
+                if (settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_ADVANCEMENTS)) {
+                    setAdvancements(data.getAdvancementData()).join();
+                }
+                if (settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_STATISTICS)) {
+                    setStatistics(data.getStatisticData()).join();
+                }
+                if (settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_PERSISTENT_DATA_CONTAINER)) {
+                    setPersistentDataContainer(data.getPersistentDataContainerData()).join();
+                }
+                if (settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_LOCATION)) {
+                    setLocation(data.getLocationData()).join();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         });
     }

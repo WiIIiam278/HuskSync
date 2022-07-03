@@ -3,10 +3,8 @@ package net.william278.husksync.listener;
 import net.william278.husksync.BukkitHuskSync;
 import net.william278.husksync.player.BukkitPlayer;
 import org.bukkit.Bukkit;
-import org.bukkit.event.Cancellable;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.world.WorldSaveEvent;
@@ -32,7 +30,7 @@ public class BukkitEventListener extends EventListener implements Listener {
         BukkitPlayer.remove(event.getPlayer());
     }
 
-    @EventHandler
+    @EventHandler(ignoreCancelled = true)
     public void onWorldSave(@NotNull WorldSaveEvent event) {
         super.handleWorldSave(event.getWorld().getPlayers().stream().map(BukkitPlayer::adapt)
                 .collect(Collectors.toList()));

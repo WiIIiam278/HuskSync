@@ -35,7 +35,7 @@ public class HuskSyncCommand extends CommandBase implements TabCompletable, Cons
                                 "[•](white) [Currently running:](#00fb9a) [Version " + updateChecker.getCurrentVersion() + "](gray)" +
                                 "[•](white) [Download links:](#00fb9a) [[⏩ Spigot]](gray open_url=https://www.spigotmc.org/resources/husksync.97144/updates) [•](#262626) [[⏩ Polymart]](gray open_url=https://polymart.org/resource/husksync.1634/updates) [•](#262626) [[⏩ Songoda]](gray open_url=https://songoda.com/marketplace/product/husksync-a-modern-cross-server-player-data-synchronization-system.758)"));
                     } else {
-                        player.sendMessage(new MineDown("[HuskSync](#00fb9a bold) [| HuskSync is up-to-date, running version " + latestVersion));
+                        player.sendMessage(new MineDown("[HuskSync](#00fb9a bold) [| HuskSync is up-to-date, running version " + latestVersion + "](#00fb9a)"));
                     }
                 });
             }
@@ -46,17 +46,17 @@ public class HuskSyncCommand extends CommandBase implements TabCompletable, Cons
                     return;
                 }
                 plugin.reload();
-                player.sendMessage(new MineDown("[HuskSync](#00fb9a bold) &#00fb9a&| Reloaded config & message files."));
+                player.sendMessage(new MineDown("[HuskSync](#00fb9a bold) [| Reloaded config & message files.]((#00fb9a)"));
             }
             default ->
-                    plugin.getLocales().getLocale("error_invalid_syntax", "/husksync <update|info|reload>").ifPresent(player::sendMessage);
+                    plugin.getLocales().getLocale("error_invalid_syntax", "/husksync <update/info/reload>").ifPresent(player::sendMessage);
         }
     }
 
     @Override
     public void onConsoleExecute(@NotNull String[] args) {
         if (args.length < 1) {
-            plugin.getLoggingAdapter().log(Level.INFO, "Console usage: /husksync <update|info|reload|migrate>");
+            plugin.getLoggingAdapter().log(Level.INFO, "Console usage: /husksync <update/info/reload/migrate>");
             return;
         }
         switch (args[0].toLowerCase()) {
@@ -71,7 +71,7 @@ public class HuskSyncCommand extends CommandBase implements TabCompletable, Cons
                 //todo - MPDB migrator
             }
             default ->
-                    plugin.getLoggingAdapter().log(Level.INFO, "Invalid syntax. Console usage: /husksync <update|info|reload|migrate>");
+                    plugin.getLoggingAdapter().log(Level.INFO, "Invalid syntax. Console usage: /husksync <update/info/reload/migrate>");
         }
     }
 

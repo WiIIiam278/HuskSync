@@ -70,9 +70,10 @@ public class BukkitPlayer extends OnlineUser {
 
     @Override
     public CompletableFuture<Void> setStatus(@NotNull StatusData statusData,
-                                             boolean setHealth, boolean setMaxHealth,
-                                             boolean setHunger, boolean setExperience,
-                                             boolean setGameMode, boolean setFlying) {
+                                             final boolean setHealth, final boolean setMaxHealth,
+                                             final boolean setHunger, final boolean setExperience,
+                                             final boolean setGameMode, final boolean setFlying,
+                                             final boolean setSelectedItemSlot) {
         return CompletableFuture.runAsync(() -> {
             double currentMaxHealth = Objects.requireNonNull(player.getAttribute(Attribute.GENERIC_MAX_HEALTH))
                     .getBaseValue();
@@ -101,20 +102,26 @@ public class BukkitPlayer extends OnlineUser {
                 player.setSaturation(statusData.saturation);
                 player.setExhaustion(statusData.saturationExhaustion);
             }
+            if (setSelectedItemSlot) {
+                player.getInventory().setHeldItemSlot(statusData.selectedItemSlot);
+            }
             if (setExperience) {
                 player.setTotalExperience(statusData.totalExperience);
                 player.setLevel(statusData.expLevel);
                 player.setExp(statusData.expProgress);
             }
             if (setGameMode) {
-                player.setGameMode(GameMode.valueOf(statusData.gameMode));
+                Bukkit.getScheduler().runTask(BukkitHuskSync.getInstance(), () ->
+                        player.setGameMode(GameMode.valueOf(statusData.gameMode)));
             }
             if (setFlying) {
-                if (statusData.isFlying) {
-                    player.setAllowFlight(true);
-                    player.setFlying(true);
-                }
-                player.setFlying(false);
+                Bukkit.getScheduler().runTask(BukkitHuskSync.getInstance(), () -> {
+                    if (statusData.isFlying) {
+                        player.setAllowFlight(true);
+                        player.setFlying(true);
+                    }
+                    player.setFlying(false);
+                });
             }
         });
     }
@@ -189,7 +196,8 @@ public class BukkitPlayer extends OnlineUser {
 
     @Override
     public CompletableFuture<Void> setAdvancements(@NotNull List<AdvancementData> advancementData) {
-        return CompletableFuture.runAsync(() -> {
+        return CompletableFuture.runAsync(() -> Bukkit.getScheduler().runTask(BukkitHuskSync.getInstance(), () -> {
+
             // Temporarily disable advancement announcing if needed
             boolean announceAdvancementUpdate = false;
             if (Boolean.TRUE.equals(player.getWorld().getGameRuleValue(GameRule.ANNOUNCE_ADVANCEMENTS))) {
@@ -205,50 +213,53 @@ public class BukkitPlayer extends OnlineUser {
             // Determines whether the experience might have changed warranting an update
             final AtomicBoolean correctExperience = new AtomicBoolean(false);
 
-            // Apply the advancements to the player
-            final Iterator<Advancement> serverAdvancements = Bukkit.getServer().advancementIterator();
-            while (serverAdvancements.hasNext()) {
-                // Iterate through all advancements
-                final Advancement advancement = serverAdvancements.next();
-                final AdvancementProgress playerProgress = player.getAdvancementProgress(advancement);
+            // Run asynchronously as advancement setting is expensive
+            CompletableFuture.runAsync(() -> {
+                // Apply the advancements to the player
+                final Iterator<Advancement> serverAdvancements = Bukkit.getServer().advancementIterator();
+                while (serverAdvancements.hasNext()) {
+                    // Iterate through all advancements
+                    final Advancement advancement = serverAdvancements.next();
+                    final AdvancementProgress playerProgress = player.getAdvancementProgress(advancement);
 
-                advancementData.stream().filter(record -> record.key.equals(advancement.getKey().toString())).findFirst().ifPresentOrElse(
-                        // Award all criteria that the player does not have that they do on the cache
-                        record -> {
-                            record.completedCriteria.keySet().stream()
-                                    .filter(criterion -> !playerProgress.getAwardedCriteria().contains(criterion))
-                                    .forEach(criterion -> {
-                                        Bukkit.getScheduler().runTask(BukkitHuskSync.getInstance(),
-                                                () -> player.getAdvancementProgress(advancement).awardCriteria(criterion));
-                                        correctExperience.set(true);
-                                    });
+                    advancementData.stream().filter(record -> record.key.equals(advancement.getKey().toString())).findFirst().ifPresentOrElse(
+                            // Award all criteria that the player does not have that they do on the cache
+                            record -> {
+                                record.completedCriteria.keySet().stream()
+                                        .filter(criterion -> !playerProgress.getAwardedCriteria().contains(criterion))
+                                        .forEach(criterion -> {
+                                            Bukkit.getScheduler().runTask(BukkitHuskSync.getInstance(),
+                                                    () -> player.getAdvancementProgress(advancement).awardCriteria(criterion));
+                                            correctExperience.set(true);
+                                        });
 
-                            // Revoke all criteria that the player does have but should not
-                            new ArrayList<>(playerProgress.getAwardedCriteria()).stream().filter(criterion -> !record.completedCriteria.containsKey(criterion))
-                                    .forEach(criterion -> Bukkit.getScheduler().runTask(BukkitHuskSync.getInstance(),
-                                            () -> player.getAdvancementProgress(advancement).revokeCriteria(criterion)));
+                                // Revoke all criteria that the player does have but should not
+                                new ArrayList<>(playerProgress.getAwardedCriteria()).stream().filter(criterion -> !record.completedCriteria.containsKey(criterion))
+                                        .forEach(criterion -> Bukkit.getScheduler().runTask(BukkitHuskSync.getInstance(),
+                                                () -> player.getAdvancementProgress(advancement).revokeCriteria(criterion)));
 
-                        },
-                        // Revoke the criteria as the player shouldn't have any
-                        () -> new ArrayList<>(playerProgress.getAwardedCriteria()).forEach(criterion ->
-                                Bukkit.getScheduler().runTask(BukkitHuskSync.getInstance(),
-                                        () -> player.getAdvancementProgress(advancement).revokeCriteria(criterion))));
+                            },
+                            // Revoke the criteria as the player shouldn't have any
+                            () -> new ArrayList<>(playerProgress.getAwardedCriteria()).forEach(criterion ->
+                                    Bukkit.getScheduler().runTask(BukkitHuskSync.getInstance(),
+                                            () -> player.getAdvancementProgress(advancement).revokeCriteria(criterion))));
 
-                // Update the player's experience in case the advancement changed that
-                if (correctExperience.get()) {
-                    player.setLevel(experienceLevel);
-                    player.setExp(expProgress);
-                    correctExperience.set(false);
+                    // Update the player's experience in case the advancement changed that
+                    if (correctExperience.get()) {
+                        player.setLevel(experienceLevel);
+                        player.setExp(expProgress);
+                        correctExperience.set(false);
+                    }
                 }
-            }
 
-            // Re-enable announcing advancements (back on main thread again)
-            Bukkit.getScheduler().runTask(BukkitHuskSync.getInstance(), () -> {
-                if (finalAnnounceAdvancementUpdate) {
-                    player.getWorld().setGameRule(GameRule.ANNOUNCE_ADVANCEMENTS, true);
-                }
+                // Re-enable announcing advancements (back on main thread again)
+                Bukkit.getScheduler().runTask(BukkitHuskSync.getInstance(), () -> {
+                    if (finalAnnounceAdvancementUpdate) {
+                        player.getWorld().setGameRule(GameRule.ANNOUNCE_ADVANCEMENTS, true);
+                    }
+                });
             });
-        });
+        }));
     }
 
     @Override
@@ -395,6 +406,16 @@ public class BukkitPlayer extends OnlineUser {
                 }
             });
         });
+    }
+
+    @Override
+    public boolean isDead() {
+        return player.isDead() || player.getHealth() <= 0;
+    }
+
+    @Override
+    public boolean isOffline() {
+        return player == null;
     }
 
     @Override

@@ -271,19 +271,19 @@ public class MySqlDatabase extends Database {
     protected CompletableFuture<Void> pruneUserDataRecords(@NotNull User user) {
         return CompletableFuture.runAsync(() -> getUserData(user).thenAccept(data -> {
             if (data.size() > maxUserDataRecords) {
-                Collections.reverse(data);
-                data.subList(0, data.size() - maxUserDataRecords).forEach(dataToDelete -> {
-                    try (Connection connection = getConnection()) {
-                        try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
-                                DELETE FROM `%data_table%`
-                                WHERE `version_uuid`=?"""))) {
-                            statement.setString(1, dataToDelete.versionUUID().toString());
-                            statement.executeUpdate();
-                        }
-                    } catch (SQLException e) {
-                        getLogger().log(Level.SEVERE, "Failed to prune user data from the database", e);
+                try (Connection connection = getConnection()) {
+                    try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
+                            DELETE FROM `%data_table%`
+                            WHERE `player_uuid`=?
+                            ORDER BY `timestamp` ASC
+                            LIMIT %entry_count%;""".replace("%entry_count%",
+                            Integer.toString(data.size() - maxUserDataRecords))))) {
+                        statement.setString(1, user.uuid.toString());
+                        statement.executeUpdate();
                     }
-                });
+                } catch (SQLException e) {
+                    getLogger().log(Level.SEVERE, "Failed to prune user data from the database", e);
+                }
             }
         }));
     }
@@ -306,7 +306,7 @@ public class MySqlDatabase extends Database {
             } catch (SQLException | IOException e) {
                 getLogger().log(Level.SEVERE, "Failed to set user data in the database", e);
             }
-        })/*.thenRunAsync(() -> pruneUserDataRecords(user).join())*/;
+        }).thenRun(() -> pruneUserDataRecords(user).join());
     }
 
     @Override
