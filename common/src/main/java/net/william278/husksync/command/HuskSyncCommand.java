@@ -28,7 +28,7 @@ public class HuskSyncCommand extends CommandBase implements TabCompletable, Cons
                     plugin.getLocales().getLocale("error_no_permission").ifPresent(player::sendMessage);
                     return;
                 }
-                final UpdateChecker updateChecker = new UpdateChecker(plugin.getVersion(), plugin.getLogger());
+                final UpdateChecker updateChecker = new UpdateChecker(plugin.getVersion(), plugin.getLoggingAdapter());
                 updateChecker.fetchLatestVersion().thenAccept(latestVersion -> {
                     if (updateChecker.isUpdateAvailable(latestVersion)) {
                         player.sendMessage(new MineDown("[HuskSync](#00fb9a bold) [| A new update is available:](#00fb9a) [HuskSync " + updateChecker.fetchLatestVersion() + "](#00fb9a bold)" +
@@ -56,22 +56,22 @@ public class HuskSyncCommand extends CommandBase implements TabCompletable, Cons
     @Override
     public void onConsoleExecute(@NotNull String[] args) {
         if (args.length < 1) {
-            plugin.getLogger().log(Level.INFO, "Console usage: /husksync <update|info|reload|migrate>");
+            plugin.getLoggingAdapter().log(Level.INFO, "Console usage: /husksync <update|info|reload|migrate>");
             return;
         }
         switch (args[0].toLowerCase()) {
-            case "update", "version" -> new UpdateChecker(plugin.getVersion(), plugin.getLogger()).logToConsole();
-            case "info", "about" -> plugin.getLogger().log(Level.INFO, plugin.getLocales().stripMineDown(
+            case "update", "version" -> new UpdateChecker(plugin.getVersion(), plugin.getLoggingAdapter()).logToConsole();
+            case "info", "about" -> plugin.getLoggingAdapter().log(Level.INFO, plugin.getLocales().stripMineDown(
                     Locales.PLUGIN_INFORMATION.replace("%version%", plugin.getVersion())));
             case "reload" -> {
                 plugin.reload();
-                plugin.getLogger().log(Level.INFO, "Reloaded config & message files.");
+                plugin.getLoggingAdapter().log(Level.INFO, "Reloaded config & message files.");
             }
             case "migrate" -> {
                 //todo - MPDB migrator
             }
             default ->
-                    plugin.getLogger().log(Level.INFO, "Invalid syntax. Console usage: /husksync <update|info|reload|migrate>");
+                    plugin.getLoggingAdapter().log(Level.INFO, "Invalid syntax. Console usage: /husksync <update|info|reload|migrate>");
         }
     }
 

@@ -69,7 +69,7 @@ public class StatusData {
     public float expProgress;
 
     /**
-     * The player's game mode string (one of "survival", "creative", "adventure", "spectator")
+     * The player's game mode string (one of "SURVIVAL", "CREATIVE", "ADVENTURE", "SPECTATOR")
      */
     @SerializedName("game_mode")
     public String gameMode;

@@ -3,19 +3,24 @@ package net.william278.husksync.database;
 import com.zaxxer.hikari.HikariDataSource;
 import net.william278.husksync.config.Settings;
 import net.william278.husksync.data.UserData;
+import net.william278.husksync.data.VersionedUserData;
 import net.william278.husksync.player.User;
 import net.william278.husksync.util.Logger;
 import net.william278.husksync.util.ResourceReader;
 import org.jetbrains.annotations.NotNull;
+import org.xerial.snappy.Snappy;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.sql.*;
-import java.time.Instant;
 import java.util.*;
+import java.util.Date;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 
 public class MySqlDatabase extends Database {
+
     /**
      * MySQL server hostname
      */
@@ -40,9 +45,12 @@ public class MySqlDatabase extends Database {
     private final int hikariKeepAliveTime;
     private final int hikariConnectionTimeOut;
 
-    private static final String DATA_POOL_NAME = "HuskHomesHikariPool";
+    private static final String DATA_POOL_NAME = "HuskSyncHikariPool";
 
-    private HikariDataSource dataSource;
+    /**
+     * The Hikari data source - a pool of database connections that can be fetched on-demand
+     */
+    private HikariDataSource connectionPool;
 
     public MySqlDatabase(@NotNull Settings settings, @NotNull ResourceReader resourceReader, @NotNull Logger logger) {
         super(settings.getStringValue(Settings.ConfigOption.DATABASE_PLAYERS_TABLE_NAME),
@@ -69,31 +77,31 @@ public class MySqlDatabase extends Database {
      * @throws SQLException if the connection fails for some reason
      */
     private Connection getConnection() throws SQLException {
-        return dataSource.getConnection();
+        return connectionPool.getConnection();
     }
 
     @Override
-    public CompletableFuture<Void> initialize() {
-        return CompletableFuture.runAsync(() -> {
+    public boolean initialize() {
+        try {
             // Create jdbc driver connection url
             final String jdbcUrl = "jdbc:mysql://" + mySqlHost + ":" + mySqlPort + "/" + mySqlDatabaseName + mySqlConnectionParameters;
-            dataSource = new HikariDataSource();
-            dataSource.setJdbcUrl(jdbcUrl);
+            connectionPool = new HikariDataSource();
+            connectionPool.setJdbcUrl(jdbcUrl);
 
             // Authenticate
-            dataSource.setUsername(mySqlUsername);
-            dataSource.setPassword(mySqlPassword);
+            connectionPool.setUsername(mySqlUsername);
+            connectionPool.setPassword(mySqlPassword);
 
             // Set various additional parameters
-            dataSource.setMaximumPoolSize(hikariMaximumPoolSize);
-            dataSource.setMinimumIdle(hikariMinimumIdle);
-            dataSource.setMaxLifetime(hikariMaximumLifetime);
-            dataSource.setKeepaliveTime(hikariKeepAliveTime);
-            dataSource.setConnectionTimeout(hikariConnectionTimeOut);
-            dataSource.setPoolName(DATA_POOL_NAME);
+            connectionPool.setMaximumPoolSize(hikariMaximumPoolSize);
+            connectionPool.setMinimumIdle(hikariMinimumIdle);
+            connectionPool.setMaxLifetime(hikariMaximumLifetime);
+            connectionPool.setKeepaliveTime(hikariKeepAliveTime);
+            connectionPool.setConnectionTimeout(hikariConnectionTimeOut);
+            connectionPool.setPoolName(DATA_POOL_NAME);
 
             // Prepare database schema; make tables if they don't exist
-            try (Connection connection = dataSource.getConnection()) {
+            try (Connection connection = connectionPool.getConnection()) {
                 // Load database schema CREATE statements from schema file
                 final String[] databaseSchema = getSchemaStatements("database/mysql_schema.sql");
                 try (Statement statement = connection.createStatement()) {
@@ -101,10 +109,14 @@ public class MySqlDatabase extends Database {
                         statement.execute(tableCreationStatement);
                     }
                 }
+                return true;
             } catch (SQLException | IOException e) {
-                getLogger().log(Level.SEVERE, "An error occurred creating tables on the MySQL database: ", e);
+                getLogger().log(Level.SEVERE, "Failed to perform database setup: " + e.getMessage());
             }
-        });
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 
     @Override
@@ -194,7 +206,7 @@ public class MySqlDatabase extends Database {
     }
 
     @Override
-    public CompletableFuture<Optional<UserData>> getCurrentUserData(@NotNull User user) {
+    public CompletableFuture<Optional<VersionedUserData>> getCurrentUserData(@NotNull User user) {
         return CompletableFuture.supplyAsync(() -> {
             try (Connection connection = getConnection()) {
                 try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
@@ -206,13 +218,17 @@ public class MySqlDatabase extends Database {
                     statement.setString(1, user.uuid.toString());
                     final ResultSet resultSet = statement.executeQuery();
                     if (resultSet.next()) {
-                        final UserData data = UserData.fromJson(resultSet.getString("data"));
-                        data.setMetadata(UUID.fromString(resultSet.getString("version_uuid")),
-                                resultSet.getTimestamp("timestamp").toInstant().toEpochMilli());
-                        return Optional.of(data);
+                        final Blob blob = resultSet.getBlob("data");
+                        final byte[] compressedDataJson = blob.getBytes(1, (int) blob.length());
+                        blob.free();
+                        return Optional.of(new VersionedUserData(
+                                UUID.fromString(resultSet.getString("version_uuid")),
+                                Date.from(resultSet.getTimestamp("timestamp").toInstant()),
+                                UserData.fromJson(new String(Snappy.uncompress(compressedDataJson),
+                                        StandardCharsets.UTF_8))));
                     }
                 }
-            } catch (SQLException e) {
+            } catch (SQLException | IOException e) {
                 getLogger().log(Level.SEVERE, "Failed to fetch a user's current user data from the database", e);
             }
             return Optional.empty();
@@ -220,9 +236,9 @@ public class MySqlDatabase extends Database {
     }
 
     @Override
-    public CompletableFuture<List<UserData>> getUserData(@NotNull User user) {
+    public CompletableFuture<List<VersionedUserData>> getUserData(@NotNull User user) {
         return CompletableFuture.supplyAsync(() -> {
-            final ArrayList<UserData> retrievedData = new ArrayList<>();
+            final List<VersionedUserData> retrievedData = new ArrayList<>();
             try (Connection connection = getConnection()) {
                 try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
                         SELECT `version_uuid`, `timestamp`, `data`
@@ -232,14 +248,19 @@ public class MySqlDatabase extends Database {
                     statement.setString(1, user.uuid.toString());
                     final ResultSet resultSet = statement.executeQuery();
                     while (resultSet.next()) {
-                        final UserData data = UserData.fromJson(resultSet.getString("data"));
-                        data.setMetadata(UUID.fromString(resultSet.getString("version_uuid")),
-                                resultSet.getTimestamp("timestamp").toInstant().toEpochMilli());
+                        final Blob blob = resultSet.getBlob("data");
+                        final byte[] compressedDataJson = blob.getBytes(1, (int) blob.length());
+                        blob.free();
+                        final VersionedUserData data = new VersionedUserData(
+                                UUID.fromString(resultSet.getString("version_uuid")),
+                                Date.from(resultSet.getTimestamp("timestamp").toInstant()),
+                                UserData.fromJson(new String(Snappy.uncompress(compressedDataJson),
+                                        StandardCharsets.UTF_8)));
                         retrievedData.add(data);
                     }
                     return retrievedData;
                 }
-            } catch (SQLException e) {
+            } catch (SQLException | IOException e) {
                 getLogger().log(Level.SEVERE, "Failed to fetch a user's current user data from the database", e);
             }
             return retrievedData;
@@ -256,7 +277,7 @@ public class MySqlDatabase extends Database {
                         try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
                                 DELETE FROM `%data_table%`
                                 WHERE `version_uuid`=?"""))) {
-                            statement.setString(1, dataToDelete.getDataUuidVersion().toString());
+                            statement.setString(1, dataToDelete.versionUUID().toString());
                             statement.executeUpdate();
                         }
                     } catch (SQLException e) {
@@ -268,7 +289,7 @@ public class MySqlDatabase extends Database {
     }
 
     @Override
-    public CompletableFuture<Void> setUserData(@NotNull User user, @NotNull UserData userData) {
+    public CompletableFuture<Void> setUserData(@NotNull User user, @NotNull VersionedUserData userData) {
         return CompletableFuture.runAsync(() -> {
             try (Connection connection = getConnection()) {
                 try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
@@ -276,14 +297,25 @@ public class MySqlDatabase extends Database {
                         (`player_uuid`,`version_uuid`,`timestamp`,`data`)
                         VALUES (?,?,?,?);"""))) {
                     statement.setString(1, user.uuid.toString());
-                    statement.setString(2, userData.getDataUuidVersion().toString());
-                    statement.setTimestamp(3, Timestamp.from(Instant.ofEpochMilli(userData.getCreationTimestamp())));
-                    statement.setString(4, userData.toJson());
+                    statement.setString(2, userData.versionUUID().toString());
+                    statement.setTimestamp(3, Timestamp.from(userData.versionTimestamp().toInstant()));
+                    statement.setBlob(4, new ByteArrayInputStream(Snappy
+                            .compress(userData.userData().toJson().getBytes(StandardCharsets.UTF_8))));
                     statement.executeUpdate();
                 }
-            } catch (SQLException e) {
+            } catch (SQLException | IOException e) {
                 getLogger().log(Level.SEVERE, "Failed to set user data in the database", e);
             }
-        }).thenRunAsync(() -> pruneUserDataRecords(user).join());
+        })/*.thenRunAsync(() -> pruneUserDataRecords(user).join())*/;
     }
+
+    @Override
+    public void close() {
+        if (connectionPool != null) {
+            if (!connectionPool.isClosed()) {
+                connectionPool.close();
+            }
+        }
+    }
+
 }

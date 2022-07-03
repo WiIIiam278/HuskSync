@@ -5,24 +5,12 @@ import com.google.gson.JsonSyntaxException;
 import com.google.gson.annotations.SerializedName;
 import org.jetbrains.annotations.NotNull;
 
-import java.time.Instant;
-import java.util.HashSet;
-import java.util.UUID;
+import java.util.List;
 
 /***
  * Stores data about a user
  */
-public class UserData implements Comparable<UserData> {
-
-    /**
-     * The unique identifier for this user data version
-     */
-    protected UUID dataUuidVersion;
-
-    /**
-     * An epoch milliseconds timestamp of when this data was created
-     */
-    protected long creationTimestamp;
+public class UserData {
 
     /**
      * Stores the user's status data, including health, food, etc.
@@ -52,7 +40,7 @@ public class UserData implements Comparable<UserData> {
      * Stores the set of this user's advancements
      */
     @SerializedName("advancements")
-    protected HashSet<AdvancementData> advancementData;
+    protected List<AdvancementData> advancementData;
 
     /**
      * Stores the user's set of statistics
@@ -74,10 +62,8 @@ public class UserData implements Comparable<UserData> {
 
     public UserData(@NotNull StatusData statusData, @NotNull InventoryData inventoryData,
                     @NotNull InventoryData enderChestData, @NotNull PotionEffectData potionEffectData,
-                    @NotNull HashSet<AdvancementData> advancementData, @NotNull StatisticsData statisticData,
+                    @NotNull List<AdvancementData> advancementData, @NotNull StatisticsData statisticData,
                     @NotNull LocationData locationData, @NotNull PersistentDataContainerData persistentDataContainerData) {
-        this.dataUuidVersion = UUID.randomUUID();
-        this.creationTimestamp = Instant.now().toEpochMilli();
         this.statusData = statusData;
         this.inventoryData = inventoryData;
         this.enderChestData = enderChestData;
@@ -89,40 +75,6 @@ public class UserData implements Comparable<UserData> {
     }
 
     protected UserData() {
-    }
-
-    /**
-     * Compare UserData by creation timestamp
-     *
-     * @param other the other UserData to be compared
-     * @return the comparison result; the more recent UserData is greater than the less recent UserData
-     */
-    @Override
-    public int compareTo(@NotNull UserData other) {
-        return Long.compare(this.creationTimestamp, other.creationTimestamp);
-    }
-
-    @NotNull
-    public static UserData fromJson(String json) throws JsonSyntaxException {
-        return new GsonBuilder().create().fromJson(json, UserData.class);
-    }
-
-    @NotNull
-    public String toJson() {
-        return new GsonBuilder().create().toJson(this);
-    }
-
-    public void setMetadata(@NotNull UUID dataUuidVersion, long creationTimestamp) {
-        this.dataUuidVersion = dataUuidVersion;
-        this.creationTimestamp = creationTimestamp;
-    }
-
-    public UUID getDataUuidVersion() {
-        return dataUuidVersion;
-    }
-
-    public long getCreationTimestamp() {
-        return creationTimestamp;
     }
 
     public StatusData getStatusData() {
@@ -141,7 +93,7 @@ public class UserData implements Comparable<UserData> {
         return potionEffectData;
     }
 
-    public HashSet<AdvancementData> getAdvancementData() {
+    public List<AdvancementData> getAdvancementData() {
         return advancementData;
     }
 
@@ -156,4 +108,15 @@ public class UserData implements Comparable<UserData> {
     public PersistentDataContainerData getPersistentDataContainerData() {
         return persistentDataContainerData;
     }
+
+    @NotNull
+    public static UserData fromJson(String json) throws JsonSyntaxException {
+        return new GsonBuilder().create().fromJson(json, UserData.class);
+    }
+
+    @NotNull
+    public String toJson() {
+        return new GsonBuilder().create().toJson(this);
+    }
+
 }

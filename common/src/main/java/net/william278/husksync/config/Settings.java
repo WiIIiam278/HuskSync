@@ -118,7 +118,7 @@ public class Settings {
         LANGUAGE("language", OptionType.STRING, "en-gb"),
         CHECK_FOR_UPDATES("check_for_updates", OptionType.BOOLEAN, true),
 
-        CLUSTER_ID("cluster_id", OptionType.STRING, ""), //todo implement this
+        CLUSTER_ID("cluster_id", OptionType.STRING, ""),
 
         DATABASE_HOST("database.credentials.host", OptionType.STRING, "localhost"),
         DATABASE_PORT("database.credentials.port", OptionType.INTEGER, 3306),

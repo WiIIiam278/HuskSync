@@ -49,3 +49,5 @@ synchronization:
     statistics: true
     persistent_data_container: true
     location: false
+
+config_version: 1

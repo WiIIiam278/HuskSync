@@ -1,6 +1,7 @@
 package net.william278.husksync.data;
 
 import com.google.gson.annotations.SerializedName;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Date;
 import java.util.Map;
@@ -25,4 +26,8 @@ public class AdvancementData {
     public AdvancementData() {
     }
 
+    public AdvancementData(@NotNull String key, @NotNull Map<String, Date> awardedCriteria) {
+        this.key = key;
+        this.completedCriteria = awardedCriteria;
+    }
 }

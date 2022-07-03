@@ -1,6 +1,7 @@
 package net.william278.husksync.database;
 
 import net.william278.husksync.data.UserData;
+import net.william278.husksync.data.VersionedUserData;
 import net.william278.husksync.player.User;
 import net.william278.husksync.util.Logger;
 import net.william278.husksync.util.ResourceReader;
@@ -71,10 +72,8 @@ public abstract class Database {
      * @throws IOException if the resource could not be read
      */
     protected final String[] getSchemaStatements(@NotNull String schemaFileName) throws IOException {
-        return formatStatementTables(
-                new String(resourceReader.getResource(schemaFileName)
-                        .readAllBytes(), StandardCharsets.UTF_8))
-                .split(";");
+        return formatStatementTables(new String(resourceReader.getResource(schemaFileName)
+                .readAllBytes(), StandardCharsets.UTF_8)).split(";");
     }
 
     /**
@@ -91,9 +90,9 @@ public abstract class Database {
     /**
      * Initialize the database and ensure tables are present; create tables if they do not exist.
      *
-     * @return A future returning void when complete
+     * @return A future returning boolean - if the connection could be established.
      */
-    public abstract CompletableFuture<Void> initialize();
+    public abstract boolean initialize();
 
     /**
      * Ensure a {@link User} has an entry in the database and that their username is up-to-date
@@ -120,20 +119,20 @@ public abstract class Database {
     public abstract CompletableFuture<Optional<User>> getUserByName(@NotNull String username);
 
     /**
-     * Get the current user data for a given user, if it exists.
+     * Get the current uniquely versioned user data for a given user, if it exists.
      *
      * @param user the user to get data for
-     * @return an optional containing the user data, if it exists, or an empty optional if it does not
+     * @return an optional containing the {@link VersionedUserData}, if it exists, or an empty optional if it does not
      */
-    public abstract CompletableFuture<Optional<UserData>> getCurrentUserData(@NotNull User user);
+    public abstract CompletableFuture<Optional<VersionedUserData>> getCurrentUserData(@NotNull User user);
 
     /**
-     * Get all UserData entries for a user from the database.
+     * Get all {@link VersionedUserData} entries for a user from the database.
      *
      * @param user The user to get data for
-     * @return A future returning a list of a user's data
+     * @return A future returning a list of a user's {@link VersionedUserData} entries
      */
-    public abstract CompletableFuture<List<UserData>> getUserData(@NotNull User user);
+    public abstract CompletableFuture<List<VersionedUserData>> getUserData(@NotNull User user);
 
     /**
      * Prune user data records for a given user to the maximum value as configured
@@ -148,9 +147,14 @@ public abstract class Database {
      * This will remove the oldest data for the user if the amount of data exceeds the limit as configured
      *
      * @param user     The user to add data for
-     * @param userData The data to add
+     * @param userData The uniquely versioned data to add as a {@link VersionedUserData}
      * @return A future returning void when complete
      */
-    public abstract CompletableFuture<Void> setUserData(@NotNull User user, @NotNull UserData userData);
+    public abstract CompletableFuture<Void> setUserData(@NotNull User user, @NotNull VersionedUserData userData);
+
+    /**
+     * Close the database connection
+     */
+    public abstract void close();
 
 }

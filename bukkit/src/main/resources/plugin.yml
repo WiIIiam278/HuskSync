@@ -1,8 +1,13 @@
 name: HuskSync
 version: ${version}
-main: net.william278.husksync.HuskSyncBukkit
+main: net.william278.husksync.BukkitHuskSync
 api-version: 1.16
 author: William278
 description: 'A modern, cross-server player data synchronization system'
 website: 'https://william278.net'
-softdepend: [MysqlPlayerDataBridge]
+softdepend: [ MysqlPlayerDataBridge ]
+libraries:
+  - 'mysql:mysql-connector-java:8.0.29'
+commands:
+  husksync:
+    usage: '/husksync <update|info|reload>'

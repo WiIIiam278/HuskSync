@@ -4,65 +4,130 @@ import net.william278.husksync.config.Settings;
 import net.william278.husksync.data.UserData;
 import net.william278.husksync.player.User;
 import org.jetbrains.annotations.NotNull;
+import org.xerial.snappy.Snappy;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
+import redis.clients.jedis.exceptions.JedisException;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
+/**
+ * Manages the connection to the Redis server, handling the caching of user data
+ */
 public class RedisManager {
 
     private static final String KEY_NAMESPACE = "husksync:";
     private static String clusterId = "";
-    private final JedisPool jedisPool;
 
-    private RedisManager(@NotNull Settings settings) {
+    private final JedisPoolConfig jedisPoolConfig;
+
+    private final String redisHost;
+    private final int redisPort;
+    private final String redisPassword;
+    private final boolean redisUseSsl;
+
+    private JedisPool jedisPool;
+
+    public RedisManager(@NotNull Settings settings) {
         clusterId = settings.getStringValue(Settings.ConfigOption.CLUSTER_ID);
-        JedisPoolConfig jedisPoolConfig = new JedisPoolConfig();
-        jedisPoolConfig.setMaxIdle(0);
-        jedisPoolConfig.setTestOnBorrow(true);
-        jedisPoolConfig.setTestOnReturn(true);
-        if (settings.getStringValue(Settings.ConfigOption.REDIS_PASSWORD).isBlank()) {
-            jedisPool = new JedisPool(jedisPoolConfig,
-                    settings.getStringValue(Settings.ConfigOption.REDIS_HOST),
-                    settings.getIntegerValue(Settings.ConfigOption.REDIS_PORT),
-                    0,
-                    settings.getBooleanValue(Settings.ConfigOption.REDIS_USE_SSL));
-        } else {
-            jedisPool = new JedisPool(jedisPoolConfig,
-                    settings.getStringValue(Settings.ConfigOption.REDIS_HOST),
-                    settings.getIntegerValue(Settings.ConfigOption.REDIS_PORT),
-                    0,
-                    settings.getStringValue(Settings.ConfigOption.REDIS_PASSWORD),
-                    settings.getBooleanValue(Settings.ConfigOption.REDIS_USE_SSL));
+        this.redisHost = settings.getStringValue(Settings.ConfigOption.REDIS_HOST);
+        this.redisPort = settings.getIntegerValue(Settings.ConfigOption.REDIS_PORT);
+        this.redisPassword = settings.getStringValue(Settings.ConfigOption.REDIS_PASSWORD);
+        this.redisUseSsl = settings.getBooleanValue(Settings.ConfigOption.REDIS_USE_SSL);
+
+        // Configure the jedis pool
+        this.jedisPoolConfig = new JedisPoolConfig();
+        this.jedisPoolConfig.setMaxIdle(0);
+        this.jedisPoolConfig.setTestOnBorrow(true);
+        this.jedisPoolConfig.setTestOnReturn(true);
+    }
+
+    /**
+     * Initialize the redis connection pool
+     *
+     * @return a future returning void when complete
+     */
+    public CompletableFuture<Boolean> initialize() {
+        return CompletableFuture.supplyAsync(() -> {
+            if (redisPassword.isBlank()) {
+                jedisPool = new JedisPool(jedisPoolConfig, redisHost, redisPort, 0, redisUseSsl);
+            } else {
+                jedisPool = new JedisPool(jedisPoolConfig, redisHost, redisPort, 0, redisPassword, redisUseSsl);
+            }
+            try {
+                jedisPool.getResource().ping();
+            } catch (JedisException e) {
+                return false;
+            }
+            return true;
+        });
+    }
+
+    /**
+     * Set a user's data to the Redis server
+     *
+     * @param user         the user to set data for
+     * @param userData     the user's data to set
+     * @param redisKeyType the type of key to set the data with. This determines the time to live for the data.
+     * @return a future returning void when complete
+     */
+    public CompletableFuture<Void> setUserData(@NotNull User user, @NotNull UserData userData,
+                                               @NotNull RedisKeyType redisKeyType) {
+        try {
+            return CompletableFuture.runAsync(() -> {
+                try (Jedis jedis = jedisPool.getResource()) {
+                    // Set the user's data as a compressed byte array of the json using Snappy
+                    jedis.setex(getKey(redisKeyType, user.uuid), redisKeyType.timeToLive,
+                            Snappy.compress(userData.toJson().getBytes(StandardCharsets.UTF_8)));
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    /**
+     * Fetch a user's data from the Redis server
+     *
+     * @param user         The user to fetch data for
+     * @param redisKeyType The type of key to fetch
+     * @return The user's data, if it's present on the database. Otherwise, an empty optional.
+     */
+    public CompletableFuture<Optional<UserData>> getUserData(@NotNull User user,
+                                                             @NotNull RedisKeyType redisKeyType) {
+        return CompletableFuture.supplyAsync(() -> {
+            try (Jedis jedis = jedisPool.getResource()) {
+                final byte[] compressedJson = jedis.get(getKey(redisKeyType, user.uuid));
+                if (compressedJson == null) {
+                    return Optional.empty();
+                }
+                // Use Snappy to decompress the json
+                return Optional.of(UserData.fromJson(new String(Snappy.uncompress(compressedJson),
+                        StandardCharsets.UTF_8)));
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
+
+    public void close() {
+        if (jedisPool != null) {
+            if (!jedisPool.isClosed()) {
+                jedisPool.close();
+            }
         }
     }
 
-    public CompletableFuture<Void> setPlayerData(@NotNull User user, @NotNull UserData userData,
-                                                 @NotNull RedisKeyType redisKeyType) {
-        return CompletableFuture.runAsync(() -> {
-            try (Jedis jedis = jedisPool.getResource()) {
-                jedis.setex(redisKeyType.getKeyPrefix() + user.uuid.toString(),
-                        redisKeyType.timeToLive, userData.toJson());
-            }
-        });
-    }
-
-    public CompletableFuture<Optional<UserData>> getUserData(@NotNull User user, @NotNull RedisKeyType redisKeyType) {
-        return CompletableFuture.supplyAsync(() -> {
-            try (Jedis jedis = jedisPool.getResource()) {
-                final String json = jedis.get(redisKeyType.getKeyPrefix() + user.uuid.toString());
-                if (json == null) {
-                    return Optional.empty();
-                }
-                return Optional.of(UserData.fromJson(json));
-            }
-        });
-    }
-
-    public static CompletableFuture<RedisManager> initialize(@NotNull Settings settings) {
-        return CompletableFuture.supplyAsync(() -> new RedisManager(settings));
+    private static byte[] getKey(@NotNull RedisKeyType keyType, @NotNull UUID uuid) {
+        return (keyType.getKeyPrefix() + ":" + uuid).getBytes(StandardCharsets.UTF_8);
     }
 
     public enum RedisKeyType {
@@ -77,7 +142,7 @@ public class RedisManager {
 
         @NotNull
         public String getKeyPrefix() {
-            return KEY_NAMESPACE.toLowerCase() + ":" + clusterId.toLowerCase() + ":" + name().toLowerCase() + ":";
+            return KEY_NAMESPACE.toLowerCase() + ":" + clusterId.toLowerCase() + ":" + name().toLowerCase();
         }
     }
 

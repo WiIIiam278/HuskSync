@@ -1,5 +1,0 @@
-name: HuskSync
-version: ${version}
-main: net.william278.husksync.HuskSyncBungeeCord
-author: William278
-description: 'A modern, cross-server player data synchronization system'

@@ -1,16 +1,25 @@
 dependencies {
-    compileOnly project(path: ':common')
     implementation project(path: ':bukkit')
+    compileOnly project(path: ':common')
 
     compileOnly 'org.spigotmc:spigot-api:1.16.5-R0.1-SNAPSHOT'
     compileOnly 'org.jetbrains:annotations:23.0.0'
 }
 
 shadowJar {
-    relocate 'de.themoep', 'net.william278.husksync.libraries'
-    relocate 'org.bstats', 'net.william278.husksync.libraries.bstats'
-    relocate 'redis.clients', 'net.william278.husksync.libraries'
     relocate 'org.apache', 'net.william278.husksync.libraries'
+    relocate 'dev.dejvokep', 'net.william278.husksync.libraries'
+    relocate 'de.themoep', 'net.william278.husksync.libraries'
+    relocate 'org.jetbrains', 'net.william278.husksync.libraries'
+    relocate 'org.intellij', 'net.william278.husksync.libraries'
+    relocate 'com.zaxxer', 'net.william278.husksync.libraries'
+    relocate 'org.slf4j', 'net.william278.husksync.libraries.slf4j'
+    relocate 'com.google', 'net.william278.husksync.libraries'
+    //relocate 'org.xerial', 'net.william278.husksync.libraries'
+    relocate 'redis.clients', 'net.william278.husksync.libraries'
+
+    relocate 'net.byteflux.libby', 'net.william278.husksync.libraries.libby'
+    relocate 'org.bstats', 'net.william278.husksync.libraries.bstats'
     relocate 'net.william278.mpdbconverter', 'net.william278.husksync.libraries.mpdbconverter'
 }
 

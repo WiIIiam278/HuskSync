@@ -5,7 +5,7 @@ import net.william278.husksync.config.Settings;
 import net.william278.husksync.data.*;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.HashSet;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
@@ -26,11 +26,35 @@ public abstract class OnlineUser extends User {
     public abstract CompletableFuture<StatusData> getStatus();
 
     /**
+     * Set the player's {@link StatusData}
+     *
+     * @param statusData    the player's {@link StatusData}
+     * @param setHealth     whether to set the player's health
+     * @param setMaxHealth  whether to set the player's max health
+     * @param setHunger     whether to set the player's hunger
+     * @param setExperience whether to set the player's experience
+     * @param setGameMode   whether to set the player's game mode
+     * @return a future returning void when complete
+     */
+    public abstract CompletableFuture<Void> setStatus(@NotNull StatusData statusData,
+                                                      final boolean setHealth, final boolean setMaxHealth,
+                                                      final boolean setHunger, final boolean setExperience,
+                                                      final boolean setGameMode, boolean setFlying);
+
+    /**
      * Get the player's inventory {@link InventoryData} contents
      *
      * @return The player's inventory {@link InventoryData} contents
      */
     public abstract CompletableFuture<InventoryData> getInventory();
+
+    /**
+     * Set the player's {@link InventoryData}
+     *
+     * @param inventoryData The player's {@link InventoryData}
+     * @return a future returning void when complete
+     */
+    public abstract CompletableFuture<Void> setInventory(@NotNull InventoryData inventoryData);
 
     /**
      * Get the player's ender chest {@link InventoryData} contents
@@ -40,6 +64,15 @@ public abstract class OnlineUser extends User {
     public abstract CompletableFuture<InventoryData> getEnderChest();
 
     /**
+     * Set the player's {@link InventoryData}
+     *
+     * @param enderChestData The player's {@link InventoryData}
+     * @return a future returning void when complete
+     */
+    public abstract CompletableFuture<Void> setEnderChest(@NotNull InventoryData enderChestData);
+
+
+    /**
      * Get the player's {@link PotionEffectData}
      *
      * @return The player's {@link PotionEffectData}
@@ -47,11 +80,27 @@ public abstract class OnlineUser extends User {
     public abstract CompletableFuture<PotionEffectData> getPotionEffects();
 
     /**
+     * Set the player's {@link PotionEffectData}
+     *
+     * @param potionEffectData The player's {@link PotionEffectData}
+     * @return a future returning void when complete
+     */
+    public abstract CompletableFuture<Void> setPotionEffects(@NotNull PotionEffectData potionEffectData);
+
+    /**
      * Get the player's set of {@link AdvancementData}
      *
      * @return the player's set of {@link AdvancementData}
      */
-    public abstract CompletableFuture<HashSet<AdvancementData>> getAdvancements();
+    public abstract CompletableFuture<List<AdvancementData>> getAdvancements();
+
+    /**
+     * Set the player's {@link AdvancementData}
+     *
+     * @param advancementData List of the player's {@link AdvancementData}
+     * @return a future returning void when complete
+     */
+    public abstract CompletableFuture<Void> setAdvancements(@NotNull List<AdvancementData> advancementData);
 
     /**
      * Get the player's {@link StatisticsData}
@@ -61,11 +110,27 @@ public abstract class OnlineUser extends User {
     public abstract CompletableFuture<StatisticsData> getStatistics();
 
     /**
+     * Set the player's {@link StatisticsData}
+     *
+     * @param statisticsData The player's {@link StatisticsData}
+     * @return a future returning void when complete
+     */
+    public abstract CompletableFuture<Void> setStatistics(@NotNull StatisticsData statisticsData);
+
+    /**
      * Get the player's {@link LocationData}
      *
      * @return the player's {@link LocationData}
      */
     public abstract CompletableFuture<LocationData> getLocation();
+
+    /**
+     * Set the player's {@link LocationData}
+     *
+     * @param locationData the player's {@link LocationData}
+     * @return a future returning void when complete
+     */
+    public abstract CompletableFuture<Void> setLocation(@NotNull LocationData locationData);
 
     /**
      * Get the player's {@link PersistentDataContainerData}
@@ -75,13 +140,51 @@ public abstract class OnlineUser extends User {
     public abstract CompletableFuture<PersistentDataContainerData> getPersistentDataContainer();
 
     /**
+     * Set the player's {@link PersistentDataContainerData}
+     *
+     * @param persistentDataContainerData The player's {@link PersistentDataContainerData} to set
+     * @return A future returning void when complete
+     */
+    public abstract CompletableFuture<Void> setPersistentDataContainer(@NotNull PersistentDataContainerData persistentDataContainerData);
+
+    /**
      * Set {@link UserData} to a player
      *
      * @param data     The data to set
      * @param settings Plugin settings, for determining what needs setting
      * @return a future that will be completed when done
      */
-    public abstract CompletableFuture<Void> setData(@NotNull UserData data, @NotNull Settings settings);
+    public final CompletableFuture<Void> setData(@NotNull UserData data, @NotNull Settings settings) {
+        return CompletableFuture.runAsync(() -> {
+            if (settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_INVENTORIES)) {
+                setInventory(data.getInventoryData()).join();
+            }
+            if (settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_ENDER_CHESTS)) {
+                setEnderChest(data.getEnderChestData()).join();
+            }
+            setStatus(data.getStatusData(), settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_HEALTH),
+                    settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_MAX_HEALTH),
+                    settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_HUNGER),
+                    settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_EXPERIENCE),
+                    settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_GAME_MODE),
+                    settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_LOCATION)).join();
+            if (settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_POTION_EFFECTS)) {
+                setPotionEffects(data.getPotionEffectData()).join();
+            }
+            if (settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_ADVANCEMENTS)) {
+                setAdvancements(data.getAdvancementData()).join();
+            }
+            if (settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_STATISTICS)) {
+                setStatistics(data.getStatisticData()).join();
+            }
+            if (settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_PERSISTENT_DATA_CONTAINER)) {
+                setPersistentDataContainer(data.getPersistentDataContainerData()).join();
+            }
+            if (settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_LOCATION)) {
+                setLocation(data.getLocationData()).join();
+            }
+        });
+    }
 
     /**
      * Dispatch a MineDown-formatted message to this player
@@ -110,10 +213,11 @@ public abstract class OnlineUser extends User {
      *
      * @return the player's current {@link UserData}
      */
-    public final CompletableFuture<UserData> getUserData() {
-        return CompletableFuture.supplyAsync(() -> new UserData(getStatus().join(), getInventory().join(),
-                getEnderChest().join(), getPotionEffects().join(), getAdvancements().join(),
-                getStatistics().join(), getLocation().join(), getPersistentDataContainer().join()));
+    public final CompletableFuture<VersionedUserData> getUserData() {
+        return CompletableFuture.supplyAsync(
+                () -> VersionedUserData.version(new UserData(getStatus().join(), getInventory().join(),
+                        getEnderChest().join(), getPotionEffects().join(), getAdvancements().join(),
+                        getStatistics().join(), getLocation().join(), getPersistentDataContainer().join())));
     }
 
 }
