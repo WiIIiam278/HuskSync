@@ -241,11 +241,11 @@ public abstract class OnlineUser extends User {
      *
      * @return the player's current {@link UserData}
      */
-    public final CompletableFuture<VersionedUserData> getUserData() {
+    public final CompletableFuture<UserData> getUserData() {
         return CompletableFuture.supplyAsync(
-                () -> VersionedUserData.version(new UserData(getStatus().join(), getInventory().join(),
+                () -> new UserData(getStatus().join(), getInventory().join(),
                         getEnderChest().join(), getPotionEffects().join(), getAdvancements().join(),
-                        getStatistics().join(), getLocation().join(), getPersistentDataContainer().join())));
+                        getStatistics().join(), getLocation().join(), getPersistentDataContainer().join()));
     }
 
 }

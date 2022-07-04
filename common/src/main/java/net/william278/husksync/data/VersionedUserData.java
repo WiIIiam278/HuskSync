@@ -15,13 +15,14 @@ import java.util.UUID;
 public record VersionedUserData(@NotNull UUID versionUUID, @NotNull Date versionTimestamp,
                                 @NotNull UserData userData) implements Comparable<VersionedUserData> {
 
-    public VersionedUserData(@NotNull final UUID versionUUID, @NotNull final Date versionTimestamp,
-                             @NotNull UserData userData) {
-        this.versionUUID = versionUUID;
-        this.versionTimestamp = versionTimestamp;
-        this.userData = userData;
-    }
-
+    /**
+     * Version {@link UserData} into a {@link VersionedUserData}, assigning it a random {@link UUID} and the current timestamp {@link Date}
+     *
+     * @param userData The {@link UserData} to version
+     * @return A new {@link VersionedUserData}
+     * @implNote This isn't used to version data that is going to be set to a database to prevent UUID collisions.<p>
+     * Database implementations should instead use their own UUID generation functions.
+     */
     public static VersionedUserData version(@NotNull UserData userData) {
         return new VersionedUserData(UUID.randomUUID(), new Date(), userData);
     }

@@ -289,18 +289,16 @@ public class MySqlDatabase extends Database {
     }
 
     @Override
-    public CompletableFuture<Void> setUserData(@NotNull User user, @NotNull VersionedUserData userData) {
+    public CompletableFuture<Void> setUserData(@NotNull User user, @NotNull UserData userData) {
         return CompletableFuture.runAsync(() -> {
             try (Connection connection = getConnection()) {
                 try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
                         INSERT INTO `%data_table%`
                         (`player_uuid`,`version_uuid`,`timestamp`,`data`)
-                        VALUES (?,?,?,?);"""))) {
+                        VALUES (?,UUID(),NOW(),?);"""))) {
                     statement.setString(1, user.uuid.toString());
-                    statement.setString(2, userData.versionUUID().toString());
-                    statement.setTimestamp(3, Timestamp.from(userData.versionTimestamp().toInstant()));
-                    statement.setBlob(4, new ByteArrayInputStream(Snappy
-                            .compress(userData.userData().toJson().getBytes(StandardCharsets.UTF_8))));
+                    statement.setBlob(2, new ByteArrayInputStream(Snappy
+                            .compress(userData.toJson().getBytes(StandardCharsets.UTF_8))));
                     statement.executeUpdate();
                 }
             } catch (SQLException | IOException e) {

@@ -89,7 +89,7 @@ public abstract class EventListener {
             return;
         }
         huskSync.getRedisManager().setUserServerSwitch(user).thenRun(() -> user.getUserData().thenAccept(
-                userData -> huskSync.getRedisManager().setUserData(user, userData.userData()).thenRun(
+                userData -> huskSync.getRedisManager().setUserData(user, userData).thenRun(
                         () -> huskSync.getDatabase().setUserData(user, userData).join())));
     }
 

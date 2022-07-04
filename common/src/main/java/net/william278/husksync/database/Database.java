@@ -135,7 +135,7 @@ public abstract class Database {
     public abstract CompletableFuture<List<VersionedUserData>> getUserData(@NotNull User user);
 
     /**
-     * Prune user data records for a given user to the maximum value as configured
+     * <b>(Internal)</b> Prune user data records for a given user to the maximum value as configured
      *
      * @param user The user to prune data for
      * @return A future returning void when complete
@@ -147,10 +147,11 @@ public abstract class Database {
      * This will remove the oldest data for the user if the amount of data exceeds the limit as configured
      *
      * @param user     The user to add data for
-     * @param userData The uniquely versioned data to add as a {@link VersionedUserData}
+     * @param userData The {@link UserData} to set. The implementation should version it with a random UUID and the current timestamp during insertion.
      * @return A future returning void when complete
+     * @see VersionedUserData#version(UserData)
      */
-    public abstract CompletableFuture<Void> setUserData(@NotNull User user, @NotNull VersionedUserData userData);
+    public abstract CompletableFuture<Void> setUserData(@NotNull User user, @NotNull UserData userData);
 
     /**
      * Close the database connection
