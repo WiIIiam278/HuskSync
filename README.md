@@ -121,7 +121,7 @@ Most likely not - and I cannot support it - but feel free to test it, as dependi
 ### API
 HuskSync has an API for Bukkit providing events that fire when synchronisation takes place as well as a method to access and deserialize player data on demand. There is no API for the proxy side currently.
 
-HuskSync's API is available on [JitPack](https://jitpack.io/#WiIIiam278/HuskSync/Tag). You can view the [HuskSync JavaDocs here](https://javadoc.jitpack.io/com/github/WiIIiam278/HuskSync/latest/javadoc/index.html). You should only use stuff in the `husksync.bukkit.api` and `husksync.bukkit.data` packages (as well as the PlayerData class located in the `husksync` root package.
+HuskSync's API is available on [JitPack](https://jitpack.io/#net.william278/HuskSync/Tag). You can view the [HuskSync JavaDocs here](https://javadoc.jitpack.io/net/william278/HuskSync/latest/javadoc/index.html). You should only use stuff in the `husksync.bukkit.api` and `husksync.bukkit.data` packages (as well as the PlayerData class located in the `husksync` root package.
 
 #### Including the API in your project
 With Maven, add the repository to your pom.xml:
@@ -133,7 +133,7 @@ With Maven, add the repository to your pom.xml:
 		</repository>
 	</repositories>
 ```
-Then, add the dependency. Replace `version` with the latest version of HuskSync: [![](https://jitpack.io/v/WiIIiam278/HuskSync.svg)](https://jitpack.io/#WiIIiam278/HuskSync)
+Then, add the dependency. Replace `version` with the latest version of HuskSync: [![](https://jitpack.io/v/WiIIiam278/HuskSync.svg)](https://jitpack.io/#net.william278/HuskSync)
 ```xml
 	<dependency>
             <groupId>net.william278</groupId>
