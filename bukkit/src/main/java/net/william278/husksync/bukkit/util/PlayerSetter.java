@@ -181,6 +181,7 @@ public class PlayerSetter {
                 }
                 // Don't sync the player if they are dead
                 if (player.isDead() || player.getHealth() <= 0) {
+                    Bukkit.getPluginManager().callEvent(new SyncCompleteEvent(player, data));
                     return;
                 }
                 if (Settings.syncInventories) {
