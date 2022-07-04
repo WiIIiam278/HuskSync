@@ -1,5 +1,6 @@
 package net.william278.husksync.database;
 
+import net.william278.husksync.data.DataAdapter;
 import net.william278.husksync.data.UserData;
 import net.william278.husksync.data.VersionedUserData;
 import net.william278.husksync.player.User;
@@ -37,6 +38,20 @@ public abstract class Database {
     protected final int maxUserDataRecords;
 
     /**
+     * {@link DataAdapter} implementation used for adapting {@link UserData} to and from JSON
+     */
+    private final DataAdapter dataAdapter;
+
+    /**
+     * Returns the {@link DataAdapter} used to adapt {@link UserData} to and from JSON
+     *
+     * @return instance of the {@link DataAdapter} implementation
+     */
+    protected DataAdapter getDataAdapter() {
+        return dataAdapter;
+    }
+
+    /**
      * Logger instance used for database error logging
      */
     private final Logger logger;
@@ -56,11 +71,12 @@ public abstract class Database {
     private final ResourceReader resourceReader;
 
     protected Database(@NotNull String playerTableName, @NotNull String dataTableName, final int maxUserDataRecords,
-                       @NotNull ResourceReader resourceReader, @NotNull Logger logger) {
+                       @NotNull ResourceReader resourceReader, @NotNull DataAdapter dataAdapter, @NotNull Logger logger) {
         this.playerTableName = playerTableName;
         this.dataTableName = dataTableName;
         this.maxUserDataRecords = maxUserDataRecords;
         this.resourceReader = resourceReader;
+        this.dataAdapter = dataAdapter;
         this.logger = logger;
     }
 

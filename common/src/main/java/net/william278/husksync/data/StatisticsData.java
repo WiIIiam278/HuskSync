@@ -45,7 +45,8 @@ public class StatisticsData {
         this.entityStatistics = entityStatistics;
     }
 
-    public StatisticsData() {
+    @SuppressWarnings("unused")
+    protected StatisticsData() {
     }
 
 }

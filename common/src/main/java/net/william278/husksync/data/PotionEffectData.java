@@ -15,7 +15,8 @@ public class PotionEffectData {
         this.serializedPotionEffects = serializedInventory;
     }
 
-    public PotionEffectData() {
+    @SuppressWarnings("unused")
+    protected PotionEffectData() {
     }
 
 }

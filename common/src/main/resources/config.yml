@@ -36,6 +36,7 @@ redis:
 synchronization:
   max_user_data_records: 5
   save_on_world_save: true
+  compress_data: true
   features:
     inventories: true
     ender_chests: true

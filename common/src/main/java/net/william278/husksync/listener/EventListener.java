@@ -1,9 +1,8 @@
 package net.william278.husksync.listener;
 
 import net.william278.husksync.HuskSync;
+import net.william278.husksync.config.Settings;
 import net.william278.husksync.player.OnlineUser;
-import net.william278.husksync.player.User;
-import net.william278.husksync.redis.RedisManager;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashSet;
@@ -94,7 +93,7 @@ public abstract class EventListener {
     }
 
     public final void handleWorldSave(@NotNull List<OnlineUser> usersInWorld) {
-        if (disabling) {
+        if (disabling || !huskSync.getSettings().getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SAVE_ON_WORLD_SAVE)) {
             return;
         }
         CompletableFuture.runAsync(() -> usersInWorld.forEach(user ->

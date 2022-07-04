@@ -53,9 +53,6 @@ public class LocationData {
     @SerializedName("pitch")
     public float pitch;
 
-    public LocationData() {
-    }
-
     public LocationData(@NotNull String worldName, @NotNull UUID worldUuid,
                         @NotNull String worldEnvironment,
                         double x, double y, double z,
@@ -68,5 +65,9 @@ public class LocationData {
         this.z = z;
         this.yaw = yaw;
         this.pitch = pitch;
+    }
+
+    @SuppressWarnings("unused")
+    protected LocationData() {
     }
 }

@@ -98,6 +98,7 @@ public class StatusData {
         this.isFlying = isFlying;
     }
 
-    public StatusData() {
+    @SuppressWarnings("unused")
+    protected StatusData() {
     }
 }

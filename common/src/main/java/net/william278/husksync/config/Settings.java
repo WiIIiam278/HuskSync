@@ -141,6 +141,7 @@ public class Settings {
 
         SYNCHRONIZATION_MAX_USER_DATA_RECORDS("synchronization.max_user_data_records", OptionType.INTEGER, 5),
         SYNCHRONIZATION_SAVE_ON_WORLD_SAVE("synchronization.save_on_world_save", OptionType.BOOLEAN, true),
+        SYNCHRONIZATION_COMPRESS_DATA("synchronization.compress_data", OptionType.BOOLEAN, true),
         SYNCHRONIZATION_SYNC_INVENTORIES("synchronization.features.inventories", OptionType.BOOLEAN, true),
         SYNCHRONIZATION_SYNC_ENDER_CHESTS("synchronization.features.ender_chests", OptionType.BOOLEAN, true),
         SYNCHRONIZATION_SYNC_HEALTH("synchronization.features.health", OptionType.BOOLEAN, true),

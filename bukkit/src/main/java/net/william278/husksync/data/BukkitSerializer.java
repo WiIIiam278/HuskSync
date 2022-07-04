@@ -43,7 +43,7 @@ public class BukkitSerializer {
                 // Return encoded data, using the encoder from SnakeYaml to get a ByteArray conversion
                 return Base64Coder.encodeLines(byteOutputStream.toByteArray());
             } catch (IOException e) {
-                throw new IllegalArgumentException("Failed to serialize item stack data");
+                throw new DataDeserializationException("Failed to serialize item stack data", e);
             }
         });
     }
@@ -78,7 +78,7 @@ public class BukkitSerializer {
                     return inventoryContents;
                 }
             } catch (IOException | ClassNotFoundException e) {
-                throw new RuntimeException("Failed to deserialize item stack data");
+                throw new DataDeserializationException("Failed to deserialize item stack data", e);
             }
         });
     }
@@ -132,7 +132,7 @@ public class BukkitSerializer {
                 // Return encoded data, using the encoder from SnakeYaml to get a ByteArray conversion
                 return Base64Coder.encodeLines(byteOutputStream.toByteArray());
             } catch (IOException e) {
-                throw new IllegalArgumentException("Failed to serialize potion effect data");
+                throw new DataDeserializationException("Failed to serialize potion effect data", e);
             }
         });
     }
@@ -167,7 +167,7 @@ public class BukkitSerializer {
                     return potionEffects;
                 }
             } catch (IOException | ClassNotFoundException e) {
-                throw new RuntimeException("Failed to deserialize potion effects", e);
+                throw new DataDeserializationException("Failed to deserialize potion effects", e);
             }
         });
     }

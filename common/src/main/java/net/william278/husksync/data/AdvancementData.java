@@ -23,11 +23,12 @@ public class AdvancementData {
     @SerializedName("completed_criteria")
     public Map<String, Date> completedCriteria;
 
-    public AdvancementData() {
-    }
-
     public AdvancementData(@NotNull String key, @NotNull Map<String, Date> awardedCriteria) {
         this.key = key;
         this.completedCriteria = awardedCriteria;
+    }
+
+    @SuppressWarnings("unused")
+    protected AdvancementData() {
     }
 }

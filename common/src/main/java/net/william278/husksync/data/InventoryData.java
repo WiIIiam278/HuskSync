@@ -18,7 +18,8 @@ public class InventoryData {
         this.serializedInventory = serializedInventory;
     }
 
-    public InventoryData() {
+    @SuppressWarnings("unused")
+    protected InventoryData() {
     }
 
 }

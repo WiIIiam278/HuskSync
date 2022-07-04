@@ -1,7 +1,5 @@
 package net.william278.husksync.data;
 
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonSyntaxException;
 import com.google.gson.annotations.SerializedName;
 import org.jetbrains.annotations.NotNull;
 
@@ -74,6 +72,8 @@ public class UserData {
         this.persistentDataContainerData = persistentDataContainerData;
     }
 
+    // Empty constructor to facilitate json serialization
+    @SuppressWarnings("unused")
     protected UserData() {
     }
 
@@ -107,16 +107,6 @@ public class UserData {
 
     public PersistentDataContainerData getPersistentDataContainerData() {
         return persistentDataContainerData;
-    }
-
-    @NotNull
-    public static UserData fromJson(String json) throws JsonSyntaxException {
-        return new GsonBuilder().create().fromJson(json, UserData.class);
-    }
-
-    @NotNull
-    public String toJson() {
-        return new GsonBuilder().create().toJson(this);
     }
 
 }

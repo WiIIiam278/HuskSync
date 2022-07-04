@@ -1,6 +1,7 @@
 package net.william278.husksync.redis;
 
 import net.william278.husksync.config.Settings;
+import net.william278.husksync.data.DataAdapter;
 import net.william278.husksync.data.UserData;
 import net.william278.husksync.player.User;
 import org.jetbrains.annotations.NotNull;
@@ -26,6 +27,7 @@ public class RedisManager {
     private static String clusterId = "";
 
     private final JedisPoolConfig jedisPoolConfig;
+    private final DataAdapter dataAdapter;
 
     private final String redisHost;
     private final int redisPort;
@@ -34,8 +36,9 @@ public class RedisManager {
 
     private JedisPool jedisPool;
 
-    public RedisManager(@NotNull Settings settings) {
+    public RedisManager(@NotNull Settings settings, @NotNull DataAdapter dataAdapter) {
         clusterId = settings.getStringValue(Settings.ConfigOption.CLUSTER_ID);
+        this.dataAdapter = dataAdapter;
         this.redisHost = settings.getStringValue(Settings.ConfigOption.REDIS_HOST);
         this.redisPort = settings.getIntegerValue(Settings.ConfigOption.REDIS_PORT);
         this.redisPassword = settings.getStringValue(Settings.ConfigOption.REDIS_PASSWORD);
@@ -72,9 +75,8 @@ public class RedisManager {
     /**
      * Set a user's data to the Redis server
      *
-     * @param user         the user to set data for
-     * @param userData     the user's data to set
-     * @param redisKeyType the type of key to set the data with. This determines the time to live for the data.
+     * @param user     the user to set data for
+     * @param userData the user's data to set
      * @return a future returning void when complete
      */
     public CompletableFuture<Void> setUserData(@NotNull User user, @NotNull UserData userData) {
@@ -82,11 +84,9 @@ public class RedisManager {
             return CompletableFuture.runAsync(() -> {
                 try (Jedis jedis = jedisPool.getResource()) {
                     // Set the user's data as a compressed byte array of the json using Snappy
-                    jedis.setex(getKey(RedisKeyType.DATA_UPDATE, user.uuid), RedisKeyType.DATA_UPDATE.timeToLive,
-                            Snappy.compress(userData.toJson().getBytes(StandardCharsets.UTF_8)));
-                    System.out.println("Set key at " + new Date().getTime());
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
+                    jedis.setex(getKey(RedisKeyType.DATA_UPDATE, user.uuid),
+                            RedisKeyType.DATA_UPDATE.timeToLive,
+                            dataAdapter.toBytes(userData));
                 }
             });
         } catch (Exception e) {
@@ -107,8 +107,7 @@ public class RedisManager {
     /**
      * Fetch a user's data from the Redis server and consume the key if found
      *
-     * @param user         The user to fetch data for
-     * @param redisKeyType The type of key to fetch
+     * @param user The user to fetch data for
      * @return The user's data, if it's present on the database. Otherwise, an empty optional.
      */
     public CompletableFuture<Optional<UserData>> getUserData(@NotNull User user) {
@@ -116,18 +115,15 @@ public class RedisManager {
             try (Jedis jedis = jedisPool.getResource()) {
                 final byte[] key = getKey(RedisKeyType.DATA_UPDATE, user.uuid);
                 System.out.println("Reading key at " + new Date().getTime());
-                final byte[] compressedJson = jedis.get(key);
-                if (compressedJson == null) {
+                final byte[] dataByteArray = jedis.get(key);
+                if (dataByteArray == null) {
                     return Optional.empty();
                 }
                 // Consume the key (delete from redis)
                 jedis.del(key);
 
                 // Use Snappy to decompress the json
-                return Optional.of(UserData.fromJson(new String(Snappy.uncompress(compressedJson),
-                        StandardCharsets.UTF_8)));
-            } catch (IOException e) {
-                throw new RuntimeException(e);
+                return Optional.of(dataAdapter.fromBytes(dataByteArray));
             }
         });
     }

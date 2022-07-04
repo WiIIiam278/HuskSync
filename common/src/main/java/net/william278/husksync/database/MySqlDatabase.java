@@ -2,6 +2,8 @@ package net.william278.husksync.database;
 
 import com.zaxxer.hikari.HikariDataSource;
 import net.william278.husksync.config.Settings;
+import net.william278.husksync.data.DataAdapter;
+import net.william278.husksync.data.DataAdaptionException;
 import net.william278.husksync.data.UserData;
 import net.william278.husksync.data.VersionedUserData;
 import net.william278.husksync.player.User;
@@ -52,22 +54,23 @@ public class MySqlDatabase extends Database {
      */
     private HikariDataSource connectionPool;
 
-    public MySqlDatabase(@NotNull Settings settings, @NotNull ResourceReader resourceReader, @NotNull Logger logger) {
+    public MySqlDatabase(@NotNull Settings settings, @NotNull ResourceReader resourceReader, @NotNull Logger logger,
+                         @NotNull DataAdapter dataAdapter) {
         super(settings.getStringValue(Settings.ConfigOption.DATABASE_PLAYERS_TABLE_NAME),
                 settings.getStringValue(Settings.ConfigOption.DATABASE_DATA_TABLE_NAME),
                 settings.getIntegerValue(Settings.ConfigOption.SYNCHRONIZATION_MAX_USER_DATA_RECORDS),
-                resourceReader, logger);
-        mySqlHost = settings.getStringValue(Settings.ConfigOption.DATABASE_HOST);
-        mySqlPort = settings.getIntegerValue(Settings.ConfigOption.DATABASE_PORT);
-        mySqlDatabaseName = settings.getStringValue(Settings.ConfigOption.DATABASE_NAME);
-        mySqlUsername = settings.getStringValue(Settings.ConfigOption.DATABASE_USERNAME);
-        mySqlPassword = settings.getStringValue(Settings.ConfigOption.DATABASE_PASSWORD);
-        mySqlConnectionParameters = settings.getStringValue(Settings.ConfigOption.DATABASE_CONNECTION_PARAMS);
-        hikariMaximumPoolSize = settings.getIntegerValue(Settings.ConfigOption.DATABASE_CONNECTION_POOL_MAX_SIZE);
-        hikariMinimumIdle = settings.getIntegerValue(Settings.ConfigOption.DATABASE_CONNECTION_POOL_MIN_IDLE);
-        hikariMaximumLifetime = settings.getIntegerValue(Settings.ConfigOption.DATABASE_CONNECTION_POOL_MAX_LIFETIME);
-        hikariKeepAliveTime = settings.getIntegerValue(Settings.ConfigOption.DATABASE_CONNECTION_POOL_KEEPALIVE);
-        hikariConnectionTimeOut = settings.getIntegerValue(Settings.ConfigOption.DATABASE_CONNECTION_POOL_TIMEOUT);
+                resourceReader, dataAdapter, logger);
+        this.mySqlHost = settings.getStringValue(Settings.ConfigOption.DATABASE_HOST);
+        this.mySqlPort = settings.getIntegerValue(Settings.ConfigOption.DATABASE_PORT);
+        this.mySqlDatabaseName = settings.getStringValue(Settings.ConfigOption.DATABASE_NAME);
+        this.mySqlUsername = settings.getStringValue(Settings.ConfigOption.DATABASE_USERNAME);
+        this.mySqlPassword = settings.getStringValue(Settings.ConfigOption.DATABASE_PASSWORD);
+        this.mySqlConnectionParameters = settings.getStringValue(Settings.ConfigOption.DATABASE_CONNECTION_PARAMS);
+        this.hikariMaximumPoolSize = settings.getIntegerValue(Settings.ConfigOption.DATABASE_CONNECTION_POOL_MAX_SIZE);
+        this.hikariMinimumIdle = settings.getIntegerValue(Settings.ConfigOption.DATABASE_CONNECTION_POOL_MIN_IDLE);
+        this.hikariMaximumLifetime = settings.getIntegerValue(Settings.ConfigOption.DATABASE_CONNECTION_POOL_MAX_LIFETIME);
+        this.hikariKeepAliveTime = settings.getIntegerValue(Settings.ConfigOption.DATABASE_CONNECTION_POOL_KEEPALIVE);
+        this.hikariConnectionTimeOut = settings.getIntegerValue(Settings.ConfigOption.DATABASE_CONNECTION_POOL_TIMEOUT);
     }
 
     /**
@@ -219,16 +222,15 @@ public class MySqlDatabase extends Database {
                     final ResultSet resultSet = statement.executeQuery();
                     if (resultSet.next()) {
                         final Blob blob = resultSet.getBlob("data");
-                        final byte[] compressedDataJson = blob.getBytes(1, (int) blob.length());
+                        final byte[] dataByteArray = blob.getBytes(1, (int) blob.length());
                         blob.free();
                         return Optional.of(new VersionedUserData(
                                 UUID.fromString(resultSet.getString("version_uuid")),
                                 Date.from(resultSet.getTimestamp("timestamp").toInstant()),
-                                UserData.fromJson(new String(Snappy.uncompress(compressedDataJson),
-                                        StandardCharsets.UTF_8))));
+                                getDataAdapter().fromBytes(dataByteArray)));
                     }
                 }
-            } catch (SQLException | IOException e) {
+            } catch (SQLException | DataAdaptionException e) {
                 getLogger().log(Level.SEVERE, "Failed to fetch a user's current user data from the database", e);
             }
             return Optional.empty();
@@ -249,18 +251,17 @@ public class MySqlDatabase extends Database {
                     final ResultSet resultSet = statement.executeQuery();
                     while (resultSet.next()) {
                         final Blob blob = resultSet.getBlob("data");
-                        final byte[] compressedDataJson = blob.getBytes(1, (int) blob.length());
+                        final byte[] dataByteArray = blob.getBytes(1, (int) blob.length());
                         blob.free();
                         final VersionedUserData data = new VersionedUserData(
                                 UUID.fromString(resultSet.getString("version_uuid")),
                                 Date.from(resultSet.getTimestamp("timestamp").toInstant()),
-                                UserData.fromJson(new String(Snappy.uncompress(compressedDataJson),
-                                        StandardCharsets.UTF_8)));
+                                getDataAdapter().fromBytes(dataByteArray));
                         retrievedData.add(data);
                     }
                     return retrievedData;
                 }
-            } catch (SQLException | IOException e) {
+            } catch (SQLException | DataAdaptionException e) {
                 getLogger().log(Level.SEVERE, "Failed to fetch a user's current user data from the database", e);
             }
             return retrievedData;
@@ -297,11 +298,11 @@ public class MySqlDatabase extends Database {
                         (`player_uuid`,`version_uuid`,`timestamp`,`data`)
                         VALUES (?,UUID(),NOW(),?);"""))) {
                     statement.setString(1, user.uuid.toString());
-                    statement.setBlob(2, new ByteArrayInputStream(Snappy
-                            .compress(userData.toJson().getBytes(StandardCharsets.UTF_8))));
+                    statement.setBlob(2, new ByteArrayInputStream(
+                            getDataAdapter().toBytes(userData)));
                     statement.executeUpdate();
                 }
-            } catch (SQLException | IOException e) {
+            } catch (SQLException | DataAdaptionException e) {
                 getLogger().log(Level.SEVERE, "Failed to set user data in the database", e);
             }
         }).thenRun(() -> pruneUserDataRecords(user).join());

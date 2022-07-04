@@ -20,7 +20,8 @@ public class PersistentDataContainerData {
         this.persistentDataMap = persistentDataMap;
     }
 
-    public PersistentDataContainerData() {
+    @SuppressWarnings("unused")
+    protected PersistentDataContainerData() {
     }
 
 }
