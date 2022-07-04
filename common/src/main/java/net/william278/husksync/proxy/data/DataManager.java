@@ -235,10 +235,44 @@ public class DataManager {
     }
 
     private void updatePlayerSQLData(PlayerData playerData, Settings.SynchronisationCluster cluster) {
-        try (Connection connection = getConnection(cluster.clusterId())) {
+        try (Connection connection = getConnection(cluster.clusterId())) { //todo sqlite incompatible
             try (PreparedStatement statement = connection.prepareStatement(
-                    "UPDATE " + cluster.dataTableName() + " SET `version_uuid`=?, `timestamp`=?, `inventory`=?, `ender_chest`=?, `health`=?, `max_health`=?, `health_scale`=?, `hunger`=?, `saturation`=?, `saturation_exhaustion`=?, `selected_slot`=?, `status_effects`=?, `total_experience`=?, `exp_level`=?, `exp_progress`=?, `game_mode`=?, `statistics`=?, `is_flying`=?, `advancements`=?, `location`=? WHERE `player_id`=(SELECT `id` FROM " + cluster.playerTableName() + " WHERE `uuid`=?);")) {
-                statement.setString(1, playerData.getDataVersionUUID().toString());
+                    "UPDATE " + cluster.dataTableName() + " SET `version_uuid`=UUID(), `timestamp`=?, `inventory`=?, `ender_chest`=?, `health`=?, `max_health`=?, `health_scale`=?, `hunger`=?, `saturation`=?, `saturation_exhaustion`=?, `selected_slot`=?, `status_effects`=?, `total_experience`=?, `exp_level`=?, `exp_progress`=?, `game_mode`=?, `statistics`=?, `is_flying`=?, `advancements`=?, `location`=? WHERE `player_id`=(SELECT `id` FROM " + cluster.playerTableName() + " WHERE `uuid`=?);")) {
+                //statement.setString(1, playerData.getDataVersionUUID().toString());
+                statement.setTimestamp(1, new Timestamp(System.currentTimeMillis()));
+                statement.setString(2, playerData.getSerializedInventory());
+                statement.setString(3, playerData.getSerializedEnderChest());
+                statement.setDouble(4, playerData.getHealth()); // Health
+                statement.setDouble(5, playerData.getMaxHealth()); // Max health
+                statement.setDouble(6, playerData.getHealthScale()); // Health scale
+                statement.setInt(7, playerData.getHunger()); // Hunger
+                statement.setFloat(8, playerData.getSaturation()); // Saturation
+                statement.setFloat(9, playerData.getSaturationExhaustion()); // Saturation exhaustion
+                statement.setInt(10, playerData.getSelectedSlot()); // Current selected slot
+                statement.setString(11, playerData.getSerializedEffectData()); // Status effects
+                statement.setInt(12, playerData.getTotalExperience()); // Total Experience
+                statement.setInt(13, playerData.getExpLevel()); // Exp level
+                statement.setFloat(14, playerData.getExpProgress()); // Exp progress
+                statement.setString(15, playerData.getGameMode()); // GameMode
+                statement.setString(16, playerData.getSerializedStatistics()); // Statistics
+                statement.setBoolean(17, playerData.isFlying()); // Is flying
+                statement.setString(18, playerData.getSerializedAdvancements()); // Advancements
+                statement.setString(19, playerData.getSerializedLocation()); // Location
+
+                statement.setString(20, playerData.getPlayerUUID().toString());
+                statement.executeUpdate();
+            }
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "An SQL exception occurred", e);
+        }
+    }
+
+    private void insertPlayerData(PlayerData playerData, Settings.SynchronisationCluster cluster) {
+        try (Connection connection = getConnection(cluster.clusterId())) { //todo sqlite incompatible
+            try (PreparedStatement statement = connection.prepareStatement(
+                    "INSERT INTO " + cluster.dataTableName() + " (`player_id`,`version_uuid`,`timestamp`,`inventory`,`ender_chest`,`health`,`max_health`,`health_scale`,`hunger`,`saturation`,`saturation_exhaustion`,`selected_slot`,`status_effects`,`total_experience`,`exp_level`,`exp_progress`,`game_mode`,`statistics`,`is_flying`,`advancements`,`location`) VALUES((SELECT `id` FROM " + cluster.playerTableName() + " WHERE `uuid`=?),UUID(),?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);")) {
+                statement.setString(1, playerData.getPlayerUUID().toString());
+                //statement.setString(2, playerData.getDataVersionUUID().toString());
                 statement.setTimestamp(2, new Timestamp(System.currentTimeMillis()));
                 statement.setString(3, playerData.getSerializedInventory());
                 statement.setString(4, playerData.getSerializedEnderChest());
@@ -258,40 +292,6 @@ public class DataManager {
                 statement.setBoolean(18, playerData.isFlying()); // Is flying
                 statement.setString(19, playerData.getSerializedAdvancements()); // Advancements
                 statement.setString(20, playerData.getSerializedLocation()); // Location
-
-                statement.setString(21, playerData.getPlayerUUID().toString());
-                statement.executeUpdate();
-            }
-        } catch (SQLException e) {
-            logger.log(Level.SEVERE, "An SQL exception occurred", e);
-        }
-    }
-
-    private void insertPlayerData(PlayerData playerData, Settings.SynchronisationCluster cluster) {
-        try (Connection connection = getConnection(cluster.clusterId())) {
-            try (PreparedStatement statement = connection.prepareStatement(
-                    "INSERT INTO " + cluster.dataTableName() + " (`player_id`,`version_uuid`,`timestamp`,`inventory`,`ender_chest`,`health`,`max_health`,`health_scale`,`hunger`,`saturation`,`saturation_exhaustion`,`selected_slot`,`status_effects`,`total_experience`,`exp_level`,`exp_progress`,`game_mode`,`statistics`,`is_flying`,`advancements`,`location`) VALUES((SELECT `id` FROM " + cluster.playerTableName() + " WHERE `uuid`=?),?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);")) {
-                statement.setString(1, playerData.getPlayerUUID().toString());
-                statement.setString(2, playerData.getDataVersionUUID().toString());
-                statement.setTimestamp(3, new Timestamp(System.currentTimeMillis()));
-                statement.setString(4, playerData.getSerializedInventory());
-                statement.setString(5, playerData.getSerializedEnderChest());
-                statement.setDouble(6, playerData.getHealth()); // Health
-                statement.setDouble(7, playerData.getMaxHealth()); // Max health
-                statement.setDouble(8, playerData.getHealthScale()); // Health scale
-                statement.setInt(9, playerData.getHunger()); // Hunger
-                statement.setFloat(10, playerData.getSaturation()); // Saturation
-                statement.setFloat(11, playerData.getSaturationExhaustion()); // Saturation exhaustion
-                statement.setInt(12, playerData.getSelectedSlot()); // Current selected slot
-                statement.setString(13, playerData.getSerializedEffectData()); // Status effects
-                statement.setInt(14, playerData.getTotalExperience()); // Total Experience
-                statement.setInt(15, playerData.getExpLevel()); // Exp level
-                statement.setFloat(16, playerData.getExpProgress()); // Exp progress
-                statement.setString(17, playerData.getGameMode()); // GameMode
-                statement.setString(18, playerData.getSerializedStatistics()); // Statistics
-                statement.setBoolean(19, playerData.isFlying()); // Is flying
-                statement.setString(20, playerData.getSerializedAdvancements()); // Advancements
-                statement.setString(21, playerData.getSerializedLocation()); // Location
 
                 statement.executeUpdate();
             }
