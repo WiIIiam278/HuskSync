@@ -154,6 +154,10 @@ public class PlayerSetter {
 
             // Set the player's data from the PlayerData
             try {
+                // Don't sync the player if they are dead
+                if (player.isDead() || player.getHealth() <= 0) {
+                    return;
+                }
                 if (Settings.syncAdvancements) {
                     List<me.william278.husksync.bukkit.data.DataSerializer.AdvancementRecordDate> advancementRecords
                             = DataSerializer.deserializeAdvancementData(data.getSerializedAdvancements());
@@ -174,6 +178,10 @@ public class PlayerSetter {
                     } else {
                         setPlayerAdvancements(player, advancementRecords, data);
                     }
+                }
+                // Don't sync the player if they are dead
+                if (player.isDead() || player.getHealth() <= 0) {
+                    return;
                 }
                 if (Settings.syncInventories) {
                     setPlayerInventory(player, DataSerializer.deserializeInventory(data.getSerializedInventory()));
