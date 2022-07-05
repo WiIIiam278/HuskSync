@@ -21,7 +21,7 @@ public class BukkitSerializer {
      * @param inventoryContents The contents of the inventory
      * @return The serialized inventory contents
      */
-    public static CompletableFuture<String> serializeInventory(ItemStack[] inventoryContents) {
+    public static CompletableFuture<String> serializeInventory(ItemStack[] inventoryContents) throws DataDeserializationException {
         return CompletableFuture.supplyAsync(() -> {
             // Return an empty string if there is no inventory item data to serialize
             if (inventoryContents.length == 0) {
@@ -54,7 +54,7 @@ public class BukkitSerializer {
      * @param inventoryData The serialized {@link ItemStack[]} array
      * @return The inventory contents as an array of {@link ItemStack}s
      */
-    public static CompletableFuture<ItemStack[]> deserializeInventory(String inventoryData) {
+    public static CompletableFuture<ItemStack[]> deserializeInventory(String inventoryData) throws DataDeserializationException {
         return CompletableFuture.supplyAsync(() -> {
             // Return empty array if there is no inventory data (set the player as having an empty inventory)
             if (inventoryData.isEmpty()) {
@@ -89,6 +89,7 @@ public class BukkitSerializer {
      * @param item The {@link ItemStack} to serialize
      * @return The serialized {@link ItemStack}
      */
+    @Nullable
     private static Map<String, Object> serializeItemStack(ItemStack item) {
         return item != null ? item.serialize() : null;
     }
@@ -100,6 +101,7 @@ public class BukkitSerializer {
      * @return The deserialized {@link ItemStack}
      */
     @SuppressWarnings("unchecked") // Ignore the "Unchecked cast" warning
+    @Nullable
     private static ItemStack deserializeItemStack(Object serializedItemStack) {
         return serializedItemStack != null ? ItemStack.deserialize((Map<String, Object>) serializedItemStack) : null;
     }
@@ -110,7 +112,7 @@ public class BukkitSerializer {
      * @param potionEffects The potion effect array
      * @return The serialized potion effects
      */
-    public static CompletableFuture<String> serializePotionEffects(PotionEffect[] potionEffects) {
+    public static CompletableFuture<String> serializePotionEffects(PotionEffect[] potionEffects) throws DataDeserializationException {
         return CompletableFuture.supplyAsync(() -> {
             // Return an empty string if there are no effects to serialize
             if (potionEffects.length == 0) {
@@ -143,7 +145,7 @@ public class BukkitSerializer {
      * @param potionEffectData The serialized {@link PotionEffect[]} array
      * @return The {@link PotionEffect}s
      */
-    public static CompletableFuture<PotionEffect[]> deserializePotionEffects(String potionEffectData) {
+    public static CompletableFuture<PotionEffect[]> deserializePotionEffects(String potionEffectData) throws DataDeserializationException {
         return CompletableFuture.supplyAsync(() -> {
             // Return empty array if there is no potion effect data (don't apply any effects to the player)
             if (potionEffectData.isEmpty()) {

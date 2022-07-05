@@ -3,6 +3,7 @@ package net.william278.husksync.player;
 import de.themoep.minedown.MineDown;
 import net.william278.husksync.config.Settings;
 import net.william278.husksync.data.*;
+import net.william278.husksync.editor.InventoryEditorMenu;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -235,6 +236,13 @@ public abstract class OnlineUser extends User {
      * @return {@code true} if the player has permission node; {@code false} otherwise
      */
     public abstract boolean hasPermission(@NotNull String node);
+
+    /**
+     * Show the player a {@link InventoryEditorMenu} GUI
+     *
+     * @param menu The {@link InventoryEditorMenu} interface to show
+     */
+    public abstract void showMenu(@NotNull InventoryEditorMenu menu);
 
     /**
      * Get the player's current {@link UserData}

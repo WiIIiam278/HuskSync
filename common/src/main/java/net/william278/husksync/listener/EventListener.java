@@ -2,6 +2,7 @@ package net.william278.husksync.listener;
 
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.config.Settings;
+import net.william278.husksync.data.InventoryData;
 import net.william278.husksync.player.OnlineUser;
 import org.jetbrains.annotations.NotNull;
 
@@ -19,7 +20,7 @@ public abstract class EventListener {
     /**
      * The plugin instance
      */
-    private final HuskSync huskSync;
+    protected final HuskSync huskSync;
 
     /**
      * Set of UUIDs current awaiting item synchronization. Events will be cancelled for these users
@@ -84,6 +85,7 @@ public abstract class EventListener {
     }
 
     public final void handlePlayerQuit(@NotNull OnlineUser user) {
+        // Players quitting have their data manually saved by the plugin disable hook
         if (disabling) {
             return;
         }
@@ -110,8 +112,22 @@ public abstract class EventListener {
         huskSync.getRedisManager().close();
     }
 
+    public final void handleMenuClose(@NotNull OnlineUser user, @NotNull InventoryData menuInventory) {
+        if (disabling) {
+            return;
+        }
+        huskSync.getDataEditor().closeInventoryMenu(user, menuInventory);
+    }
+
+    public final boolean cancelMenuClick(@NotNull OnlineUser user) {
+        if (disabling) {
+            return true;
+        }
+        return huskSync.getDataEditor().cancelInventoryEdit(user);
+    }
+
     public final boolean cancelPlayerEvent(@NotNull OnlineUser user) {
-        return usersAwaitingSync.contains(user.uuid);
+        return disabling || usersAwaitingSync.contains(user.uuid);
     }
 
 }

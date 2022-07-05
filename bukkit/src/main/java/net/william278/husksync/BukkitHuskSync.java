@@ -6,10 +6,7 @@ import dev.dejvokep.boostedyaml.settings.dumper.DumperSettings;
 import dev.dejvokep.boostedyaml.settings.general.GeneralSettings;
 import dev.dejvokep.boostedyaml.settings.loader.LoaderSettings;
 import dev.dejvokep.boostedyaml.settings.updater.UpdaterSettings;
-import net.william278.husksync.command.BukkitCommand;
-import net.william278.husksync.command.CommandBase;
-import net.william278.husksync.command.HuskSyncCommand;
-import net.william278.husksync.command.Permission;
+import net.william278.husksync.command.*;
 import net.william278.husksync.config.Locales;
 import net.william278.husksync.config.Settings;
 import net.william278.husksync.data.CompressedDataAdapter;
@@ -17,6 +14,7 @@ import net.william278.husksync.data.DataAdapter;
 import net.william278.husksync.data.JsonDataAdapter;
 import net.william278.husksync.database.Database;
 import net.william278.husksync.database.MySqlDatabase;
+import net.william278.husksync.editor.DataEditor;
 import net.william278.husksync.listener.BukkitEventListener;
 import net.william278.husksync.listener.EventListener;
 import net.william278.husksync.player.BukkitPlayer;
@@ -50,6 +48,8 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync {
     private EventListener eventListener;
 
     private DataAdapter dataAdapter;
+
+    private DataEditor dataEditor;
 
     private Settings settings;
 
@@ -97,12 +97,19 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync {
                 return loadedSettings;
             }).join();
         }).thenApply(succeeded -> {
+            // Prepare data adapter
             if (succeeded) {
                 if (settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_COMPRESS_DATA)) {
                     dataAdapter = new CompressedDataAdapter();
                 } else {
                     dataAdapter = new JsonDataAdapter();
                 }
+            }
+            return succeeded;
+        }).thenApply(succeeded -> {
+            // Prepare data editor
+            if (succeeded) {
+                dataEditor = new DataEditor();
             }
             return succeeded;
         }).thenApply(succeeded -> {
@@ -160,11 +167,10 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync {
                 })));
 
                 // Register commands
-                final CommandBase[] commands = new CommandBase[]{new HuskSyncCommand(this)};
-                for (CommandBase commandBase : commands) {
-                    final PluginCommand pluginCommand = getCommand(commandBase.command);
+                for (final BukkitCommandType bukkitCommandType : BukkitCommandType.values()) {
+                    final PluginCommand pluginCommand = getCommand(bukkitCommandType.commandBase.command);
                     if (pluginCommand != null) {
-                        new BukkitCommand(commandBase, this).register(pluginCommand);
+                        new BukkitCommand(bukkitCommandType.commandBase, this).register(pluginCommand);
                     }
                 }
                 getLoggingAdapter().log(Level.INFO, "Successfully registered permissions & commands");
@@ -224,6 +230,11 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync {
     @Override
     public @NotNull DataAdapter getDataAdapter() {
         return dataAdapter;
+    }
+
+    @Override
+    public @NotNull DataEditor getDataEditor() {
+        return dataEditor;
     }
 
     @Override

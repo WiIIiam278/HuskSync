@@ -2,8 +2,10 @@ package net.william278.husksync.player;
 
 import de.themoep.minedown.MineDown;
 import net.md_5.bungee.api.ChatMessageType;
+import net.md_5.bungee.api.chat.BaseComponent;
 import net.william278.husksync.BukkitHuskSync;
 import net.william278.husksync.data.*;
+import net.william278.husksync.editor.InventoryEditorMenu;
 import org.apache.commons.lang.ArrayUtils;
 import org.bukkit.*;
 import org.bukkit.advancement.Advancement;
@@ -12,6 +14,7 @@ import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffect;
@@ -421,6 +424,20 @@ public class BukkitPlayer extends OnlineUser {
     @Override
     public boolean hasPermission(@NotNull String node) {
         return player.hasPermission(node);
+    }
+
+    @Override
+    public void showMenu(@NotNull InventoryEditorMenu menu) {
+        BukkitSerializer.deserializeInventory(menu.inventoryData.serializedInventory).thenAccept(inventoryContents -> {
+            final Inventory inventory = Bukkit.createInventory(player, menu.slotCount,
+                    BaseComponent.toLegacyText(menu.menuTitle.toComponent()));
+            inventory.setContents(inventoryContents);
+            Bukkit.getScheduler().runTask(BukkitHuskSync.getInstance(), () -> {
+                player.closeInventory();
+                player.openInventory(inventory);
+            });
+        });
+
     }
 
     @Override

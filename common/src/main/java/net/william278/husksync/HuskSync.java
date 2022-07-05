@@ -3,6 +3,7 @@ package net.william278.husksync;
 import net.william278.husksync.config.Locales;
 import net.william278.husksync.config.Settings;
 import net.william278.husksync.data.DataAdapter;
+import net.william278.husksync.editor.DataEditor;
 import net.william278.husksync.database.Database;
 import net.william278.husksync.player.OnlineUser;
 import net.william278.husksync.redis.RedisManager;
@@ -25,6 +26,8 @@ public interface HuskSync {
     @NotNull RedisManager getRedisManager();
 
     @NotNull DataAdapter getDataAdapter();
+
+    @NotNull DataEditor getDataEditor();
 
     @NotNull Settings getSettings();
 
