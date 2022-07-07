@@ -32,6 +32,15 @@ allprojects {
         maven { url 'https://jitpack.io' }
     }
 
+    dependencies {
+        testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'
+        testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.8.2'
+    }
+
+    test {
+        useJUnitPlatform()
+    }
+
     processResources {
         filter ReplaceTokens as Class, beginToken: '${', endToken: '}',
                 tokens: rootProject.ext.properties

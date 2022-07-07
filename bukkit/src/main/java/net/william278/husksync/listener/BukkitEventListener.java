@@ -3,7 +3,7 @@ package net.william278.husksync.listener;
 import net.william278.husksync.BukkitHuskSync;
 import net.william278.husksync.data.BukkitSerializer;
 import net.william278.husksync.data.DataDeserializationException;
-import net.william278.husksync.data.InventoryData;
+import net.william278.husksync.data.ItemData;
 import net.william278.husksync.player.BukkitPlayer;
 import net.william278.husksync.player.OnlineUser;
 import org.bukkit.Bukkit;
@@ -41,7 +41,6 @@ public class BukkitEventListener extends EventListener implements Listener {
     @EventHandler
     public void onPlayerQuit(@NotNull PlayerQuitEvent event) {
         super.handlePlayerQuit(BukkitPlayer.adapt(event.getPlayer()));
-        BukkitPlayer.remove(event.getPlayer());
     }
 
     @EventHandler(ignoreCancelled = true)
@@ -56,8 +55,8 @@ public class BukkitEventListener extends EventListener implements Listener {
             final OnlineUser user = BukkitPlayer.adapt(player);
             if (huskSync.getDataEditor().isEditingInventoryData(user)) {
                 try {
-                    BukkitSerializer.serializeInventory(event.getInventory().getContents()).thenAccept(
-                            serializedInventory -> super.handleMenuClose(user, new InventoryData(serializedInventory)));
+                    BukkitSerializer.serializeItemStackArray(event.getInventory().getContents()).thenAccept(
+                            serializedInventory -> super.handleMenuClose(user, new ItemData(serializedInventory)));
                 } catch (DataDeserializationException e) {
                     huskSync.getLoggingAdapter().log(Level.SEVERE,
                             "Failed to serialize inventory data during menu close", e);

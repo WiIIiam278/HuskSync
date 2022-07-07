@@ -10,7 +10,12 @@ public class JsonDataAdapter implements DataAdapter {
 
     @Override
     public byte[] toBytes(@NotNull UserData data) throws DataAdaptionException {
-        return new GsonBuilder().create().toJson(data).getBytes(StandardCharsets.UTF_8);
+        return toJson(data, false).getBytes(StandardCharsets.UTF_8);
+    }
+
+    @Override
+    public @NotNull String toJson(@NotNull UserData data, boolean pretty) throws DataAdaptionException {
+        return (pretty ? new GsonBuilder().setPrettyPrinting() : new GsonBuilder()).create().toJson(data);
     }
 
     @Override

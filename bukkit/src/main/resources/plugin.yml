@@ -11,3 +11,7 @@ libraries:
 commands:
   husksync:
     usage: '/husksync <update|info|reload>'
+  invsee:
+    usage: '/invsee <player>'
+  echest:
+    usage: '/echest <player>'

@@ -8,13 +8,24 @@ import org.jetbrains.annotations.NotNull;
 public interface DataAdapter {
 
     /**
-     * Converts {@link UserData} to a byte array.
+     * Converts {@link UserData} to a byte array
      *
-     * @param data The {@link UserData} to adapt.
+     * @param data The {@link UserData} to adapt
      * @return The byte array.
      * @throws DataAdaptionException If an error occurred during adaptation.
      */
     byte[] toBytes(@NotNull UserData data) throws DataAdaptionException;
+
+    /**
+     * Serializes {@link UserData} to a JSON string.
+     *
+     * @param data   The {@link UserData} to serialize
+     * @param pretty Whether to pretty print the JSON.
+     * @return The output json string.
+     * @throws DataAdaptionException If an error occurred during adaptation.
+     */
+    @NotNull
+    String toJson(@NotNull UserData data, boolean pretty) throws DataAdaptionException;
 
     /**
      * Converts a byte array to {@link UserData}.

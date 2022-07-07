@@ -4,6 +4,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.util.io.BukkitObjectInputStream;
 import org.bukkit.util.io.BukkitObjectOutputStream;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.yaml.snakeyaml.external.biz.base64Coder.Base64Coder;
 
@@ -21,7 +22,8 @@ public class BukkitSerializer {
      * @param inventoryContents The contents of the inventory
      * @return The serialized inventory contents
      */
-    public static CompletableFuture<String> serializeInventory(ItemStack[] inventoryContents) throws DataDeserializationException {
+    public static CompletableFuture<String> serializeItemStackArray(ItemStack[] inventoryContents)
+            throws DataDeserializationException {
         return CompletableFuture.supplyAsync(() -> {
             // Return an empty string if there is no inventory item data to serialize
             if (inventoryContents.length == 0) {
@@ -49,20 +51,35 @@ public class BukkitSerializer {
     }
 
     /**
-     * Returns an array of ItemStacks from serialized inventory data. Note: empty slots will be represented by {@code null}
+     * Returns a {@link BukkitInventoryMap} from a serialized array of ItemStacks representing the contents of a player's inventory.
      *
-     * @param inventoryData The serialized {@link ItemStack[]} array
-     * @return The inventory contents as an array of {@link ItemStack}s
+     * @param serializedPlayerInventory The serialized {@link ItemStack[]} inventory array
+     * @return The deserialized ItemStacks, mapped for convenience as a {@link BukkitInventoryMap}
+     * @throws DataDeserializationException If the serialized item stack array could not be deserialized
      */
-    public static CompletableFuture<ItemStack[]> deserializeInventory(String inventoryData) throws DataDeserializationException {
+    public static CompletableFuture<BukkitInventoryMap> deserializeInventory(@NotNull String serializedPlayerInventory)
+            throws DataDeserializationException {
+        return CompletableFuture.supplyAsync(() -> new BukkitInventoryMap(deserializeItemStackArray(serializedPlayerInventory).join()));
+    }
+
+    /**
+     * Returns an array of ItemStacks from serialized inventory data.
+     *
+     * @param serializeItemStackArray The serialized {@link ItemStack[]} array
+     * @return The deserialized array of {@link ItemStack}s
+     * @throws DataDeserializationException If the serialized item stack array could not be deserialized
+     * @implNote Empty slots will be represented by {@code null}
+     */
+    public static CompletableFuture<ItemStack[]> deserializeItemStackArray(String serializeItemStackArray)
+            throws DataDeserializationException {
         return CompletableFuture.supplyAsync(() -> {
             // Return empty array if there is no inventory data (set the player as having an empty inventory)
-            if (inventoryData.isEmpty()) {
+            if (serializeItemStackArray.isEmpty()) {
                 return new ItemStack[0];
             }
 
             // Create a byte input stream to read the serialized data
-            try (ByteArrayInputStream byteInputStream = new ByteArrayInputStream(Base64Coder.decodeLines(inventoryData))) {
+            try (ByteArrayInputStream byteInputStream = new ByteArrayInputStream(Base64Coder.decodeLines(serializeItemStackArray))) {
                 try (BukkitObjectInputStream bukkitInputStream = new BukkitObjectInputStream(byteInputStream)) {
                     // Read the length of the Bukkit input stream and set the length of the array to this value
                     ItemStack[] inventoryContents = new ItemStack[bukkitInputStream.readInt()];

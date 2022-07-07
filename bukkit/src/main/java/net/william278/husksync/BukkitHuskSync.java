@@ -15,6 +15,8 @@ import net.william278.husksync.data.JsonDataAdapter;
 import net.william278.husksync.database.Database;
 import net.william278.husksync.database.MySqlDatabase;
 import net.william278.husksync.editor.DataEditor;
+import net.william278.husksync.event.BukkitEventCannon;
+import net.william278.husksync.event.EventCannon;
 import net.william278.husksync.listener.BukkitEventListener;
 import net.william278.husksync.listener.EventListener;
 import net.william278.husksync.player.BukkitPlayer;
@@ -51,12 +53,18 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync {
 
     private DataEditor dataEditor;
 
+    private EventCannon eventCannon;
     private Settings settings;
 
     private Locales locales;
 
     private static BukkitHuskSync instance;
 
+    /**
+     * (<b>Internal use only)</b> Returns the instance of the implementing Bukkit plugin
+     *
+     * @return the instance of the Bukkit plugin
+     */
     public static BukkitHuskSync getInstance() {
         return instance;
     }
@@ -90,6 +98,7 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync {
             getLoggingAdapter().log(Level.INFO, "Loading plugin configuration settings & locales...");
             return reload().thenApply(loadedSettings -> {
                 if (loadedSettings) {
+                    logger.showDebugLogs(settings.getBooleanValue(Settings.ConfigOption.DEBUG_LOGGING));
                     getLoggingAdapter().log(Level.INFO, "Successfully loaded plugin configuration settings & locales");
                 } else {
                     getLoggingAdapter().log(Level.SEVERE, "Failed to load plugin configuration settings and/or locales");
@@ -107,6 +116,12 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync {
             }
             return succeeded;
         }).thenApply(succeeded -> {
+            // Prepare event cannon
+            if (succeeded) {
+                eventCannon = new BukkitEventCannon();
+            }
+            return succeeded;
+        }).thenApply(succeeded -> {
             // Prepare data editor
             if (succeeded) {
                 dataEditor = new DataEditor();
@@ -114,15 +129,14 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync {
             return succeeded;
         }).thenApply(succeeded -> {
             // Establish connection to the database
-            this.database = new MySqlDatabase(settings, resourceReader, logger, dataAdapter);
             if (succeeded) {
+                this.database = new MySqlDatabase(settings, resourceReader, logger, dataAdapter, eventCannon);
                 getLoggingAdapter().log(Level.INFO, "Attempting to establish connection to the database...");
                 final CompletableFuture<Boolean> databaseConnectFuture = new CompletableFuture<>();
                 Bukkit.getScheduler().runTask(this, () -> {
                     final boolean initialized = this.database.initialize();
                     if (!initialized) {
-                        getLoggingAdapter().log(Level.SEVERE, "Failed to establish a connection to the database. "
-                                                              + "Please check the supplied database credentials in the config file");
+                        getLoggingAdapter().log(Level.SEVERE, "Failed to establish a connection to the database. " + "Please check the supplied database credentials in the config file");
                         databaseConnectFuture.completeAsync(() -> false);
                         return;
                     }
@@ -134,13 +148,12 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync {
             return false;
         }).thenApply(succeeded -> {
             // Establish connection to the Redis server
-            this.redisManager = new RedisManager(settings, dataAdapter);
             if (succeeded) {
+                this.redisManager = new RedisManager(settings, dataAdapter, logger);
                 getLoggingAdapter().log(Level.INFO, "Attempting to establish connection to the Redis server...");
                 return this.redisManager.initialize().thenApply(initialized -> {
                     if (!initialized) {
-                        getLoggingAdapter().log(Level.SEVERE, "Failed to establish a connection to the Redis server. "
-                                                              + "Please check the supplied Redis credentials in the config file");
+                        getLoggingAdapter().log(Level.SEVERE, "Failed to establish a connection to the Redis server. " + "Please check the supplied Redis credentials in the config file");
                         return false;
                     }
                     getLoggingAdapter().log(Level.INFO, "Successfully established a connection to the Redis server");
@@ -178,7 +191,7 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync {
             return succeeded;
         }).thenApply(succeeded -> {
             // Check for updates
-            if (settings.getBooleanValue(Settings.ConfigOption.CHECK_FOR_UPDATES) && succeeded) {
+            if (succeeded && settings.getBooleanValue(Settings.ConfigOption.CHECK_FOR_UPDATES)) {
                 getLoggingAdapter().log(Level.INFO, "Checking for updates...");
                 new UpdateChecker(getVersion(), getLoggingAdapter()).logToConsole();
             }
@@ -186,8 +199,7 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync {
         }).thenAccept(succeeded -> {
             // Handle failed initialization
             if (!succeeded) {
-                getLoggingAdapter().log(Level.SEVERE, "Failed to initialize HuskSync. " +
-                                                      "The plugin will now be disabled");
+                getLoggingAdapter().log(Level.SEVERE, "Failed to initialize HuskSync. " + "The plugin will now be disabled");
                 getServer().getPluginManager().disablePlugin(this);
             } else {
                 getLoggingAdapter().log(Level.INFO, "Successfully enabled HuskSync v" + getVersion());
@@ -235,6 +247,11 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync {
     @Override
     public @NotNull DataEditor getDataEditor() {
         return dataEditor;
+    }
+
+    @Override
+    public @NotNull EventCannon getEventCannon() {
+        return eventCannon;
     }
 
     @Override

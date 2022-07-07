@@ -1,7 +1,6 @@
 package net.william278.husksync.editor;
 
-import net.william278.husksync.config.Locales;
-import net.william278.husksync.data.InventoryData;
+import net.william278.husksync.data.ItemData;
 import net.william278.husksync.data.VersionedUserData;
 import net.william278.husksync.player.OnlineUser;
 import net.william278.husksync.player.User;
@@ -32,11 +31,11 @@ public class DataEditor {
      * @param user                The online user to open the editor for
      * @param inventoryEditorMenu The {@link InventoryEditorMenu} to open
      * @return The inventory editor menu
-     * @see InventoryEditorMenu#createInventoryMenu(InventoryData, User, OnlineUser)
-     * @see InventoryEditorMenu#createEnderChestMenu(InventoryData, User, OnlineUser)
+     * @see InventoryEditorMenu#createInventoryMenu(ItemData, User, OnlineUser)
+     * @see InventoryEditorMenu#createEnderChestMenu(ItemData, User, OnlineUser)
      */
-    public CompletableFuture<InventoryData> openInventoryMenu(@NotNull OnlineUser user,
-                                                              @NotNull InventoryEditorMenu inventoryEditorMenu) {
+    public CompletableFuture<ItemData> openInventoryMenu(@NotNull OnlineUser user,
+                                                         @NotNull InventoryEditorMenu inventoryEditorMenu) {
         this.openInventoryMenus.put(user.uuid, inventoryEditorMenu);
         return inventoryEditorMenu.showInventory(user);
     }
@@ -45,11 +44,11 @@ public class DataEditor {
      * Close an inventory or ender chest editor menu
      *
      * @param user          The online user to close the editor for
-     * @param inventoryData the {@link InventoryData} contained within the menu at the time of closing
+     * @param itemData the {@link ItemData} contained within the menu at the time of closing
      */
-    public void closeInventoryMenu(@NotNull OnlineUser user, @NotNull InventoryData inventoryData) {
+    public void closeInventoryMenu(@NotNull OnlineUser user, @NotNull ItemData itemData) {
         if (this.openInventoryMenus.containsKey(user.uuid)) {
-            this.openInventoryMenus.get(user.uuid).closeInventory(inventoryData);
+            this.openInventoryMenus.get(user.uuid).closeInventory(itemData);
         }
         this.openInventoryMenus.remove(user.uuid);
     }

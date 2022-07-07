@@ -4,8 +4,11 @@ import de.themoep.minedown.MineDown;
 import net.william278.husksync.config.Settings;
 import net.william278.husksync.data.*;
 import net.william278.husksync.editor.InventoryEditorMenu;
+import net.william278.husksync.event.EventCannon;
+import net.william278.husksync.event.PreSyncEvent;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -29,49 +32,42 @@ public abstract class OnlineUser extends User {
     /**
      * Set the player's {@link StatusData}
      *
-     * @param statusData    the player's {@link StatusData}
-     * @param setHealth     whether to set the player's health
-     * @param setMaxHealth  whether to set the player's max health
-     * @param setHunger     whether to set the player's hunger
-     * @param setExperience whether to set the player's experience
-     * @param setGameMode   whether to set the player's game mode
+     * @param statusData      the player's {@link StatusData}
+     * @param statusDataFlags the flags to use for setting the status data
      * @return a future returning void when complete
      */
     public abstract CompletableFuture<Void> setStatus(@NotNull StatusData statusData,
-                                                      final boolean setHealth, final boolean setMaxHealth,
-                                                      final boolean setHunger, final boolean setExperience,
-                                                      final boolean setGameMode, final boolean setFlying,
-                                                      final boolean setSelectedItemSlot);
+                                                      @NotNull List<StatusDataFlag> statusDataFlags);
 
     /**
-     * Get the player's inventory {@link InventoryData} contents
+     * Get the player's inventory {@link ItemData} contents
      *
-     * @return The player's inventory {@link InventoryData} contents
+     * @return The player's inventory {@link ItemData} contents
      */
-    public abstract CompletableFuture<InventoryData> getInventory();
+    public abstract CompletableFuture<ItemData> getInventory();
 
     /**
-     * Set the player's {@link InventoryData}
+     * Set the player's {@link ItemData}
      *
-     * @param inventoryData The player's {@link InventoryData}
+     * @param itemData The player's {@link ItemData}
      * @return a future returning void when complete
      */
-    public abstract CompletableFuture<Void> setInventory(@NotNull InventoryData inventoryData);
+    public abstract CompletableFuture<Void> setInventory(@NotNull ItemData itemData);
 
     /**
-     * Get the player's ender chest {@link InventoryData} contents
+     * Get the player's ender chest {@link ItemData} contents
      *
-     * @return The player's ender chest {@link InventoryData} contents
+     * @return The player's ender chest {@link ItemData} contents
      */
-    public abstract CompletableFuture<InventoryData> getEnderChest();
+    public abstract CompletableFuture<ItemData> getEnderChest();
 
     /**
-     * Set the player's {@link InventoryData}
+     * Set the player's {@link ItemData}
      *
-     * @param enderChestData The player's {@link InventoryData}
+     * @param enderChestData The player's {@link ItemData}
      * @return a future returning void when complete
      */
-    public abstract CompletableFuture<Void> setEnderChest(@NotNull InventoryData enderChestData);
+    public abstract CompletableFuture<Void> setEnderChest(@NotNull ItemData enderChestData);
 
 
     /**
@@ -170,49 +166,40 @@ public abstract class OnlineUser extends User {
      * @param settings Plugin settings, for determining what needs setting
      * @return a future that will be completed when done
      */
-    public final CompletableFuture<Void> setData(@NotNull UserData data, @NotNull Settings settings) {
+    public final CompletableFuture<Void> setData(@NotNull UserData data, @NotNull Settings settings,
+                                                 @NotNull EventCannon eventCannon) {
         return CompletableFuture.runAsync(() -> {
-            try {
-                // Don't set offline players
-                if (isOffline()) {
-                    return;
+            final PreSyncEvent preSyncEvent = (PreSyncEvent) eventCannon.firePreSyncEvent(this, data).join();
+            final UserData finalData = preSyncEvent.getUserData();
+            final List<CompletableFuture<Void>> dataSetOperations = new ArrayList<>() {{
+                if (!isOffline() && !isDead() && !preSyncEvent.isCancelled()) {
+                    if (settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_INVENTORIES)) {
+                        add(setInventory(finalData.getInventoryData()));
+                    }
+                    if (settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_ENDER_CHESTS)) {
+                        add(setEnderChest(finalData.getEnderChestData()));
+                    }
+                    add(setStatus(finalData.getStatusData(), StatusDataFlag.getFromSettings(settings)));
+                    if (settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_POTION_EFFECTS)) {
+                        add(setPotionEffects(finalData.getPotionEffectsData()));
+                    }
+                    if (settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_ADVANCEMENTS)) {
+                        add(setAdvancements(finalData.getAdvancementData()));
+                    }
+                    if (settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_STATISTICS)) {
+                        add(setStatistics(finalData.getStatisticsData()));
+                    }
+                    if (settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_LOCATION)) {
+                        add(setLocation(finalData.getLocationData()));
+                    }
+                    if (settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_PERSISTENT_DATA_CONTAINER)) {
+                        add(setPersistentDataContainer(finalData.getPersistentDataContainerData()));
+                    }
                 }
-                // Don't set dead players
-                if (isDead()) {
-                    return;
-                }
-                if (settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_INVENTORIES)) {
-                    setInventory(data.getInventoryData()).join();
-                }
-                if (settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_ENDER_CHESTS)) {
-                    setEnderChest(data.getEnderChestData()).join();
-                }
-                setStatus(data.getStatusData(), settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_HEALTH),
-                        settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_MAX_HEALTH),
-                        settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_HUNGER),
-                        settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_EXPERIENCE),
-                        settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_GAME_MODE),
-                        settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_LOCATION),
-                        settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_INVENTORIES)).join();
-                if (settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_POTION_EFFECTS)) {
-                    setPotionEffects(data.getPotionEffectData()).join();
-                }
-                if (settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_ADVANCEMENTS)) {
-                    setAdvancements(data.getAdvancementData()).join();
-                }
-                if (settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_STATISTICS)) {
-                    setStatistics(data.getStatisticData()).join();
-                }
-                if (settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_PERSISTENT_DATA_CONTAINER)) {
-                    setPersistentDataContainer(data.getPersistentDataContainerData()).join();
-                }
-                if (settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_LOCATION)) {
-                    setLocation(data.getLocationData()).join();
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            }};
+            CompletableFuture.allOf(dataSetOperations.toArray(new CompletableFuture[0])).join();
         });
+
     }
 
     /**

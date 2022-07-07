@@ -31,7 +31,6 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 public class BukkitPlayer extends OnlineUser {
 
-    private static final HashMap<UUID, BukkitPlayer> cachedPlayers = new HashMap<>();
     private final Player player;
 
     private BukkitPlayer(@NotNull Player player) {
@@ -40,16 +39,11 @@ public class BukkitPlayer extends OnlineUser {
     }
 
     public static BukkitPlayer adapt(@NotNull Player player) {
-        if (cachedPlayers.containsKey(player.getUniqueId())) {
-            return cachedPlayers.get(player.getUniqueId());
-        }
-        final BukkitPlayer bukkitPlayer = new BukkitPlayer(player);
-        cachedPlayers.put(player.getUniqueId(), bukkitPlayer);
-        return bukkitPlayer;
+        return new BukkitPlayer(player);
     }
 
-    public static void remove(@NotNull Player player) {
-        cachedPlayers.remove(player.getUniqueId());
+    public Player getPlayer() {
+        return player;
     }
 
     @Override
@@ -73,21 +67,18 @@ public class BukkitPlayer extends OnlineUser {
 
     @Override
     public CompletableFuture<Void> setStatus(@NotNull StatusData statusData,
-                                             final boolean setHealth, final boolean setMaxHealth,
-                                             final boolean setHunger, final boolean setExperience,
-                                             final boolean setGameMode, final boolean setFlying,
-                                             final boolean setSelectedItemSlot) {
+                                             @NotNull List<StatusDataFlag> statusDataFlags) {
         return CompletableFuture.runAsync(() -> {
             double currentMaxHealth = Objects.requireNonNull(player.getAttribute(Attribute.GENERIC_MAX_HEALTH))
                     .getBaseValue();
-            if (setMaxHealth) {
+            if (statusDataFlags.contains(StatusDataFlag.SET_MAX_HEALTH)) {
                 if (statusData.maxHealth != 0d) {
                     Objects.requireNonNull(player.getAttribute(Attribute.GENERIC_MAX_HEALTH))
                             .setBaseValue(statusData.maxHealth);
                     currentMaxHealth = statusData.maxHealth;
                 }
             }
-            if (setHealth) {
+            if (statusDataFlags.contains(StatusDataFlag.SET_HEALTH)) {
                 final double currentHealth = player.getHealth();
                 if (statusData.health != currentHealth) {
                     player.setHealth(currentHealth > currentMaxHealth ? currentMaxHealth : statusData.health);
@@ -100,24 +91,24 @@ public class BukkitPlayer extends OnlineUser {
                 }
                 player.setHealthScaled(statusData.healthScale != 0D);
             }
-            if (setHunger) {
+            if (statusDataFlags.contains(StatusDataFlag.SET_HUNGER)) {
                 player.setFoodLevel(statusData.hunger);
                 player.setSaturation(statusData.saturation);
                 player.setExhaustion(statusData.saturationExhaustion);
             }
-            if (setSelectedItemSlot) {
+            if (statusDataFlags.contains(StatusDataFlag.SET_SELECTED_ITEM_SLOT)) {
                 player.getInventory().setHeldItemSlot(statusData.selectedItemSlot);
             }
-            if (setExperience) {
+            if (statusDataFlags.contains(StatusDataFlag.SET_EXPERIENCE)) {
                 player.setTotalExperience(statusData.totalExperience);
                 player.setLevel(statusData.expLevel);
                 player.setExp(statusData.expProgress);
             }
-            if (setGameMode) {
+            if (statusDataFlags.contains(StatusDataFlag.SET_GAME_MODE)) {
                 Bukkit.getScheduler().runTask(BukkitHuskSync.getInstance(), () ->
                         player.setGameMode(GameMode.valueOf(statusData.gameMode)));
             }
-            if (setFlying) {
+            if (statusDataFlags.contains(StatusDataFlag.SET_FLYING)) {
                 Bukkit.getScheduler().runTask(BukkitHuskSync.getInstance(), () -> {
                     if (statusData.isFlying) {
                         player.setAllowFlight(true);
@@ -130,29 +121,39 @@ public class BukkitPlayer extends OnlineUser {
     }
 
     @Override
-    public CompletableFuture<InventoryData> getInventory() {
-        return BukkitSerializer.serializeInventory(player.getInventory().getContents())
-                .thenApply(InventoryData::new);
+    public CompletableFuture<ItemData> getInventory() {
+        return BukkitSerializer.serializeItemStackArray(player.getInventory().getContents())
+                .thenApply(ItemData::new);
     }
 
     @Override
-    public CompletableFuture<Void> setInventory(@NotNull InventoryData inventoryData) {
-        return BukkitSerializer.deserializeInventory(inventoryData.serializedInventory).thenAccept(contents ->
-                Bukkit.getScheduler().runTask(BukkitHuskSync.getInstance(),
-                        () -> player.getInventory().setContents(contents)));
+    public CompletableFuture<Void> setInventory(@NotNull ItemData itemData) {
+        return BukkitSerializer.deserializeInventory(itemData.serializedItems).thenApplyAsync(contents -> {
+            final CompletableFuture<Void> inventorySetFuture = new CompletableFuture<>();
+            Bukkit.getScheduler().runTask(BukkitHuskSync.getInstance(), () -> {
+                player.getInventory().setContents(contents.getContents());
+                inventorySetFuture.complete(null);
+            });
+            return inventorySetFuture.join();
+        });
     }
 
     @Override
-    public CompletableFuture<InventoryData> getEnderChest() {
-        return BukkitSerializer.serializeInventory(player.getEnderChest().getContents())
-                .thenApply(InventoryData::new);
+    public CompletableFuture<ItemData> getEnderChest() {
+        return BukkitSerializer.serializeItemStackArray(player.getEnderChest().getContents())
+                .thenApply(ItemData::new);
     }
 
     @Override
-    public CompletableFuture<Void> setEnderChest(@NotNull InventoryData enderChestData) {
-        return BukkitSerializer.deserializeInventory(enderChestData.serializedInventory).thenAccept(contents ->
-                Bukkit.getScheduler().runTask(BukkitHuskSync.getInstance(),
-                        () -> player.getEnderChest().setContents(contents)));
+    public CompletableFuture<Void> setEnderChest(@NotNull ItemData enderChestData) {
+        return BukkitSerializer.deserializeItemStackArray(enderChestData.serializedItems).thenApplyAsync(contents -> {
+            final CompletableFuture<Void> enderChestSetFuture = new CompletableFuture<>();
+            Bukkit.getScheduler().runTask(BukkitHuskSync.getInstance(), () -> {
+                player.getEnderChest().setContents(contents);
+                enderChestSetFuture.complete(null);
+            });
+            return enderChestSetFuture.join();
+        });
     }
 
     @Override
@@ -163,15 +164,20 @@ public class BukkitPlayer extends OnlineUser {
 
     @Override
     public CompletableFuture<Void> setPotionEffects(@NotNull PotionEffectData potionEffectData) {
-        return BukkitSerializer.deserializePotionEffects(potionEffectData.serializedPotionEffects).thenAccept(
-                effects -> Bukkit.getScheduler().runTask(BukkitHuskSync.getInstance(), () -> {
-                    for (PotionEffect effect : player.getActivePotionEffects()) {
-                        player.removePotionEffect(effect.getType());
-                    }
-                    for (PotionEffect effect : effects) {
-                        player.addPotionEffect(effect);
-                    }
-                }));
+        return BukkitSerializer.deserializePotionEffects(potionEffectData.serializedPotionEffects)
+                .thenApplyAsync(effects -> {
+                    final CompletableFuture<Void> potionEffectsSetFuture = new CompletableFuture<>();
+                    Bukkit.getScheduler().runTask(BukkitHuskSync.getInstance(), () -> {
+                        for (PotionEffect effect : player.getActivePotionEffects()) {
+                            player.removePotionEffect(effect.getType());
+                        }
+                        for (PotionEffect effect : effects) {
+                            player.addPotionEffect(effect);
+                        }
+                        potionEffectsSetFuture.complete(null);
+                    });
+                    return potionEffectsSetFuture.join();
+                });
     }
 
     @Override
@@ -362,7 +368,7 @@ public class BukkitPlayer extends OnlineUser {
 
     @Override
     public CompletableFuture<Void> setLocation(@NotNull LocationData locationData) {
-        final CompletableFuture<Void> completableFuture = new CompletableFuture<>();
+        final CompletableFuture<Void> teleportFuture = new CompletableFuture<>();
         AtomicReference<World> bukkitWorld = new AtomicReference<>(Bukkit.getWorld(locationData.worldName));
         if (bukkitWorld.get() == null) {
             bukkitWorld.set(Bukkit.getWorld(locationData.worldUuid));
@@ -372,12 +378,14 @@ public class BukkitPlayer extends OnlineUser {
                     .valueOf(locationData.worldEnvironment)).findFirst().ifPresent(bukkitWorld::set);
         }
         if (bukkitWorld.get() != null) {
-            player.teleport(new Location(bukkitWorld.get(),
-                    locationData.x, locationData.y, locationData.z,
-                    locationData.yaw, locationData.pitch), PlayerTeleportEvent.TeleportCause.PLUGIN);
+            Bukkit.getScheduler().runTask(BukkitHuskSync.getInstance(), () -> {
+                player.teleport(new Location(bukkitWorld.get(),
+                        locationData.x, locationData.y, locationData.z,
+                        locationData.yaw, locationData.pitch), PlayerTeleportEvent.TeleportCause.PLUGIN);
+                teleportFuture.complete(null);
+            });
         }
-        CompletableFuture.runAsync(() -> completableFuture.completeAsync(() -> null));
-        return completableFuture;
+        return teleportFuture;
     }
 
     @Override
@@ -413,12 +421,17 @@ public class BukkitPlayer extends OnlineUser {
 
     @Override
     public boolean isDead() {
-        return player.isDead() || player.getHealth() <= 0;
+        return player.getHealth() <= 0d;
     }
 
     @Override
     public boolean isOffline() {
-        return player == null;
+        try {
+            return player == null;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw e;
+        }
     }
 
     @Override
@@ -428,7 +441,7 @@ public class BukkitPlayer extends OnlineUser {
 
     @Override
     public void showMenu(@NotNull InventoryEditorMenu menu) {
-        BukkitSerializer.deserializeInventory(menu.inventoryData.serializedInventory).thenAccept(inventoryContents -> {
+        BukkitSerializer.deserializeItemStackArray(menu.itemData.serializedItems).thenAccept(inventoryContents -> {
             final Inventory inventory = Bukkit.createInventory(player, menu.slotCount,
                     BaseComponent.toLegacyText(menu.menuTitle.toComponent()));
             inventory.setContents(inventoryContents);

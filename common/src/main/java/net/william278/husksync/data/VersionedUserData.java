@@ -6,17 +6,20 @@ import java.util.Date;
 import java.util.UUID;
 
 /**
- * Represents a uniquely versioned and timestamped snapshot of a user's data
+ * Represents a uniquely versioned and timestamped snapshot of a user's data, including why it was saved.
  *
  * @param versionUUID      The unique identifier for this user data version
  * @param versionTimestamp An epoch milliseconds timestamp of when this data was created
  * @param userData         The {@link UserData} that has been versioned
+ * @param cause            The {@link DataSaveCause} that caused this data to be saved
  */
 public record VersionedUserData(@NotNull UUID versionUUID, @NotNull Date versionTimestamp,
-                                @NotNull UserData userData) implements Comparable<VersionedUserData> {
+                                @NotNull DataSaveCause cause, @NotNull UserData userData) implements Comparable<VersionedUserData> {
 
     /**
      * Version {@link UserData} into a {@link VersionedUserData}, assigning it a random {@link UUID} and the current timestamp {@link Date}
+     * </p>
+     * Note that this method will set {@code cause} to {@link DataSaveCause#API}
      *
      * @param userData The {@link UserData} to version
      * @return A new {@link VersionedUserData}
@@ -24,7 +27,7 @@ public record VersionedUserData(@NotNull UUID versionUUID, @NotNull Date version
      * Database implementations should instead use their own UUID generation functions.
      */
     public static VersionedUserData version(@NotNull UserData userData) {
-        return new VersionedUserData(UUID.randomUUID(), new Date(), userData);
+        return new VersionedUserData(UUID.randomUUID(), new Date(), DataSaveCause.API, userData);
     }
 
     /**

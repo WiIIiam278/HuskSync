@@ -11,6 +11,13 @@ import java.util.List;
 public class UserData {
 
     /**
+     * Indicates the version of the {@link UserData} format being used.
+     * </p>
+     * This value is to be incremented whenever the format changes.
+     */
+    private static final int CURRENT_FORMAT_VERSION = 1;
+
+    /**
      * Stores the user's status data, including health, food, etc.
      */
     @SerializedName("status")
@@ -20,13 +27,13 @@ public class UserData {
      * Stores the user's inventory contents
      */
     @SerializedName("inventory")
-    protected InventoryData inventoryData;
+    protected ItemData inventoryData;
 
     /**
      * Stores the user's ender chest contents
      */
     @SerializedName("ender_chest")
-    protected InventoryData enderChestData;
+    protected ItemData enderChestData;
 
     /**
      * Store's the user's potion effects
@@ -58,8 +65,14 @@ public class UserData {
     @SerializedName("persistent_data_container")
     protected PersistentDataContainerData persistentDataContainerData;
 
-    public UserData(@NotNull StatusData statusData, @NotNull InventoryData inventoryData,
-                    @NotNull InventoryData enderChestData, @NotNull PotionEffectData potionEffectData,
+    /**
+     * Stores the version of the data format being used
+     */
+    @SerializedName("format_version")
+    protected int formatVersion;
+
+    public UserData(@NotNull StatusData statusData, @NotNull ItemData inventoryData,
+                    @NotNull ItemData enderChestData, @NotNull PotionEffectData potionEffectData,
                     @NotNull List<AdvancementData> advancementData, @NotNull StatisticsData statisticData,
                     @NotNull LocationData locationData, @NotNull PersistentDataContainerData persistentDataContainerData) {
         this.statusData = statusData;
@@ -70,6 +83,7 @@ public class UserData {
         this.statisticData = statisticData;
         this.locationData = locationData;
         this.persistentDataContainerData = persistentDataContainerData;
+        this.formatVersion = CURRENT_FORMAT_VERSION;
     }
 
     // Empty constructor to facilitate json serialization
@@ -81,15 +95,15 @@ public class UserData {
         return statusData;
     }
 
-    public InventoryData getInventoryData() {
+    public ItemData getInventoryData() {
         return inventoryData;
     }
 
-    public InventoryData getEnderChestData() {
+    public ItemData getEnderChestData() {
         return enderChestData;
     }
 
-    public PotionEffectData getPotionEffectData() {
+    public PotionEffectData getPotionEffectsData() {
         return potionEffectData;
     }
 
@@ -97,7 +111,7 @@ public class UserData {
         return advancementData;
     }
 
-    public StatisticsData getStatisticData() {
+    public StatisticsData getStatisticsData() {
         return statisticData;
     }
 

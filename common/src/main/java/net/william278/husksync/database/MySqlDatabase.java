@@ -2,19 +2,16 @@ package net.william278.husksync.database;
 
 import com.zaxxer.hikari.HikariDataSource;
 import net.william278.husksync.config.Settings;
-import net.william278.husksync.data.DataAdapter;
-import net.william278.husksync.data.DataAdaptionException;
-import net.william278.husksync.data.UserData;
-import net.william278.husksync.data.VersionedUserData;
+import net.william278.husksync.data.*;
+import net.william278.husksync.event.DataSaveEvent;
+import net.william278.husksync.event.EventCannon;
 import net.william278.husksync.player.User;
 import net.william278.husksync.util.Logger;
 import net.william278.husksync.util.ResourceReader;
 import org.jetbrains.annotations.NotNull;
-import org.xerial.snappy.Snappy;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.sql.*;
 import java.util.*;
 import java.util.Date;
@@ -55,11 +52,11 @@ public class MySqlDatabase extends Database {
     private HikariDataSource connectionPool;
 
     public MySqlDatabase(@NotNull Settings settings, @NotNull ResourceReader resourceReader, @NotNull Logger logger,
-                         @NotNull DataAdapter dataAdapter) {
+                         @NotNull DataAdapter dataAdapter, @NotNull EventCannon eventCannon) {
         super(settings.getStringValue(Settings.ConfigOption.DATABASE_PLAYERS_TABLE_NAME),
                 settings.getStringValue(Settings.ConfigOption.DATABASE_DATA_TABLE_NAME),
                 settings.getIntegerValue(Settings.ConfigOption.SYNCHRONIZATION_MAX_USER_DATA_RECORDS),
-                resourceReader, dataAdapter, logger);
+                resourceReader, dataAdapter, eventCannon, logger);
         this.mySqlHost = settings.getStringValue(Settings.ConfigOption.DATABASE_HOST);
         this.mySqlPort = settings.getIntegerValue(Settings.ConfigOption.DATABASE_PORT);
         this.mySqlDatabaseName = settings.getStringValue(Settings.ConfigOption.DATABASE_NAME);
@@ -213,7 +210,7 @@ public class MySqlDatabase extends Database {
         return CompletableFuture.supplyAsync(() -> {
             try (Connection connection = getConnection()) {
                 try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
-                        SELECT `version_uuid`, `timestamp`, `data`
+                        SELECT `version_uuid`, `timestamp`, `save_cause`, `data`
                         FROM `%data_table%`
                         WHERE `player_uuid`=?
                         ORDER BY `timestamp` DESC
@@ -227,6 +224,7 @@ public class MySqlDatabase extends Database {
                         return Optional.of(new VersionedUserData(
                                 UUID.fromString(resultSet.getString("version_uuid")),
                                 Date.from(resultSet.getTimestamp("timestamp").toInstant()),
+                                DataSaveCause.getCauseByName(resultSet.getString("save_cause")),
                                 getDataAdapter().fromBytes(dataByteArray)));
                     }
                 }
@@ -243,7 +241,7 @@ public class MySqlDatabase extends Database {
             final List<VersionedUserData> retrievedData = new ArrayList<>();
             try (Connection connection = getConnection()) {
                 try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
-                        SELECT `version_uuid`, `timestamp`, `data`
+                        SELECT `version_uuid`, `timestamp`, `save_cause`, `data`
                         FROM `%data_table%`
                         WHERE `player_uuid`=?
                         ORDER BY `timestamp` DESC;"""))) {
@@ -256,6 +254,7 @@ public class MySqlDatabase extends Database {
                         final VersionedUserData data = new VersionedUserData(
                                 UUID.fromString(resultSet.getString("version_uuid")),
                                 Date.from(resultSet.getTimestamp("timestamp").toInstant()),
+                                DataSaveCause.getCauseByName(resultSet.getString("save_cause")),
                                 getDataAdapter().fromBytes(dataByteArray));
                         retrievedData.add(data);
                     }
@@ -290,20 +289,27 @@ public class MySqlDatabase extends Database {
     }
 
     @Override
-    public CompletableFuture<Void> setUserData(@NotNull User user, @NotNull UserData userData) {
+    public CompletableFuture<Void> setUserData(@NotNull User user, @NotNull UserData userData,
+                                               @NotNull DataSaveCause saveCause) {
         return CompletableFuture.runAsync(() -> {
-            try (Connection connection = getConnection()) {
-                try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
-                        INSERT INTO `%data_table%`
-                        (`player_uuid`,`version_uuid`,`timestamp`,`data`)
-                        VALUES (?,UUID(),NOW(),?);"""))) {
-                    statement.setString(1, user.uuid.toString());
-                    statement.setBlob(2, new ByteArrayInputStream(
-                            getDataAdapter().toBytes(userData)));
-                    statement.executeUpdate();
+            final DataSaveEvent dataSaveEvent = (DataSaveEvent) getEventCannon().fireDataSaveEvent(user,
+                    userData, saveCause).join();
+            if (!dataSaveEvent.isCancelled()) {
+                final UserData finalData = dataSaveEvent.getUserData();
+                try (Connection connection = getConnection()) {
+                    try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
+                            INSERT INTO `%data_table%`
+                            (`player_uuid`,`version_uuid`,`timestamp`,`save_cause`,`data`)
+                            VALUES (?,UUID(),NOW(),?,?);"""))) {
+                        statement.setString(1, user.uuid.toString());
+                        statement.setString(2, saveCause.name());
+                        statement.setBlob(3, new ByteArrayInputStream(
+                                getDataAdapter().toBytes(finalData)));
+                        statement.executeUpdate();
+                    }
+                } catch (SQLException | DataAdaptionException e) {
+                    getLogger().log(Level.SEVERE, "Failed to set user data in the database", e);
                 }
-            } catch (SQLException | DataAdaptionException e) {
-                getLogger().log(Level.SEVERE, "Failed to set user data in the database", e);
             }
         }).thenRun(() -> pruneUserDataRecords(user).join());
     }

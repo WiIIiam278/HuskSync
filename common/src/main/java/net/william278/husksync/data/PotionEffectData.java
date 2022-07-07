@@ -11,8 +11,8 @@ public class PotionEffectData {
     @SerializedName("serialized_potion_effects")
     public String serializedPotionEffects;
 
-    public PotionEffectData(@NotNull final String serializedInventory) {
-        this.serializedPotionEffects = serializedInventory;
+    public PotionEffectData(@NotNull final String serializedPotionEffects) {
+        this.serializedPotionEffects = serializedPotionEffects;
     }
 
     @SuppressWarnings("unused")

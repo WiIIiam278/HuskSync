@@ -1,8 +1,10 @@
 package net.william278.husksync.database;
 
 import net.william278.husksync.data.DataAdapter;
+import net.william278.husksync.data.DataSaveCause;
 import net.william278.husksync.data.UserData;
 import net.william278.husksync.data.VersionedUserData;
+import net.william278.husksync.event.EventCannon;
 import net.william278.husksync.player.User;
 import net.william278.husksync.util.Logger;
 import net.william278.husksync.util.ResourceReader;
@@ -52,6 +54,20 @@ public abstract class Database {
     }
 
     /**
+     * {@link EventCannon} implementation used for firing events
+     */
+    private final EventCannon eventCannon;
+
+    /**
+     * Returns the {@link EventCannon} used to fire events
+     *
+     * @return instance of the {@link EventCannon} implementation
+     */
+    protected EventCannon getEventCannon() {
+        return eventCannon;
+    }
+
+    /**
      * Logger instance used for database error logging
      */
     private final Logger logger;
@@ -71,12 +87,14 @@ public abstract class Database {
     private final ResourceReader resourceReader;
 
     protected Database(@NotNull String playerTableName, @NotNull String dataTableName, final int maxUserDataRecords,
-                       @NotNull ResourceReader resourceReader, @NotNull DataAdapter dataAdapter, @NotNull Logger logger) {
+                       @NotNull ResourceReader resourceReader, @NotNull DataAdapter dataAdapter,
+                       @NotNull EventCannon eventCannon, @NotNull Logger logger) {
         this.playerTableName = playerTableName;
         this.dataTableName = dataTableName;
         this.maxUserDataRecords = maxUserDataRecords;
         this.resourceReader = resourceReader;
         this.dataAdapter = dataAdapter;
+        this.eventCannon = eventCannon;
         this.logger = logger;
     }
 
@@ -159,7 +177,7 @@ public abstract class Database {
     protected abstract CompletableFuture<Void> pruneUserDataRecords(@NotNull User user);
 
     /**
-     * Add user data to the database<p>
+     * Save user data to the database<p>
      * This will remove the oldest data for the user if the amount of data exceeds the limit as configured
      *
      * @param user     The user to add data for
@@ -167,7 +185,7 @@ public abstract class Database {
      * @return A future returning void when complete
      * @see VersionedUserData#version(UserData)
      */
-    public abstract CompletableFuture<Void> setUserData(@NotNull User user, @NotNull UserData userData);
+    public abstract CompletableFuture<Void> setUserData(@NotNull User user, @NotNull UserData userData, @NotNull DataSaveCause dataSaveCause);
 
     /**
      * Close the database connection

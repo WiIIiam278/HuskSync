@@ -10,10 +10,11 @@ CREATE TABLE IF NOT EXISTS `%players_table%`
 # Create the player data table if it does not exist
 CREATE TABLE IF NOT EXISTS `%data_table%`
 (
-    `version_uuid` char(36)   NOT NULL,
-    `player_uuid`  char(36)   NOT NULL,
-    `timestamp`    datetime   NOT NULL,
-    `data`         mediumblob NOT NULL,
+    `version_uuid` char(36)    NOT NULL,
+    `player_uuid`  char(36)    NOT NULL,
+    `timestamp`    datetime    NOT NULL,
+    `save_cause`   varchar(32) NOT NULL,
+    `data`         mediumblob  NOT NULL,
 
     PRIMARY KEY (`version_uuid`),
     FOREIGN KEY (`player_uuid`) REFERENCES `%players_table%` (`uuid`) ON DELETE CASCADE

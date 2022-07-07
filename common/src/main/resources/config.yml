@@ -7,6 +7,7 @@
 language: 'en-gb'
 check_for_updates: true
 cluster_id: ''
+debug_logging: true
 
 database:
   credentials:
@@ -37,6 +38,7 @@ synchronization:
   max_user_data_records: 5
   save_on_world_save: true
   compress_data: true
+  network_latency_milliseconds: 500
   features:
     inventories: true
     ender_chests: true
