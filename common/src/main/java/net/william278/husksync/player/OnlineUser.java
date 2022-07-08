@@ -3,7 +3,7 @@ package net.william278.husksync.player;
 import de.themoep.minedown.MineDown;
 import net.william278.husksync.config.Settings;
 import net.william278.husksync.data.*;
-import net.william278.husksync.editor.InventoryEditorMenu;
+import net.william278.husksync.editor.ItemEditorMenu;
 import net.william278.husksync.event.EventCannon;
 import net.william278.husksync.event.PreSyncEvent;
 import org.jetbrains.annotations.NotNull;
@@ -225,11 +225,11 @@ public abstract class OnlineUser extends User {
     public abstract boolean hasPermission(@NotNull String node);
 
     /**
-     * Show the player a {@link InventoryEditorMenu} GUI
+     * Show the player a {@link ItemEditorMenu} GUI
      *
-     * @param menu The {@link InventoryEditorMenu} interface to show
+     * @param menu The {@link ItemEditorMenu} interface to show
      */
-    public abstract void showMenu(@NotNull InventoryEditorMenu menu);
+    public abstract void showMenu(@NotNull ItemEditorMenu menu);
 
     /**
      * Get the player's current {@link UserData}

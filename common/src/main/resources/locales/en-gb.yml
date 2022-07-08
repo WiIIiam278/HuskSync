@@ -1,6 +1,4 @@
-synchronisation_complete: '[Data synchronised!](#00fb9a)'
-viewing_inventory_of: '[Viewing the inventory of](#00fb9a) [%1%](#00fb9a bold)'
-viewing_ender_chest_of: '[Viewing the ender chest of](#00fb9a) [%1%](#00fb9a bold)'
+synchronisation_complete: '[⏵ Data synchronised!](#00fb9a)'
 reload_complete: '[HuskSync](#00fb9a bold) [| Reloaded config and message files.](#00fb9a)'
 error_invalid_syntax: '[Error:](#ff3300) [Incorrect syntax. Usage: %1%](#ff7e5e)'
 error_invalid_player: '[Error:](#ff3300) [Could not find that player.](#ff7e5e)'
@@ -15,3 +13,19 @@ error_invalid_cluster: '[Error:](#ff3300) [Please specify the ID of a valid clus
 
 error_no_data_to_display: '[Error:](#ff3300) [Could not find any user data to display.](#ff7e5e)'
 error_invalid_version_uuid: '[Error:](#ff3300) [Could not find any user data for that version UUID.](#ff7e5e)'
+inventory_viewer_menu_title: '&0%1%''s Inventory'
+ender_chest_viewer_menu_title: '&0%1%''s Ender Chest'
+inventory_viewer_opened: '[Viewing snapshot of](#00fb9a) [%1%](#00fb9a bold) [''s inventory as of ⌚ %2%](#00fb9a)'
+ender_chest_viewer_opened: '[Viewing snapshot of](#00fb9a) [%1%](#00fb9a bold) [''s Ender Chest as of ⌚ %2%](#00fb9a)'
+data_update_complete: '[🔔 Your data has been updated!](#00fb9a)'
+
+data_manager_title: '[Viewing user data snapshot for](#00fb9a) [%1%](#00fb9a bold show_text=&7UUID: %2%)[:](#00fb9a)'
+data_manager_versioning: '[⌚ %1%](gray show_text=&7Version timestamp: &7When the data was saved)   [⚡ %2%](gray show_text=&7Version UUID: &7%3%)   [⚑ %4%](gray show_text=&7Save cause: &7What caused the data to be saved)'
+data_manager_status: '[%1%](red)[/](gray)[%2%](red)[×](gray)[❤](red show_text=&7Health points)   [%3%](yellow)[×](gray)[🍖](yellow show_text=&7Hunger points)   [ʟᴠ](green)[.](gray)[%4%](green show_text=&7XP level)   [🏹 %5%](dark_aqua show_text=&7Game mode)'
+data_manager_advancements_statistics: '[⭐ Advancements: %1%](color=#ffc43b-#f5c962 show_text=&7%2%)   [⌛ Play Time: %3%ʜʀs](color=#62a9f5-#7ab8fa show_text=&7⚠ Based on in-game statistics)'
+data_manager_item_buttons: '[[🪣 Inventory…]](color=#a17b5f-#f5b98c show_text=&7Click to view run_command=/inventory %1% %2%)   [[⌀ Ender Chest…]](#b649c4-#d254ff show_text=&7Click to view run_command=/enderchest %1% %2%)'
+data_manager_management_buttons: '[Manage:](gray) [[❌ Delete…]](#ff3300 show_text=&7Click to delete this user data run_command=/userdata delete %1% %2%)   [[⏪ Restore…]](#00fb9a show_text=&7Click to restore this user data. &#ff3300&⚠ Warning: %1%''s current data will be overwritten! run_command=/userdata delete %1% %2%)'
+data_manager_advancement_preview_remaining: '&7+%1% more…'
+
+data_list_title: '[List of](#00fb9a) [%1%](#00fb9a bold show_text=&7UUID: %2%)[''s user data snapshots:](#00fb9a)'
+data_list_item: '[%1%](gray run_command=/userdata view %6% %4%) [⌚ %2%](color=#ffc43b-#f5c962 show_text=&7Version timestamp&7When the data was saved run_command=/userdata view %6% %4%)   [⚡ %3%](color=#62a9f5-#7ab8fa show_text=&7Version UUID:&7%4% run_command=/userdata view %6% %4%)   [⚑ %5%](#23a825-#36f539 show_text=&7Save cause&7What caused the data to be saved run_command=/userdata view %6% %4%)'

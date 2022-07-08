@@ -1,5 +1,5 @@
 synchronisation_complete: '[数据同步完成](#00fb9a)'
-viewing_inventory_of: '[查看玩家背包:](#00fb9a) [%1%](#00fb9a bold)'
+viewing_inventory_of: '[Viewing the inventory of](#00fb9a) [%1%](#00fb9a bold) [as of %2%](#00fb9a)'
 viewing_ender_chest_of: '[查看玩家末影箱:](#00fb9a) [%1%](#00fb9a bold)'
 reload_complete: '[HuskSync](#00fb9a bold) [| 配置与语言文件重载完成.](#00fb9a)'
 error_invalid_syntax: '[错误:](#ff3300) [格式错误. 使用方法: %1%](#ff7e5e)'
@@ -12,3 +12,8 @@ error_cannot_view_own_ender_chest: '[错误:](#ff3300) [你不能查看和编辑
 error_console_command_only: '[错误:](#ff3300) [该命令只能由 %1% 控制台执行](#ff7e5e)'
 error_no_servers_proxied: '[错误:](#ff3300) [操作处理失败; 没有任何安装了 HuskSync 的后端服务器在线. 请确认 HuskSync 已在 BungeeCord/Velocity 等代理服务器和所有你希望互相同步数据的后端服务器间安装.](#ff7e5e)'
 error_invalid_cluster: '[错误:](#ff3300) [请指定一个有效的集群(cluster) ID.](#ff7e5e)'
+
+error_no_data_to_display: '[Error:](#ff3300) [Could not find any user data to display.](#ff7e5e)'
+error_invalid_version_uuid: '[Error:](#ff3300) [Could not find any user data for that version UUID.](#ff7e5e)'
+inventory_viewer_menu_title: '&#00fb9a&%1%''s Inventory'
+ender_chest_viewer_menu_title: '&#00fb9a&%1%''s Ender Chest'

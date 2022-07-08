@@ -1,5 +1,5 @@
 synchronisation_complete: '[Datos sincronizados!](#00fb9a)'
-viewing_inventory_of: '[Viendo el inventario de](#00fb9a) [%1%](#00fb9a bold)'
+viewing_inventory_of: '[Viewing the inventory of](#00fb9a) [%1%](#00fb9a bold) [as of %2%](#00fb9a)'
 viewing_ender_chest_of: '[Viendo el Ender Chest de](#00fb9a) [%1%](#00fb9a bold)'
 reload_complete: '[HuskSync](#00fb9a bold) [| Se ha reiniciado la configuración y los archivos de los mensajes.](#00fb9a)'
 error_invalid_syntax: '[Error:](#ff3300) [Sintaxis incorrecta. Uso: %1%](#ff7e5e)'
@@ -12,3 +12,8 @@ error_cannot_view_own_ender_chest: '[Error:](#ff3300) [No puedes acceder a tu En
 error_console_command_only: '[Error:](#ff3300) [Ese comando solo puede ser ejecutado  desde la %1% consola](#ff7e5e)'
 error_no_servers_proxied: '[Error:](#ff3300) [Ha ocurrido un error mientras se procesaba la acción; no hay servidores online con HusckSync instalado. Por favor, asegúrate que HuskSync está instalado tanto en el proxy como en todos los servidores entre los que quieres sincronizar datos.](#ff7e5e)'
 error_invalid_cluster: '[Error:](#ff3300) [Por favor, especifica la ID de un cluster válido.](#ff7e5e)'
+
+error_no_data_to_display: '[Error:](#ff3300) [Could not find any user data to display.](#ff7e5e)'
+error_invalid_version_uuid: '[Error:](#ff3300) [Could not find any user data for that version UUID.](#ff7e5e)'
+inventory_viewer_menu_title: '&#00fb9a&%1%''s Inventory'
+ender_chest_viewer_menu_title: '&#00fb9a&%1%''s Ender Chest'

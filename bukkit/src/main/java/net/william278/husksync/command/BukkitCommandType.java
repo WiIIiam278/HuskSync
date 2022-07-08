@@ -7,9 +7,11 @@ import org.jetbrains.annotations.NotNull;
  * Commands available on the Bukkit HuskSync implementation
  */
 public enum BukkitCommandType {
+
     HUSKSYNC_COMMAND(new HuskSyncCommand(BukkitHuskSync.getInstance())),
-    HUSKSYNC_INVSEE(new InvseeCommand(BukkitHuskSync.getInstance())),
-    HUSKSYNC_ECHEST(new EchestCommand(BukkitHuskSync.getInstance()));
+    INVENTORY_COMMAND(new InventoryCommand(BukkitHuskSync.getInstance())),
+    ENDER_CHEST_COMMAND(new EnderChestCommand(BukkitHuskSync.getInstance())),
+    USERDATA_COMMAND(new UserDataCommand(BukkitHuskSync.getInstance()));
 
     public final CommandBase commandBase;
 

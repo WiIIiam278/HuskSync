@@ -1,20 +1,16 @@
 package net.william278.husksync.redis;
 
+import net.william278.husksync.HuskSync;
 import net.william278.husksync.config.Settings;
-import net.william278.husksync.data.DataAdapter;
 import net.william278.husksync.data.UserData;
 import net.william278.husksync.player.User;
-import net.william278.husksync.util.Logger;
 import org.jetbrains.annotations.NotNull;
-import org.xerial.snappy.Snappy;
-import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisPool;
-import redis.clients.jedis.JedisPoolConfig;
+import redis.clients.jedis.*;
 import redis.clients.jedis.exceptions.JedisException;
 
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Optional;
 import java.util.UUID;
@@ -25,30 +21,25 @@ import java.util.concurrent.CompletableFuture;
  */
 public class RedisManager {
 
-    private static final String KEY_NAMESPACE = "husksync:";
-    private static String clusterId = "";
-
+    protected static final String KEY_NAMESPACE = "husksync:";
+    protected static String clusterId = "";
+    private final HuskSync plugin;
     private final JedisPoolConfig jedisPoolConfig;
-    private final DataAdapter dataAdapter;
-
-    private final Logger logger;
     private final String redisHost;
     private final int redisPort;
     private final String redisPassword;
     private final boolean redisUseSsl;
-
     private JedisPool jedisPool;
 
-    public RedisManager(@NotNull Settings settings, @NotNull DataAdapter dataAdapter, @NotNull Logger logger) {
-        clusterId = settings.getStringValue(Settings.ConfigOption.CLUSTER_ID);
-        this.dataAdapter = dataAdapter;
-        this.logger = logger;
+    public RedisManager(@NotNull HuskSync plugin) {
+        this.plugin = plugin;
+        clusterId = plugin.getSettings().getStringValue(Settings.ConfigOption.CLUSTER_ID);
 
         // Set redis credentials
-        this.redisHost = settings.getStringValue(Settings.ConfigOption.REDIS_HOST);
-        this.redisPort = settings.getIntegerValue(Settings.ConfigOption.REDIS_PORT);
-        this.redisPassword = settings.getStringValue(Settings.ConfigOption.REDIS_PASSWORD);
-        this.redisUseSsl = settings.getBooleanValue(Settings.ConfigOption.REDIS_USE_SSL);
+        this.redisHost = plugin.getSettings().getStringValue(Settings.ConfigOption.REDIS_HOST);
+        this.redisPort = plugin.getSettings().getIntegerValue(Settings.ConfigOption.REDIS_PORT);
+        this.redisPassword = plugin.getSettings().getStringValue(Settings.ConfigOption.REDIS_PASSWORD);
+        this.redisUseSsl = plugin.getSettings().getBooleanValue(Settings.ConfigOption.REDIS_USE_SSL);
 
         // Configure the jedis pool
         this.jedisPoolConfig = new JedisPoolConfig();
@@ -74,7 +65,47 @@ public class RedisManager {
             } catch (JedisException e) {
                 return false;
             }
+            CompletableFuture.runAsync(this::subscribe);
             return true;
+        });
+    }
+
+    private void subscribe() {
+        try (final Jedis subscriber = redisPassword.isBlank() ? new Jedis(redisHost, redisPort, 0, redisUseSsl) :
+                new Jedis(redisHost, redisPort, DefaultJedisClientConfig.builder()
+                        .password(redisPassword).timeoutMillis(0).ssl(redisUseSsl).build())) {
+            subscriber.connect();
+            subscriber.subscribe(new JedisPubSub() {
+                @Override
+                public void onMessage(@NotNull String channel, @NotNull String message) {
+                    RedisMessageType.getTypeFromChannel(channel).ifPresent(messageType -> {
+                        if (messageType == RedisMessageType.UPDATE_USER_DATA) {
+                            final RedisMessage redisMessage = RedisMessage.fromJson(message);
+                            plugin.getOnlineUser(redisMessage.targetUserUuid).ifPresent(user -> {
+                                final UserData userData = plugin.getDataAdapter().fromBytes(redisMessage.data);
+                                user.setData(userData, plugin.getSettings(), plugin.getEventCannon()).thenRun(() -> {
+                                    plugin.getLocales().getLocale("data_update_complete")
+                                            .ifPresent(user::sendActionBar);
+                                    plugin.getEventCannon().fireSyncCompleteEvent(user);
+                                });
+                            });
+                        }
+                    });
+                }
+            }, Arrays.stream(RedisMessageType.values()).map(RedisMessageType::getMessageChannel).toArray(String[]::new));
+        }
+    }
+
+    protected void sendMessage(@NotNull String channel, @NotNull String message) {
+        try (Jedis jedis = jedisPool.getResource()) {
+            jedis.publish(channel, message);
+        }
+    }
+
+    public CompletableFuture<Void> sendUserDataUpdate(@NotNull User user, @NotNull UserData userData) {
+        return CompletableFuture.runAsync(() -> {
+            final RedisMessage redisMessage = new RedisMessage(user.uuid, plugin.getDataAdapter().toBytes(userData));
+            redisMessage.dispatch(this, RedisMessageType.UPDATE_USER_DATA);
         });
     }
 
@@ -92,9 +123,10 @@ public class RedisManager {
                     // Set the user's data as a compressed byte array of the json using Snappy
                     jedis.setex(getKey(RedisKeyType.DATA_UPDATE, user.uuid),
                             RedisKeyType.DATA_UPDATE.timeToLive,
-                            dataAdapter.toBytes(userData));
-                    logger.debug("[" + user.username + "] Set " + RedisKeyType.DATA_UPDATE.name() + " key to redis at: " +
-                                 new SimpleDateFormat("mm:ss.SSS").format(new Date()));
+                            plugin.getDataAdapter().toBytes(userData));
+                    plugin.getLoggingAdapter().debug("[" + user.username + "] Set " + RedisKeyType.DATA_UPDATE.name()
+                                                     + " key to redis at: " +
+                                                     new SimpleDateFormat("mm:ss.SSS").format(new Date()));
                 }
             });
         } catch (Exception e) {
@@ -108,8 +140,9 @@ public class RedisManager {
             try (Jedis jedis = jedisPool.getResource()) {
                 jedis.setex(getKey(RedisKeyType.SERVER_SWITCH, user.uuid),
                         RedisKeyType.SERVER_SWITCH.timeToLive, new byte[0]);
-                logger.debug("[" + user.username + "] Set " + RedisKeyType.SERVER_SWITCH.name() + " key to redis at: " +
-                             new SimpleDateFormat("mm:ss.SSS").format(new Date()));
+                plugin.getLoggingAdapter().debug("[" + user.username + "] Set " + RedisKeyType.SERVER_SWITCH.name()
+                                                 + " key to redis at: " +
+                                                 new SimpleDateFormat("mm:ss.SSS").format(new Date()));
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -126,8 +159,9 @@ public class RedisManager {
         return CompletableFuture.supplyAsync(() -> {
             try (Jedis jedis = jedisPool.getResource()) {
                 final byte[] key = getKey(RedisKeyType.DATA_UPDATE, user.uuid);
-                logger.debug("[" + user.username + "] Read " + RedisKeyType.DATA_UPDATE.name() + " key from redis at: " +
-                             new SimpleDateFormat("mm:ss.SSS").format(new Date()));
+                plugin.getLoggingAdapter().debug("[" + user.username + "] Read " + RedisKeyType.DATA_UPDATE.name()
+                                                 + " key from redis at: " +
+                                                 new SimpleDateFormat("mm:ss.SSS").format(new Date()));
                 final byte[] dataByteArray = jedis.get(key);
                 if (dataByteArray == null) {
                     return Optional.empty();
@@ -136,7 +170,7 @@ public class RedisManager {
                 jedis.del(key);
 
                 // Use Snappy to decompress the json
-                return Optional.of(dataAdapter.fromBytes(dataByteArray));
+                return Optional.of(plugin.getDataAdapter().fromBytes(dataByteArray));
             } catch (Exception e) {
                 e.printStackTrace();
                 return Optional.empty();
@@ -148,8 +182,9 @@ public class RedisManager {
         return CompletableFuture.supplyAsync(() -> {
             try (Jedis jedis = jedisPool.getResource()) {
                 final byte[] key = getKey(RedisKeyType.SERVER_SWITCH, user.uuid);
-                logger.debug("[" + user.username + "] Read " + RedisKeyType.SERVER_SWITCH.name() + " key from redis at: " +
-                             new SimpleDateFormat("mm:ss.SSS").format(new Date()));
+                plugin.getLoggingAdapter().debug("[" + user.username + "] Read " + RedisKeyType.SERVER_SWITCH.name()
+                                                 + " key from redis at: " +
+                                                 new SimpleDateFormat("mm:ss.SSS").format(new Date()));
                 final byte[] readData = jedis.get(key);
                 if (readData == null) {
                     return false;
@@ -174,23 +209,6 @@ public class RedisManager {
 
     private static byte[] getKey(@NotNull RedisKeyType keyType, @NotNull UUID uuid) {
         return (keyType.getKeyPrefix() + ":" + uuid).getBytes(StandardCharsets.UTF_8);
-    }
-
-    public enum RedisKeyType {
-        CACHE(60 * 60 * 24),
-        DATA_UPDATE(10),
-        SERVER_SWITCH(10);
-
-        public final int timeToLive;
-
-        RedisKeyType(int timeToLive) {
-            this.timeToLive = timeToLive;
-        }
-
-        @NotNull
-        public String getKeyPrefix() {
-            return KEY_NAMESPACE.toLowerCase() + ":" + clusterId.toLowerCase() + ":" + name().toLowerCase();
-        }
     }
 
 }

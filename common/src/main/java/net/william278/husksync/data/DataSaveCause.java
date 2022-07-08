@@ -1,45 +1,81 @@
 package net.william278.husksync.data;
 
+import net.william278.husksync.player.OnlineUser;
+import net.william278.husksync.api.BaseHuskSyncAPI;
+import net.william278.husksync.player.User;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Identifies the cause of a player data save.
  *
- * @implNote This enum is saved in the database. Cause names have a max length of 32 characters.
+ * @implNote This enum is saved in the database.
+ * </p>
+ * Cause names have a max length of 32 characters.
  */
 public enum DataSaveCause {
 
     /**
      * Indicates data saved when a player disconnected from the server (either to change servers, or to log off)
+     *
+     * @since 2.0
      */
     DISCONNECT,
     /**
      * Indicates data saved when the world saved
+     *
+     * @since 2.0
      */
     WORLD_SAVE,
     /**
      * Indicates data saved when the server shut down
+     *
+     * @since 2.0
      */
     SERVER_SHUTDOWN,
     /**
-     * Indicates data was saved by editing inventory contents via the {@code /invsee} command
+     * Indicates data was saved by editing inventory contents via the {@code /inventory} command
+     *
+     * @since 2.0
      */
-    INVSEE_COMMAND_EDIT,
+    INVENTORY_COMMAND_EDIT,
     /**
-     * Indicates data was saved by editing Ender Chest contents via the {@code /echest} command
+     * Indicates data was saved by editing Ender Chest contents via the {@code /enderchest} command
+     *
+     * @since 2.0
      */
-    ECHEST_COMMAND_EDIT,
+    ENDER_CHEST_COMMAND_EDIT,
+    /**
+     * Indicates data was saved by restoring it from a previous version
+     *
+     * @since 2.0
+     */
+    BACKUP_RESTORE,
     /**
      * Indicates data was saved by an API call
+     *
+     * @see BaseHuskSyncAPI#saveUserData(OnlineUser)
+     * @see BaseHuskSyncAPI#setUserData(User, UserData)
+     * @since 2.0
      */
     API,
+
+    MPDB_IMPORT,
+    LEGACY_IMPORT,
+    MANUAL_IMPORT,
     /**
      * Indicates data was saved by an unknown cause.
      * </p>
      * This should not be used and is only used for error handling purposes.
+     *
+     * @since 2.0
      */
     UNKNOWN;
 
+    /**
+     * Returns a {@link DataSaveCause} by name.
+     *
+     * @return the {@link DataSaveCause} or {@link #UNKNOWN} if the name is not valid.
+     */
     @NotNull
     public static DataSaveCause getCauseByName(@NotNull String name) {
         for (DataSaveCause cause : values()) {

@@ -50,10 +50,11 @@ public class HuskSyncCommand extends CommandBase implements TabCompletable, Cons
                     return;
                 }
                 plugin.reload();
-                player.sendMessage(new MineDown("[HuskSync](#00fb9a bold) [| Reloaded config & message files.]((#00fb9a)"));
+                player.sendMessage(new MineDown("[HuskSync](#00fb9a bold) [| Reloaded config & message files.](#00fb9a)"));
             }
-            default ->
-                    plugin.getLocales().getLocale("error_invalid_syntax", "/husksync <update/info/reload>").ifPresent(player::sendMessage);
+            default -> plugin.getLocales().getLocale("error_invalid_syntax",
+                            "/husksync <update/info/reload>")
+                            .ifPresent(player::sendMessage);
         }
     }
 
@@ -75,8 +76,8 @@ public class HuskSyncCommand extends CommandBase implements TabCompletable, Cons
             case "migrate" -> {
                 //todo - MPDB migrator
             }
-            default ->
-                    plugin.getLoggingAdapter().log(Level.INFO, "Invalid syntax. Console usage: \"husksync <update/info/reload/migrate>\"");
+            default -> plugin.getLoggingAdapter().log(Level.INFO,
+                    "Invalid syntax. Console usage: \"husksync <update/info/reload/migrate>\"");
         }
     }
 

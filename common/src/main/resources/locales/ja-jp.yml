@@ -1,5 +1,5 @@
 synchronisation_complete: '[データが同期されました！](#00fb9a)'
-viewing_inventory_of: '[%1%](#00fb9a bold) [のインベントリを表示します](#00fb9a) '
+viewing_inventory_of: '[Viewing the inventory of](#00fb9a) [%1%](#00fb9a bold) [as of %2%](#00fb9a)'
 viewing_ender_chest_of: '[%1%](#00fb9a bold) [のエンダーチェストを表示します](#00fb9a) '
 reload_complete: '[HuskSync](#00fb9a bold) [| 設定ファイルとメッセージファイルを再読み込みしました。](#00fb9a)'
 error_invalid_syntax: '[Error:](#ff3300) [構文が正しくありません。使用法: %1%](#ff7e5e)'
@@ -12,3 +12,8 @@ error_cannot_view_own_ender_chest: '[Error:](#ff3300) [自分のエンダーチ�
 error_console_command_only: '[Error:](#ff3300) [そのコマンドは%1%コンソールからのみ実行できます](#ff7e5e)'
 error_no_servers_proxied: '[Error:](#ff3300) [操作の処理に失敗; HuskSyncがインストールされているサーバーがオンラインになっていません。プロキシサーバーとデータを同期させたいすべてのサーバーにHuskSyncがインストールされていることを確認してください。](#ff7e5e)'
 error_invalid_cluster: '[Error:](#ff3300) [有効なクラスターのIDを指定してください。](#ff7e5e)'
+
+error_no_data_to_display: '[Error:](#ff3300) [Could not find any user data to display.](#ff7e5e)'
+error_invalid_version_uuid: '[Error:](#ff3300) [Could not find any user data for that version UUID.](#ff7e5e)'
+inventory_viewer_menu_title: '&#00fb9a&%1%''s Inventory'
+ender_chest_viewer_menu_title: '&#00fb9a&%1%''s Ender Chest'

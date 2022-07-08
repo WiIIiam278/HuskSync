@@ -29,11 +29,6 @@ public class BukkitPreSyncEvent extends BukkitPlayerEvent implements PreSyncEven
     }
 
     @Override
-    public OnlineUser getUser() {
-        return BukkitPlayer.adapt(player);
-    }
-
-    @Override
     public @NotNull UserData getUserData() {
         return userData;
     }

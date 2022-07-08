@@ -22,12 +22,12 @@ public class BukkitEventCannon extends EventCannon {
     @Override
     public CompletableFuture<Event> fireDataSaveEvent(@NotNull User user, @NotNull UserData userData,
                                                       @NotNull DataSaveCause saveCause) {
-        return new BukkitDataSavePlayerEvent(user, userData, saveCause).fire();
+        return new BukkitDataSaveEvent(user, userData, saveCause).fire();
     }
 
     @Override
     public void fireSyncCompleteEvent(@NotNull OnlineUser user) {
-        new BukkitSyncCompletePlayerEvent(((BukkitPlayer) user).getPlayer()).fire();
+        new BukkitSyncCompleteEvent(((BukkitPlayer) user).getPlayer()).fire();
     }
 
 }

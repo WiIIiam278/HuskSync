@@ -5,7 +5,7 @@ import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.william278.husksync.BukkitHuskSync;
 import net.william278.husksync.data.*;
-import net.william278.husksync.editor.InventoryEditorMenu;
+import net.william278.husksync.editor.ItemEditorMenu;
 import org.apache.commons.lang.ArrayUtils;
 import org.bukkit.*;
 import org.bukkit.advancement.Advancement;
@@ -158,13 +158,13 @@ public class BukkitPlayer extends OnlineUser {
 
     @Override
     public CompletableFuture<PotionEffectData> getPotionEffects() {
-        return BukkitSerializer.serializePotionEffects(player.getActivePotionEffects()
+        return BukkitSerializer.serializePotionEffectArray(player.getActivePotionEffects()
                 .toArray(new PotionEffect[0])).thenApply(PotionEffectData::new);
     }
 
     @Override
     public CompletableFuture<Void> setPotionEffects(@NotNull PotionEffectData potionEffectData) {
-        return BukkitSerializer.deserializePotionEffects(potionEffectData.serializedPotionEffects)
+        return BukkitSerializer.deserializePotionEffectArray(potionEffectData.serializedPotionEffects)
                 .thenApplyAsync(effects -> {
                     final CompletableFuture<Void> potionEffectsSetFuture = new CompletableFuture<>();
                     Bukkit.getScheduler().runTask(BukkitHuskSync.getInstance(), () -> {
@@ -328,8 +328,8 @@ public class BukkitPlayer extends OnlineUser {
     public CompletableFuture<Void> setStatistics(@NotNull StatisticsData statisticsData) {
         return CompletableFuture.runAsync(() -> {
             // Set untyped statistics
-            for (String statistic : statisticsData.untypedStatistic.keySet()) {
-                player.setStatistic(Statistic.valueOf(statistic), statisticsData.untypedStatistic.get(statistic));
+            for (String statistic : statisticsData.untypedStatistics.keySet()) {
+                player.setStatistic(Statistic.valueOf(statistic), statisticsData.untypedStatistics.get(statistic));
             }
 
             // Set block statistics
@@ -440,7 +440,7 @@ public class BukkitPlayer extends OnlineUser {
     }
 
     @Override
-    public void showMenu(@NotNull InventoryEditorMenu menu) {
+    public void showMenu(@NotNull ItemEditorMenu menu) {
         BukkitSerializer.deserializeItemStackArray(menu.itemData.serializedItems).thenAccept(inventoryContents -> {
             final Inventory inventory = Bukkit.createInventory(player, menu.slotCount,
                     BaseComponent.toLegacyText(menu.menuTitle.toComponent()));

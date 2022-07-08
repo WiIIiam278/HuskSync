@@ -10,32 +10,27 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * The HuskSync API for the Bukkit platform, providing methods to access and modify player {@link UserData} held by {@link User}s.
+ * The HuskSync API implementation for the Bukkit platform, providing methods to access and modify player {@link UserData} held by {@link User}s.
  * </p>
  * Retrieve an instance of the API class via {@link #getInstance()}.
  */
 @SuppressWarnings("unused")
-public class HuskSyncAPI {
+public class HuskSyncAPI extends BaseHuskSyncAPI {
 
     /**
-     * <b>(Internal use only)</b> - Instance of the API class.
+     * <b>(Internal use only)</b> - Instance of the API class
      */
     private static final HuskSyncAPI INSTANCE = new HuskSyncAPI();
-    /**
-     * <b>(Internal use only)</b> - Instance of the implementing plugin.
-     */
-    private static final BukkitHuskSync PLUGIN = BukkitHuskSync.getInstance();
 
     /**
-     * <b>(Internal use only)</b> - Constructor.
+     * <b>(Internal use only)</b> - Constructor, instantiating the API
      */
     private HuskSyncAPI() {
+        super(BukkitHuskSync.getInstance());
     }
 
     /**
@@ -51,7 +46,8 @@ public class HuskSyncAPI {
      * Returns a {@link User} instance for the given bukkit {@link Player}.
      *
      * @param player the bukkit player to get the {@link User} instance for
-     * @return the {@link User} instance for the given bukkit player
+     * @return the {@link User} instance for the given bukkit {@link Player}
+     * @since 2.0
      */
     @NotNull
     public OnlineUser getUser(@NotNull Player player) {
@@ -59,71 +55,49 @@ public class HuskSyncAPI {
     }
 
     /**
-     * Returns a {@link User} by the given player's account {@link UUID}, if they exist.
+     * Set the inventory in the database of the given {@link User} to the given {@link ItemStack} contents
      *
-     * @param uuid the unique id of the player to get the {@link User} instance for
-     * @return future returning the {@link User} instance for the given player's unique id if they exist, otherwise an empty {@link Optional}
-     * @apiNote The player does not have to be online
+     * @param user              the {@link User} to set the inventory of
+     * @param inventoryContents the {@link ItemStack} contents to set the inventory to
+     * @return future returning void when complete
+     * @since 2.0
      */
-    public CompletableFuture<Optional<User>> getUser(@NotNull UUID uuid) {
-        return PLUGIN.getDatabase().getUser(uuid);
+    public CompletableFuture<Void> setInventoryData(@NotNull User user, @NotNull ItemStack[] inventoryContents) {
+        return CompletableFuture.runAsync(() -> getUserData(user).thenAccept(userData ->
+                userData.ifPresent(data -> serializeItemStackArray(inventoryContents)
+                        .thenAccept(serializedInventory -> {
+                            data.getInventoryData().serializedItems = serializedInventory;
+                            setUserData(user, data).join();
+                        }))));
     }
 
     /**
-     * Returns a {@link User} by the given player's username (case-insensitive), if they exist.
+     * Set the inventory in the database of the given {@link User} to the given {@link BukkitInventoryMap} contents
      *
-     * @param username the username of the {@link User} instance for
-     * @return future returning the {@link User} instance for the given player's username if they exist, otherwise an empty {@link Optional}
-     * @apiNote The player does not have to be online, though their username has to be the username
-     * they had when they last joined the server.
+     * @param user         the {@link User} to set the inventory of
+     * @param inventoryMap the {@link BukkitInventoryMap} contents to set the inventory to
+     * @return future returning void when complete
+     * @since 2.0
      */
-    public CompletableFuture<Optional<User>> getUser(@NotNull String username) {
-        return PLUGIN.getDatabase().getUserByName(username);
+    public CompletableFuture<Void> setInventoryData(@NotNull User user, @NotNull BukkitInventoryMap inventoryMap) {
+        return setInventoryData(user, inventoryMap.getContents());
     }
 
     /**
-     * Returns a {@link User}'s current {@link UserData}
+     * Set the Ender Chest in the database of the given {@link User} to the given {@link ItemStack} contents
      *
-     * @param user the {@link User} to get the {@link UserData} for
-     * @return future returning the {@link UserData} for the given {@link User} if they exist, otherwise an empty {@link Optional}
-     * @apiNote If the user is not online on the implementing bukkit server,
-     * the {@link UserData} returned will be their last database-saved UserData.</p>
-     * If the user happens to be online on another server on the network,
-     * then the {@link UserData} returned here may not be reflective of their actual current UserData.
+     * @param user               the {@link User} to set the Ender Chest of
+     * @param enderChestContents the {@link ItemStack} contents to set the Ender Chest to
+     * @return future returning void when complete
+     * @since 2.0
      */
-    public CompletableFuture<Optional<UserData>> getUserData(@NotNull User user) {
-        return CompletableFuture.supplyAsync(() -> {
-            if (user instanceof OnlineUser) {
-                return Optional.of(((OnlineUser) user).getUserData().join());
-            } else {
-                return PLUGIN.getDatabase().getCurrentUserData(user).join().map(VersionedUserData::userData);
-            }
-        });
-    }
-
-    /**
-     * Returns the saved {@link VersionedUserData} records for the given {@link User}
-     *
-     * @param user the {@link User} to get the {@link VersionedUserData} for
-     * @return future returning a list {@link VersionedUserData} for the given {@link User} if they exist,
-     * otherwise an empty {@link Optional}
-     * @apiNote The length of the list of VersionedUserData will correspond to the configured
-     * {@code max_user_data_records} config option
-     */
-    public CompletableFuture<List<VersionedUserData>> getSavedUserData(@NotNull User user) {
-        return CompletableFuture.supplyAsync(() -> PLUGIN.getDatabase().getUserData(user).join());
-    }
-
-    /**
-     * Returns the JSON string representation of the given {@link UserData}
-     *
-     * @param userData    the {@link UserData} to get the JSON string representation of
-     * @param prettyPrint whether to pretty print the JSON string
-     * @return the JSON string representation of the given {@link UserData}
-     */
-    @NotNull
-    public String getUserDataJson(@NotNull UserData userData, boolean prettyPrint) {
-        return PLUGIN.getDataAdapter().toJson(userData, prettyPrint);
+    public CompletableFuture<Void> setEnderChestData(@NotNull User user, @NotNull ItemStack[] enderChestContents) {
+        return CompletableFuture.runAsync(() -> getUserData(user).thenAccept(userData ->
+                userData.ifPresent(data -> serializeItemStackArray(enderChestContents)
+                        .thenAccept(serializedInventory -> {
+                            data.getEnderChestData().serializedItems = serializedInventory;
+                            setUserData(user, data).join();
+                        }))));
     }
 
     /**
@@ -132,10 +106,11 @@ public class HuskSyncAPI {
      * @param user the {@link User} to get the {@link BukkitInventoryMap} for
      * @return future returning the {@link BukkitInventoryMap} for the given {@link User} if they exist,
      * otherwise an empty {@link Optional}
+     * @since 2.0
      */
     public CompletableFuture<Optional<BukkitInventoryMap>> getPlayerInventory(@NotNull User user) {
         return CompletableFuture.supplyAsync(() -> getUserData(user).join()
-                .map(userData -> BukkitSerializer.deserializeInventory(userData
+                .map(userData -> deserializeInventory(userData
                         .getInventoryData().serializedItems).join()));
     }
 
@@ -145,10 +120,11 @@ public class HuskSyncAPI {
      * @param user the {@link User} to get the Ender Chest contents of
      * @return future returning the {@link ItemStack} array of Ender Chest items for the user if they exist,
      * otherwise an empty {@link Optional}
+     * @since 2.0
      */
     public CompletableFuture<Optional<ItemStack[]>> getPlayerEnderChest(@NotNull User user) {
         return CompletableFuture.supplyAsync(() -> getUserData(user).join()
-                .map(userData -> BukkitSerializer.deserializeItemStackArray(userData
+                .map(userData -> deserializeItemStackArray(userData
                         .getEnderChestData().serializedItems).join()));
     }
 
@@ -157,12 +133,42 @@ public class HuskSyncAPI {
      *
      * @param serializedItemStackArray The Base-64 encoded inventory array string.
      * @return The deserialized {@link ItemStack} array.
-     * @throws DataDeserializationException If an error occurs during deserialization.
+     * @throws DataSerializationException If an error occurs during deserialization.
+     * @since 2.0
      */
     public CompletableFuture<ItemStack[]> deserializeItemStackArray(@NotNull String serializedItemStackArray)
-            throws DataDeserializationException {
+            throws DataSerializationException {
         return CompletableFuture.supplyAsync(() -> BukkitSerializer
                 .deserializeItemStackArray(serializedItemStackArray).join());
+    }
+
+    /**
+     * Deserialize a serialized {@link ItemStack} array of player inventory contents into a {@link BukkitInventoryMap}
+     *
+     * @param serializedInventory The serialized {@link ItemStack} array of player inventory contents.
+     * @return A {@link BukkitInventoryMap} of the deserialized {@link ItemStack} contents array
+     * @throws DataSerializationException If an error occurs during deserialization.
+     * @since 2.0
+     */
+    public CompletableFuture<BukkitInventoryMap> deserializeInventory(@NotNull String serializedInventory)
+            throws DataSerializationException {
+        return CompletableFuture.supplyAsync(() -> BukkitSerializer
+                .deserializeInventory(serializedInventory).join());
+    }
+
+    /**
+     * Serialize an {@link ItemStack} array into a Base-64 encoded string.
+     *
+     * @param itemStacks The {@link ItemStack} array to serialize.
+     * @return The serialized Base-64 encoded string.
+     * @throws DataSerializationException If an error occurs during serialization.
+     * @see #deserializeItemStackArray(String)
+     * @see ItemData
+     * @since 2.0
+     */
+    public CompletableFuture<String> serializeItemStackArray(@NotNull ItemStack[] itemStacks)
+            throws DataSerializationException {
+        return CompletableFuture.supplyAsync(() -> BukkitSerializer.serializeItemStackArray(itemStacks).join());
     }
 
     /**
@@ -170,12 +176,28 @@ public class HuskSyncAPI {
      *
      * @param serializedPotionEffectArray The Base-64 encoded potion effect array string.
      * @return The deserialized {@link PotionEffect} array.
-     * @throws DataDeserializationException If an error occurs during deserialization.
+     * @throws DataSerializationException If an error occurs during deserialization.
+     * @since 2.0
      */
     public CompletableFuture<PotionEffect[]> deserializePotionEffectArray(@NotNull String serializedPotionEffectArray)
-            throws DataDeserializationException {
+            throws DataSerializationException {
         return CompletableFuture.supplyAsync(() -> BukkitSerializer
-                .deserializePotionEffects(serializedPotionEffectArray).join());
+                .deserializePotionEffectArray(serializedPotionEffectArray).join());
+    }
+
+    /**
+     * Serialize a {@link PotionEffect} array into a Base-64 encoded string.
+     *
+     * @param potionEffects The {@link PotionEffect} array to serialize.
+     * @return The serialized Base-64 encoded string.
+     * @throws DataSerializationException If an error occurs during serialization.
+     * @see #deserializePotionEffectArray(String)
+     * @see PotionEffectData
+     * @since 2.0
+     */
+    public CompletableFuture<String> serializePotionEffectArray(@NotNull PotionEffect[] potionEffects)
+            throws DataSerializationException {
+        return CompletableFuture.supplyAsync(() -> BukkitSerializer.serializePotionEffectArray(potionEffects).join());
     }
 
 }

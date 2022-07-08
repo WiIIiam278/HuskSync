@@ -124,7 +124,7 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync {
         }).thenApply(succeeded -> {
             // Prepare data editor
             if (succeeded) {
-                dataEditor = new DataEditor();
+                dataEditor = new DataEditor(locales);
             }
             return succeeded;
         }).thenApply(succeeded -> {
@@ -149,7 +149,7 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync {
         }).thenApply(succeeded -> {
             // Establish connection to the Redis server
             if (succeeded) {
-                this.redisManager = new RedisManager(settings, dataAdapter, logger);
+                this.redisManager = new RedisManager(this);
                 getLoggingAdapter().log(Level.INFO, "Attempting to establish connection to the Redis server...");
                 return this.redisManager.initialize().thenApply(initialized -> {
                     if (!initialized) {

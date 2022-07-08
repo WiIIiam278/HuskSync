@@ -2,7 +2,7 @@ package net.william278.husksync.player;
 
 import de.themoep.minedown.MineDown;
 import net.william278.husksync.data.*;
-import net.william278.husksync.editor.InventoryEditorMenu;
+import net.william278.husksync.editor.ItemEditorMenu;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -149,7 +149,7 @@ public class DummyPlayer extends OnlineUser {
     }
 
     @Override
-    public void showMenu(@NotNull InventoryEditorMenu menu) {
+    public void showMenu(@NotNull ItemEditorMenu menu) {
         // do nothing
     }
 

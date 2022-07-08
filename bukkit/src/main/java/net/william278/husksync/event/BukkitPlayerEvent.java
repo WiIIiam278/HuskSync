@@ -9,11 +9,12 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.CompletableFuture;
 
-public abstract class BukkitPlayerEvent extends org.bukkit.event.player.PlayerEvent implements PlayerEvent {
+public abstract class BukkitPlayerEvent extends BukkitEvent implements PlayerEvent {
 
+    protected final Player player;
 
-    public BukkitPlayerEvent(@NotNull Player who) {
-        super(who);
+    protected BukkitPlayerEvent(@NotNull Player player) {
+        this.player = player;
     }
 
     @Override

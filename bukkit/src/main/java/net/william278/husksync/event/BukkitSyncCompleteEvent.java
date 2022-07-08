@@ -6,16 +6,11 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
 
-public class BukkitSyncCompletePlayerEvent extends BukkitPlayerEvent implements SyncCompleteEvent {
+public class BukkitSyncCompleteEvent extends BukkitPlayerEvent implements SyncCompleteEvent {
     private static final HandlerList HANDLER_LIST = new HandlerList();
 
-    protected BukkitSyncCompletePlayerEvent(@NotNull Player player) {
+    protected BukkitSyncCompleteEvent(@NotNull Player player) {
         super(player);
-    }
-
-    @Override
-    public OnlineUser getUser() {
-        return BukkitPlayer.adapt(player);
     }
 
     @NotNull

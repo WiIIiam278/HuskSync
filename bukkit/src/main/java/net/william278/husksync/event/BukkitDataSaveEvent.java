@@ -7,15 +7,15 @@ import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
 
-public class BukkitDataSavePlayerEvent extends BukkitEvent implements DataSaveEvent, Cancellable {
+public class BukkitDataSaveEvent extends BukkitEvent implements DataSaveEvent, Cancellable {
     private static final HandlerList HANDLER_LIST = new HandlerList();
     private boolean cancelled = false;
     private UserData userData;
     private final User user;
     private final DataSaveCause saveCause;
 
-    protected BukkitDataSavePlayerEvent(@NotNull User user, @NotNull UserData userData,
-                                        @NotNull DataSaveCause saveCause) {
+    protected BukkitDataSaveEvent(@NotNull User user, @NotNull UserData userData,
+                                  @NotNull DataSaveCause saveCause) {
         this.user = user;
         this.userData = userData;
         this.saveCause = saveCause;

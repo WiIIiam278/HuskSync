@@ -30,45 +30,51 @@ public enum Permission {
     /**
      * Lets the user save a player's data {@code /husksync save (player)}
      */
-    COMMAND_HUSKSYNC_SAVE("husksync.command.husksync.save", DefaultAccess.OPERATORS),
+    COMMAND_HUSKSYNC_SAVE("husksync.command.husksync.save", DefaultAccess.OPERATORS), // todo
     /**
      * Lets the user save all online player data {@code /husksync saveall}
      */
-    COMMAND_HUSKSYNC_SAVE_ALL("husksync.command.husksync.saveall", DefaultAccess.OPERATORS),
-    /**
-     * Lets the user view a player's backup data {@code /husksync backup (player)}
-     */
-    COMMAND_HUSKSYNC_BACKUPS("husksync.command.husksync.backups", DefaultAccess.OPERATORS),
-    /**
-     * Lets the user restore a player's backup data {@code /husksync backup (player) restore (backup_uuid)}
-     */
-    COMMAND_HUSKSYNC_BACKUPS_RESTORE("husksync.command.husksync.backups.restore", DefaultAccess.OPERATORS),
+    COMMAND_HUSKSYNC_SAVE_ALL("husksync.command.husksync.saveall", DefaultAccess.OPERATORS), //todo
 
     /*
-     * /invsee command permissions
+     * /inventory command permissions
      */
 
     /**
-     * Lets the user use the {@code /invsee (player)} command and view offline players' inventories
+     * Lets the user use the {@code /inventory (player)} command and view offline players' inventories
      */
-    COMMAND_VIEW_INVENTORIES("husksync.command.invsee", DefaultAccess.OPERATORS),
+    COMMAND_INVENTORY("husksync.command.inventory", DefaultAccess.OPERATORS),
     /**
      * Lets the user edit the contents of offline players' inventories
      */
-    COMMAND_EDIT_INVENTORIES("husksync.command.invsee.edit", DefaultAccess.OPERATORS),
+    COMMAND_INVENTORY_EDIT("husksync.command.inventory.edit", DefaultAccess.OPERATORS),
 
     /*
-     * /echest command permissions
+     * /enderchest command permissions
      */
 
     /**
-     * Lets the user use the {@code /echest (player)} command and view offline players' ender chests
+     * Lets the user use the {@code /enderchest (player)} command and view offline players' ender chests
      */
-    COMMAND_VIEW_ENDER_CHESTS("husksync.command.echest", DefaultAccess.OPERATORS),
+    COMMAND_ENDER_CHEST("husksync.command.enderchest", DefaultAccess.OPERATORS),
     /**
      * Lets the user edit the contents of offline players' ender chests
      */
-    COMMAND_EDIT_ENDER_CHESTS("husksync.command.echest.edit", DefaultAccess.OPERATORS);
+    COMMAND_ENDER_CHEST_EDIT("husksync.command.enderchest.edit", DefaultAccess.OPERATORS),
+
+    /*
+     * /userdata command permissions
+     */
+
+    /**
+     * Lets the user view user data {@code /userdata view/list (player) (version_uuid)}
+     */
+    COMMAND_USER_DATA("husksync.command.userdata", DefaultAccess.OPERATORS),
+    /**
+     * Lets the user restore and delete user data {@code /userdata restore/delete (player) (version_uuid)}
+     */
+    COMMAND_USER_DATA_MANAGE("husksync.command.userdata.manage", DefaultAccess.OPERATORS);
+
 
     public final String node;
     public final DefaultAccess defaultAccess;

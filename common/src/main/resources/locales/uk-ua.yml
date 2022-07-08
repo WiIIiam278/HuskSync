@@ -1,5 +1,5 @@
 synchronisation_complete: '[Дані синхронізовано!](#00fb9a)'
-viewing_inventory_of: '[Переглядання інвентару](#00fb9a) [%1%](#00fb9a bold)'
+viewing_inventory_of: '[Viewing the inventory of](#00fb9a) [%1%](#00fb9a bold) [as of %2%](#00fb9a)'
 viewing_ender_chest_of: '[Переглядання скрині енду](#00fb9a) [%1%](#00fb9a bold)'
 reload_complete: '[HuskSync](#00fb9a bold) [| Перезавантажено конфіґ та файли повідомлень.](#00fb9a)'
 error_invalid_syntax: '[Помилка:](#ff3300) [Неправильний синтакс. Використання: %1%](#ff7e5e)'
@@ -12,3 +12,8 @@ error_cannot_view_own_ender_chest: '[Помилка:](#ff3300) [Ви не мож
 error_console_command_only: '[Помилка:](#ff3300) [Ця команда може бути використана лише з допомогою %1% консолі](#ff7e5e)'
 error_no_servers_proxied: '[Помилка:](#ff3300) [Не вдалося опрацювати операцію; не знайдено жодного сервера із встановленим HuskSync. Запевніться, будьласка, що HuskSync встановлено на Проксі та усіх серверах між якими ви хочете синхроніхувати дані.](#ff7e5e)'
 error_invalid_cluster: '[Помилка:](#ff3300) [Зазнчте будь ласка ID слушного кластеру.](#ff7e5e)'
+
+error_no_data_to_display: '[Error:](#ff3300) [Could not find any user data to display.](#ff7e5e)'
+error_invalid_version_uuid: '[Error:](#ff3300) [Could not find any user data for that version UUID.](#ff7e5e)'
+inventory_viewer_menu_title: '&#00fb9a&%1%''s Inventory'
+ender_chest_viewer_menu_title: '&#00fb9a&%1%''s Ender Chest'
