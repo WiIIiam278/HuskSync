@@ -268,7 +268,38 @@ public class MySqlDatabase extends Database {
     }
 
     @Override
-    protected CompletableFuture<Void> pruneUserDataRecords(@NotNull User user) {
+    public CompletableFuture<Optional<VersionedUserData>> getUserData(@NotNull User user, @NotNull UUID versionUuid) {
+        return CompletableFuture.supplyAsync(() -> {
+            try (Connection connection = getConnection()) {
+                try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
+                        SELECT `version_uuid`, `timestamp`, `save_cause`, `data`
+                        FROM `%data_table%`
+                        WHERE `player_uuid`=? AND `version_uuid`=?
+                        ORDER BY `timestamp` DESC
+                        LIMIT 1;"""))) {
+                    statement.setString(1, user.uuid.toString());
+                    statement.setString(2, versionUuid.toString());
+                    final ResultSet resultSet = statement.executeQuery();
+                    if (resultSet.next()) {
+                        final Blob blob = resultSet.getBlob("data");
+                        final byte[] dataByteArray = blob.getBytes(1, (int) blob.length());
+                        blob.free();
+                        return Optional.of(new VersionedUserData(
+                                UUID.fromString(resultSet.getString("version_uuid")),
+                                Date.from(resultSet.getTimestamp("timestamp").toInstant()),
+                                DataSaveCause.getCauseByName(resultSet.getString("save_cause")),
+                                getDataAdapter().fromBytes(dataByteArray)));
+                    }
+                }
+            } catch (SQLException | DataAdaptionException e) {
+                getLogger().log(Level.SEVERE, "Failed to fetch specific user data by UUID from the database", e);
+            }
+            return Optional.empty();
+        });
+    }
+
+    @Override
+    protected CompletableFuture<Void> pruneUserData(@NotNull User user) {
         return CompletableFuture.runAsync(() -> getUserData(user).thenAccept(data -> {
             if (data.size() > maxUserDataRecords) {
                 try (Connection connection = getConnection()) {
@@ -286,6 +317,25 @@ public class MySqlDatabase extends Database {
                 }
             }
         }));
+    }
+
+    @Override
+    public CompletableFuture<Boolean> deleteUserData(@NotNull User user, @NotNull UUID versionUuid) {
+        return CompletableFuture.supplyAsync(() -> {
+            try (Connection connection = getConnection()) {
+                try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
+                        DELETE FROM `%data_table%`
+                        WHERE `player_uuid`=? AND `version_uuid`=?
+                        LIMIT 1;"""))) {
+                    statement.setString(1, user.uuid.toString());
+                    statement.setString(2, versionUuid.toString());
+                    return statement.executeUpdate() > 0;
+                }
+            } catch (SQLException e) {
+                getLogger().log(Level.SEVERE, "Failed to delete specific user data from the database", e);
+            }
+            return false;
+        });
     }
 
     @Override
@@ -311,7 +361,7 @@ public class MySqlDatabase extends Database {
                     getLogger().log(Level.SEVERE, "Failed to set user data in the database", e);
                 }
             }
-        }).thenRun(() -> pruneUserDataRecords(user).join());
+        }).thenRun(() -> pruneUserData(user).join());
     }
 
     @Override

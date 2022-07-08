@@ -1,10 +1,12 @@
 package net.william278.husksync.command;
 
 import net.william278.husksync.HuskSync;
+import net.william278.husksync.data.DataSaveCause;
 import net.william278.husksync.player.OnlineUser;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -41,14 +43,11 @@ public class UserDataCommand extends CommandBase implements TabCompletable {
                         final UUID versionUuid = UUID.fromString(args[2]);
                         CompletableFuture.runAsync(() -> plugin.getDatabase().getUserByName(username.toLowerCase()).thenAccept(
                                 optionalUser -> optionalUser.ifPresentOrElse(
-                                        user -> plugin.getDatabase().getUserData(user).thenAccept(
-                                                userDataList -> userDataList.stream().filter(versionedUserData -> versionedUserData
-                                                                .versionUUID().equals(versionUuid))
-                                                        .findFirst().ifPresentOrElse(userData ->
-                                                                        plugin.getDataEditor()
-                                                                                .displayDataOverview(player, userData, user),
-                                                                () -> plugin.getLocales().getLocale("error_invalid_version_uuid")
-                                                                        .ifPresent(player::sendMessage))),
+                                        user -> plugin.getDatabase().getUserData(user, versionUuid).thenAccept(data ->
+                                                data.ifPresentOrElse(userData -> plugin.getDataEditor()
+                                                                .displayDataOverview(player, userData, user),
+                                                        () -> plugin.getLocales().getLocale("error_invalid_version_uuid")
+                                                                .ifPresent(player::sendMessage))),
                                         () -> plugin.getLocales().getLocale("error_invalid_player")
                                                 .ifPresent(player::sendMessage))));
                     } catch (IllegalArgumentException e) {
@@ -91,18 +90,93 @@ public class UserDataCommand extends CommandBase implements TabCompletable {
                                         .ifPresent(player::sendMessage))));
             }
             case "delete" -> {
-
+                // Delete user data by specified UUID
+                if (args.length < 3) {
+                    plugin.getLocales().getLocale("error_invalid_syntax",
+                                    "/userdata delete <username> <version_uuid>")
+                            .ifPresent(player::sendMessage);
+                    return;
+                }
+                final String username = args[1];
+                try {
+                    final UUID versionUuid = UUID.fromString(args[2]);
+                    CompletableFuture.runAsync(() -> plugin.getDatabase().getUserByName(username.toLowerCase()).thenAccept(
+                            optionalUser -> optionalUser.ifPresentOrElse(
+                                    user -> plugin.getDatabase().deleteUserData(user, versionUuid).thenAccept(deleted -> {
+                                        if (deleted) {
+                                            plugin.getLocales().getLocale("data_deleted",
+                                                            versionUuid.toString().split("-")[0],
+                                                            versionUuid.toString(),
+                                                            user.username,
+                                                            user.uuid.toString())
+                                                    .ifPresent(player::sendMessage);
+                                        } else {
+                                            plugin.getLocales().getLocale("error_invalid_version_uuid")
+                                                    .ifPresent(player::sendMessage);
+                                        }
+                                    }),
+                                    () -> plugin.getLocales().getLocale("error_invalid_player")
+                                            .ifPresent(player::sendMessage))));
+                } catch (IllegalArgumentException e) {
+                    plugin.getLocales().getLocale("error_invalid_syntax",
+                                    "/userdata delete <username> <version_uuid>")
+                            .ifPresent(player::sendMessage);
+                }
             }
             case "restore" -> {
-
+                // Get user data by specified uuid and username
+                if (args.length < 3) {
+                    plugin.getLocales().getLocale("error_invalid_syntax",
+                                    "/userdata restore <username> <version_uuid>")
+                            .ifPresent(player::sendMessage);
+                    return;
+                }
+                final String username = args[1];
+                try {
+                    final UUID versionUuid = UUID.fromString(args[2]);
+                    CompletableFuture.runAsync(() -> plugin.getDatabase().getUserByName(username.toLowerCase()).thenAccept(
+                            optionalUser -> optionalUser.ifPresentOrElse(
+                                    user -> plugin.getDatabase().getUserData(user, versionUuid).thenAccept(data -> {
+                                        if (data.isEmpty()) {
+                                            plugin.getLocales().getLocale("error_invalid_version_uuid")
+                                                    .ifPresent(player::sendMessage);
+                                            return;
+                                        }
+                                        plugin.getDatabase().setUserData(user, data.get().userData(),
+                                                DataSaveCause.BACKUP_RESTORE);
+                                        plugin.getRedisManager().sendUserDataUpdate(user, data.get().userData()).join();
+                                        plugin.getLocales().getLocale("data_restored",
+                                                        user.username,
+                                                        user.uuid.toString(),
+                                                        versionUuid.toString().split("-")[0],
+                                                        versionUuid.toString())
+                                                .ifPresent(player::sendMessage);
+                                    }),
+                                    () -> plugin.getLocales().getLocale("error_invalid_player")
+                                            .ifPresent(player::sendMessage))));
+                } catch (IllegalArgumentException e) {
+                    plugin.getLocales().getLocale("error_invalid_syntax",
+                                    "/userdata restore <username> <version_uuid>")
+                            .ifPresent(player::sendMessage);
+                }
             }
         }
     }
 
     @Override
     public List<String> onTabComplete(@NotNull OnlineUser player, @NotNull String[] args) {
-        return Arrays.stream(COMMAND_ARGUMENTS)
-                .filter(argument -> argument.startsWith(args.length >= 1 ? args[0] : ""))
-                .sorted().collect(Collectors.toList());
+        switch (args.length) {
+            case 0, 1 -> {
+                return Arrays.stream(COMMAND_ARGUMENTS)
+                        .filter(argument -> argument.startsWith(args.length >= 1 ? args[0] : ""))
+                        .sorted().collect(Collectors.toList());
+            }
+            case 2 -> {
+                return plugin.getOnlineUsers().stream().map(user -> user.username)
+                        .filter(argument -> argument.startsWith(args[1]))
+                        .sorted().collect(Collectors.toList());
+            }
+        }
+        return Collections.emptyList();
     }
 }

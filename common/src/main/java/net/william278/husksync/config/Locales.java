@@ -42,7 +42,7 @@ public class Locales {
      */
     public Optional<String> getRawLocale(@NotNull String localeId) {
         if (rawLocales.containsKey(localeId)) {
-            return Optional.of(rawLocales.get(localeId));
+            return Optional.of(rawLocales.get(localeId).replaceAll(Pattern.quote("\\n"), "\n"));
         }
         return Optional.empty();
     }

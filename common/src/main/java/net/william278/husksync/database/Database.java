@@ -169,12 +169,30 @@ public abstract class Database {
     public abstract CompletableFuture<List<VersionedUserData>> getUserData(@NotNull User user);
 
     /**
-     * <b>(Internal)</b> Prune user data records for a given user to the maximum value as configured
+     * Gets a specific {@link VersionedUserData} entry for a user from the database, by its UUID.
+     *
+     * @param user        The user to get data for
+     * @param versionUuid The UUID of the {@link VersionedUserData} entry to get
+     * @return A future returning an optional containing the {@link VersionedUserData}, if it exists, or an empty optional if it does not
+     */
+    public abstract CompletableFuture<Optional<VersionedUserData>> getUserData(@NotNull User user, @NotNull UUID versionUuid);
+
+    /**
+     * <b>(Internal)</b> Prune user data for a given user to the maximum value as configured
      *
      * @param user The user to prune data for
      * @return A future returning void when complete
      */
-    protected abstract CompletableFuture<Void> pruneUserDataRecords(@NotNull User user);
+    protected abstract CompletableFuture<Void> pruneUserData(@NotNull User user);
+
+    /**
+     * Deletes a specific {@link VersionedUserData} entry for a user from the database, by its UUID.
+     *
+     * @param user        The user to get data for
+     * @param versionUuid The UUID of the {@link VersionedUserData} entry to delete
+     * @return A future returning void when complete
+     */
+    public abstract CompletableFuture<Boolean> deleteUserData(@NotNull User user, @NotNull UUID versionUuid);
 
     /**
      * Save user data to the database<p>

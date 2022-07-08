@@ -82,18 +82,21 @@ public class DataEditor {
     public void displayDataOverview(@NotNull OnlineUser user, @NotNull VersionedUserData userData,
                                     @NotNull User dataOwner) {
         locales.getLocale("data_manager_title",
-                        dataOwner.username, dataOwner.uuid.toString())
-                .ifPresent(user::sendMessage);
-        locales.getLocale("data_manager_versioning",
-                        new SimpleDateFormat("MMM dd yyyy, HH:mm:ss.sss").format(userData.versionTimestamp()),
                         userData.versionUUID().toString().split("-")[0],
                         userData.versionUUID().toString(),
+                        dataOwner.username,
+                        dataOwner.uuid.toString())
+                .ifPresent(user::sendMessage);
+        locales.getLocale("data_manager_timestamp",
+                        new SimpleDateFormat("MMM dd yyyy, HH:mm:ss.sss").format(userData.versionTimestamp()))
+                .ifPresent(user::sendMessage);
+        locales.getLocale("data_manager_cause",
                         userData.cause().name().toLowerCase().replaceAll("_", " "))
                 .ifPresent(user::sendMessage);
         locales.getLocale("data_manager_status",
-                        Double.toString(userData.userData().getStatusData().health),
-                        Double.toString(userData.userData().getStatusData().maxHealth),
-                        Double.toString(userData.userData().getStatusData().hunger),
+                        Integer.toString((int) userData.userData().getStatusData().health),
+                        Integer.toString((int) userData.userData().getStatusData().maxHealth),
+                        Integer.toString(userData.userData().getStatusData().hunger),
                         Integer.toString(userData.userData().getStatusData().expLevel),
                         userData.userData().getStatusData().gameMode.toLowerCase())
                 .ifPresent(user::sendMessage);
@@ -146,7 +149,7 @@ public class DataEditor {
                         dataOwner.username, dataOwner.uuid.toString())
                 .ifPresent(user::sendMessage);
 
-        final String[] numberedIcons = "①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳" .split("");
+        final String[] numberedIcons = "①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳".split("");
         for (int i = 0; i < Math.min(20, userDataList.size()); i++) {
             final VersionedUserData userData = userDataList.get(i);
             locales.getLocale("data_list_item",

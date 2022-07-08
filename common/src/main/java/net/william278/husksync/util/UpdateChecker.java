@@ -3,7 +3,6 @@ package net.william278.husksync.util;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
@@ -13,7 +12,6 @@ import java.util.logging.Level;
 public class UpdateChecker {
 
     private final static int SPIGOT_PROJECT_ID = 97144;
-
     private final Logger logger;
     private final VersionUtils.Version currentVersion;
 
@@ -52,7 +50,7 @@ public class UpdateChecker {
             if (isUpdateAvailable(latestVersion)) {
                 logger.log(Level.WARNING, "A new version of HuskSync is available: v" + latestVersion);
             } else {
-                logger.log(Level.INFO, "HuskSync is up-to-date! (Running: v" + currentVersion + ")");
+                logger.log(Level.INFO, "HuskSync is up-to-date! (Running: v" + getCurrentVersion().toString() + ")");
             }
         });
     }

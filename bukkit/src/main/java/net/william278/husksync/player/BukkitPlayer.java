@@ -455,12 +455,12 @@ public class BukkitPlayer extends OnlineUser {
 
     @Override
     public void sendActionBar(@NotNull MineDown mineDown) {
-        player.spigot().sendMessage(ChatMessageType.ACTION_BAR, mineDown.toComponent());
+        player.spigot().sendMessage(ChatMessageType.ACTION_BAR, mineDown.replace().toComponent());
     }
 
     @Override
     public void sendMessage(@NotNull MineDown mineDown) {
-        player.spigot().sendMessage(mineDown.toComponent());
+        player.spigot().sendMessage(mineDown.replace().toComponent());
     }
 
     /**

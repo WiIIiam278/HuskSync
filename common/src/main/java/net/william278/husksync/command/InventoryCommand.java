@@ -11,11 +11,13 @@ import net.william278.husksync.player.User;
 import org.jetbrains.annotations.NotNull;
 
 import java.text.DateFormat;
+import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
-public class InventoryCommand extends CommandBase {
+public class InventoryCommand extends CommandBase implements TabCompletable {
 
     public InventoryCommand(@NotNull HuskSync implementor) {
         super("inventory", Permission.COMMAND_INVENTORY, implementor, "invsee", "openinv");
@@ -34,12 +36,10 @@ public class InventoryCommand extends CommandBase {
                         // View user data by specified UUID
                         try {
                             final UUID versionUuid = UUID.fromString(args[1]);
-                            plugin.getDatabase().getUserData(user).thenAccept(userDataList -> userDataList.stream()
-                                    .filter(userData -> userData.versionUUID().equals(versionUuid)).findFirst().ifPresentOrElse(
-                                            userData -> showInventoryMenu(player, userData, user, userDataList.stream().sorted().findFirst()
-                                                    .map(VersionedUserData::versionUUID).orElse(UUID.randomUUID()).equals(versionUuid)),
-                                            () -> plugin.getLocales().getLocale("error_invalid_version_uuid")
-                                                    .ifPresent(player::sendMessage)));
+                            plugin.getDatabase().getUserData(user, versionUuid).thenAccept(data -> data.ifPresentOrElse(
+                                    userData -> showInventoryMenu(player, userData, user, false),
+                                    () -> plugin.getLocales().getLocale("error_invalid_version_uuid")
+                                            .ifPresent(player::sendMessage)));
                         } catch (IllegalArgumentException e) {
                             plugin.getLocales().getLocale("error_invalid_syntax",
                                     "/inventory <player> [version_uuid]").ifPresent(player::sendMessage);
@@ -78,4 +78,10 @@ public class InventoryCommand extends CommandBase {
         });
     }
 
+    @Override
+    public List<String> onTabComplete(@NotNull OnlineUser player, @NotNull String[] args) {
+        return plugin.getOnlineUsers().stream().map(user -> user.username)
+                .filter(argument -> argument.startsWith(args.length >= 1 ? args[1] : ""))
+                .sorted().collect(Collectors.toList());
+    }
 }

@@ -1,22 +1,23 @@
 package net.william278.husksync.command;
 
 import net.william278.husksync.HuskSync;
+import net.william278.husksync.data.DataSaveCause;
 import net.william278.husksync.data.ItemData;
 import net.william278.husksync.data.UserData;
 import net.william278.husksync.data.VersionedUserData;
-import net.william278.husksync.data.DataSaveCause;
 import net.william278.husksync.editor.ItemEditorMenu;
 import net.william278.husksync.player.OnlineUser;
 import net.william278.husksync.player.User;
 import org.jetbrains.annotations.NotNull;
 
 import java.text.DateFormat;
-import java.text.SimpleDateFormat;
+import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
-public class EnderChestCommand extends CommandBase {
+public class EnderChestCommand extends CommandBase implements TabCompletable {
 
     public EnderChestCommand(@NotNull HuskSync implementor) {
         super("enderchest", Permission.COMMAND_ENDER_CHEST, implementor, "echest", "openechest");
@@ -35,12 +36,10 @@ public class EnderChestCommand extends CommandBase {
                         // View user data by specified UUID
                         try {
                             final UUID versionUuid = UUID.fromString(args[1]);
-                            plugin.getDatabase().getUserData(user).thenAccept(userDataList -> userDataList.stream()
-                                    .filter(userData -> userData.versionUUID().equals(versionUuid)).findFirst().ifPresentOrElse(
-                                            userData -> showEnderChestMenu(player, userData, user, userDataList.stream().sorted().findFirst()
-                                                    .map(VersionedUserData::versionUUID).orElse(UUID.randomUUID()).equals(versionUuid)),
-                                            () -> plugin.getLocales().getLocale("error_invalid_version_uuid")
-                                                    .ifPresent(player::sendMessage)));
+                            plugin.getDatabase().getUserData(user, versionUuid).thenAccept(data -> data.ifPresentOrElse(
+                                    userData -> showEnderChestMenu(player, userData, user, false),
+                                    () -> plugin.getLocales().getLocale("error_invalid_version_uuid")
+                                            .ifPresent(player::sendMessage)));
                         } catch (IllegalArgumentException e) {
                             plugin.getLocales().getLocale("error_invalid_syntax",
                                     "/enderchest <player> [version_uuid]").ifPresent(player::sendMessage);
@@ -77,6 +76,14 @@ public class EnderChestCommand extends CommandBase {
             plugin.getDatabase().setUserData(dataOwner, updatedUserData, DataSaveCause.ENDER_CHEST_COMMAND_EDIT).join();
             plugin.getRedisManager().sendUserDataUpdate(dataOwner, updatedUserData).join();
         });
+
+    }
+
+    @Override
+    public List<String> onTabComplete(@NotNull OnlineUser player, @NotNull String[] args) {
+        return plugin.getOnlineUsers().stream().map(user -> user.username)
+                .filter(argument -> argument.startsWith(args.length >= 1 ? args[1] : ""))
+                .sorted().collect(Collectors.toList());
     }
 
 }
