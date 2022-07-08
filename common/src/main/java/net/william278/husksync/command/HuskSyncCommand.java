@@ -88,15 +88,14 @@ public class HuskSyncCommand extends CommandBase implements TabCompletable, Cons
                         availableMigrator.getIdentifier().equalsIgnoreCase(args[1])).findFirst();
                 selectedMigrator.ifPresentOrElse(migrator -> {
                     if (args.length < 3) {
-                        plugin.getLoggingAdapter().log(Level.INFO,
-                                "Invalid syntax. Console usage: \"husksync migrate " + args[1] + "<start/set>");
+                        plugin.getLoggingAdapter().log(Level.INFO, migrator.getHelpMenu());
                         return;
                     }
                     switch (args[2]) {
                         case "start" -> migrator.start();
                         case "set" -> migrator.handleConfigurationCommand(Arrays.copyOfRange(args, 3, args.length));
                         default -> plugin.getLoggingAdapter().log(Level.INFO,
-                                "Invalid syntax. Console usage: \"husksync migrate " + args[1] + "<start/set>");
+                                "Invalid syntax. Console usage: \"husksync migrate " + args[1] + " <start/set>");
                     }
                 }, () -> {
                     plugin.getLoggingAdapter().log(Level.INFO,
