@@ -254,7 +254,7 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync {
     @NotNull
     @Override
     public List<Migrator> getAvailableMigrators() {
-        return null;
+        return availableMigrators;
     }
 
     @Override
