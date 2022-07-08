@@ -13,6 +13,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 /**
  * Provides methods for displaying and editing user data
@@ -121,16 +122,18 @@ public class DataEditor {
 
     private @NotNull String generateAdvancementPreview(@NotNull List<AdvancementData> advancementData) {
         final StringJoiner joiner = new StringJoiner("\n");
+        final List<AdvancementData> advancementsToPreview = advancementData.stream().filter(dataItem ->
+                !dataItem.key.startsWith("minecraft:recipes/")).toList();
         final int PREVIEW_SIZE = 8;
-        for (int i = 0; i < advancementData.size(); i++) {
-            joiner.add(advancementData.get(i).key);
+        for (int i = 0; i < advancementsToPreview.size(); i++) {
+            joiner.add(advancementsToPreview.get(i).key);
             if (i >= PREVIEW_SIZE) {
                 break;
             }
         }
-        final int remainingAdvancements = advancementData.size() - PREVIEW_SIZE;
+        final int remainingAdvancements = advancementsToPreview.size() - PREVIEW_SIZE;
         if (remainingAdvancements > 0) {
-            joiner.add(locales.getRawLocale("data_manager_advancement_preview_remaining",
+            joiner.add(locales.getRawLocale("data_manager_advancements_preview_remaining",
                     Integer.toString(remainingAdvancements)).orElse("+" + remainingAdvancements + "…"));
         }
         return joiner.toString();

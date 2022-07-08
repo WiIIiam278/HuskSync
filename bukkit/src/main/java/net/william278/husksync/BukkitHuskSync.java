@@ -6,7 +6,9 @@ import dev.dejvokep.boostedyaml.settings.dumper.DumperSettings;
 import dev.dejvokep.boostedyaml.settings.general.GeneralSettings;
 import dev.dejvokep.boostedyaml.settings.loader.LoaderSettings;
 import dev.dejvokep.boostedyaml.settings.updater.UpdaterSettings;
-import net.william278.husksync.command.*;
+import net.william278.husksync.command.BukkitCommand;
+import net.william278.husksync.command.BukkitCommandType;
+import net.william278.husksync.command.Permission;
 import net.william278.husksync.config.Locales;
 import net.william278.husksync.config.Settings;
 import net.william278.husksync.data.CompressedDataAdapter;
@@ -19,6 +21,9 @@ import net.william278.husksync.event.BukkitEventCannon;
 import net.william278.husksync.event.EventCannon;
 import net.william278.husksync.listener.BukkitEventListener;
 import net.william278.husksync.listener.EventListener;
+import net.william278.husksync.migrator.LegacyMigrator;
+import net.william278.husksync.migrator.Migrator;
+import net.william278.husksync.migrator.MpdbMigrator;
 import net.william278.husksync.player.BukkitPlayer;
 import net.william278.husksync.player.OnlineUser;
 import net.william278.husksync.redis.RedisManager;
@@ -27,6 +32,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.Player;
 import org.bukkit.permissions.PermissionDefault;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
@@ -40,24 +46,16 @@ import java.util.stream.Collectors;
 public class BukkitHuskSync extends JavaPlugin implements HuskSync {
 
     private Database database;
-
     private RedisManager redisManager;
-
     private Logger logger;
-
     private ResourceReader resourceReader;
-
     private EventListener eventListener;
-
     private DataAdapter dataAdapter;
-
     private DataEditor dataEditor;
-
     private EventCannon eventCannon;
     private Settings settings;
-
     private Locales locales;
-
+    private List<Migrator> availableMigrators;
     private static BukkitHuskSync instance;
 
     /**
@@ -72,18 +70,6 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync {
     @Override
     public void onLoad() {
         instance = this;
-        /*getLogger().log(Level.INFO, "Loading runtime libraries...");
-        final BukkitLibraryManager libraryManager = new BukkitLibraryManager(this);
-        final Library[] libraries = new Library[]{
-                Library.builder().groupId("redis{}clients")
-                        .artifactId("jedis")
-                        .version("4.2.3")
-                        .id("jedis")
-                        .build()
-        };
-        libraryManager.addMavenCentral();
-        Arrays.stream(libraries).forEach(libraryManager::loadLibrary);
-        getLogger().log(Level.INFO, "Successfully loaded runtime libraries.");*/
     }
 
     @Override
@@ -125,6 +111,17 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync {
             // Prepare data editor
             if (succeeded) {
                 dataEditor = new DataEditor(locales);
+            }
+            return succeeded;
+        }).thenApply(succeeded -> {
+            // Prepare migrators
+            if (succeeded) {
+                availableMigrators = new ArrayList<>();
+                availableMigrators.add(new LegacyMigrator(this));
+                final Plugin mySqlPlayerDataBridge = Bukkit.getPluginManager().getPlugin("MySqlPlayerDataBridge");
+                if (mySqlPlayerDataBridge != null) {
+                    availableMigrators.add(new MpdbMigrator(this, mySqlPlayerDataBridge));
+                }
             }
             return succeeded;
         }).thenApply(succeeded -> {
@@ -252,6 +249,12 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync {
     @Override
     public @NotNull EventCannon getEventCannon() {
         return eventCannon;
+    }
+
+    @NotNull
+    @Override
+    public List<Migrator> getAvailableMigrators() {
+        return null;
     }
 
     @Override

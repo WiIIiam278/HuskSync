@@ -3,12 +3,14 @@ package net.william278.husksync.command;
 import de.themoep.minedown.MineDown;
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.config.Locales;
+import net.william278.husksync.migrator.Migrator;
 import net.william278.husksync.player.OnlineUser;
 import net.william278.husksync.util.UpdateChecker;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
@@ -50,11 +52,13 @@ public class HuskSyncCommand extends CommandBase implements TabCompletable, Cons
                     return;
                 }
                 plugin.reload();
-                player.sendMessage(new MineDown("[HuskSync](#00fb9a bold) [| Reloaded config & message files.](#00fb9a)"));
+                plugin.getLocales().getLocale("reload_complete").ifPresent(player::sendMessage);
             }
+            case "migrate" ->
+                    plugin.getLocales().getLocale("error_console_command_only").ifPresent(player::sendMessage);
             default -> plugin.getLocales().getLocale("error_invalid_syntax",
                             "/husksync <update/info/reload>")
-                            .ifPresent(player::sendMessage);
+                    .ifPresent(player::sendMessage);
         }
     }
 
@@ -74,11 +78,44 @@ public class HuskSyncCommand extends CommandBase implements TabCompletable, Cons
                 plugin.getLoggingAdapter().log(Level.INFO, "Reloaded config & message files.");
             }
             case "migrate" -> {
-                //todo - MPDB migrator
+                if (args.length < 2) {
+                    plugin.getLoggingAdapter().log(Level.INFO,
+                            "Please choose a migrator, then run \"husksync migrate <migrator>\"");
+                    logMigratorsList();
+                    return;
+                }
+                final Optional<Migrator> selectedMigrator = plugin.getAvailableMigrators().stream().filter(availableMigrator ->
+                        availableMigrator.getIdentifier().equalsIgnoreCase(args[1])).findFirst();
+                selectedMigrator.ifPresentOrElse(migrator -> {
+                    if (args.length < 3) {
+                        plugin.getLoggingAdapter().log(Level.INFO,
+                                "Invalid syntax. Console usage: \"husksync migrate " + args[1] + "<start/set>");
+                        return;
+                    }
+                    switch (args[2]) {
+                        case "start" -> migrator.start();
+                        case "set" -> migrator.handleConfigurationCommand(Arrays.copyOfRange(args, 3, args.length));
+                        default -> plugin.getLoggingAdapter().log(Level.INFO,
+                                "Invalid syntax. Console usage: \"husksync migrate " + args[1] + "<start/set>");
+                    }
+                }, () -> {
+                    plugin.getLoggingAdapter().log(Level.INFO,
+                            "Please specify a valid migrator.\n" +
+                            "If a migrator is not available, please verify that you meet the prerequisites to use it.");
+                    logMigratorsList();
+                });
             }
             default -> plugin.getLoggingAdapter().log(Level.INFO,
                     "Invalid syntax. Console usage: \"husksync <update/info/reload/migrate>\"");
         }
+    }
+
+    private void logMigratorsList() {
+        plugin.getLoggingAdapter().log(Level.INFO,
+                "List of available migrators:\nMigrator ID / Migrator Name:\n" +
+                plugin.getAvailableMigrators().stream()
+                        .map(migrator -> migrator.getIdentifier() + " - " + migrator.getName())
+                        .collect(Collectors.joining("\n")));
     }
 
     @Override

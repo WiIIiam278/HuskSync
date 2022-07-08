@@ -58,10 +58,18 @@ public enum DataSaveCause {
      * @since 2.0
      */
     API,
-
-    MPDB_IMPORT,
-    LEGACY_IMPORT,
-    MANUAL_IMPORT,
+    /**
+     * Indicates data was saved from being imported from MySQLPlayerDataBridge
+     *
+     * @since 2.0
+     */
+    MPDB_MIGRATION,
+    /**
+     * Indicates data was saved from being imported from a legacy version (v1.x)
+     *
+     * @since 2.0
+     */
+    LEGACY_MIGRATION,
     /**
      * Indicates data was saved by an unknown cause.
      * </p>

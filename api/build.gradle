@@ -13,10 +13,9 @@ shadowJar {
     relocate 'org.jetbrains', 'net.william278.husksync.libraries'
     relocate 'org.intellij', 'net.william278.husksync.libraries'
     relocate 'com.zaxxer', 'net.william278.husksync.libraries'
-    relocate 'org.slf4j', 'net.william278.husksync.libraries.slf4j'
     relocate 'com.google', 'net.william278.husksync.libraries'
-    //relocate 'org.xerial', 'net.william278.husksync.libraries'
     relocate 'redis.clients', 'net.william278.husksync.libraries'
+    relocate 'org.json', 'net.william278.husksync.libraries.json'
 
     relocate 'net.byteflux.libby', 'net.william278.husksync.libraries.libby'
     relocate 'org.bstats', 'net.william278.husksync.libraries.bstats'

@@ -82,7 +82,7 @@ public class EnderChestCommand extends CommandBase implements TabCompletable {
     @Override
     public List<String> onTabComplete(@NotNull OnlineUser player, @NotNull String[] args) {
         return plugin.getOnlineUsers().stream().map(user -> user.username)
-                .filter(argument -> argument.startsWith(args.length >= 1 ? args[1] : ""))
+                .filter(argument -> argument.startsWith(args.length >= 1 ? args[0] : ""))
                 .sorted().collect(Collectors.toList());
     }
 

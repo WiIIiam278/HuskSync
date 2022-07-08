@@ -6,11 +6,13 @@ import net.william278.husksync.data.DataAdapter;
 import net.william278.husksync.editor.DataEditor;
 import net.william278.husksync.database.Database;
 import net.william278.husksync.event.EventCannon;
+import net.william278.husksync.migrator.Migrator;
 import net.william278.husksync.player.OnlineUser;
 import net.william278.husksync.redis.RedisManager;
 import net.william278.husksync.util.Logger;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -31,6 +33,8 @@ public interface HuskSync {
     @NotNull DataEditor getDataEditor();
 
     @NotNull EventCannon getEventCannon();
+
+    @NotNull List<Migrator> getAvailableMigrators();
 
     @NotNull Settings getSettings();
 

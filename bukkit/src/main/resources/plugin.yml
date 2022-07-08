@@ -8,6 +8,8 @@ website: 'https://william278.net'
 softdepend: [ MysqlPlayerDataBridge ]
 libraries:
   - 'mysql:mysql-connector-java:8.0.29'
+  - 'org.xerial.snappy:snappy-java:1.1.8.4'
+  - 'dev.dejvokep:boosted-yaml:1.2'
 commands:
   husksync:
     usage: '/husksync <update|info|reload|migrate>'
