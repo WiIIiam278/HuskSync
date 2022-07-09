@@ -1,5 +1,5 @@
-# Create the players table if it does not exist
-CREATE TABLE IF NOT EXISTS `%players_table%`
+# Create the users table if it does not exist
+CREATE TABLE IF NOT EXISTS `%users_table%`
 (
     `uuid`     char(36)    NOT NULL UNIQUE,
     `username` varchar(16) NOT NULL,
@@ -7,15 +7,15 @@ CREATE TABLE IF NOT EXISTS `%players_table%`
     PRIMARY KEY (`uuid`)
 );
 
-# Create the player data table if it does not exist
-CREATE TABLE IF NOT EXISTS `%data_table%`
+# Create the user data table if it does not exist
+CREATE TABLE IF NOT EXISTS `%user_data_table%`
 (
-    `version_uuid` char(36)    NOT NULL,
-    `player_uuid`  char(36)    NOT NULL,
+    `version_uuid` char(36)    NOT NULL UNIQUE,
+    `player_uuid`  char(36)    NOT NULL UNIQUE,
     `timestamp`    datetime    NOT NULL,
     `save_cause`   varchar(32) NOT NULL,
+    `pinned`       boolean     NOT NULL DEFAULT FALSE,
     `data`         mediumblob  NOT NULL,
-
-    PRIMARY KEY (`version_uuid`),
-    FOREIGN KEY (`player_uuid`) REFERENCES `%players_table%` (`uuid`) ON DELETE CASCADE
+    PRIMARY KEY (`version_uuid`, `player_uuid`),
+    FOREIGN KEY (`player_uuid`) REFERENCES `%users_table%` (`uuid`) ON DELETE CASCADE
 );

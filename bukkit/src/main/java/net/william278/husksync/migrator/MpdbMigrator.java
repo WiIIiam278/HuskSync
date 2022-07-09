@@ -21,6 +21,9 @@ import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
 
+/**
+ * A migrator for migrating MySQLPlayerDataBridge data to HuskSync {@link UserData}
+ */
 public class MpdbMigrator extends Migrator {
 
     private final MPDBConverter mpdbConverter;
@@ -51,6 +54,11 @@ public class MpdbMigrator extends Migrator {
         plugin.getLoggingAdapter().log(Level.INFO, "Starting migration from MySQLPlayerDataBridge to HuskSync...");
         final long startTime = System.currentTimeMillis();
         return CompletableFuture.supplyAsync(() -> {
+            // Wipe the existing database, preparing it for data import
+            plugin.getLoggingAdapter().log(Level.INFO, "Preparing existing database (wiping)...");
+            plugin.getDatabase().wipeDatabase().join();
+            plugin.getLoggingAdapter().log(Level.INFO, "Successfully wiped user data database (took " + (System.currentTimeMillis() - startTime) + "ms)");
+
             // Create jdbc driver connection url
             final String jdbcUrl = "jdbc:mysql://" + sourceHost + ":" + sourcePort + "/" + sourceDatabase;
 
@@ -70,9 +78,11 @@ public class MpdbMigrator extends Migrator {
                             FROM `%source_inventory_table%`
                                 INNER JOIN `%source_ender_chest_table%`
                                     ON `%source_inventory_table%`.`player_uuid` = `%source_ender_chest_table%`.`player_uuid`
-                                INNER JOIN `%source_experience_table%`
-                                    ON `%source_inventory_table%`.`player_uuid` = `%source_experience_table%`.`player_uuid`;
-                            """.replaceAll(Pattern.quote("%source_inventory_table%"), sourceInventoryTable).replaceAll(Pattern.quote("%source_ender_chest_table%"), sourceEnderChestTable).replaceAll(Pattern.quote("%source_experience_table%"), sourceExperienceTable))) {
+                                INNER JOIN `%source_xp_table%`
+                                    ON `%source_inventory_table%`.`player_uuid` = `%source_xp_table%`.`player_uuid`;
+                            """.replaceAll(Pattern.quote("%source_inventory_table%"), sourceInventoryTable)
+                            .replaceAll(Pattern.quote("%source_ender_chest_table%"), sourceEnderChestTable)
+                            .replaceAll(Pattern.quote("%source_xp_table%"), sourceExperienceTable))) {
                         try (final ResultSet resultSet = statement.executeQuery()) {
                             int playersMigrated = 0;
                             while (resultSet.next()) {
@@ -98,11 +108,15 @@ public class MpdbMigrator extends Migrator {
                 plugin.getLoggingAdapter().log(Level.INFO, "Converting raw MySQLPlayerDataBridge data to HuskSync user data...");
                 dataToMigrate.forEach(data -> data.toUserData(mpdbConverter).thenAccept(convertedData ->
                         plugin.getDatabase().ensureUser(data.user()).thenRun(() ->
-                                plugin.getDatabase().setUserData(data.user(), convertedData, DataSaveCause.MPDB_MIGRATION))));
+                                        plugin.getDatabase().setUserData(data.user(), convertedData, DataSaveCause.MPDB_MIGRATION))
+                                .exceptionally(exception -> {
+                                    plugin.getLoggingAdapter().log(Level.SEVERE, "Failed to migrate MySQLPlayerDataBridge data for " + data.user().username + ": " + exception.getMessage());
+                                    return null;
+                                })));
                 plugin.getLoggingAdapter().log(Level.INFO, "Migration complete for " + dataToMigrate.size() + " users in " + ((System.currentTimeMillis() - startTime) / 1000) + " seconds!");
                 return true;
             } catch (Exception e) {
-                plugin.getLoggingAdapter().log(Level.SEVERE, "Error while migrating data: " + e.getMessage());
+                plugin.getLoggingAdapter().log(Level.SEVERE, "Error while migrating data: " + e.getMessage() + " - are your source database credentials correct?");
                 return false;
             }
         });
@@ -151,10 +165,14 @@ public class MpdbMigrator extends Migrator {
                 default -> false;
             }) {
                 plugin.getLoggingAdapter().log(Level.INFO, getHelpMenu());
-                plugin.getLoggingAdapter().log(Level.INFO, "Successfully set " + args[0] + " to " + args[1]);
+                plugin.getLoggingAdapter().log(Level.INFO, "Successfully set " + args[0] + " to " +
+                                                           obfuscateDataString(args[1]));
             } else {
-                plugin.getLoggingAdapter().log(Level.INFO, "Invalid operation, could not set " + args[0] + " to " + args[1] + " (is it a valid option?)");
+                plugin.getLoggingAdapter().log(Level.INFO, "Invalid operation, could not set " + args[0] + " to " +
+                                                           obfuscateDataString(args[1]) + " (is it a valid option?)");
             }
+        } else {
+            plugin.getLoggingAdapter().log(Level.INFO, getHelpMenu());
         }
     }
 
@@ -167,7 +185,7 @@ public class MpdbMigrator extends Migrator {
     @NotNull
     @Override
     public String getName() {
-        return "MySQLPlayerDataBridge";
+        return "MySQLPlayerDataBridge Migrator";
     }
 
     @NotNull
@@ -181,7 +199,9 @@ public class MpdbMigrator extends Migrator {
                 To prevent excessive migration times, other non-vital
                 data will not be transferred.
                                 
-                STEP 1] Please ensure no players are on the server.
+                [!] Existing data in the database will be wiped. [!]
+                                
+                STEP 1] Please ensure no players are on any servers.
                                 
                 STEP 2] HuskSync will need to connect to the database
                 used to hold the source MySQLPlayerDataBridge data.
@@ -196,8 +216,8 @@ public class MpdbMigrator extends Migrator {
                 - experience_table: %source_xp_table%
                 If any of these are not correct, please correct them
                 using the command:
-                "husksync migrate mpdb set <parameter> <host>"
-                (e.g.: "husksync migrate mpdb set host 123.456.789")
+                "husksync migrate mpdb set <parameter> <value>"
+                (e.g.: "husksync migrate mpdb set host 1.2.3.4")
                                 
                 STEP 3] HuskSync will migrate data into the database
                 tables configures in the config.yml file of this
@@ -206,12 +226,36 @@ public class MpdbMigrator extends Migrator {
                                 
                 STEP 4] To start the migration, please run:
                 "husksync migrate mpdb start"
-                """;
+                """.replaceAll(Pattern.quote("%source_host%"), obfuscateDataString(sourceHost))
+                .replaceAll(Pattern.quote("%source_port%"), Integer.toString(sourcePort))
+                .replaceAll(Pattern.quote("%source_username%"), obfuscateDataString(sourceUsername))
+                .replaceAll(Pattern.quote("%source_password%"), obfuscateDataString(sourcePassword))
+                .replaceAll(Pattern.quote("%source_database%"), sourceDatabase)
+                .replaceAll(Pattern.quote("%source_inventory_table%"), sourceInventoryTable)
+                .replaceAll(Pattern.quote("%source_ender_chest_table%"), sourceEnderChestTable)
+                .replaceAll(Pattern.quote("%source_xp_table%"), sourceExperienceTable);
     }
 
+    /**
+     * Represents data exported from the MySQLPlayerDataBridge source database
+     *
+     * @param user                 The user whose data is being migrated
+     * @param serializedInventory  The serialized inventory data
+     * @param serializedArmor      The serialized armor data
+     * @param serializedEnderChest The serialized ender chest data
+     * @param expLevel             The player's current XP level
+     * @param expProgress          The player's current XP progress
+     * @param totalExp             The player's total XP score
+     */
     private record MpdbData(@NotNull User user, @NotNull String serializedInventory,
                             @NotNull String serializedArmor, @NotNull String serializedEnderChest,
                             int expLevel, float expProgress, int totalExp) {
+        /**
+         * Converts exported MySQLPlayerDataBridge data into HuskSync's {@link UserData} object format
+         *
+         * @param converter The {@link MPDBConverter} to use for converting to {@link ItemStack}s
+         * @return A {@link CompletableFuture} that will resolve to the converted {@link UserData} object
+         */
         @NotNull
         public CompletableFuture<UserData> toUserData(@NotNull MPDBConverter converter) {
             return CompletableFuture.supplyAsync(() -> {
@@ -224,10 +268,9 @@ public class MpdbMigrator extends Migrator {
                 }
 
                 // Create user data record
-                return new UserData(
-                        new StatusData(20, 20, 0, 20, 10,
-                                1, 0, totalExp, expLevel, expProgress, "SURVIVAL",
-                                false),
+                return new UserData(new StatusData(20, 20, 0, 20, 10,
+                        1, 0, totalExp, expLevel, expProgress, "SURVIVAL",
+                        false),
                         new ItemData(BukkitSerializer.serializeItemStackArray(inventory.getContents()).join()),
                         new ItemData(BukkitSerializer.serializeItemStackArray(converter
                                 .getItemStackFromSerializedData(serializedEnderChest)).join()),

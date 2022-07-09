@@ -20,6 +20,7 @@ shadowJar {
     relocate 'net.byteflux.libby', 'net.william278.husksync.libraries.libby'
     relocate 'org.bstats', 'net.william278.husksync.libraries.bstats'
     relocate 'net.william278.mpdbconverter', 'net.william278.husksync.libraries.mpdbconverter'
+    relocate 'net.william278.hslmigrator', 'net.william278.husksync.libraries.hslconverter'
 }
 
 java {

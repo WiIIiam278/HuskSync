@@ -132,8 +132,8 @@ public class Settings {
         DATABASE_CONNECTION_POOL_MAX_LIFETIME("database.connection_pool.maximum_lifetime", OptionType.INTEGER, 1800000),
         DATABASE_CONNECTION_POOL_KEEPALIVE("database.connection_pool.keepalive_time", OptionType.INTEGER, 0),
         DATABASE_CONNECTION_POOL_TIMEOUT("database.connection_pool.connection_timeout", OptionType.INTEGER, 5000),
-        DATABASE_PLAYERS_TABLE_NAME("database.table_names.players_table", OptionType.STRING, "husksync_players"),
-        DATABASE_DATA_TABLE_NAME("database.table_names.data_table", OptionType.STRING, "husksync_data"),
+        DATABASE_USERS_TABLE_NAME("database.table_names.users_table", OptionType.STRING, "husksync_users"),
+        DATABASE_USER_DATA_TABLE_NAME("database.table_names.user_data_table", OptionType.STRING, "husksync_user_data"),
 
         REDIS_HOST("redis.credentials.host", OptionType.STRING, "localhost"),
         REDIS_PORT("redis.credentials.port", OptionType.INTEGER, 6379),

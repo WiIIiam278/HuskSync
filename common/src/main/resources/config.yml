@@ -24,8 +24,8 @@ database:
     keepalive_time: 0
     connection_timeout: 5000
   table_names:
-    players_table: 'husksync_players'
-    data_table: 'husksync_data'
+    users_table: 'husksync_users'
+    user_data_table: 'husksync_user_data'
 
 redis:
   credentials:

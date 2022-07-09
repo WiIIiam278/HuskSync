@@ -5,6 +5,7 @@ import net.william278.husksync.data.DataSaveCause;
 import net.william278.husksync.data.UserData;
 import net.william278.husksync.data.VersionedUserData;
 import net.william278.husksync.event.EventCannon;
+import net.william278.husksync.migrator.Migrator;
 import net.william278.husksync.player.User;
 import net.william278.husksync.util.Logger;
 import net.william278.husksync.util.ResourceReader;
@@ -117,8 +118,8 @@ public abstract class Database {
      * @return the formatted statement, with table placeholders replaced with the correct names
      */
     protected final String formatStatementTables(@NotNull String sql) {
-        return sql.replaceAll("%players_table%", playerTableName)
-                .replaceAll("%data_table%", dataTableName);
+        return sql.replaceAll("%users_table%", playerTableName)
+                .replaceAll("%user_data_table%", dataTableName);
     }
 
     /**
@@ -204,6 +205,15 @@ public abstract class Database {
      * @see VersionedUserData#version(UserData)
      */
     public abstract CompletableFuture<Void> setUserData(@NotNull User user, @NotNull UserData userData, @NotNull DataSaveCause dataSaveCause);
+
+    /**
+     * Wipes <b>all</b> {@link UserData} entries from the database.
+     * <b>This should never be used</b>, except when preparing tables for migration.
+     *
+     * @return A future returning void when complete
+     * @see Migrator#start()
+     */
+    public abstract CompletableFuture<Void> wipeDatabase();
 
     /**
      * Close the database connection

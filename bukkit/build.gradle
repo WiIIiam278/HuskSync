@@ -2,6 +2,7 @@ dependencies {
     implementation project(path: ':common')
     implementation 'org.bstats:bstats-bukkit:3.0.0'
     implementation 'net.william278:mpdbdataconverter:1.0'
+    implementation 'net.william278:hsldataconverter:1.0'
 
     compileOnly 'redis.clients:jedis:4.2.3'
     compileOnly 'commons-io:commons-io:2.11.0'
@@ -24,4 +25,5 @@ shadowJar {
     relocate 'net.byteflux.libby', 'net.william278.husksync.libraries.libby'
     relocate 'org.bstats', 'net.william278.husksync.libraries.bstats'
     relocate 'net.william278.mpdbconverter', 'net.william278.husksync.libraries.mpdbconverter'
+    relocate 'net.william278.hslmigrator', 'net.william278.husksync.libraries.hslconverter'
 }

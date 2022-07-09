@@ -53,8 +53,8 @@ public class MySqlDatabase extends Database {
 
     public MySqlDatabase(@NotNull Settings settings, @NotNull ResourceReader resourceReader, @NotNull Logger logger,
                          @NotNull DataAdapter dataAdapter, @NotNull EventCannon eventCannon) {
-        super(settings.getStringValue(Settings.ConfigOption.DATABASE_PLAYERS_TABLE_NAME),
-                settings.getStringValue(Settings.ConfigOption.DATABASE_DATA_TABLE_NAME),
+        super(settings.getStringValue(Settings.ConfigOption.DATABASE_USERS_TABLE_NAME),
+                settings.getStringValue(Settings.ConfigOption.DATABASE_USER_DATA_TABLE_NAME),
                 Math.max(1, Math.min(20, settings.getIntegerValue(Settings.ConfigOption.SYNCHRONIZATION_MAX_USER_DATA_RECORDS))),
                 resourceReader, dataAdapter, eventCannon, logger);
         this.mySqlHost = settings.getStringValue(Settings.ConfigOption.DATABASE_HOST);
@@ -127,7 +127,7 @@ public class MySqlDatabase extends Database {
                                 // Update a user's name if it has changed in the database
                                 try (Connection connection = getConnection()) {
                                     try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
-                                            UPDATE `%players_table%`
+                                            UPDATE `%users_table%`
                                             SET `username`=?
                                             WHERE `uuid`=?"""))) {
 
@@ -145,7 +145,7 @@ public class MySqlDatabase extends Database {
                             // Insert new player data into the database
                             try (Connection connection = getConnection()) {
                                 try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
-                                        INSERT INTO `%players_table%` (`uuid`,`username`)
+                                        INSERT INTO `%users_table%` (`uuid`,`username`)
                                         VALUES (?,?);"""))) {
 
                                     statement.setString(1, user.uuid.toString());
@@ -164,7 +164,7 @@ public class MySqlDatabase extends Database {
             try (Connection connection = getConnection()) {
                 try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
                         SELECT `uuid`, `username`
-                        FROM `%players_table%`
+                        FROM `%users_table%`
                         WHERE `uuid`=?"""))) {
 
                     statement.setString(1, uuid.toString());
@@ -188,7 +188,7 @@ public class MySqlDatabase extends Database {
             try (Connection connection = getConnection()) {
                 try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
                         SELECT `uuid`, `username`
-                        FROM `%players_table%`
+                        FROM `%users_table%`
                         WHERE `username`=?"""))) {
                     statement.setString(1, username);
 
@@ -211,7 +211,7 @@ public class MySqlDatabase extends Database {
             try (Connection connection = getConnection()) {
                 try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
                         SELECT `version_uuid`, `timestamp`, `save_cause`, `data`
-                        FROM `%data_table%`
+                        FROM `%user_data_table%`
                         WHERE `player_uuid`=?
                         ORDER BY `timestamp` DESC
                         LIMIT 1;"""))) {
@@ -242,7 +242,7 @@ public class MySqlDatabase extends Database {
             try (Connection connection = getConnection()) {
                 try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
                         SELECT `version_uuid`, `timestamp`, `save_cause`, `data`
-                        FROM `%data_table%`
+                        FROM `%user_data_table%`
                         WHERE `player_uuid`=?
                         ORDER BY `timestamp` DESC;"""))) {
                     statement.setString(1, user.uuid.toString());
@@ -273,7 +273,7 @@ public class MySqlDatabase extends Database {
             try (Connection connection = getConnection()) {
                 try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
                         SELECT `version_uuid`, `timestamp`, `save_cause`, `data`
-                        FROM `%data_table%`
+                        FROM `%user_data_table%`
                         WHERE `player_uuid`=? AND `version_uuid`=?
                         ORDER BY `timestamp` DESC
                         LIMIT 1;"""))) {
@@ -304,7 +304,7 @@ public class MySqlDatabase extends Database {
             if (data.size() > maxUserDataRecords) {
                 try (Connection connection = getConnection()) {
                     try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
-                            DELETE FROM `%data_table%`
+                            DELETE FROM `%user_data_table%`
                             WHERE `player_uuid`=?
                             ORDER BY `timestamp` ASC
                             LIMIT %entry_count%;""".replace("%entry_count%",
@@ -324,7 +324,7 @@ public class MySqlDatabase extends Database {
         return CompletableFuture.supplyAsync(() -> {
             try (Connection connection = getConnection()) {
                 try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
-                        DELETE FROM `%data_table%`
+                        DELETE FROM `%user_data_table%`
                         WHERE `player_uuid`=? AND `version_uuid`=?
                         LIMIT 1;"""))) {
                     statement.setString(1, user.uuid.toString());
@@ -348,7 +348,7 @@ public class MySqlDatabase extends Database {
                 final UserData finalData = dataSaveEvent.getUserData();
                 try (Connection connection = getConnection()) {
                     try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
-                            INSERT INTO `%data_table%`
+                            INSERT INTO `%user_data_table%`
                             (`player_uuid`,`version_uuid`,`timestamp`,`save_cause`,`data`)
                             VALUES (?,UUID(),NOW(),?,?);"""))) {
                         statement.setString(1, user.uuid.toString());
@@ -362,6 +362,19 @@ public class MySqlDatabase extends Database {
                 }
             }
         }).thenRun(() -> pruneUserData(user).join());
+    }
+
+    @Override
+    public CompletableFuture<Void> wipeDatabase() {
+        return CompletableFuture.runAsync(() -> {
+            try (Connection connection = getConnection()) {
+                try (Statement statement = connection.createStatement()) {
+                    statement.executeUpdate(formatStatementTables("DELETE FROM `%user_data_table%`;"));
+                }
+            } catch (SQLException e) {
+                getLogger().log(Level.SEVERE, "Failed to wipe the database", e);
+            }
+        });
     }
 
     @Override
