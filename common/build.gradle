@@ -12,6 +12,11 @@ dependencies {
     compileOnly 'dev.dejvokep:boosted-yaml:1.2'
     compileOnly 'org.xerial.snappy:snappy-java:1.1.8.4'
     compileOnly 'org.jetbrains:annotations:23.0.0'
+    compileOnly 'com.github.plan-player-analytics:Plan:5.4.1690'
+
+    testImplementation 'org.xerial.snappy:snappy-java:1.1.8.4'
+    testImplementation 'com.github.plan-player-analytics:Plan:5.4.1690'
+    testCompileOnly 'org.jetbrains:annotations:23.0.0'
 }
 
 shadowJar {

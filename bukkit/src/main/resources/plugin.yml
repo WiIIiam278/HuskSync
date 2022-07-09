@@ -5,7 +5,9 @@ api-version: 1.16
 author: William278
 description: 'A modern, cross-server player data synchronization system'
 website: 'https://william278.net'
-softdepend: [ MysqlPlayerDataBridge ]
+softdepend:
+  - MysqlPlayerDataBridge
+  - Plan
 libraries:
   - 'mysql:mysql-connector-java:8.0.29'
   - 'org.xerial.snappy:snappy-java:1.1.8.4'

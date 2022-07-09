@@ -19,6 +19,7 @@ import net.william278.husksync.database.MySqlDatabase;
 import net.william278.husksync.editor.DataEditor;
 import net.william278.husksync.event.BukkitEventCannon;
 import net.william278.husksync.event.EventCannon;
+import net.william278.husksync.hook.PlanHook;
 import net.william278.husksync.listener.BukkitEventListener;
 import net.william278.husksync.listener.EventListener;
 import net.william278.husksync.migrator.LegacyMigrator;
@@ -184,6 +185,13 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync {
                     }
                 }
                 getLoggingAdapter().log(Level.INFO, "Successfully registered permissions & commands");
+            }
+            return succeeded;
+        }).thenApply(succeeded -> {
+            if (succeeded && Bukkit.getPluginManager().getPlugin("Plan") != null) {
+                getLoggingAdapter().log(Level.INFO, "Enabling Plan integration...");
+                new PlanHook(database, logger).hookIntoPlan();
+                getLoggingAdapter().log(Level.INFO, "Plan integration enabled!");
             }
             return succeeded;
         }).thenApply(succeeded -> {
