@@ -118,19 +118,12 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync {
         }).thenApply(succeeded -> {
             // Prepare migrators
             if (succeeded) {
-                logger.debug("m0");
                 availableMigrators = new ArrayList<>();
-                logger.debug("m1");
                 availableMigrators.add(new LegacyMigrator(this));
-                logger.debug("m2");
                 final Plugin mySqlPlayerDataBridge = Bukkit.getPluginManager().getPlugin("MySqlPlayerDataBridge");
-                logger.debug("m3");
                 if (mySqlPlayerDataBridge != null) {
-                    logger.debug("m4");
                     availableMigrators.add(new MpdbMigrator(this, mySqlPlayerDataBridge));
-                    logger.debug("m5");
                 }
-                logger.debug("m6 - Successfully prepared migrators");
             }
             return succeeded;
         }).thenApply(succeeded -> {
