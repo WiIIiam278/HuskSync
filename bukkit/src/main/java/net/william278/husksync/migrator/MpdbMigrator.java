@@ -35,6 +35,7 @@ public class MpdbMigrator extends Migrator {
     private String sourceInventoryTable;
     private String sourceEnderChestTable;
     private String sourceExperienceTable;
+    private final String minecraftVersion;
 
     public MpdbMigrator(@NotNull BukkitHuskSync plugin, @NotNull Plugin mySqlPlayerDataBridge) {
         super(plugin);
@@ -47,6 +48,8 @@ public class MpdbMigrator extends Migrator {
         this.sourceInventoryTable = "mpdb_inventory";
         this.sourceEnderChestTable = "mpdb_enderchest";
         this.sourceExperienceTable = "mpdb_experience";
+        this.minecraftVersion = plugin.getMinecraftVersion().getWithoutMeta();
+
     }
 
     @Override
@@ -106,7 +109,7 @@ public class MpdbMigrator extends Migrator {
                 }
                 plugin.getLoggingAdapter().log(Level.INFO, "Completed download of " + dataToMigrate.size() + " entries from the MySQLPlayerDataBridge database!");
                 plugin.getLoggingAdapter().log(Level.INFO, "Converting raw MySQLPlayerDataBridge data to HuskSync user data...");
-                dataToMigrate.forEach(data -> data.toUserData(mpdbConverter).thenAccept(convertedData ->
+                dataToMigrate.forEach(data -> data.toUserData(mpdbConverter, minecraftVersion).thenAccept(convertedData ->
                         plugin.getDatabase().ensureUser(data.user()).thenRun(() ->
                                         plugin.getDatabase().setUserData(data.user(), convertedData, DataSaveCause.MPDB_MIGRATION))
                                 .exceptionally(exception -> {
@@ -257,7 +260,8 @@ public class MpdbMigrator extends Migrator {
          * @return A {@link CompletableFuture} that will resolve to the converted {@link UserData} object
          */
         @NotNull
-        public CompletableFuture<UserData> toUserData(@NotNull MPDBConverter converter) {
+        public CompletableFuture<UserData> toUserData(@NotNull MPDBConverter converter,
+                                                      @NotNull String minecraftVersion) {
             return CompletableFuture.supplyAsync(() -> {
                 // Combine inventory and armour
                 final Inventory inventory = Bukkit.createInventory(null, InventoryType.PLAYER);
@@ -278,7 +282,8 @@ public class MpdbMigrator extends Migrator {
                         new StatisticsData(new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>()),
                         new LocationData("world", UUID.randomUUID(), "NORMAL", 0, 0, 0,
                                 0f, 0f),
-                        new PersistentDataContainerData(new HashMap<>()));
+                        new PersistentDataContainerData(new HashMap<>()),
+                        minecraftVersion);
             });
         }
     }

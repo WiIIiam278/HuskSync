@@ -32,6 +32,8 @@ public class LegacyMigrator extends Migrator {
     private String sourcePlayersTable;
     private String sourceDataTable;
 
+    private final String minecraftVersion;
+
     public LegacyMigrator(@NotNull HuskSync plugin) {
         super(plugin);
         this.hslConverter = HSLConverter.getInstance();
@@ -42,6 +44,7 @@ public class LegacyMigrator extends Migrator {
         this.sourceDatabase = plugin.getSettings().getStringValue(Settings.ConfigOption.DATABASE_NAME);
         this.sourcePlayersTable = "husksync_players";
         this.sourceDataTable = "husksync_data";
+        this.minecraftVersion = plugin.getMinecraftVersion().getWithoutMeta();
     }
 
     @Override
@@ -110,7 +113,7 @@ public class LegacyMigrator extends Migrator {
                 }
                 plugin.getLoggingAdapter().log(Level.INFO, "Completed download of " + dataToMigrate.size() + " entries from the legacy database!");
                 plugin.getLoggingAdapter().log(Level.INFO, "Converting HuskSync 1.x data to the latest HuskSync user data format...");
-                dataToMigrate.forEach(data -> data.toUserData(hslConverter).thenAccept(convertedData ->
+                dataToMigrate.forEach(data -> data.toUserData(hslConverter, minecraftVersion).thenAccept(convertedData ->
                         plugin.getDatabase().ensureUser(data.user()).thenRun(() ->
                                 plugin.getDatabase().setUserData(data.user(), convertedData, DataSaveCause.LEGACY_MIGRATION)
                                         .exceptionally(exception -> {
@@ -246,7 +249,8 @@ public class LegacyMigrator extends Migrator {
                               @NotNull String serializedAdvancements, @NotNull String serializedLocation) {
 
         @NotNull
-        public CompletableFuture<UserData> toUserData(@NotNull HSLConverter converter) {
+        public CompletableFuture<UserData> toUserData(@NotNull HSLConverter converter,
+                                                      @NotNull String minecraftVersion) {
             return CompletableFuture.supplyAsync(() -> {
                 try {
                     final DataSerializer.StatisticData legacyStatisticData = converter
@@ -278,7 +282,8 @@ public class LegacyMigrator extends Migrator {
                             new ItemData(serializedInventory), new ItemData(serializedEnderChest),
                             new PotionEffectData(serializedPotionEffects), convertedAdvancements,
                             convertedStatisticData, convertedLocationData,
-                            new PersistentDataContainerData(new HashMap<>()));
+                            new PersistentDataContainerData(new HashMap<>()),
+                            minecraftVersion);
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }

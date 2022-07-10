@@ -6,6 +6,7 @@ import net.md_5.bungee.api.chat.BaseComponent;
 import net.william278.husksync.BukkitHuskSync;
 import net.william278.husksync.data.*;
 import net.william278.husksync.editor.ItemEditorMenu;
+import net.william278.husksync.util.Version;
 import org.apache.commons.lang.ArrayUtils;
 import org.bukkit.*;
 import org.bukkit.advancement.Advancement;
@@ -432,6 +433,12 @@ public class BukkitPlayer extends OnlineUser {
             e.printStackTrace();
             throw e;
         }
+    }
+
+    @NotNull
+    @Override
+    public Version getMinecraftVersion() {
+        return Version.minecraftVersion(Bukkit.getBukkitVersion());
     }
 
     @Override

@@ -3,7 +3,7 @@ package net.william278.husksync.api;
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.data.DataSaveCause;
 import net.william278.husksync.data.UserData;
-import net.william278.husksync.data.VersionedUserData;
+import net.william278.husksync.data.UserDataSnapshot;
 import net.william278.husksync.player.OnlineUser;
 import net.william278.husksync.player.User;
 import org.jetbrains.annotations.NotNull;
@@ -74,7 +74,7 @@ public abstract class BaseHuskSyncAPI {
             if (user instanceof OnlineUser) {
                 return Optional.of(((OnlineUser) user).getUserData().join());
             } else {
-                return plugin.getDatabase().getCurrentUserData(user).join().map(VersionedUserData::userData);
+                return plugin.getDatabase().getCurrentUserData(user).join().map(UserDataSnapshot::userData);
             }
         });
     }
@@ -108,16 +108,16 @@ public abstract class BaseHuskSyncAPI {
     }
 
     /**
-     * Returns the saved {@link VersionedUserData} records for the given {@link User}
+     * Returns the saved {@link UserDataSnapshot} records for the given {@link User}
      *
-     * @param user the {@link User} to get the {@link VersionedUserData} for
-     * @return future returning a list {@link VersionedUserData} for the given {@link User} if they exist,
+     * @param user the {@link User} to get the {@link UserDataSnapshot} for
+     * @return future returning a list {@link UserDataSnapshot} for the given {@link User} if they exist,
      * otherwise an empty {@link Optional}
      * @apiNote The length of the list of VersionedUserData will correspond to the configured
      * {@code max_user_data_records} config option
      * @since 2.0
      */
-    public final CompletableFuture<List<VersionedUserData>> getSavedUserData(@NotNull User user) {
+    public final CompletableFuture<List<UserDataSnapshot>> getSavedUserData(@NotNull User user) {
         return CompletableFuture.supplyAsync(() -> plugin.getDatabase().getUserData(user).join());
     }
 

@@ -53,12 +53,12 @@ public class BukkitEventListener extends EventListener implements Listener {
     public void onInventoryClose(@NotNull InventoryCloseEvent event) {
         if (event.getPlayer() instanceof Player player) {
             final OnlineUser user = BukkitPlayer.adapt(player);
-            if (huskSync.getDataEditor().isEditingInventoryData(user)) {
+            if (plugin.getDataEditor().isEditingInventoryData(user)) {
                 try {
                     BukkitSerializer.serializeItemStackArray(event.getInventory().getContents()).thenAccept(
                             serializedInventory -> super.handleMenuClose(user, new ItemData(serializedInventory)));
                 } catch (DataSerializationException e) {
-                    huskSync.getLoggingAdapter().log(Level.SEVERE,
+                    plugin.getLoggingAdapter().log(Level.SEVERE,
                             "Failed to serialize inventory data during menu close", e);
                 }
             }

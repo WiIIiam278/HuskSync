@@ -83,10 +83,16 @@ public class RedisManager {
                             final RedisMessage redisMessage = RedisMessage.fromJson(message);
                             plugin.getOnlineUser(redisMessage.targetUserUuid).ifPresent(user -> {
                                 final UserData userData = plugin.getDataAdapter().fromBytes(redisMessage.data);
-                                user.setData(userData, plugin.getSettings(), plugin.getEventCannon()).thenRun(() -> {
-                                    plugin.getLocales().getLocale("data_update_complete")
-                                            .ifPresent(user::sendActionBar);
-                                    plugin.getEventCannon().fireSyncCompleteEvent(user);
+                                user.setData(userData, plugin.getSettings(), plugin.getEventCannon(),
+                                        plugin.getLoggingAdapter(), plugin.getMinecraftVersion()).thenAccept(succeeded -> {
+                                    if (succeeded) {
+                                        plugin.getLocales().getLocale("data_update_complete")
+                                                .ifPresent(user::sendActionBar);
+                                        plugin.getEventCannon().fireSyncCompleteEvent(user);
+                                    } else {
+                                        plugin.getLocales().getLocale("data_update_failed")
+                                                .ifPresent(user::sendMessage);
+                                    }
                                 });
                             });
                         }

@@ -34,7 +34,7 @@ public class HuskSyncCommand extends CommandBase implements TabCompletable, Cons
                     plugin.getLocales().getLocale("error_no_permission").ifPresent(player::sendMessage);
                     return;
                 }
-                final UpdateChecker updateChecker = new UpdateChecker(plugin.getVersion(), plugin.getLoggingAdapter());
+                final UpdateChecker updateChecker = new UpdateChecker(plugin.getPluginVersion(), plugin.getLoggingAdapter());
                 updateChecker.fetchLatestVersion().thenAccept(latestVersion -> {
                     if (updateChecker.isUpdateAvailable(latestVersion)) {
                         player.sendMessage(new MineDown("[HuskSync](#00fb9a bold) [| A new update is available:](#00fb9a) [HuskSync " + updateChecker.fetchLatestVersion() + "](#00fb9a bold)" +
@@ -57,7 +57,7 @@ public class HuskSyncCommand extends CommandBase implements TabCompletable, Cons
             case "migrate" ->
                     plugin.getLocales().getLocale("error_console_command_only").ifPresent(player::sendMessage);
             default -> plugin.getLocales().getLocale("error_invalid_syntax",
-                            "/husksync <update/info/reload>")
+                            "/husksync <update/about/reload>")
                     .ifPresent(player::sendMessage);
         }
     }
@@ -65,14 +65,14 @@ public class HuskSyncCommand extends CommandBase implements TabCompletable, Cons
     @Override
     public void onConsoleExecute(@NotNull String[] args) {
         if (args.length < 1) {
-            plugin.getLoggingAdapter().log(Level.INFO, "Console usage: \"husksync <update/info/reload/migrate>\"");
+            plugin.getLoggingAdapter().log(Level.INFO, "Console usage: \"husksync <update/about/reload/migrate>\"");
             return;
         }
         switch (args[0].toLowerCase()) {
             case "update", "version" ->
-                    new UpdateChecker(plugin.getVersion(), plugin.getLoggingAdapter()).logToConsole();
+                    new UpdateChecker(plugin.getPluginVersion(), plugin.getLoggingAdapter()).logToConsole();
             case "info", "about" -> plugin.getLoggingAdapter().log(Level.INFO, plugin.getLocales().stripMineDown(
-                    Locales.PLUGIN_INFORMATION.replace("%version%", plugin.getVersion())));
+                    Locales.PLUGIN_INFORMATION.replace("%version%", plugin.getPluginVersion().toString())));
             case "reload" -> {
                 plugin.reload();
                 plugin.getLoggingAdapter().log(Level.INFO, "Reloaded config & message files.");
@@ -105,7 +105,7 @@ public class HuskSyncCommand extends CommandBase implements TabCompletable, Cons
                 });
             }
             default -> plugin.getLoggingAdapter().log(Level.INFO,
-                    "Invalid syntax. Console usage: \"husksync <update/info/reload/migrate>\"");
+                    "Invalid syntax. Console usage: \"husksync <update/about/reload/migrate>\"");
         }
     }
 
@@ -129,6 +129,6 @@ public class HuskSyncCommand extends CommandBase implements TabCompletable, Cons
             plugin.getLocales().getLocale("error_no_permission").ifPresent(player::sendMessage);
             return;
         }
-        player.sendMessage(new MineDown(Locales.PLUGIN_INFORMATION.replace("%version%", plugin.getVersion())));
+        player.sendMessage(new MineDown(Locales.PLUGIN_INFORMATION.replace("%version%", plugin.getPluginVersion().toString())));
     }
 }

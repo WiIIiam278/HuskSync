@@ -3,7 +3,7 @@ package net.william278.husksync.database;
 import net.william278.husksync.data.DataAdapter;
 import net.william278.husksync.data.DataSaveCause;
 import net.william278.husksync.data.UserData;
-import net.william278.husksync.data.VersionedUserData;
+import net.william278.husksync.data.UserDataSnapshot;
 import net.william278.husksync.event.EventCannon;
 import net.william278.husksync.migrator.Migrator;
 import net.william278.husksync.player.User;
@@ -157,40 +157,41 @@ public abstract class Database {
      * Get the current uniquely versioned user data for a given user, if it exists.
      *
      * @param user the user to get data for
-     * @return an optional containing the {@link VersionedUserData}, if it exists, or an empty optional if it does not
+     * @return an optional containing the {@link UserDataSnapshot}, if it exists, or an empty optional if it does not
      */
-    public abstract CompletableFuture<Optional<VersionedUserData>> getCurrentUserData(@NotNull User user);
+    public abstract CompletableFuture<Optional<UserDataSnapshot>> getCurrentUserData(@NotNull User user);
 
     /**
-     * Get all {@link VersionedUserData} entries for a user from the database.
+     * Get all {@link UserDataSnapshot} entries for a user from the database.
      *
      * @param user The user to get data for
-     * @return A future returning a list of a user's {@link VersionedUserData} entries
+     * @return A future returning a list of a user's {@link UserDataSnapshot} entries
      */
-    public abstract CompletableFuture<List<VersionedUserData>> getUserData(@NotNull User user);
+    public abstract CompletableFuture<List<UserDataSnapshot>> getUserData(@NotNull User user);
 
     /**
-     * Gets a specific {@link VersionedUserData} entry for a user from the database, by its UUID.
+     * Gets a specific {@link UserDataSnapshot} entry for a user from the database, by its UUID.
      *
      * @param user        The user to get data for
-     * @param versionUuid The UUID of the {@link VersionedUserData} entry to get
-     * @return A future returning an optional containing the {@link VersionedUserData}, if it exists, or an empty optional if it does not
+     * @param versionUuid The UUID of the {@link UserDataSnapshot} entry to get
+     * @return A future returning an optional containing the {@link UserDataSnapshot}, if it exists, or an empty optional if it does not
      */
-    public abstract CompletableFuture<Optional<VersionedUserData>> getUserData(@NotNull User user, @NotNull UUID versionUuid);
+    public abstract CompletableFuture<Optional<UserDataSnapshot>> getUserData(@NotNull User user, @NotNull UUID versionUuid);
 
     /**
-     * <b>(Internal)</b> Prune user data for a given user to the maximum value as configured
+     * <b>(Internal)</b> Prune user data for a given user to the maximum value as configured.
      *
      * @param user The user to prune data for
      * @return A future returning void when complete
+     * @implNote Data snapshots marked as {@code pinned} are exempt from rotation
      */
-    protected abstract CompletableFuture<Void> pruneUserData(@NotNull User user);
+    protected abstract CompletableFuture<Void> rotateUserData(@NotNull User user);
 
     /**
-     * Deletes a specific {@link VersionedUserData} entry for a user from the database, by its UUID.
+     * Deletes a specific {@link UserDataSnapshot} entry for a user from the database, by its UUID.
      *
      * @param user        The user to get data for
-     * @param versionUuid The UUID of the {@link VersionedUserData} entry to delete
+     * @param versionUuid The UUID of the {@link UserDataSnapshot} entry to delete
      * @return A future returning void when complete
      */
     public abstract CompletableFuture<Boolean> deleteUserData(@NotNull User user, @NotNull UUID versionUuid);
@@ -202,9 +203,29 @@ public abstract class Database {
      * @param user     The user to add data for
      * @param userData The {@link UserData} to set. The implementation should version it with a random UUID and the current timestamp during insertion.
      * @return A future returning void when complete
-     * @see VersionedUserData#version(UserData)
+     * @see UserDataSnapshot#create(UserData)
      */
     public abstract CompletableFuture<Void> setUserData(@NotNull User user, @NotNull UserData userData, @NotNull DataSaveCause dataSaveCause);
+
+    /**
+     * Pin a saved {@link UserDataSnapshot} by given version UUID, setting it's {@code pinned} state to {@code true}.
+     *
+     * @param user        The user to pin the data for
+     * @param versionUuid The UUID of the user's {@link UserDataSnapshot} entry to pin
+     * @return A future returning a boolean; {@code true} if the operation completed successfully, {@code false} if it failed
+     * @see UserDataSnapshot#pinned()
+     */
+    public abstract CompletableFuture<Void> pinUserData(@NotNull User user, @NotNull UUID versionUuid);
+
+    /**
+     * Unpin a saved {@link UserDataSnapshot} by given version UUID, setting it's {@code pinned} state to {@code false}.
+     *
+     * @param user        The user to unpin the data for
+     * @param versionUuid The UUID of the user's {@link UserDataSnapshot} entry to unpin
+     * @return A future returning a boolean; {@code true} if the operation completed successfully, {@code false} if it failed
+     * @see UserDataSnapshot#pinned()
+     */
+    public abstract CompletableFuture<Void> unpinUserData(@NotNull User user, @NotNull UUID versionUuid);
 
     /**
      * Wipes <b>all</b> {@link UserData} entries from the database.

@@ -4,7 +4,7 @@ import net.william278.husksync.command.Permission;
 import net.william278.husksync.config.Locales;
 import net.william278.husksync.data.AdvancementData;
 import net.william278.husksync.data.ItemData;
-import net.william278.husksync.data.VersionedUserData;
+import net.william278.husksync.data.UserDataSnapshot;
 import net.william278.husksync.player.OnlineUser;
 import net.william278.husksync.player.User;
 import org.jetbrains.annotations.NotNull;
@@ -13,7 +13,6 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 
 /**
  * Provides methods for displaying and editing user data
@@ -74,13 +73,13 @@ public class DataEditor {
     }
 
     /**
-     * Display a chat menu detailing information about {@link VersionedUserData}
+     * Display a chat menu detailing information about {@link UserDataSnapshot}
      *
      * @param user      The online user to display the message to
-     * @param userData  The {@link VersionedUserData} to display information about
-     * @param dataOwner The {@link User} who owns the {@link VersionedUserData}
+     * @param userData  The {@link UserDataSnapshot} to display information about
+     * @param dataOwner The {@link User} who owns the {@link UserDataSnapshot}
      */
-    public void displayDataOverview(@NotNull OnlineUser user, @NotNull VersionedUserData userData,
+    public void displayDataOverview(@NotNull OnlineUser user, @NotNull UserDataSnapshot userData,
                                     @NotNull User dataOwner) {
         locales.getLocale("data_manager_title",
                         userData.versionUUID().toString().split("-")[0],
@@ -91,6 +90,9 @@ public class DataEditor {
         locales.getLocale("data_manager_timestamp",
                         new SimpleDateFormat("MMM dd yyyy, HH:mm:ss.sss").format(userData.versionTimestamp()))
                 .ifPresent(user::sendMessage);
+        if (userData.pinned()) {
+            locales.getLocale("data_manager_pinned").ifPresent(user::sendMessage);
+        }
         locales.getLocale("data_manager_cause",
                         userData.cause().name().toLowerCase().replaceAll("_", " "))
                 .ifPresent(user::sendMessage);
@@ -120,7 +122,8 @@ public class DataEditor {
         }
     }
 
-    private @NotNull String generateAdvancementPreview(@NotNull List<AdvancementData> advancementData) {
+    @NotNull
+    private String generateAdvancementPreview(@NotNull List<AdvancementData> advancementData) {
         final StringJoiner joiner = new StringJoiner("\n");
         final List<AdvancementData> advancementsToPreview = advancementData.stream().filter(dataItem ->
                 !dataItem.key.startsWith("minecraft:recipes/")).toList();
@@ -140,13 +143,13 @@ public class DataEditor {
     }
 
     /**
-     * Display a chat list detailing a player's saved list of {@link VersionedUserData}
+     * Display a chat list detailing a player's saved list of {@link UserDataSnapshot}
      *
      * @param user         The online user to display the message to
-     * @param userDataList The list of {@link VersionedUserData} to display
-     * @param dataOwner    The {@link User} who owns the {@link VersionedUserData}
+     * @param userDataList The list of {@link UserDataSnapshot} to display
+     * @param dataOwner    The {@link User} who owns the {@link UserDataSnapshot}
      */
-    public void displayDataList(@NotNull OnlineUser user, @NotNull List<VersionedUserData> userDataList,
+    public void displayDataList(@NotNull OnlineUser user, @NotNull List<UserDataSnapshot> userDataList,
                                 @NotNull User dataOwner) {
         locales.getLocale("data_list_title",
                         dataOwner.username, dataOwner.uuid.toString())
@@ -154,7 +157,7 @@ public class DataEditor {
 
         final String[] numberedIcons = "①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳".split("");
         for (int i = 0; i < Math.min(20, userDataList.size()); i++) {
-            final VersionedUserData userData = userDataList.get(i);
+            final UserDataSnapshot userData = userDataList.get(i);
             locales.getLocale("data_list_item",
                             numberedIcons[i],
                             DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT, Locale.getDefault())
@@ -162,7 +165,8 @@ public class DataEditor {
                             userData.versionUUID().toString().split("-")[0],
                             userData.versionUUID().toString(),
                             userData.cause().name().toLowerCase().replaceAll("_", " "),
-                            dataOwner.username)
+                            dataOwner.username,
+                            userData.pinned() ? "※" : "  ")
                     .ifPresent(user::sendMessage);
         }
     }

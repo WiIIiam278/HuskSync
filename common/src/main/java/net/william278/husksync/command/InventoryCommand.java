@@ -4,7 +4,7 @@ import net.william278.husksync.HuskSync;
 import net.william278.husksync.data.DataSaveCause;
 import net.william278.husksync.data.ItemData;
 import net.william278.husksync.data.UserData;
-import net.william278.husksync.data.VersionedUserData;
+import net.william278.husksync.data.UserDataSnapshot;
 import net.william278.husksync.editor.ItemEditorMenu;
 import net.william278.husksync.player.OnlineUser;
 import net.william278.husksync.player.User;
@@ -55,15 +55,15 @@ public class InventoryCommand extends CommandBase implements TabCompletable {
                         .ifPresent(player::sendMessage)));
     }
 
-    private void showInventoryMenu(@NotNull OnlineUser player, @NotNull VersionedUserData versionedUserData,
+    private void showInventoryMenu(@NotNull OnlineUser player, @NotNull UserDataSnapshot userDataSnapshot,
                                    @NotNull User dataOwner, boolean allowEdit) {
         CompletableFuture.runAsync(() -> {
-            final UserData data = versionedUserData.userData();
+            final UserData data = userDataSnapshot.userData();
             final ItemEditorMenu menu = ItemEditorMenu.createInventoryMenu(data.getInventoryData(),
                     dataOwner, player, plugin.getLocales(), allowEdit);
             plugin.getLocales().getLocale("viewing_inventory_of", dataOwner.username,
                             DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT, Locale.getDefault())
-                                    .format(versionedUserData.versionTimestamp()))
+                                    .format(userDataSnapshot.versionTimestamp()))
                     .ifPresent(player::sendMessage);
             final ItemData inventoryDataOnClose = plugin.getDataEditor().openItemEditorMenu(player, menu).join();
             if (!menu.canEdit) {
@@ -72,7 +72,8 @@ public class InventoryCommand extends CommandBase implements TabCompletable {
             final UserData updatedUserData = new UserData(data.getStatusData(), inventoryDataOnClose,
                     data.getEnderChestData(), data.getPotionEffectsData(), data.getAdvancementData(),
                     data.getStatisticsData(), data.getLocationData(),
-                    data.getPersistentDataContainerData());
+                    data.getPersistentDataContainerData(),
+                    plugin.getMinecraftVersion().getWithoutMeta());
             plugin.getDatabase().setUserData(dataOwner, updatedUserData, DataSaveCause.INVENTORY_COMMAND_EDIT).join();
             plugin.getRedisManager().sendUserDataUpdate(dataOwner, updatedUserData).join();
         });

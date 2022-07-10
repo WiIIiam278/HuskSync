@@ -6,12 +6,16 @@ import net.william278.husksync.data.*;
 import net.william278.husksync.editor.ItemEditorMenu;
 import net.william278.husksync.event.EventCannon;
 import net.william278.husksync.event.PreSyncEvent;
+import net.william278.husksync.util.Logger;
+import net.william278.husksync.util.Version;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.logging.Level;
 
 /**
  * Represents a logged-in {@link User}
@@ -160,15 +164,31 @@ public abstract class OnlineUser extends User {
     public abstract boolean isOffline();
 
     /**
+     * Returns the implementing Minecraft server version
+     *
+     * @return The Minecraft server version
+     */
+    @NotNull
+    public abstract Version getMinecraftVersion();
+
+    /**
      * Set {@link UserData} to a player
      *
      * @param data     The data to set
      * @param settings Plugin settings, for determining what needs setting
-     * @return a future that will be completed when done
+     * @return a future returning a boolean when complete; if the sync was successful, the future will return {@code true}
      */
-    public final CompletableFuture<Void> setData(@NotNull UserData data, @NotNull Settings settings,
-                                                 @NotNull EventCannon eventCannon) {
-        return CompletableFuture.runAsync(() -> {
+    public final CompletableFuture<Boolean> setData(@NotNull UserData data, @NotNull Settings settings,
+                                                    @NotNull EventCannon eventCannon, @NotNull Logger logger,
+                                                    @NotNull Version serverMinecraftVersion) {
+        return CompletableFuture.supplyAsync(() -> {
+            // Prevent synchronizing newer versions of Minecraft
+            if (Version.minecraftVersion(data.getMinecraftVersion()).compareTo(serverMinecraftVersion) > 0) {
+                logger.log(Level.SEVERE, "Cannot set data for player " + username + " with Minecraft version \""
+                                         + data.getMinecraftVersion() + "\" because it is newer than the server's version, \""
+                                         + serverMinecraftVersion + "\"");
+                return false;
+            }
             final PreSyncEvent preSyncEvent = (PreSyncEvent) eventCannon.firePreSyncEvent(this, data).join();
             final UserData finalData = preSyncEvent.getUserData();
             final List<CompletableFuture<Void>> dataSetOperations = new ArrayList<>() {{
@@ -197,7 +217,14 @@ public abstract class OnlineUser extends User {
                     }
                 }
             }};
-            CompletableFuture.allOf(dataSetOperations.toArray(new CompletableFuture[0])).join();
+            // Apply operations in parallel, join when complete
+            return CompletableFuture.allOf(dataSetOperations.toArray(new CompletableFuture[0])).thenApply(unused -> true)
+                    .exceptionally(exception -> {
+                        // Handle synchronisation exceptions
+                        logger.log(Level.SEVERE, "Failed to set data for player " + username + " (" + exception.getMessage() + ")");
+                        exception.printStackTrace();
+                        return false;
+                    }).join();
         });
 
     }
@@ -240,7 +267,8 @@ public abstract class OnlineUser extends User {
         return CompletableFuture.supplyAsync(
                 () -> new UserData(getStatus().join(), getInventory().join(),
                         getEnderChest().join(), getPotionEffects().join(), getAdvancements().join(),
-                        getStatistics().join(), getLocation().join(), getPersistentDataContainer().join()));
+                        getStatistics().join(), getLocation().join(), getPersistentDataContainer().join(),
+                        getMinecraftVersion().getWithoutMeta()));
     }
 
 }

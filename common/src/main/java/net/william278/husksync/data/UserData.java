@@ -66,6 +66,12 @@ public class UserData {
     protected PersistentDataContainerData persistentDataContainerData;
 
     /**
+     * Stores the version of Minecraft this data was generated in
+     */
+    @SerializedName("minecraft_version")
+    protected String minecraftVersion;
+
+    /**
      * Stores the version of the data format being used
      */
     @SerializedName("format_version")
@@ -74,7 +80,8 @@ public class UserData {
     public UserData(@NotNull StatusData statusData, @NotNull ItemData inventoryData,
                     @NotNull ItemData enderChestData, @NotNull PotionEffectData potionEffectData,
                     @NotNull List<AdvancementData> advancementData, @NotNull StatisticsData statisticData,
-                    @NotNull LocationData locationData, @NotNull PersistentDataContainerData persistentDataContainerData) {
+                    @NotNull LocationData locationData, @NotNull PersistentDataContainerData persistentDataContainerData,
+                    @NotNull String minecraftVersion) {
         this.statusData = statusData;
         this.inventoryData = inventoryData;
         this.enderChestData = enderChestData;
@@ -83,6 +90,7 @@ public class UserData {
         this.statisticData = statisticData;
         this.locationData = locationData;
         this.persistentDataContainerData = persistentDataContainerData;
+        this.minecraftVersion = minecraftVersion;
         this.formatVersion = CURRENT_FORMAT_VERSION;
     }
 
@@ -121,6 +129,11 @@ public class UserData {
 
     public PersistentDataContainerData getPersistentDataContainerData() {
         return persistentDataContainerData;
+    }
+
+    @NotNull
+    public String getMinecraftVersion() {
+        return minecraftVersion;
     }
 
 }

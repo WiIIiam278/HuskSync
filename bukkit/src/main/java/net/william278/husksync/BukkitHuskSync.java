@@ -77,6 +77,7 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync {
     public void onEnable() {
         // Process initialization stages
         CompletableFuture.supplyAsync(() -> {
+
             // Set the logging adapter and resource reader
             this.logger = new BukkitLogger(this.getLogger());
             this.resourceReader = new BukkitResourceReader(this);
@@ -117,12 +118,19 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync {
         }).thenApply(succeeded -> {
             // Prepare migrators
             if (succeeded) {
+                logger.debug("m0");
                 availableMigrators = new ArrayList<>();
+                logger.debug("m1");
                 availableMigrators.add(new LegacyMigrator(this));
+                logger.debug("m2");
                 final Plugin mySqlPlayerDataBridge = Bukkit.getPluginManager().getPlugin("MySqlPlayerDataBridge");
+                logger.debug("m3");
                 if (mySqlPlayerDataBridge != null) {
+                    logger.debug("m4");
                     availableMigrators.add(new MpdbMigrator(this, mySqlPlayerDataBridge));
+                    logger.debug("m5");
                 }
+                logger.debug("m6 - Successfully prepared migrators");
             }
             return succeeded;
         }).thenApply(succeeded -> {
@@ -198,17 +206,22 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync {
             // Check for updates
             if (succeeded && settings.getBooleanValue(Settings.ConfigOption.CHECK_FOR_UPDATES)) {
                 getLoggingAdapter().log(Level.INFO, "Checking for updates...");
-                new UpdateChecker(getVersion(), getLoggingAdapter()).logToConsole();
+                new UpdateChecker(getPluginVersion(), getLoggingAdapter()).logToConsole();
             }
             return succeeded;
         }).thenAccept(succeeded -> {
             // Handle failed initialization
             if (!succeeded) {
-                getLoggingAdapter().log(Level.SEVERE, "Failed to initialize HuskSync. " + "The plugin will now be disabled");
+                getLoggingAdapter().log(Level.SEVERE, "Failed to initialize HuskSync. The plugin will now be disabled");
                 getServer().getPluginManager().disablePlugin(this);
             } else {
-                getLoggingAdapter().log(Level.INFO, "Successfully enabled HuskSync v" + getVersion());
+                getLoggingAdapter().log(Level.INFO, "Successfully enabled HuskSync v" + getPluginVersion());
             }
+        }).exceptionally(exception -> {
+            getLoggingAdapter().log(Level.SEVERE, "An exception occurred initializing HuskSync. (" + exception.getMessage() + ") The plugin will now be disabled.");
+            exception.printStackTrace();
+            getServer().getPluginManager().disablePlugin(this);
+            return null;
         });
     }
 
@@ -217,7 +230,7 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync {
         if (this.eventListener != null) {
             this.eventListener.handlePluginDisable();
         }
-        getLoggingAdapter().log(Level.INFO, "Successfully disabled HuskSync v" + getVersion());
+        getLoggingAdapter().log(Level.INFO, "Successfully disabled HuskSync v" + getPluginVersion());
     }
 
     @Override
@@ -281,8 +294,13 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync {
     }
 
     @Override
-    public @NotNull String getVersion() {
-        return getDescription().getVersion();
+    public @NotNull Version getPluginVersion() {
+        return Version.pluginVersion(getDescription().getVersion());
+    }
+
+    @Override
+    public @NotNull Version getMinecraftVersion() {
+        return Version.minecraftVersion(Bukkit.getBukkitVersion());
     }
 
     @Override

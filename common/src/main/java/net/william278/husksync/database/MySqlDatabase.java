@@ -13,8 +13,8 @@ import org.jetbrains.annotations.NotNull;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.sql.*;
-import java.util.*;
 import java.util.Date;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 
@@ -206,11 +206,11 @@ public class MySqlDatabase extends Database {
     }
 
     @Override
-    public CompletableFuture<Optional<VersionedUserData>> getCurrentUserData(@NotNull User user) {
+    public CompletableFuture<Optional<UserDataSnapshot>> getCurrentUserData(@NotNull User user) {
         return CompletableFuture.supplyAsync(() -> {
             try (Connection connection = getConnection()) {
                 try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
-                        SELECT `version_uuid`, `timestamp`, `save_cause`, `data`
+                        SELECT `version_uuid`, `timestamp`, `save_cause`, `pinned`, `data`
                         FROM `%user_data_table%`
                         WHERE `player_uuid`=?
                         ORDER BY `timestamp` DESC
@@ -221,10 +221,11 @@ public class MySqlDatabase extends Database {
                         final Blob blob = resultSet.getBlob("data");
                         final byte[] dataByteArray = blob.getBytes(1, (int) blob.length());
                         blob.free();
-                        return Optional.of(new VersionedUserData(
+                        return Optional.of(new UserDataSnapshot(
                                 UUID.fromString(resultSet.getString("version_uuid")),
                                 Date.from(resultSet.getTimestamp("timestamp").toInstant()),
                                 DataSaveCause.getCauseByName(resultSet.getString("save_cause")),
+                                resultSet.getBoolean("pinned"),
                                 getDataAdapter().fromBytes(dataByteArray)));
                     }
                 }
@@ -236,12 +237,12 @@ public class MySqlDatabase extends Database {
     }
 
     @Override
-    public CompletableFuture<List<VersionedUserData>> getUserData(@NotNull User user) {
+    public CompletableFuture<List<UserDataSnapshot>> getUserData(@NotNull User user) {
         return CompletableFuture.supplyAsync(() -> {
-            final List<VersionedUserData> retrievedData = new ArrayList<>();
+            final List<UserDataSnapshot> retrievedData = new ArrayList<>();
             try (Connection connection = getConnection()) {
                 try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
-                        SELECT `version_uuid`, `timestamp`, `save_cause`, `data`
+                        SELECT `version_uuid`, `timestamp`, `save_cause`, `pinned`, `data`
                         FROM `%user_data_table%`
                         WHERE `player_uuid`=?
                         ORDER BY `timestamp` DESC;"""))) {
@@ -251,10 +252,11 @@ public class MySqlDatabase extends Database {
                         final Blob blob = resultSet.getBlob("data");
                         final byte[] dataByteArray = blob.getBytes(1, (int) blob.length());
                         blob.free();
-                        final VersionedUserData data = new VersionedUserData(
+                        final UserDataSnapshot data = new UserDataSnapshot(
                                 UUID.fromString(resultSet.getString("version_uuid")),
                                 Date.from(resultSet.getTimestamp("timestamp").toInstant()),
                                 DataSaveCause.getCauseByName(resultSet.getString("save_cause")),
+                                resultSet.getBoolean("pinned"),
                                 getDataAdapter().fromBytes(dataByteArray));
                         retrievedData.add(data);
                     }
@@ -268,11 +270,11 @@ public class MySqlDatabase extends Database {
     }
 
     @Override
-    public CompletableFuture<Optional<VersionedUserData>> getUserData(@NotNull User user, @NotNull UUID versionUuid) {
+    public CompletableFuture<Optional<UserDataSnapshot>> getUserData(@NotNull User user, @NotNull UUID versionUuid) {
         return CompletableFuture.supplyAsync(() -> {
             try (Connection connection = getConnection()) {
                 try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
-                        SELECT `version_uuid`, `timestamp`, `save_cause`, `data`
+                        SELECT `version_uuid`, `timestamp`, `save_cause`, `pinned`, `data`
                         FROM `%user_data_table%`
                         WHERE `player_uuid`=? AND `version_uuid`=?
                         ORDER BY `timestamp` DESC
@@ -284,10 +286,11 @@ public class MySqlDatabase extends Database {
                         final Blob blob = resultSet.getBlob("data");
                         final byte[] dataByteArray = blob.getBytes(1, (int) blob.length());
                         blob.free();
-                        return Optional.of(new VersionedUserData(
+                        return Optional.of(new UserDataSnapshot(
                                 UUID.fromString(resultSet.getString("version_uuid")),
                                 Date.from(resultSet.getTimestamp("timestamp").toInstant()),
                                 DataSaveCause.getCauseByName(resultSet.getString("save_cause")),
+                                resultSet.getBoolean("pinned"),
                                 getDataAdapter().fromBytes(dataByteArray)));
                     }
                 }
@@ -299,16 +302,19 @@ public class MySqlDatabase extends Database {
     }
 
     @Override
-    protected CompletableFuture<Void> pruneUserData(@NotNull User user) {
-        return CompletableFuture.runAsync(() -> getUserData(user).thenAccept(data -> {
-            if (data.size() > maxUserDataRecords) {
+    protected CompletableFuture<Void> rotateUserData(@NotNull User user) {
+        return CompletableFuture.runAsync(() -> {
+            final List<UserDataSnapshot> unpinnedUserData = getUserData(user).join().stream()
+                    .filter(dataSnapshot -> !dataSnapshot.pinned()).toList();
+            if (unpinnedUserData.size() > maxUserDataRecords) {
                 try (Connection connection = getConnection()) {
                     try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
                             DELETE FROM `%user_data_table%`
                             WHERE `player_uuid`=?
+                            AND `pinned` IS FALSE
                             ORDER BY `timestamp` ASC
                             LIMIT %entry_count%;""".replace("%entry_count%",
-                            Integer.toString(data.size() - maxUserDataRecords))))) {
+                            Integer.toString(unpinnedUserData.size() - maxUserDataRecords))))) {
                         statement.setString(1, user.uuid.toString());
                         statement.executeUpdate();
                     }
@@ -316,7 +322,7 @@ public class MySqlDatabase extends Database {
                     getLogger().log(Level.SEVERE, "Failed to prune user data from the database", e);
                 }
             }
-        }));
+        });
     }
 
     @Override
@@ -361,7 +367,45 @@ public class MySqlDatabase extends Database {
                     getLogger().log(Level.SEVERE, "Failed to set user data in the database", e);
                 }
             }
-        }).thenRun(() -> pruneUserData(user).join());
+        }).thenRun(() -> rotateUserData(user).join());
+    }
+
+    @Override
+    public CompletableFuture<Void> pinUserData(@NotNull User user, @NotNull UUID versionUuid) {
+        return CompletableFuture.runAsync(() -> {
+            try (Connection connection = getConnection()) {
+                try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
+                        UPDATE `%user_data_table%`
+                        SET `pinned`=TRUE
+                        WHERE `player_uuid`=? AND `version_uuid`=?
+                        LIMIT 1;"""))) {
+                    statement.setString(1, user.uuid.toString());
+                    statement.setString(2, versionUuid.toString());
+                    statement.executeUpdate();
+                }
+            } catch (SQLException e) {
+                getLogger().log(Level.SEVERE, "Failed to pin user data in the database", e);
+            }
+        });
+    }
+
+    @Override
+    public CompletableFuture<Void> unpinUserData(@NotNull User user, @NotNull UUID versionUuid) {
+        return CompletableFuture.runAsync(() -> {
+            try (Connection connection = getConnection()) {
+                try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
+                        UPDATE `%user_data_table%`
+                        SET `pinned`=FALSE
+                        WHERE `player_uuid`=? AND `version_uuid`=?
+                        LIMIT 1;"""))) {
+                    statement.setString(1, user.uuid.toString());
+                    statement.setString(2, versionUuid.toString());
+                    statement.executeUpdate();
+                }
+            } catch (SQLException e) {
+                getLogger().log(Level.SEVERE, "Failed to unpin user data in the database", e);
+            }
+        });
     }
 
     @Override

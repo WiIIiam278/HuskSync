@@ -13,31 +13,31 @@ public class UpdateChecker {
 
     private final static int SPIGOT_PROJECT_ID = 97144;
     private final Logger logger;
-    private final VersionUtils.Version currentVersion;
+    private final Version currentVersion;
 
-    public UpdateChecker(@NotNull String currentVersion, @NotNull Logger logger) {
-        this.currentVersion = VersionUtils.Version.of(currentVersion);
+    public UpdateChecker(@NotNull Version currentVersion, @NotNull Logger logger) {
+        this.currentVersion = currentVersion;
         this.logger = logger;
     }
 
-    public CompletableFuture<VersionUtils.Version> fetchLatestVersion() {
+    public CompletableFuture<Version> fetchLatestVersion() {
         return CompletableFuture.supplyAsync(() -> {
             try {
                 final URL url = new URL("https://api.spigotmc.org/legacy/update.php?resource=" + SPIGOT_PROJECT_ID);
                 URLConnection urlConnection = url.openConnection();
-                return VersionUtils.Version.of(new BufferedReader(new InputStreamReader(urlConnection.getInputStream())).readLine());
+                return Version.pluginVersion(new BufferedReader(new InputStreamReader(urlConnection.getInputStream())).readLine());
             } catch (Exception e) {
                 logger.log(Level.WARNING, "Failed to fetch the latest plugin version", e);
             }
-            return new VersionUtils.Version();
+            return new Version();
         });
     }
 
-    public boolean isUpdateAvailable(@NotNull VersionUtils.Version latestVersion) {
+    public boolean isUpdateAvailable(@NotNull Version latestVersion) {
         return latestVersion.compareTo(currentVersion) > 0;
     }
 
-    public VersionUtils.Version getCurrentVersion() {
+    public Version getCurrentVersion() {
         return currentVersion;
     }
 

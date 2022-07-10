@@ -7,7 +7,7 @@
 language: 'en-gb'
 check_for_updates: true
 cluster_id: ''
-debug_logging: true
+debug_logging: false
 
 database:
   credentials:

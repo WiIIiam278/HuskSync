@@ -8,7 +8,7 @@ import com.djrapitops.plan.extension.annotation.PluginInfo;
 import com.djrapitops.plan.extension.annotation.StringProvider;
 import com.djrapitops.plan.extension.icon.Color;
 import com.djrapitops.plan.extension.icon.Family;
-import net.william278.husksync.data.VersionedUserData;
+import net.william278.husksync.data.UserDataSnapshot;
 import net.william278.husksync.database.Database;
 import net.william278.husksync.player.User;
 import org.jetbrains.annotations.NotNull;
@@ -21,13 +21,15 @@ import java.util.regex.Pattern;
 
 @PluginInfo(
         name = "HuskSync",
-        iconName = "arrow-right-arrow-left",
+        iconName = "cube",
         iconFamily = Family.SOLID,
-        color = Color.LIGHT_BLUE
+        color = Color.NONE
 )
 public class PlanDataExtension implements DataExtension {
 
     private Database database;
+
+    private static final String UNKNOWN_STRING = "N/A";
 
     //todo add more providers
     protected PlanDataExtension(@NotNull Database database) {
@@ -45,7 +47,7 @@ public class PlanDataExtension implements DataExtension {
         };
     }
 
-    private CompletableFuture<Optional<VersionedUserData>> getCurrentUserData(@NotNull UUID uuid) {
+    private CompletableFuture<Optional<UserDataSnapshot>> getCurrentUserData(@NotNull UUID uuid) {
         return CompletableFuture.supplyAsync(() -> {
             final Optional<User> optionalUser = database.getUser(uuid).join();
             if (optionalUser.isPresent()) {
@@ -56,11 +58,11 @@ public class PlanDataExtension implements DataExtension {
     }
 
     @NumberProvider(
-            text = "Data Sync Time",
+            text = "Sync Time",
             description = "The last time the user had their data synced with the server.",
             iconName = "clock",
             iconFamily = Family.SOLID,
-            format = FormatType.TIME_MILLISECONDS,
+            format = FormatType.DATE_SECOND,
             priority = 1
     )
     public long getCurrentDataTimestamp(@NotNull UUID uuid) {
@@ -70,7 +72,7 @@ public class PlanDataExtension implements DataExtension {
     }
 
     @StringProvider(
-            text = "Data Version ID",
+            text = "Version ID",
             description = "ID of the data version that the user is currently using.",
             iconName = "bolt",
             iconFamily = Family.SOLID,
@@ -80,7 +82,7 @@ public class PlanDataExtension implements DataExtension {
         return getCurrentUserData(uuid).join().map(
                         versionedUserData -> versionedUserData.versionUUID().toString()
                                 .split(Pattern.quote("-"))[0])
-                .orElse("unknown");
+                .orElse(UNKNOWN_STRING);
     }
 
     @NumberProvider(

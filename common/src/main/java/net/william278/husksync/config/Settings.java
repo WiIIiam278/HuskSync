@@ -119,7 +119,7 @@ public class Settings {
         CHECK_FOR_UPDATES("check_for_updates", OptionType.BOOLEAN, true),
 
         CLUSTER_ID("cluster_id", OptionType.STRING, ""),
-        DEBUG_LOGGING("debug_logging", OptionType.BOOLEAN, true),
+        DEBUG_LOGGING("debug_logging", OptionType.BOOLEAN, false),
 
         DATABASE_HOST("database.credentials.host", OptionType.STRING, "localhost"),
         DATABASE_PORT("database.credentials.port", OptionType.INTEGER, 3306),

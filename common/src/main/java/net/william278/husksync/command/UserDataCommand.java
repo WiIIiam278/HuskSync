@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 
 public class UserDataCommand extends CommandBase implements TabCompletable {
 
-    private final String[] COMMAND_ARGUMENTS = {"view", "list", "delete", "restore"};
+    private final String[] COMMAND_ARGUMENTS = {"view", "list", "delete", "restore", "pin"};
 
     public UserDataCommand(@NotNull HuskSync implementor) {
         super("userdata", Permission.COMMAND_USER_DATA, implementor, "playerdata");
@@ -24,7 +24,7 @@ public class UserDataCommand extends CommandBase implements TabCompletable {
     public void onExecute(@NotNull OnlineUser player, @NotNull String[] args) {
         if (args.length < 1) {
             plugin.getLocales().getLocale("error_invalid_syntax",
-                            "/userdata <view|list|delete|restore> <username> [version_uuid]")
+                            "/userdata <view/list/delete/restore/pin> <username> [version_uuid]")
                     .ifPresent(player::sendMessage);
             return;
         }
@@ -157,6 +157,47 @@ public class UserDataCommand extends CommandBase implements TabCompletable {
                 } catch (IllegalArgumentException e) {
                     plugin.getLocales().getLocale("error_invalid_syntax",
                                     "/userdata restore <username> <version_uuid>")
+                            .ifPresent(player::sendMessage);
+                }
+            }
+            case "pin" -> {
+                if (args.length < 3) {
+                    plugin.getLocales().getLocale("error_invalid_syntax",
+                                    "/userdata pin <username> <version_uuid>")
+                            .ifPresent(player::sendMessage);
+                    return;
+                }
+                final String username = args[1];
+                try {
+                    final UUID versionUuid = UUID.fromString(args[2]);
+                    CompletableFuture.runAsync(() -> plugin.getDatabase().getUserByName(username.toLowerCase()).thenAccept(
+                            optionalUser -> optionalUser.ifPresentOrElse(
+                                    user -> plugin.getDatabase().getUserData(user, versionUuid).thenAccept(
+                                            optionalUserData -> optionalUserData.ifPresentOrElse(userData -> {
+                                                if (userData.pinned()) {
+                                                    plugin.getDatabase().unpinUserData(user, versionUuid).join();
+                                                    plugin.getLocales().getLocale("data_unpinned",
+                                                                    versionUuid.toString().split("-")[0],
+                                                                    versionUuid.toString(),
+                                                                    user.username,
+                                                                    user.uuid.toString())
+                                                            .ifPresent(player::sendMessage);
+                                                } else {
+                                                    plugin.getDatabase().pinUserData(user, versionUuid).join();
+                                                    plugin.getLocales().getLocale("data_pinned",
+                                                                    versionUuid.toString().split("-")[0],
+                                                                    versionUuid.toString(),
+                                                                    user.username,
+                                                                    user.uuid.toString())
+                                                            .ifPresent(player::sendMessage);
+                                                }
+                                            }, () -> plugin.getLocales().getLocale("error_invalid_version_uuid")
+                                                    .ifPresent(player::sendMessage))),
+                                    () -> plugin.getLocales().getLocale("error_invalid_player")
+                                            .ifPresent(player::sendMessage))));
+                } catch (IllegalArgumentException e) {
+                    plugin.getLocales().getLocale("error_invalid_syntax",
+                                    "/userdata pin <username> <version_uuid>")
                             .ifPresent(player::sendMessage);
                 }
             }
