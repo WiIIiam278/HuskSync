@@ -5,6 +5,7 @@ import net.william278.husksync.config.Settings;
 import net.william278.husksync.data.ItemData;
 import net.william278.husksync.data.DataSaveCause;
 import net.william278.husksync.player.OnlineUser;
+import net.william278.husksync.editor.ItemEditorMenuType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashSet;
@@ -17,6 +18,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 
+/**
+ * Handles what should happen when events are fired
+ */
 public abstract class EventListener {
 
     /**
@@ -40,7 +44,12 @@ public abstract class EventListener {
         this.disabling = false;
     }
 
-    public final void handlePlayerJoin(@NotNull OnlineUser user) {
+    /**
+     * Handle a player joining the server (including players switching from another proxied server)
+     *
+     * @param user The {@link OnlineUser} to handle
+     */
+    protected final void handlePlayerJoin(@NotNull OnlineUser user) {
         if (user.isDead()) {
             return;
         }
@@ -125,7 +134,12 @@ public abstract class EventListener {
         }
     }
 
-    public final void handlePlayerQuit(@NotNull OnlineUser user) {
+    /**
+     * Handle a player leaving the server (including players switching to another proxied server)
+     *
+     * @param user The {@link OnlineUser} to handle
+     */
+    protected final void handlePlayerQuit(@NotNull OnlineUser user) {
         // Players quitting have their data manually saved by the plugin disable hook
         if (disabling) {
             return;
@@ -140,7 +154,12 @@ public abstract class EventListener {
         usersAwaitingSync.remove(user.uuid);
     }
 
-    public final void handleAsyncWorldSave(@NotNull List<OnlineUser> usersInWorld) {
+    /**
+     * Asynchronously handles a world save event
+     *
+     * @param usersInWorld a list of users in the world that is being saved
+     */
+    protected final void handleAsyncWorldSave(@NotNull List<OnlineUser> usersInWorld) {
         if (disabling || !plugin.getSettings().getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SAVE_ON_WORLD_SAVE)) {
             return;
         }
@@ -148,6 +167,43 @@ public abstract class EventListener {
                 DataSaveCause.WORLD_SAVE).join());
     }
 
+    /**
+     * Handle an inventory menu closing
+     *
+     * @param user          The user who closed the menu
+     * @param menuInventory Serialized {@link ItemData} containing the inventory contents
+     * @implNote The size of the serialized {@link ItemData} array is determined by the {@link ItemEditorMenuType} of the closed inventory
+     */
+    protected final void handleMenuClose(@NotNull OnlineUser user, @NotNull ItemData menuInventory) {
+        if (disabling) {
+            return;
+        }
+        plugin.getDataEditor().closeInventoryMenu(user, menuInventory);
+    }
+
+    /**
+     * Determine whether an inventory click should be cancelled
+     *
+     * @param user {@link OnlineUser} performing the event
+     * @return Whether the event should be cancelled
+     */
+    protected final boolean cancelInventoryClick(@NotNull OnlineUser user) {
+        return plugin.getDataEditor().cancelMenuEdit(user) || cancelPlayerEvent(user);
+    }
+
+    /**
+     * Determine whether a player event should be cancelled
+     *
+     * @param user {@link OnlineUser} performing the event
+     * @return Whether the event should be cancelled
+     */
+    protected final boolean cancelPlayerEvent(@NotNull OnlineUser user) {
+        return disabling || usersAwaitingSync.contains(user.uuid);
+    }
+
+    /**
+     * Handle the plugin disabling
+     */
     public final void handlePluginDisable() {
         disabling = true;
 
@@ -156,21 +212,6 @@ public abstract class EventListener {
 
         plugin.getDatabase().close();
         plugin.getRedisManager().close();
-    }
-
-    public final void handleMenuClose(@NotNull OnlineUser user, @NotNull ItemData menuInventory) {
-        if (disabling) {
-            return;
-        }
-        plugin.getDataEditor().closeInventoryMenu(user, menuInventory);
-    }
-
-    public final boolean cancelInventoryClick(@NotNull OnlineUser user) {
-        return plugin.getDataEditor().cancelMenuEdit(user) || cancelPlayerEvent(user);
-    }
-
-    public final boolean cancelPlayerEvent(@NotNull OnlineUser user) {
-        return disabling || usersAwaitingSync.contains(user.uuid);
     }
 
 }
