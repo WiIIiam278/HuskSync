@@ -165,11 +165,8 @@ public abstract class EventListener {
         plugin.getDataEditor().closeInventoryMenu(user, menuInventory);
     }
 
-    public final boolean cancelMenuClick(@NotNull OnlineUser user) {
-        if (disabling) {
-            return true;
-        }
-        return plugin.getDataEditor().cancelInventoryEdit(user);
+    public final boolean cancelInventoryClick(@NotNull OnlineUser user) {
+        return plugin.getDataEditor().cancelMenuEdit(user) || cancelPlayerEvent(user);
     }
 
     public final boolean cancelPlayerEvent(@NotNull OnlineUser user) {

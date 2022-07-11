@@ -15,6 +15,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
@@ -36,12 +37,12 @@ public class BukkitEventListener extends EventListener implements Listener {
         Bukkit.getServer().getPluginManager().registerEvents(this, huskSync);
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.LOWEST)
     public void onPlayerJoin(@NotNull PlayerJoinEvent event) {
         super.handlePlayerJoin(BukkitPlayer.adapt(event.getPlayer()));
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.LOWEST)
     public void onPlayerQuit(@NotNull PlayerQuitEvent event) {
         super.handlePlayerQuit(BukkitPlayer.adapt(event.getPlayer()));
     }
@@ -77,12 +78,12 @@ public class BukkitEventListener extends EventListener implements Listener {
      * Events to cancel if the player has not been set yet
      */
 
-    @EventHandler(priority = EventPriority.HIGHEST)
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onDropItem(@NotNull PlayerDropItemEvent event) {
         event.setCancelled(cancelPlayerEvent(BukkitPlayer.adapt(event.getPlayer())));
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST)
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onPickupItem(@NotNull EntityPickupItemEvent event) {
         if (event.getEntity() instanceof Player player) {
             event.setCancelled(cancelPlayerEvent(BukkitPlayer.adapt(player)));
@@ -90,23 +91,29 @@ public class BukkitEventListener extends EventListener implements Listener {
 
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST)
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onPlayerInteract(@NotNull PlayerInteractEvent event) {
         event.setCancelled(cancelPlayerEvent(BukkitPlayer.adapt(event.getPlayer())));
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST)
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBlockPlace(@NotNull BlockPlaceEvent event) {
         event.setCancelled(cancelPlayerEvent(BukkitPlayer.adapt(event.getPlayer())));
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST)
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBlockBreak(@NotNull BlockBreakEvent event) {
         event.setCancelled(cancelPlayerEvent(BukkitPlayer.adapt(event.getPlayer())));
-
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST)
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onInventoryClick(@NotNull InventoryClickEvent event) {
+        if (event.getWhoClicked() instanceof Player player) {
+            event.setCancelled(cancelInventoryClick(BukkitPlayer.adapt(player)));
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onInventoryOpen(@NotNull InventoryOpenEvent event) {
         if (event.getPlayer() instanceof Player player) {
             event.setCancelled(cancelPlayerEvent(BukkitPlayer.adapt(player)));

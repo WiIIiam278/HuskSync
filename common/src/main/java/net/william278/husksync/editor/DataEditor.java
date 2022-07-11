@@ -65,7 +65,7 @@ public class DataEditor {
      * @param user The online user with an inventory open to check
      * @return {@code true} if edits to the inventory or ender chest menu are allowed; {@code false} otherwise, including if they don't have an inventory open
      */
-    public boolean cancelInventoryEdit(@NotNull OnlineUser user) {
+    public boolean cancelMenuEdit(@NotNull OnlineUser user) {
         if (this.openInventoryMenus.containsKey(user.uuid)) {
             return !this.openInventoryMenus.get(user.uuid).canEdit;
         }
