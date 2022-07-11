@@ -55,7 +55,7 @@ public class MySqlDatabase extends Database {
                          @NotNull DataAdapter dataAdapter, @NotNull EventCannon eventCannon) {
         super(settings.getStringValue(Settings.ConfigOption.DATABASE_USERS_TABLE_NAME),
                 settings.getStringValue(Settings.ConfigOption.DATABASE_USER_DATA_TABLE_NAME),
-                Math.max(1, Math.min(20, settings.getIntegerValue(Settings.ConfigOption.SYNCHRONIZATION_MAX_USER_DATA_RECORDS))),
+                Math.max(1, Math.min(20, settings.getIntegerValue(Settings.ConfigOption.SYNCHRONIZATION_MAX_USER_DATA_SNAPSHOTS))),
                 resourceReader, dataAdapter, eventCannon, logger);
         this.mySqlHost = settings.getStringValue(Settings.ConfigOption.DATABASE_HOST);
         this.mySqlPort = settings.getIntegerValue(Settings.ConfigOption.DATABASE_PORT);

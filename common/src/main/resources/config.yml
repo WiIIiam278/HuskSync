@@ -35,7 +35,7 @@ redis:
   use_ssl: false
 
 synchronization:
-  max_user_data_records: 5
+  max_user_data_snapshots: 5
   save_on_world_save: true
   compress_data: true
   network_latency_milliseconds: 500

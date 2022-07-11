@@ -140,7 +140,7 @@ public class Settings {
         REDIS_PASSWORD("redis.credentials.password", OptionType.STRING, ""),
         REDIS_USE_SSL("redis.use_ssl", OptionType.BOOLEAN, false),
 
-        SYNCHRONIZATION_MAX_USER_DATA_RECORDS("synchronization.max_user_data_records", OptionType.INTEGER, 5),
+        SYNCHRONIZATION_MAX_USER_DATA_SNAPSHOTS("synchronization.max_user_data_snapshots", OptionType.INTEGER, 5),
         SYNCHRONIZATION_SAVE_ON_WORLD_SAVE("synchronization.save_on_world_save", OptionType.BOOLEAN, true),
         SYNCHRONIZATION_COMPRESS_DATA("synchronization.compress_data", OptionType.BOOLEAN, true),
         SYNCHRONIZATION_NETWORK_LATENCY_MILLISECONDS("synchronization.network_latency_milliseconds", OptionType.INTEGER, 500),
