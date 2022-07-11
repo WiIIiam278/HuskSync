@@ -151,7 +151,7 @@ public abstract class OnlineUser extends User {
     /**
      * Indicates if the player is currently dead
      *
-     * @return {@code true} if the player is dead (health <= 0); {@code false} otherwise
+     * @return {@code true} if the player is dead ({@code health <= 0}); {@code false} otherwise
      */
     public abstract boolean isDead();
 
