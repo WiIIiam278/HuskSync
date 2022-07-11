@@ -29,6 +29,19 @@ public enum Permission {
     COMMAND_HUSKSYNC_UPDATE("husksync.command.husksync.update", DefaultAccess.OPERATORS),
 
     /*
+     * /userdata command permissions
+     */
+
+    /**
+     * Lets the user view user data {@code /userdata view/list (player) (version_uuid)}
+     */
+    COMMAND_USER_DATA("husksync.command.userdata", DefaultAccess.OPERATORS),
+    /**
+     * Lets the user restore and delete user data {@code /userdata restore/delete (player) (version_uuid)}
+     */
+    COMMAND_USER_DATA_MANAGE("husksync.command.userdata.manage", DefaultAccess.OPERATORS),
+
+    /*
      * /inventory command permissions
      */
 
@@ -52,20 +65,7 @@ public enum Permission {
     /**
      * Lets the user edit the contents of offline players' ender chests
      */
-    COMMAND_ENDER_CHEST_EDIT("husksync.command.enderchest.edit", DefaultAccess.OPERATORS),
-
-    /*
-     * /userdata command permissions
-     */
-
-    /**
-     * Lets the user view user data {@code /userdata view/list (player) (version_uuid)}
-     */
-    COMMAND_USER_DATA("husksync.command.userdata", DefaultAccess.OPERATORS),
-    /**
-     * Lets the user restore and delete user data {@code /userdata restore/delete (player) (version_uuid)}
-     */
-    COMMAND_USER_DATA_MANAGE("husksync.command.userdata.manage", DefaultAccess.OPERATORS);
+    COMMAND_ENDER_CHEST_EDIT("husksync.command.enderchest.edit", DefaultAccess.OPERATORS);
 
 
     public final String node;

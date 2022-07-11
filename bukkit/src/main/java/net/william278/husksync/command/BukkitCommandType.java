@@ -9,9 +9,9 @@ import org.jetbrains.annotations.NotNull;
 public enum BukkitCommandType {
 
     HUSKSYNC_COMMAND(new HuskSyncCommand(BukkitHuskSync.getInstance())),
+    USERDATA_COMMAND(new UserDataCommand(BukkitHuskSync.getInstance())),
     INVENTORY_COMMAND(new InventoryCommand(BukkitHuskSync.getInstance())),
-    ENDER_CHEST_COMMAND(new EnderChestCommand(BukkitHuskSync.getInstance())),
-    USERDATA_COMMAND(new UserDataCommand(BukkitHuskSync.getInstance()));
+    ENDER_CHEST_COMMAND(new EnderChestCommand(BukkitHuskSync.getInstance()));
 
     public final CommandBase commandBase;
 

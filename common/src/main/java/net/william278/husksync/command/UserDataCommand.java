@@ -69,6 +69,10 @@ public class UserDataCommand extends CommandBase implements TabCompletable {
                 }
             }
             case "list" -> {
+                if (!player.hasPermission(Permission.COMMAND_USER_DATA_MANAGE.node)) {
+                    plugin.getLocales().getLocale("error_no_permission").ifPresent(player::sendMessage);
+                    return;
+                }
                 if (args.length < 2) {
                     plugin.getLocales().getLocale("error_invalid_syntax",
                                     "/userdata list <username>")
@@ -90,6 +94,10 @@ public class UserDataCommand extends CommandBase implements TabCompletable {
                                         .ifPresent(player::sendMessage))));
             }
             case "delete" -> {
+                if (!player.hasPermission(Permission.COMMAND_USER_DATA_MANAGE.node)) {
+                    plugin.getLocales().getLocale("error_no_permission").ifPresent(player::sendMessage);
+                    return;
+                }
                 // Delete user data by specified UUID
                 if (args.length < 3) {
                     plugin.getLocales().getLocale("error_invalid_syntax",
@@ -124,6 +132,10 @@ public class UserDataCommand extends CommandBase implements TabCompletable {
                 }
             }
             case "restore" -> {
+                if (!player.hasPermission(Permission.COMMAND_USER_DATA_MANAGE.node)) {
+                    plugin.getLocales().getLocale("error_no_permission").ifPresent(player::sendMessage);
+                    return;
+                }
                 // Get user data by specified uuid and username
                 if (args.length < 3) {
                     plugin.getLocales().getLocale("error_invalid_syntax",
@@ -161,6 +173,10 @@ public class UserDataCommand extends CommandBase implements TabCompletable {
                 }
             }
             case "pin" -> {
+                if (!player.hasPermission(Permission.COMMAND_USER_DATA_MANAGE.node)) {
+                    plugin.getLocales().getLocale("error_no_permission").ifPresent(player::sendMessage);
+                    return;
+                }
                 if (args.length < 3) {
                     plugin.getLocales().getLocale("error_invalid_syntax",
                                     "/userdata pin <username> <version_uuid>")
