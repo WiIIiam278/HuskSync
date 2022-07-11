@@ -140,12 +140,12 @@ public abstract class EventListener {
         usersAwaitingSync.remove(user.uuid);
     }
 
-    public final void handleWorldSave(@NotNull List<OnlineUser> usersInWorld) {
+    public final void handleAsyncWorldSave(@NotNull List<OnlineUser> usersInWorld) {
         if (disabling || !plugin.getSettings().getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SAVE_ON_WORLD_SAVE)) {
             return;
         }
-        CompletableFuture.runAsync(() -> usersInWorld.forEach(user ->
-                plugin.getDatabase().setUserData(user, user.getUserData().join(), DataSaveCause.WORLD_SAVE).join()));
+        usersInWorld.forEach(user -> plugin.getDatabase().setUserData(user, user.getUserData().join(),
+                DataSaveCause.WORLD_SAVE).join());
     }
 
     public final void handlePluginDisable() {

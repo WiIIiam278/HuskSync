@@ -4,6 +4,7 @@ import net.william278.husksync.BukkitHuskSync;
 import net.william278.husksync.data.BukkitSerializer;
 import net.william278.husksync.data.DataSerializationException;
 import net.william278.husksync.data.ItemData;
+import net.william278.husksync.editor.ItemEditorMenuType;
 import net.william278.husksync.player.BukkitPlayer;
 import net.william278.husksync.player.OnlineUser;
 import org.bukkit.Bukkit;
@@ -24,6 +25,7 @@ import org.bukkit.event.world.WorldSaveEvent;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
+import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
@@ -46,25 +48,29 @@ public class BukkitEventListener extends EventListener implements Listener {
 
     @EventHandler(ignoreCancelled = true)
     public void onWorldSave(@NotNull WorldSaveEvent event) {
-        super.handleWorldSave(event.getWorld().getPlayers().stream().map(BukkitPlayer::adapt)
-                .collect(Collectors.toList()));
+        CompletableFuture.runAsync(() -> super.handleAsyncWorldSave(event.getWorld().getPlayers().stream()
+                .map(BukkitPlayer::adapt).collect(Collectors.toList())));
     }
 
     @EventHandler(ignoreCancelled = true)
     public void onInventoryClose(@NotNull InventoryCloseEvent event) {
-        if (event.getPlayer() instanceof Player player) {
-            final OnlineUser user = BukkitPlayer.adapt(player);
-            if (plugin.getDataEditor().isEditingInventoryData(user)) {
-                try {
-                    BukkitSerializer.serializeItemStackArray(Arrays.copyOf(event.getInventory().getContents(),
-                            event.getPlayer().getInventory().getSize())).thenAccept(
-                            serializedInventory -> super.handleMenuClose(user, new ItemData(serializedInventory)));
-                } catch (DataSerializationException e) {
-                    plugin.getLoggingAdapter().log(Level.SEVERE,
-                            "Failed to serialize inventory data during menu close", e);
-                }
+        CompletableFuture.runAsync(() -> {
+            if (event.getPlayer() instanceof Player player) {
+                final OnlineUser user = BukkitPlayer.adapt(player);
+                plugin.getDataEditor().getEditingInventoryData(user).ifPresent(menu -> {
+                    try {
+                        BukkitSerializer.serializeItemStackArray(Arrays.copyOf(event.getInventory().getContents(),
+                                menu.itemEditorMenuType == ItemEditorMenuType.INVENTORY_VIEWER
+                                        ? player.getInventory().getSize()
+                                        : player.getEnderChest().getSize())).thenAccept(
+                                serializedInventory -> super.handleMenuClose(user, new ItemData(serializedInventory)));
+                    } catch (DataSerializationException e) {
+                        plugin.getLoggingAdapter().log(Level.SEVERE,
+                                "Failed to serialize inventory data during menu close", e);
+                    }
+                });
             }
-        }
+        });
     }
 
     /*

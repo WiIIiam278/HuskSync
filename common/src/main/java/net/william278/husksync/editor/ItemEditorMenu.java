@@ -13,17 +13,17 @@ import java.util.concurrent.CompletableFuture;
 public class ItemEditorMenu {
 
     public final ItemData itemData;
-    public final int slotCount;
+    public final ItemEditorMenuType itemEditorMenuType;
     public final MineDown menuTitle;
     public boolean canEdit;
 
     private CompletableFuture<ItemData> inventoryDataCompletableFuture;
 
-    private ItemEditorMenu(@NotNull ItemData itemData, int slotCount,
+    private ItemEditorMenu(@NotNull ItemData itemData, ItemEditorMenuType itemEditorMenuType,
                            @NotNull MineDown menuTitle, boolean canEdit) {
         this.itemData = itemData;
         this.menuTitle = menuTitle;
-        this.slotCount = slotCount;
+        this.itemEditorMenuType = itemEditorMenuType;
         this.canEdit = canEdit;
     }
 
@@ -40,16 +40,16 @@ public class ItemEditorMenu {
     public static ItemEditorMenu createInventoryMenu(@NotNull ItemData itemData, @NotNull User dataOwner,
                                                      @NotNull OnlineUser viewer, @NotNull Locales locales,
                                                      boolean canEdit) {
-        return new ItemEditorMenu(itemData, 45,
-                locales.getLocale("inventory_viewer_menu_title", dataOwner.username).orElse(new MineDown("")),
+        return new ItemEditorMenu(itemData, ItemEditorMenuType.INVENTORY_VIEWER,
+                locales.getLocale(ItemEditorMenuType.INVENTORY_VIEWER.localeKey, dataOwner.username).orElse(new MineDown("")),
                 viewer.hasPermission(Permission.COMMAND_INVENTORY_EDIT.node) && canEdit);
     }
 
     public static ItemEditorMenu createEnderChestMenu(@NotNull ItemData itemData, @NotNull User dataOwner,
                                                       @NotNull OnlineUser viewer, @NotNull Locales locales,
                                                       boolean canEdit) {
-        return new ItemEditorMenu(itemData, 27,
-                locales.getLocale("ender_chest_viewer_menu_title", dataOwner.username).orElse(new MineDown("")),
+        return new ItemEditorMenu(itemData, ItemEditorMenuType.ENDER_CHEST_VIEWER,
+                locales.getLocale(ItemEditorMenuType.ENDER_CHEST_VIEWER.localeKey, dataOwner.username).orElse(new MineDown("")),
                 viewer.hasPermission(Permission.COMMAND_ENDER_CHEST_EDIT.node) && canEdit);
     }
 

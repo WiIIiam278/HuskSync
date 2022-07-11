@@ -160,9 +160,4 @@ public class DummyPlayer extends OnlineUser {
         // do nothing
     }
 
-    @Override
-    public void closeOpenInventories() {
-        // do nothing
-    }
-
 }

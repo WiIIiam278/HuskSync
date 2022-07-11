@@ -449,16 +449,11 @@ public class BukkitPlayer extends OnlineUser {
     @Override
     public void showMenu(@NotNull ItemEditorMenu menu) {
         BukkitSerializer.deserializeItemStackArray(menu.itemData.serializedItems).thenAccept(inventoryContents -> {
-            final Inventory inventory = Bukkit.createInventory(player, menu.slotCount,
+            final Inventory inventory = Bukkit.createInventory(player, menu.itemEditorMenuType.slotCount,
                     BaseComponent.toLegacyText(menu.menuTitle.toComponent()));
             inventory.setContents(inventoryContents);
             Bukkit.getScheduler().runTask(BukkitHuskSync.getInstance(), () -> player.openInventory(inventory));
         });
-    }
-
-    @Override
-    public void closeOpenInventories() {
-        Bukkit.getScheduler().runTask(BukkitHuskSync.getInstance(), player::closeInventory);
     }
 
     @Override
