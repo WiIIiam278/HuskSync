@@ -48,6 +48,8 @@ public class PlanDataExtension implements DataExtension {
 
     private static final String UNKNOWN_STRING = "N/A";
 
+    private static final String PINNED_HTML_STRING = "&#128205;&nbsp;";
+
     protected PlanDataExtension(@NotNull Database database) {
         this.database = database;
     }
@@ -210,7 +212,7 @@ public class PlanDataExtension implements DataExtension {
                         versionedUserData.versionTimestamp().getTime(),
                         versionedUserData.versionUUID().toString().split("-")[0],
                         versionedUserData.cause().name().toLowerCase().replaceAll("_", " "),
-                        versionedUserData.pinned() ? "Yes" : "No"
+                        versionedUserData.pinned() ? PINNED_HTML_STRING + "Pinned" : "Unpinned"
                 )));
         return dataSnapshotsTable.build();
     }
