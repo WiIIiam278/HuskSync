@@ -19,7 +19,7 @@ public class Locales {
             [A modern, cross-server player data synchronization system](gray)
             [• Author:](white) [William278](gray show_text=&7Click to visit website open_url=https://william278.net)
             [• Contributors:](white) [HarvelsX](gray show_text=&7Code)
-            [• Translators:](white) [Namiu](gray show_text=&7\\(うにたろう\\) - Japanese, ja-jp), [anchelthe](gray show_text=&7Spanish, es-es), [Ceddix](gray show_text=&7German, de-de), [小蔡](gray show_text=&7Traditional Chinese, zh-tw), [Ghost-chu](gray show_text=&7Simplified Chinese, zh-cn), [DJelly4K](gray show_text=&7Simplified Chinese, zh-cn), [Thourgard](gray show_text=&7Ukrainian, uk-ua)
+            [• Translators:](white) [Namiu](gray show_text=&7\\(うにたろう\\) - Japanese, ja-jp), [anchelthe](gray show_text=&7Spanish, es-es), [Ceddix](gray show_text=&7German, de-de), [mateusneresrb](gray show_text=&7Brazilian Portuguese, pt-br], [小蔡](gray show_text=&7Traditional Chinese, zh-tw), [Ghost-chu](gray show_text=&7Simplified Chinese, zh-cn), [DJelly4K](gray show_text=&7Simplified Chinese, zh-cn), [Thourgard](gray show_text=&7Ukrainian, uk-ua)
             [• Documentation:](white) [[Link]](#00fb9a show_text=&7Click to open link open_url=https://william278.net/docs/husksync/Home/)
             [• Bug reporting:](white) [[Link]](#00fb9a show_text=&7Click to open link open_url=https://github.com/WiIIiam278/HuskSync/issues)
             [• Discord support:](white) [[Link]](#00fb9a show_text=&7Click to join open_url=https://discord.gg/tVYhJfyDWG)""";
