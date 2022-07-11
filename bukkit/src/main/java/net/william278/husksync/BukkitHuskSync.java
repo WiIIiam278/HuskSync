@@ -29,6 +29,7 @@ import net.william278.husksync.player.BukkitPlayer;
 import net.william278.husksync.player.OnlineUser;
 import net.william278.husksync.redis.RedisManager;
 import net.william278.husksync.util.*;
+import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.Player;
@@ -47,6 +48,10 @@ import java.util.stream.Collectors;
 
 public class BukkitHuskSync extends JavaPlugin implements HuskSync {
 
+    /**
+     * Metrics ID for <a href="https://bstats.org/plugin/bukkit/HuskSync%20-%20Bukkit/13140">HuskSync on Bukkit</a>.
+     */
+    private static final int METRICS_ID = 13140;
     private Database database;
     private RedisManager redisManager;
     private Logger logger;
@@ -145,10 +150,10 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync {
             getLoggingAdapter().log(Level.INFO, "Registering permissions & commands...");
             Arrays.stream(Permission.values()).forEach(permission -> getServer().getPluginManager()
                     .addPermission(new org.bukkit.permissions.Permission(permission.node, switch (permission.defaultAccess) {
-                case EVERYONE -> PermissionDefault.TRUE;
-                case NOBODY -> PermissionDefault.FALSE;
-                case OPERATORS -> PermissionDefault.OP;
-            })));
+                        case EVERYONE -> PermissionDefault.TRUE;
+                        case NOBODY -> PermissionDefault.FALSE;
+                        case OPERATORS -> PermissionDefault.OP;
+                    })));
 
             // Register commands
             for (final BukkitCommandType bukkitCommandType : BukkitCommandType.values()) {
@@ -164,6 +169,13 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync {
                 getLoggingAdapter().log(Level.INFO, "Enabling Plan integration...");
                 new PlanHook(database, logger).hookIntoPlan();
                 getLoggingAdapter().log(Level.INFO, "Plan integration enabled!");
+            }
+
+            // Hook into bStats metrics
+            try {
+                new Metrics(this, METRICS_ID);
+            } catch (final Exception e) {
+                getLoggingAdapter().log(Level.WARNING, "Skipped bStats metrics initialization due to an exception.");
             }
 
             // Check for updates
