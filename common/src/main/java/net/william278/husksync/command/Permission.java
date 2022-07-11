@@ -27,14 +27,6 @@ public enum Permission {
      * Lets the user view the plugin version and check for updates {@code /husksync update}
      */
     COMMAND_HUSKSYNC_UPDATE("husksync.command.husksync.update", DefaultAccess.OPERATORS),
-    /**
-     * Lets the user save a player's data {@code /husksync save (player)}
-     */
-    COMMAND_HUSKSYNC_SAVE("husksync.command.husksync.save", DefaultAccess.OPERATORS), // todo
-    /**
-     * Lets the user save all online player data {@code /husksync saveall}
-     */
-    COMMAND_HUSKSYNC_SAVE_ALL("husksync.command.husksync.saveall", DefaultAccess.OPERATORS), //todo
 
     /*
      * /inventory command permissions

@@ -48,7 +48,6 @@ public class PlanDataExtension implements DataExtension {
 
     private static final String UNKNOWN_STRING = "N/A";
 
-    //todo add more providers
     protected PlanDataExtension(@NotNull Database database) {
         this.database = database;
     }
