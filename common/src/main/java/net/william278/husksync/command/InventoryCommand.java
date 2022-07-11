@@ -65,17 +65,18 @@ public class InventoryCommand extends CommandBase implements TabCompletable {
                             DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT, Locale.getDefault())
                                     .format(userDataSnapshot.versionTimestamp()))
                     .ifPresent(player::sendMessage);
-            final ItemData inventoryDataOnClose = plugin.getDataEditor().openItemEditorMenu(player, menu).join();
-            if (!menu.canEdit) {
-                return;
-            }
-            final UserData updatedUserData = new UserData(data.getStatusData(), inventoryDataOnClose,
-                    data.getEnderChestData(), data.getPotionEffectsData(), data.getAdvancementData(),
-                    data.getStatisticsData(), data.getLocationData(),
-                    data.getPersistentDataContainerData(),
-                    plugin.getMinecraftVersion().toString());
-            plugin.getDatabase().setUserData(dataOwner, updatedUserData, DataSaveCause.INVENTORY_COMMAND).join();
-            plugin.getRedisManager().sendUserDataUpdate(dataOwner, updatedUserData).join();
+            plugin.getDataEditor().openItemEditorMenu(player, menu).thenAccept(inventoryDataOnClose -> {
+                if (!menu.canEdit) {
+                    return;
+                }
+                final UserData updatedUserData = new UserData(data.getStatusData(), inventoryDataOnClose,
+                        data.getEnderChestData(), data.getPotionEffectsData(), data.getAdvancementData(),
+                        data.getStatisticsData(), data.getLocationData(),
+                        data.getPersistentDataContainerData(),
+                        plugin.getMinecraftVersion().toString());
+                plugin.getDatabase().setUserData(dataOwner, updatedUserData, DataSaveCause.INVENTORY_COMMAND).join();
+                plugin.getRedisManager().sendUserDataUpdate(dataOwner, updatedUserData).join();
+            });
         });
     }
 

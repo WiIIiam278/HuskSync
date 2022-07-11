@@ -259,6 +259,11 @@ public abstract class OnlineUser extends User {
     public abstract void showMenu(@NotNull ItemEditorMenu menu);
 
     /**
+     * Close inventories the player currently has open
+     */
+    public abstract void closeOpenInventories();
+
+    /**
      * Get the player's current {@link UserData}
      *
      * @return the player's current {@link UserData}

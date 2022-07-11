@@ -42,6 +42,7 @@ public class DataEditor {
      */
     public CompletableFuture<ItemData> openItemEditorMenu(@NotNull OnlineUser user,
                                                           @NotNull ItemEditorMenu itemEditorMenu) {
+        //user.closeOpenInventories();
         this.openInventoryMenus.put(user.uuid, itemEditorMenu);
         return itemEditorMenu.showInventory(user);
     }
@@ -54,6 +55,7 @@ public class DataEditor {
      */
     public void closeInventoryMenu(@NotNull OnlineUser user, @NotNull ItemData itemData) {
         if (this.openInventoryMenus.containsKey(user.uuid)) {
+            System.out.println("Closing inventory menu for " + user.uuid);
             this.openInventoryMenus.get(user.uuid).closeInventory(itemData);
         }
         this.openInventoryMenus.remove(user.uuid);

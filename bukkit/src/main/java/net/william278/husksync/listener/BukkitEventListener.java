@@ -23,6 +23,7 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.world.WorldSaveEvent;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
@@ -55,7 +56,8 @@ public class BukkitEventListener extends EventListener implements Listener {
             final OnlineUser user = BukkitPlayer.adapt(player);
             if (plugin.getDataEditor().isEditingInventoryData(user)) {
                 try {
-                    BukkitSerializer.serializeItemStackArray(event.getInventory().getContents()).thenAccept(
+                    BukkitSerializer.serializeItemStackArray(Arrays.copyOf(event.getInventory().getContents(),
+                            event.getPlayer().getInventory().getSize())).thenAccept(
                             serializedInventory -> super.handleMenuClose(user, new ItemData(serializedInventory)));
                 } catch (DataSerializationException e) {
                     plugin.getLoggingAdapter().log(Level.SEVERE,

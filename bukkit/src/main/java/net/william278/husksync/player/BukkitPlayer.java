@@ -452,12 +452,13 @@ public class BukkitPlayer extends OnlineUser {
             final Inventory inventory = Bukkit.createInventory(player, menu.slotCount,
                     BaseComponent.toLegacyText(menu.menuTitle.toComponent()));
             inventory.setContents(inventoryContents);
-            Bukkit.getScheduler().runTask(BukkitHuskSync.getInstance(), () -> {
-                player.closeInventory();
-                player.openInventory(inventory);
-            });
+            Bukkit.getScheduler().runTask(BukkitHuskSync.getInstance(), () -> player.openInventory(inventory));
         });
+    }
 
+    @Override
+    public void closeOpenInventories() {
+        Bukkit.getScheduler().runTask(BukkitHuskSync.getInstance(), player::closeInventory);
     }
 
     @Override
