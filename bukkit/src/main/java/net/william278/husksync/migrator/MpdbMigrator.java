@@ -77,7 +77,7 @@ public class MpdbMigrator extends Migrator {
                 final List<MpdbData> dataToMigrate = new ArrayList<>();
                 try (final Connection connection = connectionPool.getConnection()) {
                     try (final PreparedStatement statement = connection.prepareStatement("""
-                            SELECT `player_uuid`, `player_name`, `inventory`, `armor`, `enderchest`, `exp_lvl`, `exp`, `total_exp`
+                            SELECT `%source_inventory_table%`.`player_uuid`, `%source_inventory_table%`.`player_name`, `inventory`, `armor`, `enderchest`, `exp_lvl`, `exp`, `total_exp`
                             FROM `%source_inventory_table%`
                                 INNER JOIN `%source_ender_chest_table%`
                                     ON `%source_inventory_table%`.`player_uuid` = `%source_ender_chest_table%`.`player_uuid`
