@@ -16,12 +16,12 @@ commands:
   husksync:
     usage: '/husksync <update/info/reload/migrate>'
     description: 'Manage the HuskSync plugin'
+  userdata:
+    usage: '/userdata <view/list/delete/restore> <username> [version_uuid]'
+    description: 'View, manage & restore player userdata'
   inventory:
     usage: '/inventory <username> [version_uuid]'
     description: 'View & edit a player''s inventory'
   enderchest:
     usage: '/enderchest <username> [version_uuid]'
     description: 'View & edit a player''s Ender Chest'
-  userdata:
-    usage: '/userdata <view/list/delete/restore> <username> [version_uuid]'
-    description: 'View, manage & restore player userdata'
