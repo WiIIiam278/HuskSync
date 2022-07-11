@@ -2,7 +2,7 @@
 ![Github Actions](https://github.com/WiIIiam278/HuskSync/workflows/Java%20CI/badge.svg)
 [![Discord](https://img.shields.io/discord/818135932103557162?color=7289da&logo=discord)](https://discord.gg/tVYhJfyDWG)
 
-[Documentation, Guides & API](https://william278.net/docs/husksync/Home) • [Resource Page](https://www.spigotmc.org/resources/husksync.97144/) • [Bug Reports](https://github.com/WiIIiam278/HuskSync/issues)
+[Documentation, Guides & API](https://william278.net/docs/husksync/Home) · [Resource Page](https://www.spigotmc.org/resources/husksync.97144/) · [Bug Reports](https://github.com/WiIIiam278/HuskSync/issues)
 
 **HuskSync** is a modern, cross-server player data synchronisation system that enables the comprehensive synchronisation of your user's data across multiple proxied servers. It does this by making use of Redis and MySQL to optimally cache data while players change servers.
 
