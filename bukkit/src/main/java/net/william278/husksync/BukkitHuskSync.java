@@ -41,6 +41,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
@@ -75,147 +76,116 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync {
 
     @Override
     public void onEnable() {
-        // Process initialization stages
-        CompletableFuture.supplyAsync(() -> {
-
+        // Initialize HuskSync
+        final AtomicBoolean initialized = new AtomicBoolean(true);
+        try {
             // Set the logging adapter and resource reader
             this.logger = new BukkitLogger(this.getLogger());
             this.resourceReader = new BukkitResourceReader(this);
 
             // Load settings and locales
             getLoggingAdapter().log(Level.INFO, "Loading plugin configuration settings & locales...");
-            return reload().thenApply(loadedSettings -> {
-                if (loadedSettings) {
-                    logger.showDebugLogs(settings.getBooleanValue(Settings.ConfigOption.DEBUG_LOGGING));
-                    getLoggingAdapter().log(Level.INFO, "Successfully loaded plugin configuration settings & locales");
-                } else {
-                    getLoggingAdapter().log(Level.SEVERE, "Failed to load plugin configuration settings and/or locales");
-                }
-                return loadedSettings;
-            }).join();
-        }).thenApply(succeeded -> {
-            // Prepare data adapter
-            if (succeeded) {
-                if (settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_COMPRESS_DATA)) {
-                    dataAdapter = new CompressedDataAdapter();
-                } else {
-                    dataAdapter = new JsonDataAdapter();
-                }
+            initialized.set(reload().join());
+            if (initialized.get()) {
+                logger.showDebugLogs(settings.getBooleanValue(Settings.ConfigOption.DEBUG_LOGGING));
+                getLoggingAdapter().log(Level.INFO, "Successfully loaded plugin configuration settings & locales");
+            } else {
+                throw new HuskSyncInitializationException("Failed to load plugin configuration settings and/or locales");
             }
-            return succeeded;
-        }).thenApply(succeeded -> {
-            // Prepare event cannon
-            if (succeeded) {
-                eventCannon = new BukkitEventCannon();
-            }
-            return succeeded;
-        }).thenApply(succeeded -> {
-            // Prepare data editor
-            if (succeeded) {
-                dataEditor = new DataEditor(locales);
-            }
-            return succeeded;
-        }).thenApply(succeeded -> {
-            // Prepare migrators
-            if (succeeded) {
-                availableMigrators = new ArrayList<>();
-                availableMigrators.add(new LegacyMigrator(this));
-                final Plugin mySqlPlayerDataBridge = Bukkit.getPluginManager().getPlugin("MySqlPlayerDataBridge");
-                if (mySqlPlayerDataBridge != null) {
-                    availableMigrators.add(new MpdbMigrator(this, mySqlPlayerDataBridge));
-                }
-            }
-            return succeeded;
-        }).thenApply(succeeded -> {
-            // Establish connection to the database
-            if (succeeded) {
-                this.database = new MySqlDatabase(settings, resourceReader, logger, dataAdapter, eventCannon);
-                getLoggingAdapter().log(Level.INFO, "Attempting to establish connection to the database...");
-                final CompletableFuture<Boolean> databaseConnectFuture = new CompletableFuture<>();
-                Bukkit.getScheduler().runTask(this, () -> {
-                    final boolean initialized = this.database.initialize();
-                    if (!initialized) {
-                        getLoggingAdapter().log(Level.SEVERE, "Failed to establish a connection to the database. " + "Please check the supplied database credentials in the config file");
-                        databaseConnectFuture.completeAsync(() -> false);
-                        return;
-                    }
-                    getLoggingAdapter().log(Level.INFO, "Successfully established a connection to the database");
-                    databaseConnectFuture.completeAsync(() -> true);
-                });
-                return databaseConnectFuture.join();
-            }
-            return false;
-        }).thenApply(succeeded -> {
-            // Establish connection to the Redis server
-            if (succeeded) {
-                this.redisManager = new RedisManager(this);
-                getLoggingAdapter().log(Level.INFO, "Attempting to establish connection to the Redis server...");
-                return this.redisManager.initialize().thenApply(initialized -> {
-                    if (!initialized) {
-                        getLoggingAdapter().log(Level.SEVERE, "Failed to establish a connection to the Redis server. " + "Please check the supplied Redis credentials in the config file");
-                        return false;
-                    }
-                    getLoggingAdapter().log(Level.INFO, "Successfully established a connection to the Redis server");
-                    return true;
-                }).join();
-            }
-            return false;
-        }).thenApply(succeeded -> {
-            // Register events
-            if (succeeded) {
-                getLoggingAdapter().log(Level.INFO, "Registering events...");
-                this.eventListener = new BukkitEventListener(this);
-                getLoggingAdapter().log(Level.INFO, "Successfully registered events listener");
-            }
-            return succeeded;
-        }).thenApply(succeeded -> {
-            // Register permissions
-            if (succeeded) {
-                getLoggingAdapter().log(Level.INFO, "Registering permissions & commands...");
-                Arrays.stream(Permission.values()).forEach(permission -> getServer().getPluginManager().addPermission(new org.bukkit.permissions.Permission(permission.node, switch (permission.defaultAccess) {
-                    case EVERYONE -> PermissionDefault.TRUE;
-                    case NOBODY -> PermissionDefault.FALSE;
-                    case OPERATORS -> PermissionDefault.OP;
-                })));
 
-                // Register commands
-                for (final BukkitCommandType bukkitCommandType : BukkitCommandType.values()) {
-                    final PluginCommand pluginCommand = getCommand(bukkitCommandType.commandBase.command);
-                    if (pluginCommand != null) {
-                        new BukkitCommand(bukkitCommandType.commandBase, this).register(pluginCommand);
-                    }
-                }
-                getLoggingAdapter().log(Level.INFO, "Successfully registered permissions & commands");
+            // Prepare data adapter
+            if (settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_COMPRESS_DATA)) {
+                dataAdapter = new CompressedDataAdapter();
+            } else {
+                dataAdapter = new JsonDataAdapter();
             }
-            return succeeded;
-        }).thenApply(succeeded -> {
-            if (succeeded && Bukkit.getPluginManager().getPlugin("Plan") != null) {
+
+            // Prepare event cannon
+            eventCannon = new BukkitEventCannon();
+
+            // Prepare data editor
+            dataEditor = new DataEditor(locales);
+
+            // Prepare migrators
+            availableMigrators = new ArrayList<>();
+            availableMigrators.add(new LegacyMigrator(this));
+            final Plugin mySqlPlayerDataBridge = Bukkit.getPluginManager().getPlugin("MySqlPlayerDataBridge");
+            if (mySqlPlayerDataBridge != null) {
+                availableMigrators.add(new MpdbMigrator(this, mySqlPlayerDataBridge));
+            }
+
+            // Prepare database connection
+            this.database = new MySqlDatabase(settings, resourceReader, logger, dataAdapter, eventCannon);
+            getLoggingAdapter().log(Level.INFO, "Attempting to establish connection to the database...");
+            initialized.set(this.database.initialize());
+            if (initialized.get()) {
+                getLoggingAdapter().log(Level.INFO, "Successfully established a connection to the database");
+            } else {
+                throw new HuskSyncInitializationException("Failed to establish a connection to the database. " +
+                                                          "Please check the supplied database credentials in the config file");
+            }
+
+            // Prepare redis connection
+            this.redisManager = new RedisManager(this);
+            getLoggingAdapter().log(Level.INFO, "Attempting to establish connection to the Redis server...");
+            initialized.set(this.redisManager.initialize().join());
+            if (initialized.get()) {
+                getLoggingAdapter().log(Level.INFO, "Successfully established a connection to the Redis server");
+            } else {
+                throw new HuskSyncInitializationException("Failed to establish a connection to the Redis server. " +
+                                                          "Please check the supplied Redis credentials in the config file");
+            }
+
+            // Register events
+            getLoggingAdapter().log(Level.INFO, "Registering events...");
+            this.eventListener = new BukkitEventListener(this);
+            getLoggingAdapter().log(Level.INFO, "Successfully registered events listener");
+
+            // Register permissions
+            getLoggingAdapter().log(Level.INFO, "Registering permissions & commands...");
+            Arrays.stream(Permission.values()).forEach(permission -> getServer().getPluginManager()
+                    .addPermission(new org.bukkit.permissions.Permission(permission.node, switch (permission.defaultAccess) {
+                case EVERYONE -> PermissionDefault.TRUE;
+                case NOBODY -> PermissionDefault.FALSE;
+                case OPERATORS -> PermissionDefault.OP;
+            })));
+
+            // Register commands
+            for (final BukkitCommandType bukkitCommandType : BukkitCommandType.values()) {
+                final PluginCommand pluginCommand = getCommand(bukkitCommandType.commandBase.command);
+                if (pluginCommand != null) {
+                    new BukkitCommand(bukkitCommandType.commandBase, this).register(pluginCommand);
+                }
+            }
+            getLoggingAdapter().log(Level.INFO, "Successfully registered permissions & commands");
+
+            // Hook into plan
+            if (Bukkit.getPluginManager().getPlugin("Plan") != null) {
                 getLoggingAdapter().log(Level.INFO, "Enabling Plan integration...");
                 new PlanHook(database, logger).hookIntoPlan();
                 getLoggingAdapter().log(Level.INFO, "Plan integration enabled!");
             }
-            return succeeded;
-        }).thenApply(succeeded -> {
+
             // Check for updates
-            if (succeeded && settings.getBooleanValue(Settings.ConfigOption.CHECK_FOR_UPDATES)) {
+            if (settings.getBooleanValue(Settings.ConfigOption.CHECK_FOR_UPDATES)) {
                 getLoggingAdapter().log(Level.INFO, "Checking for updates...");
-                new UpdateChecker(getPluginVersion(), getLoggingAdapter()).logToConsole();
+                CompletableFuture.runAsync(() -> new UpdateChecker(getPluginVersion(), getLoggingAdapter()).logToConsole());
             }
-            return succeeded;
-        }).thenAccept(succeeded -> {
-            // Handle failed initialization
-            if (!succeeded) {
+        } catch (HuskSyncInitializationException exception) {
+            getLoggingAdapter().log(Level.SEVERE, exception.getMessage());
+            initialized.set(false);
+        } catch (Exception exception) {
+            getLoggingAdapter().log(Level.SEVERE, "An unhandled exception occurred initializing HuskSync!", exception);
+            initialized.set(false);
+        } finally {
+            // Validate initialization
+            if (initialized.get()) {
+                getLoggingAdapter().log(Level.INFO, "Successfully enabled HuskSync v" + getPluginVersion());
+            } else {
                 getLoggingAdapter().log(Level.SEVERE, "Failed to initialize HuskSync. The plugin will now be disabled");
                 getServer().getPluginManager().disablePlugin(this);
-            } else {
-                getLoggingAdapter().log(Level.INFO, "Successfully enabled HuskSync v" + getPluginVersion());
             }
-        }).exceptionally(exception -> {
-            getLoggingAdapter().log(Level.SEVERE, "An exception occurred initializing HuskSync. (" + exception.getMessage() + ") The plugin will now be disabled.");
-            exception.printStackTrace();
-            getServer().getPluginManager().disablePlugin(this);
-            return null;
-        });
+        }
     }
 
     @Override

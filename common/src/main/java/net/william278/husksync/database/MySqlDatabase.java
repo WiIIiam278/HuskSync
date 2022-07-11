@@ -114,7 +114,7 @@ public class MySqlDatabase extends Database {
                 getLogger().log(Level.SEVERE, "Failed to perform database setup: " + e.getMessage());
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            getLogger().log(Level.SEVERE, "An unhandled exception occurred during database setup!", e);
         }
         return false;
     }
