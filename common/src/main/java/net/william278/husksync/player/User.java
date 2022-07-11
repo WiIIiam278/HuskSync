@@ -1,17 +1,23 @@
 package net.william278.husksync.player;
 
-import com.google.gson.annotations.SerializedName;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
+/**
+ * Represents a user who has their data synchronised by HuskSync
+ */
 public class User {
 
-    @SerializedName("username")
-    public String username;
-
-    @SerializedName("uuid")
+    /**
+     * The user's unique account ID
+     */
     public UUID uuid;
+
+    /**
+     * The user's username
+     */
+    public String username;
 
     public User(@NotNull UUID uuid, @NotNull String username) {
         this.username = username;
@@ -19,10 +25,10 @@ public class User {
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (obj instanceof User other) {
+    public boolean equals(Object object) {
+        if (object instanceof User other) {
             return this.uuid.equals(other.uuid);
         }
-        return super.equals(obj);
+        return super.equals(object);
     }
 }
