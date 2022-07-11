@@ -1,8 +1,6 @@
 package net.william278.husksync.event;
 
 import net.william278.husksync.data.UserData;
-import net.william278.husksync.player.BukkitPlayer;
-import net.william278.husksync.player.OnlineUser;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;

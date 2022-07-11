@@ -1,11 +1,9 @@
 package net.william278.husksync.util;
 
 import de.themoep.minedown.MineDown;
-import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Arrays;
 import java.util.logging.Level;
 
 public class BukkitLogger extends Logger {

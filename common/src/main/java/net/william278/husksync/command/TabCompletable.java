@@ -12,7 +12,7 @@ public interface TabCompletable {
     /**
      * What should be returned when the player or console attempts to TAB-complete a command
      *
-     * @param args Current command argumentsrf
+     * @param args Current command arguments
      * @return List of String arguments to offer TAB suggestions
      */
     List<String> onTabComplete(@NotNull String[] args);

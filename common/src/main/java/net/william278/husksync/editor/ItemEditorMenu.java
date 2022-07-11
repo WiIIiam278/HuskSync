@@ -15,7 +15,7 @@ public class ItemEditorMenu {
     public final ItemData itemData;
     public final ItemEditorMenuType itemEditorMenuType;
     public final MineDown menuTitle;
-    public boolean canEdit;
+    public final boolean canEdit;
 
     private CompletableFuture<ItemData> inventoryDataCompletableFuture;
 

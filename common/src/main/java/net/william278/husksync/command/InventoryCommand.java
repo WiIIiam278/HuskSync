@@ -2,7 +2,6 @@ package net.william278.husksync.command;
 
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.data.DataSaveCause;
-import net.william278.husksync.data.ItemData;
 import net.william278.husksync.data.UserData;
 import net.william278.husksync.data.UserDataSnapshot;
 import net.william278.husksync.editor.ItemEditorMenu;

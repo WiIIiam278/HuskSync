@@ -71,8 +71,9 @@ public class HuskSyncCommand extends CommandBase implements TabCompletable, Cons
         switch (args[0].toLowerCase()) {
             case "update", "version" ->
                     new UpdateChecker(plugin.getPluginVersion(), plugin.getLoggingAdapter()).logToConsole();
-            case "info", "about" -> plugin.getLoggingAdapter().log(Level.INFO, new MineDown(plugin.getLocales().stripMineDown(
-                    Locales.PLUGIN_INFORMATION.replace("%version%", plugin.getPluginVersion().toString()))));
+            case "info", "about" ->
+                    plugin.getLoggingAdapter().log(Level.INFO, new MineDown(plugin.getLocales().stripMineDown(
+                            Locales.PLUGIN_INFORMATION.replace("%version%", plugin.getPluginVersion().toString()))));
             case "reload" -> {
                 plugin.reload();
                 plugin.getLoggingAdapter().log(Level.INFO, "Reloaded config & message files.");
@@ -92,7 +93,13 @@ public class HuskSyncCommand extends CommandBase implements TabCompletable, Cons
                         return;
                     }
                     switch (args[2]) {
-                        case "start" -> migrator.start();
+                        case "start" -> migrator.start().thenAccept(succeeded -> {
+                            if (succeeded) {
+                                plugin.getLoggingAdapter().log(Level.INFO, "Migration completed successfully!");
+                            } else {
+                                plugin.getLoggingAdapter().log(Level.WARNING, "Migration failed!");
+                            }
+                        });
                         case "set" -> migrator.handleConfigurationCommand(Arrays.copyOfRange(args, 3, args.length));
                         default -> plugin.getLoggingAdapter().log(Level.INFO,
                                 "Invalid syntax. Console usage: \"husksync migrate " + args[1] + " <start/set>");

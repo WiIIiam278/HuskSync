@@ -14,13 +14,13 @@ import java.util.concurrent.CompletableFuture;
 
 public class DummyPlayer extends OnlineUser {
 
-    private DummyPlayer(@NotNull UUID uuid, @NotNull String username) {
-        super(uuid, username);
+    private DummyPlayer() {
+        super(UUID.fromString("00000000-0000-0000-0000-000000000000"),
+                "DummyPlayer");
     }
 
     public static DummyPlayer create() {
-        return new DummyPlayer(UUID.fromString("00000000-0000-0000-0000-000000000000"),
-                "DummyPlayer");
+        return new DummyPlayer();
     }
 
     @Override

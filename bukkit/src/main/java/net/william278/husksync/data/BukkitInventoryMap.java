@@ -8,6 +8,7 @@ import java.util.Optional;
 /**
  * A mapped player inventory, providing methods to easily access a player's inventory.
  */
+@SuppressWarnings("unused")
 public class BukkitInventoryMap {
 
     private ItemStack[] contents;

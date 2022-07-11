@@ -106,6 +106,7 @@ public abstract class Database {
      * @return Array of string-formatted table creation schema statements
      * @throws IOException if the resource could not be read
      */
+    @SuppressWarnings("SameParameterValue")
     protected final String[] getSchemaStatements(@NotNull String schemaFileName) throws IOException {
         return formatStatementTables(new String(resourceReader.getResource(schemaFileName)
                 .readAllBytes(), StandardCharsets.UTF_8)).split(";");

@@ -12,12 +12,12 @@ public class User {
     /**
      * The user's unique account ID
      */
-    public UUID uuid;
+    public final UUID uuid;
 
     /**
      * The user's username
      */
-    public String username;
+    public final String username;
 
     public User(@NotNull UUID uuid, @NotNull String username) {
         this.username = username;

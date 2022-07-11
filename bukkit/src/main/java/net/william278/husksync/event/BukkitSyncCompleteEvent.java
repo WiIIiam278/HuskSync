@@ -1,7 +1,5 @@
 package net.william278.husksync.event;
 
-import net.william278.husksync.player.BukkitPlayer;
-import net.william278.husksync.player.OnlineUser;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;

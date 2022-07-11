@@ -1,13 +1,8 @@
 package net.william278.husksync.event;
 
 import net.william278.husksync.BukkitHuskSync;
-import net.william278.husksync.player.BukkitPlayer;
-import net.william278.husksync.player.OnlineUser;
 import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
-import org.bukkit.event.player.PlayerEvent;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.CompletableFuture;
 
