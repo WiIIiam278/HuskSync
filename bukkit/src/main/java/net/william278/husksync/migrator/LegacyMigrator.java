@@ -44,7 +44,7 @@ public class LegacyMigrator extends Migrator {
         this.sourceDatabase = plugin.getSettings().getStringValue(Settings.ConfigOption.DATABASE_NAME);
         this.sourcePlayersTable = "husksync_players";
         this.sourceDataTable = "husksync_data";
-        this.minecraftVersion = plugin.getMinecraftVersion().getWithoutMeta();
+        this.minecraftVersion = plugin.getMinecraftVersion().toString();
     }
 
     @Override
@@ -72,7 +72,7 @@ public class LegacyMigrator extends Migrator {
                 final List<LegacyData> dataToMigrate = new ArrayList<>();
                 try (final Connection connection = connectionPool.getConnection()) {
                     try (final PreparedStatement statement = connection.prepareStatement("""
-                            SELECT `uuid`, `name`, `inventory`, `ender_chest`, `health`, `max_health`, `health_scale`, `hunger`, `saturation`, `saturation_exhaustion`, `selected_slot`, `status_effects`, `total_experience`, `exp_level`, `exp_progress`, `game_mode`, `statistics`, `is_flying`, `advancements`, `location`
+                            SELECT `uuid`, `username`, `inventory`, `ender_chest`, `health`, `max_health`, `health_scale`, `hunger`, `saturation`, `saturation_exhaustion`, `selected_slot`, `status_effects`, `total_experience`, `exp_level`, `exp_progress`, `game_mode`, `statistics`, `is_flying`, `advancements`, `location`
                             FROM `%source_players_table%`
                             INNER JOIN `%source_data_table%`
                                 ON `%source_players_table%`.`id` = `%source_data_table%`.`player_id`;
@@ -83,7 +83,7 @@ public class LegacyMigrator extends Migrator {
                             while (resultSet.next()) {
                                 dataToMigrate.add(new LegacyData(
                                         new User(UUID.fromString(resultSet.getString("uuid")),
-                                                resultSet.getString("name")),
+                                                resultSet.getString("username")),
                                         resultSet.getString("inventory"),
                                         resultSet.getString("ender_chest"),
                                         resultSet.getDouble("health"),

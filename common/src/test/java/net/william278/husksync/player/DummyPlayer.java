@@ -3,6 +3,7 @@ package net.william278.husksync.player;
 import de.themoep.minedown.MineDown;
 import net.william278.husksync.data.*;
 import net.william278.husksync.editor.ItemEditorMenu;
+import net.william278.husksync.util.Version;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -131,6 +132,12 @@ public class DummyPlayer extends OnlineUser {
     @Override
     public boolean isOffline() {
         return false;
+    }
+
+    @NotNull
+    @Override
+    public Version getMinecraftVersion() {
+        return Version.minecraftVersion("1.19-beta123456");
     }
 
     @Override

@@ -1,5 +1,6 @@
 package net.william278.husksync.util;
 
+import de.themoep.minedown.MineDown;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.logging.Level;
@@ -14,6 +15,8 @@ public abstract class Logger {
     public abstract void log(@NotNull Level level, @NotNull String message, @NotNull Exception e);
 
     public abstract void log(@NotNull Level level, @NotNull String message);
+
+    public abstract void log(@NotNull Level level, @NotNull MineDown mineDown);
 
     public abstract void info(@NotNull String message);
 

@@ -205,7 +205,7 @@ public class UserDataCommand extends CommandBase implements TabCompletable {
     }
 
     @Override
-    public List<String> onTabComplete(@NotNull OnlineUser player, @NotNull String[] args) {
+    public List<String> onTabComplete(@NotNull String[] args) {
         switch (args.length) {
             case 0, 1 -> {
                 return Arrays.stream(COMMAND_ARGUMENTS)

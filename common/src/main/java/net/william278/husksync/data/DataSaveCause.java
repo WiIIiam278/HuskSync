@@ -37,13 +37,13 @@ public enum DataSaveCause {
      *
      * @since 2.0
      */
-    INVENTORY_COMMAND_EDIT,
+    INVENTORY_COMMAND,
     /**
      * Indicates data was saved by editing Ender Chest contents via the {@code /enderchest} command
      *
      * @since 2.0
      */
-    ENDER_CHEST_COMMAND_EDIT,
+    ENDERCHEST_COMMAND,
     /**
      * Indicates data was saved by restoring it from a previous version
      *

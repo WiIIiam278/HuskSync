@@ -73,14 +73,14 @@ public class InventoryCommand extends CommandBase implements TabCompletable {
                     data.getEnderChestData(), data.getPotionEffectsData(), data.getAdvancementData(),
                     data.getStatisticsData(), data.getLocationData(),
                     data.getPersistentDataContainerData(),
-                    plugin.getMinecraftVersion().getWithoutMeta());
-            plugin.getDatabase().setUserData(dataOwner, updatedUserData, DataSaveCause.INVENTORY_COMMAND_EDIT).join();
+                    plugin.getMinecraftVersion().toString());
+            plugin.getDatabase().setUserData(dataOwner, updatedUserData, DataSaveCause.INVENTORY_COMMAND).join();
             plugin.getRedisManager().sendUserDataUpdate(dataOwner, updatedUserData).join();
         });
     }
 
     @Override
-    public List<String> onTabComplete(@NotNull OnlineUser player, @NotNull String[] args) {
+    public List<String> onTabComplete(@NotNull String[] args) {
         return plugin.getOnlineUsers().stream().map(user -> user.username)
                 .filter(argument -> argument.startsWith(args.length >= 1 ? args[0] : ""))
                 .sorted().collect(Collectors.toList());

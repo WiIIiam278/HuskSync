@@ -1,6 +1,5 @@
 package net.william278.husksync.command;
 
-import net.william278.husksync.player.OnlineUser;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -11,12 +10,11 @@ import java.util.List;
 public interface TabCompletable {
 
     /**
-     * What should be returned when the player attempts to TAB-complete the command
+     * What should be returned when the player or console attempts to TAB-complete a command
      *
-     * @param player {@link OnlineUser} doing the TAB completion
-     * @param args   Current command arguments
+     * @param args Current command argumentsrf
      * @return List of String arguments to offer TAB suggestions
      */
-    List<String> onTabComplete(@NotNull OnlineUser player, @NotNull String[] args);
+    List<String> onTabComplete(@NotNull String[] args);
 
 }

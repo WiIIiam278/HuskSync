@@ -65,20 +65,7 @@ public class Version implements Comparable<Version> {
         for (int version : this.versions) {
             joiner.add(String.valueOf(version));
         }
-        return joiner + this.metaSeparator + this.metadata;
+        return joiner + ((!this.metadata.isEmpty()) ? (this.metaSeparator + this.metadata) : "");
     }
 
-    @NotNull
-    public String getWithoutMeta() {
-        final StringJoiner joiner = new StringJoiner(VERSION_SEPARATOR);
-        for (int version : this.versions) {
-            joiner.add(String.valueOf(version));
-        }
-        return joiner.toString();
-    }
-
-    @NotNull
-    public String getMetadata() {
-        return this.metadata;
-    }
 }

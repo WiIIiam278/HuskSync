@@ -63,7 +63,7 @@ public class BukkitCommand implements CommandExecutor, TabExecutor {
     public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command,
                                       @NotNull String alias, @NotNull String[] args) {
         if (this.command instanceof TabCompletable tabCompletable) {
-            return tabCompletable.onTabComplete(BukkitPlayer.adapt((Player) sender), args);
+            return tabCompletable.onTabComplete(args);
         }
         return Collections.emptyList();
     }

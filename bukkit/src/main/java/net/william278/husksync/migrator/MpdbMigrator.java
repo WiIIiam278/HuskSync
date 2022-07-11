@@ -48,7 +48,7 @@ public class MpdbMigrator extends Migrator {
         this.sourceInventoryTable = "mpdb_inventory";
         this.sourceEnderChestTable = "mpdb_enderchest";
         this.sourceExperienceTable = "mpdb_experience";
-        this.minecraftVersion = plugin.getMinecraftVersion().getWithoutMeta();
+        this.minecraftVersion = plugin.getMinecraftVersion().toString();
 
     }
 

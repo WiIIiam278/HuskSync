@@ -268,7 +268,7 @@ public abstract class OnlineUser extends User {
                 () -> new UserData(getStatus().join(), getInventory().join(),
                         getEnderChest().join(), getPotionEffects().join(), getAdvancements().join(),
                         getStatistics().join(), getLocation().join(), getPersistentDataContainer().join(),
-                        getMinecraftVersion().getWithoutMeta()));
+                        getMinecraftVersion().toString()));
     }
 
 }

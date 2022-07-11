@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 
 public class HuskSyncCommand extends CommandBase implements TabCompletable, ConsoleExecutable {
 
-    private final String[] COMMAND_ARGUMENTS = {"update", "about", "reload"};
+    private final String[] COMMAND_ARGUMENTS = {"update", "about", "reload", "migrate"};
 
     public HuskSyncCommand(@NotNull HuskSync implementor) {
         super("husksync", Permission.COMMAND_HUSKSYNC, implementor);
@@ -37,11 +37,11 @@ public class HuskSyncCommand extends CommandBase implements TabCompletable, Cons
                 final UpdateChecker updateChecker = new UpdateChecker(plugin.getPluginVersion(), plugin.getLoggingAdapter());
                 updateChecker.fetchLatestVersion().thenAccept(latestVersion -> {
                     if (updateChecker.isUpdateAvailable(latestVersion)) {
-                        player.sendMessage(new MineDown("[HuskSync](#00fb9a bold) [| A new update is available:](#00fb9a) [HuskSync " + updateChecker.fetchLatestVersion() + "](#00fb9a bold)" +
+                        player.sendMessage(new MineDown("[HuskSync](#00fb9a bold) [| A new update is available:](#00fb9a) [HuskSync " + latestVersion + "](#00fb9a bold)" +
                                                         "[•](white) [Currently running:](#00fb9a) [Version " + updateChecker.getCurrentVersion() + "](gray)" +
                                                         "[•](white) [Download links:](#00fb9a) [[⏩ Spigot]](gray open_url=https://www.spigotmc.org/resources/husksync.97144/updates) [•](#262626) [[⏩ Polymart]](gray open_url=https://polymart.org/resource/husksync.1634/updates) [•](#262626) [[⏩ Songoda]](gray open_url=https://songoda.com/marketplace/product/husksync-a-modern-cross-server-player-data-synchronization-system.758)"));
                     } else {
-                        player.sendMessage(new MineDown("[HuskSync](#00fb9a bold) [| HuskSync is up-to-date, running version " + latestVersion + "](#00fb9a)"));
+                        player.sendMessage(new MineDown("[HuskSync](#00fb9a bold) [| HuskSync is up-to-date, running version " + updateChecker.getCurrentVersion() + "](#00fb9a)"));
                     }
                 });
             }
@@ -71,8 +71,8 @@ public class HuskSyncCommand extends CommandBase implements TabCompletable, Cons
         switch (args[0].toLowerCase()) {
             case "update", "version" ->
                     new UpdateChecker(plugin.getPluginVersion(), plugin.getLoggingAdapter()).logToConsole();
-            case "info", "about" -> plugin.getLoggingAdapter().log(Level.INFO, plugin.getLocales().stripMineDown(
-                    Locales.PLUGIN_INFORMATION.replace("%version%", plugin.getPluginVersion().toString())));
+            case "info", "about" -> plugin.getLoggingAdapter().log(Level.INFO, new MineDown(plugin.getLocales().stripMineDown(
+                    Locales.PLUGIN_INFORMATION.replace("%version%", plugin.getPluginVersion().toString()))));
             case "reload" -> {
                 plugin.reload();
                 plugin.getLoggingAdapter().log(Level.INFO, "Reloaded config & message files.");
@@ -118,7 +118,7 @@ public class HuskSyncCommand extends CommandBase implements TabCompletable, Cons
     }
 
     @Override
-    public List<String> onTabComplete(@NotNull OnlineUser player, @NotNull String[] args) {
+    public List<String> onTabComplete(@NotNull String[] args) {
         return Arrays.stream(COMMAND_ARGUMENTS)
                 .filter(argument -> argument.startsWith(args.length >= 1 ? args[0] : ""))
                 .sorted().collect(Collectors.toList());
