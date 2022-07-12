@@ -37,7 +37,7 @@ Then simply run the following in the root of the repository:
 ## License
 HuskSync is a premium resource. This source code is provided as reference only for those who have purchased the resource from an official source.
 
-- [License](https://github.com/WiIIiam278/HuskSync/LICENSE)
+- [License](https://github.com/WiIIiam278/HuskSync/blob/master/LICENSE)
 
 ## Contributing
 A code bounty program is in place for HuskSync, where developers making significant code contributions to HuskSync may be entitled to a license at my discretion to use HuskSync in commercial contexts without having to purchase the resource. Please read the information for contributors in the LICENSE file before submitting a pull request. 
