@@ -12,4 +12,4 @@ install:
   - 'java -version'
   - './gradlew publishToMavenLocal'
   - 'rm -rf ~/.m2/repository/net/william278/mpdbdataconverter'
-  - 'mv -v ~/.m2/repository/net/william278/husksync/ ~/.m2/repository/net/william278/mpdbdataconverter/'
+  - 'mv -v ~/.m2/repository/net/william278/husksync/ ~/.m2/repository/net/william278/mpdbdataconverter/1.0/'
