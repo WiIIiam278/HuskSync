@@ -3,3 +3,4 @@
 echo "mvn-installing mpdbdataconverter..."
 curl "-L" "-O" "https://github.com/WiIIiam278/MPDBDataConverter/releases/download/1.0/mpdbdataconverter-1.0.jar"
 mvn "install:install-file" "-Dfile=mpdbdataconverter-1.0.jar" "-DgroupId=net.william278" "-DartifactId=mpdbdataconverter" "-Dversion=1.0" "-Dpackaging=jar" "-DgeneratePom=true" "-e"
+rm "mpdbdataconverter-1.0.jar"
