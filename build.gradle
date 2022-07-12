@@ -56,7 +56,20 @@ subprojects {
             destinationDirectory.set(file("$rootDir/target"))
             archiveClassifier.set('')
         }
-        jar.dependsOn shadowJar
+        if ('api'.contains(project.name)) {
+            java {
+                withSourcesJar()
+                withJavadocJar()
+            }
+            sourcesJar {
+                destinationDirectory.set(file("$rootDir/target"))
+            }
+            javadocJar {
+                destinationDirectory.set(file("$rootDir/target"))
+            }
+            shadowJar.dependsOn(sourcesJar, javadocJar)
+        }
+        jar.dependsOn(shadowJar)
         clean.delete "$rootDir/target"
     }
 }
