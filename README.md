@@ -26,10 +26,7 @@
 4. Start every server again and synchronistaion will begin.
 
 ## Building
-To build HuskSync, you'll first need to get the [MPDBConverter](https://github.com/WiIIiam278/MPDBDataConverter) library, by downloading and running `mvn install-file` to publish it to your local maven repository.
-
-Then simply run the following in the root of the repository:
-
+To build HuskSync, simply run the following in the root of the repository:
 ```
 ./gradlew clean build
 ```

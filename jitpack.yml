@@ -6,11 +6,7 @@ before_install:
   - 'chmod +x gradlew'
   - 'chmod +x ./.scripts/ensure-java-16'
   - 'bash ./.scripts/ensure-java-16 install'
-  - 'bash ./.scripts/install-mpdb-converter'
 install:
   - 'if ! ./.scripts/ensure-java-16 use; then source ~/.sdkman/bin/sdkman-init.sh; fi'
   - 'java -version'
   - './gradlew publishToMavenLocal'
-  - 'rm -rf ~/.m2/repository/net/william278/mpdbdataconverter'
-  - 'mkdir -p ~/.m2/repository/net/william278/mpdbdataconverter/1.0/'
-  - 'find ~/.m2/repository/net/william278/husksync/ -type f -print0 | xargs -0 mv -t ~/.m2/repository/net/william278/mpdbdataconverter/1.0/'
