@@ -2,6 +2,7 @@ plugins {
     id 'com.github.johnrengelman.shadow' version '7.1.2'
     id 'org.ajoberstar.grgit' version '5.0.0'
     id 'java'
+    id 'maven-publish'
 }
 
 group 'net.william278'
@@ -56,6 +57,8 @@ subprojects {
             destinationDirectory.set(file("$rootDir/target"))
             archiveClassifier.set('')
         }
+
+        // API publishing
         if ('api'.contains(project.name)) {
             java {
                 withSourcesJar()
@@ -68,7 +71,21 @@ subprojects {
                 destinationDirectory.set(file("$rootDir/target"))
             }
             shadowJar.dependsOn(sourcesJar, javadocJar)
+
+            publishing {
+                publications {
+                    mavenJava(MavenPublication) {
+                        groupId = 'net.william278'
+                        artifactId = 'husksync'
+                        version = "$rootProject.version"
+                        artifact shadowJar
+                        artifact javadocJar
+                        artifact sourcesJar
+                    }
+                }
+            }
         }
+
         jar.dependsOn(shadowJar)
         clean.delete "$rootDir/target"
     }
