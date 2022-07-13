@@ -15,6 +15,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
@@ -51,6 +52,13 @@ public class BukkitEventListener extends EventListener implements Listener {
     public void onWorldSave(@NotNull WorldSaveEvent event) {
         CompletableFuture.runAsync(() -> super.handleAsyncWorldSave(event.getWorld().getPlayers().stream()
                 .map(BukkitPlayer::adapt).collect(Collectors.toList())));
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onPlayerDeath(PlayerDeathEvent event) {
+      if (cancelPlayerEvent(BukkitPlayer.adapt(event.getEntity()))) {
+        event.getDrops().clear();
+      }
     }
 
     @EventHandler(ignoreCancelled = true)
