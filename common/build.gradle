@@ -9,6 +9,10 @@ dependencies {
         exclude module: 'slf4j-api'
     }
 
+    implementation 'org.mongodb:mongodb-driver-sync:4.6.0'
+    implementation 'org.mongodb:bson:4.6.0'
+    implementation 'org.mongodb:mongodb-driver-core:4.6.0'
+
     compileOnly 'dev.dejvokep:boosted-yaml:1.2'
     compileOnly 'org.xerial.snappy:snappy-java:1.1.8.4'
     compileOnly 'org.jetbrains:annotations:23.0.0'
@@ -28,4 +32,5 @@ shadowJar {
     relocate 'com.google', 'net.william278.husksync.libraries'
     relocate 'redis.clients', 'net.william278.husksync.libraries'
     relocate 'org.json', 'net.william278.husksync.libraries.json'
+    relocate 'org.mongodb', 'net.william278.husksync.libraries'
 }

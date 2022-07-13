@@ -10,6 +10,11 @@ cluster_id: ''
 debug_logging: false
 
 database:
+  mongodb:
+    uri: ''
+    database: 'HuskSync'
+    username: 'root'
+    password: 'pa55w0rd'
   credentials:
     host: 'localhost'
     port: 3306

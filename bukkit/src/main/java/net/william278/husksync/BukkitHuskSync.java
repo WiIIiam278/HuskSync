@@ -15,6 +15,8 @@ import net.william278.husksync.data.CompressedDataAdapter;
 import net.william278.husksync.data.DataAdapter;
 import net.william278.husksync.data.JsonDataAdapter;
 import net.william278.husksync.database.Database;
+import net.william278.husksync.database.DatabaseType;
+import net.william278.husksync.database.MongoDatabase;
 import net.william278.husksync.database.MySqlDatabase;
 import net.william278.husksync.editor.DataEditor;
 import net.william278.husksync.event.BukkitEventCannon;
@@ -120,7 +122,17 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync {
             }
 
             // Prepare database connection
-            this.database = new MySqlDatabase(settings, resourceReader, logger, dataAdapter, eventCannon);
+            DatabaseType databaseType = DatabaseType.valueOf(settings.getStringValue(Settings.ConfigOption.DATABASE_TYPE));
+
+            if (databaseType == DatabaseType.MYSQL) {
+                this.database = new MySqlDatabase(settings, resourceReader, logger, dataAdapter, eventCannon);
+            } else if (databaseType == DatabaseType.MONGODB) {
+                this.database = new MongoDatabase(settings, resourceReader, logger, dataAdapter, eventCannon);
+            } else {
+                throw new HuskSyncInitializationException("Invalid database type: " + databaseType +
+                        " (available: " + Arrays.stream(DatabaseType.values()).map(Enum::name).collect(Collectors.joining(", ")) + ")");
+            }
+
             getLoggingAdapter().log(Level.INFO, "Attempting to establish connection to the database...");
             initialized.set(this.database.initialize());
             if (initialized.get()) {

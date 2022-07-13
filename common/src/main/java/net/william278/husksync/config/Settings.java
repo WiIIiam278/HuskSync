@@ -1,6 +1,7 @@
 package net.william278.husksync.config;
 
 import dev.dejvokep.boostedyaml.YamlDocument;
+import net.william278.husksync.database.DatabaseType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -121,6 +122,7 @@ public class Settings {
         CLUSTER_ID("cluster_id", OptionType.STRING, ""),
         DEBUG_LOGGING("debug_logging", OptionType.BOOLEAN, false),
 
+        DATABASE_TYPE("database.type", OptionType.STRING, DatabaseType.MYSQL),
         DATABASE_HOST("database.credentials.host", OptionType.STRING, "localhost"),
         DATABASE_PORT("database.credentials.port", OptionType.INTEGER, 3306),
         DATABASE_NAME("database.credentials.database", OptionType.STRING, "HuskSync"),
@@ -134,6 +136,11 @@ public class Settings {
         DATABASE_CONNECTION_POOL_TIMEOUT("database.connection_pool.connection_timeout", OptionType.INTEGER, 5000),
         DATABASE_USERS_TABLE_NAME("database.table_names.users_table", OptionType.STRING, "husksync_users"),
         DATABASE_USER_DATA_TABLE_NAME("database.table_names.user_data_table", OptionType.STRING, "husksync_user_data"),
+
+        DATABASE_MONGO_URI("database.mongo.uri", OptionType.STRING, ""),
+        DATABASE_MONGO_DATABASE("database.mongo.database", OptionType.STRING, "HuskSync"),
+        DATABASE_MONGO_USERNAME("database.mongo.username", OptionType.STRING, "root"),
+        DATABASE_MONGO_PASSWORD("database.mongo.password", OptionType.STRING, "pa55w0rd"),
 
         REDIS_HOST("redis.credentials.host", OptionType.STRING, "localhost"),
         REDIS_PORT("redis.credentials.port", OptionType.INTEGER, 6379),
