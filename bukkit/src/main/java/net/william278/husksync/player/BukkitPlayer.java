@@ -82,7 +82,7 @@ public class BukkitPlayer extends OnlineUser {
             if (statusDataFlags.contains(StatusDataFlag.SET_HEALTH)) {
                 final double currentHealth = player.getHealth();
                 if (statusData.health != currentHealth) {
-                    double healthToSet = currentHealth > currentMaxHealth ? currentMaxHealth : statusData.health;
+                    final double healthToSet = currentHealth > currentMaxHealth ? currentMaxHealth : statusData.health;
                     if (healthToSet <= 0) {
                         Bukkit.getScheduler().runTask(BukkitHuskSync.getInstance(), () -> player.setHealth(healthToSet));
                     } else {
