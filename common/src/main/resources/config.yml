@@ -10,6 +10,7 @@ cluster_id: ''
 debug_logging: false
 
 database:
+  type: 'MYSQL'
   mongodb:
     uri: ''
     database: 'HuskSync'
