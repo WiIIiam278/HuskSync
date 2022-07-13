@@ -165,13 +165,17 @@ public class RedisManager {
         return CompletableFuture.supplyAsync(() -> {
             try (Jedis jedis = jedisPool.getResource()) {
                 final byte[] key = getKey(RedisKeyType.DATA_UPDATE, user.uuid);
-                plugin.getLoggingAdapter().debug("[" + user.username + "] Read " + RedisKeyType.DATA_UPDATE.name()
-                                                 + " key from redis at: " +
-                                                 new SimpleDateFormat("mm:ss.SSS").format(new Date()));
                 final byte[] dataByteArray = jedis.get(key);
                 if (dataByteArray == null) {
+                    plugin.getLoggingAdapter().debug("[" + user.username + "] Could not read " +
+                                                     RedisKeyType.DATA_UPDATE.name() + " key from redis at: " +
+                                                     new SimpleDateFormat("mm:ss.SSS").format(new Date()));
                     return Optional.empty();
                 }
+                plugin.getLoggingAdapter().debug("[" + user.username + "] Successfully read "
+                                                 + RedisKeyType.DATA_UPDATE.name() + " key from redis at: " +
+                                                 new SimpleDateFormat("mm:ss.SSS").format(new Date()));
+
                 // Consume the key (delete from redis)
                 jedis.del(key);
 
@@ -188,13 +192,17 @@ public class RedisManager {
         return CompletableFuture.supplyAsync(() -> {
             try (Jedis jedis = jedisPool.getResource()) {
                 final byte[] key = getKey(RedisKeyType.SERVER_SWITCH, user.uuid);
-                plugin.getLoggingAdapter().debug("[" + user.username + "] Read " + RedisKeyType.SERVER_SWITCH.name()
-                                                 + " key from redis at: " +
-                                                 new SimpleDateFormat("mm:ss.SSS").format(new Date()));
                 final byte[] readData = jedis.get(key);
                 if (readData == null) {
+                    plugin.getLoggingAdapter().debug("[" + user.username + "] Could not read " +
+                                                     RedisKeyType.SERVER_SWITCH.name() + " key from redis at: " +
+                                                     new SimpleDateFormat("mm:ss.SSS").format(new Date()));
                     return false;
                 }
+                plugin.getLoggingAdapter().debug("[" + user.username + "] Successfully read "
+                                                 + RedisKeyType.SERVER_SWITCH.name() + " key from redis at: " +
+                                                 new SimpleDateFormat("mm:ss.SSS").format(new Date()));
+
                 // Consume the key (delete from redis)
                 jedis.del(key);
                 return true;

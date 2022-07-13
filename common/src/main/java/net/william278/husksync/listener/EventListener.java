@@ -79,8 +79,8 @@ public abstract class EventListener {
                                 }
                                 if (disabling || currentMilliseconds.get() > TIME_OUT_MILLISECONDS) {
                                     executor.shutdown();
-                                    setUserFromDatabase(user)
-                                            .thenAccept(succeeded -> handleSynchronisationCompletion(user, succeeded));
+                                    setUserFromDatabase(user).thenAccept(
+                                            succeeded -> handleSynchronisationCompletion(user, succeeded));
                                     return;
                                 }
                                 plugin.getRedisManager().getUserData(user).thenAccept(redisUserData ->
