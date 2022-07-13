@@ -55,13 +55,6 @@ public class BukkitEventListener extends EventListener implements Listener {
     }
 
     @EventHandler(ignoreCancelled = true)
-    public void onPlayerDeath(PlayerDeathEvent event) {
-      if (cancelPlayerEvent(BukkitPlayer.adapt(event.getEntity()))) {
-        event.getDrops().clear();
-      }
-    }
-
-    @EventHandler(ignoreCancelled = true)
     public void onInventoryClose(@NotNull InventoryCloseEvent event) {
         CompletableFuture.runAsync(() -> {
             if (event.getPlayer() instanceof Player player) {
@@ -125,6 +118,13 @@ public class BukkitEventListener extends EventListener implements Listener {
     public void onInventoryOpen(@NotNull InventoryOpenEvent event) {
         if (event.getPlayer() instanceof Player player) {
             event.setCancelled(cancelPlayerEvent(BukkitPlayer.adapt(player)));
+        }
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onPlayerDeath(PlayerDeathEvent event) {
+        if (cancelPlayerEvent(BukkitPlayer.adapt(event.getEntity()))) {
+            event.getDrops().clear();
         }
     }
 

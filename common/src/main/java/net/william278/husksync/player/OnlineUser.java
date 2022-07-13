@@ -149,13 +149,6 @@ public abstract class OnlineUser extends User {
     public abstract CompletableFuture<Void> setPersistentDataContainer(@NotNull PersistentDataContainerData persistentDataContainerData);
 
     /**
-     * Indicates if the player is currently dead
-     *
-     * @return {@code true} if the player is dead ({@code health <= 0}); {@code false} otherwise
-     */
-    public abstract boolean isDead();
-
-    /**
      * Indicates if the player has gone offline
      *
      * @return {@code true} if the player has left the server; {@code false} otherwise
@@ -191,7 +184,7 @@ public abstract class OnlineUser extends User {
             final PreSyncEvent preSyncEvent = (PreSyncEvent) eventCannon.firePreSyncEvent(this, data).join();
             final UserData finalData = preSyncEvent.getUserData();
             final List<CompletableFuture<Void>> dataSetOperations = new ArrayList<>() {{
-                if (!isOffline() && !isDead() && !preSyncEvent.isCancelled()) {
+                if (!isOffline() && !preSyncEvent.isCancelled()) {
                     if (settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_INVENTORIES)) {
                         add(setInventory(finalData.getInventoryData()));
                     }
