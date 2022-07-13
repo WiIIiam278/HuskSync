@@ -122,7 +122,7 @@ public class Settings {
         CLUSTER_ID("cluster_id", OptionType.STRING, ""),
         DEBUG_LOGGING("debug_logging", OptionType.BOOLEAN, false),
 
-        DATABASE_TYPE("database.type", OptionType.STRING, DatabaseType.MYSQL),
+        DATABASE_TYPE("database.type", OptionType.STRING, DatabaseType.MYSQL.name()),
         DATABASE_HOST("database.credentials.host", OptionType.STRING, "localhost"),
         DATABASE_PORT("database.credentials.port", OptionType.INTEGER, 3306),
         DATABASE_NAME("database.credentials.database", OptionType.STRING, "HuskSync"),
