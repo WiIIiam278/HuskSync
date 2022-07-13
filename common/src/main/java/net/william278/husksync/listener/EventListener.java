@@ -145,11 +145,18 @@ public abstract class EventListener {
         if (usersAwaitingSync.contains(user.uuid)) {
             return;
         }
-        plugin.getRedisManager().setUserServerSwitch(user).thenRun(() -> user.getUserData(plugin.getLoggingAdapter()).thenAccept(
-                optionalUserData -> optionalUserData.ifPresent(
-                        userData -> plugin.getRedisManager().setUserData(user, userData).thenRun(
-                                () -> plugin.getDatabase().setUserData(user, userData, DataSaveCause.DISCONNECT).join()))));
-        usersAwaitingSync.remove(user.uuid);
+
+        // Handle asynchronous disconnection
+        CompletableFuture.runAsync(() -> plugin.getRedisManager().setUserServerSwitch(user)
+                .thenRun(() -> user.getUserData(plugin.getLoggingAdapter()).thenAccept(optionalUserData ->
+                        optionalUserData.ifPresent(userData -> plugin.getRedisManager().setUserData(user, userData)
+                                .thenRun(() -> plugin.getDatabase().setUserData(user, userData, DataSaveCause.DISCONNECT)))))
+                .thenRun(() -> usersAwaitingSync.remove(user.uuid)).exceptionally(throwable -> {
+                    plugin.getLoggingAdapter().log(Level.SEVERE,
+                            "An exception occurred handling a player disconnection");
+                    throwable.printStackTrace();
+                    return null;
+                }).join());
     }
 
     /**
