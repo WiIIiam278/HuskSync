@@ -125,11 +125,6 @@ public class DummyPlayer extends OnlineUser {
     }
 
     @Override
-    public boolean isDead() {
-        return false;
-    }
-
-    @Override
     public boolean isOffline() {
         return false;
     }

@@ -50,9 +50,6 @@ public abstract class EventListener {
      * @param user The {@link OnlineUser} to handle
      */
     protected final void handlePlayerJoin(@NotNull OnlineUser user) {
-        if (user.isDead()) {
-            return;
-        }
         usersAwaitingSync.add(user.uuid);
         CompletableFuture.runAsync(() -> {
             try {
