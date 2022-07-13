@@ -26,6 +26,7 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.logging.Level;
 
 /**
  * Bukkit implementation of an {@link OnlineUser}
@@ -402,10 +403,18 @@ public class BukkitPlayer extends OnlineUser {
                 return new PersistentDataContainerData(new HashMap<>());
             }
             final HashMap<String, Byte[]> persistentDataMap = new HashMap<>();
-            for (NamespacedKey key : container.getKeys()) {
-                persistentDataMap.put(key.toString(), ArrayUtils.toObject(container.get(key, PersistentDataType.BYTE_ARRAY)));
+            // Set persistent data keys; ignore keys that we cannot synchronise as byte arrays
+            for (final NamespacedKey key : container.getKeys()) {
+                try {
+                    persistentDataMap.put(key.toString(), ArrayUtils.toObject(container.get(key, PersistentDataType.BYTE_ARRAY)));
+                } catch (IllegalArgumentException | NullPointerException ignored) {
+                }
             }
             return new PersistentDataContainerData(persistentDataMap);
+        }).exceptionally(throwable -> {
+            BukkitHuskSync.getInstance().getLoggingAdapter().log(Level.WARNING, "Could not read " + player.getName() + "'s persistent data map, skipping!");
+            throwable.printStackTrace();
+            return new PersistentDataContainerData(new HashMap<>());
         });
     }
 
