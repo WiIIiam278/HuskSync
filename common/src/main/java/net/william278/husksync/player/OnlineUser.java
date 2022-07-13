@@ -12,6 +12,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
@@ -258,16 +259,23 @@ public abstract class OnlineUser extends User {
     public abstract void showMenu(@NotNull ItemEditorMenu menu);
 
     /**
-     * Get the player's current {@link UserData}
+     * Get the player's current {@link UserData} in an {@link Optional}
+     * </p>
+     * If the user data could not be returned due to an exception, the optional will return empty
      *
-     * @return the player's current {@link UserData}
+     * @param logger The logger to use for handling exceptions
+     * @return the player's current {@link UserData} in an optional; empty if an exception occurs
      */
-    public final CompletableFuture<UserData> getUserData() {
-        return CompletableFuture.supplyAsync(
-                () -> new UserData(getStatus().join(), getInventory().join(),
+    public final CompletableFuture<Optional<UserData>> getUserData(@NotNull Logger logger) {
+        return CompletableFuture.supplyAsync(() -> Optional.of(new UserData(getStatus().join(), getInventory().join(),
                         getEnderChest().join(), getPotionEffects().join(), getAdvancements().join(),
                         getStatistics().join(), getLocation().join(), getPersistentDataContainer().join(),
-                        getMinecraftVersion().toString()));
+                        getMinecraftVersion().toString())))
+                .exceptionally(exception -> {
+                    logger.log(Level.SEVERE, "Failed to fetch user data for online player " + username + " (" + exception.getMessage() + ")");
+                    exception.printStackTrace();
+                    return Optional.empty();
+                });
     }
 
 }

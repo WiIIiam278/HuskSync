@@ -148,9 +148,10 @@ public abstract class EventListener {
         if (usersAwaitingSync.contains(user.uuid)) {
             return;
         }
-        plugin.getRedisManager().setUserServerSwitch(user).thenRun(() -> user.getUserData().thenAccept(
-                userData -> plugin.getRedisManager().setUserData(user, userData).thenRun(
-                        () -> plugin.getDatabase().setUserData(user, userData, DataSaveCause.DISCONNECT).join())));
+        plugin.getRedisManager().setUserServerSwitch(user).thenRun(() -> user.getUserData(plugin.getLoggingAdapter()).thenAccept(
+                optionalUserData -> optionalUserData.ifPresent(
+                        userData -> plugin.getRedisManager().setUserData(user, userData).thenRun(
+                                () -> plugin.getDatabase().setUserData(user, userData, DataSaveCause.DISCONNECT).join()))));
         usersAwaitingSync.remove(user.uuid);
     }
 
@@ -163,8 +164,8 @@ public abstract class EventListener {
         if (disabling || !plugin.getSettings().getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SAVE_ON_WORLD_SAVE)) {
             return;
         }
-        usersInWorld.forEach(user -> plugin.getDatabase().setUserData(user, user.getUserData().join(),
-                DataSaveCause.WORLD_SAVE).join());
+        usersInWorld.forEach(user -> user.getUserData(plugin.getLoggingAdapter()).join().ifPresent(
+                userData -> plugin.getDatabase().setUserData(user, userData, DataSaveCause.WORLD_SAVE).join()));
     }
 
     /**
@@ -207,8 +208,9 @@ public abstract class EventListener {
     public final void handlePluginDisable() {
         disabling = true;
 
-        plugin.getOnlineUsers().stream().filter(user -> !usersAwaitingSync.contains(user.uuid)).forEach(user ->
-                plugin.getDatabase().setUserData(user, user.getUserData().join(), DataSaveCause.SERVER_SHUTDOWN).join());
+        plugin.getOnlineUsers().stream().filter(user -> !usersAwaitingSync.contains(user.uuid)).forEach(
+                user -> user.getUserData(plugin.getLoggingAdapter()).join().ifPresent(
+                        userData -> plugin.getDatabase().setUserData(user, userData, DataSaveCause.SERVER_SHUTDOWN).join()));
 
         plugin.getDatabase().close();
         plugin.getRedisManager().close();
