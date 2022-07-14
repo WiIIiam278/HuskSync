@@ -15,7 +15,7 @@ public class UserData {
      * </p>
      * This value is to be incremented whenever the format changes.
      */
-    private static final int CURRENT_FORMAT_VERSION = 1;
+    public static final int CURRENT_FORMAT_VERSION = 1;
 
     /**
      * Stores the user's status data, including health, food, etc.
@@ -134,6 +134,10 @@ public class UserData {
     @NotNull
     public String getMinecraftVersion() {
         return minecraftVersion;
+    }
+
+    public int getFormatVersion() {
+        return formatVersion;
     }
 
 }

@@ -175,13 +175,22 @@ public abstract class OnlineUser extends User {
                                                     @NotNull EventCannon eventCannon, @NotNull Logger logger,
                                                     @NotNull Version serverMinecraftVersion) {
         return CompletableFuture.supplyAsync(() -> {
-            // Prevent synchronizing newer versions of Minecraft
+            // Prevent synchronising user data from newer versions of Minecraft
             if (Version.minecraftVersion(data.getMinecraftVersion()).compareTo(serverMinecraftVersion) > 0) {
-                logger.log(Level.SEVERE, "Cannot set data for player " + username + " with Minecraft version \""
-                                         + data.getMinecraftVersion() + "\" because it is newer than the server's version, \""
-                                         + serverMinecraftVersion + "\"");
+                logger.log(Level.SEVERE, "Cannot set data for " + username +
+                                         " because the Minecraft version of their user data (" + data.getMinecraftVersion() +
+                                         ") is newer than the server's Minecraft version (" + serverMinecraftVersion + ").");
                 return false;
             }
+            // Prevent synchronising user data from newer versions of the plugin
+            if (data.getFormatVersion() > UserData.CURRENT_FORMAT_VERSION) {
+                logger.log(Level.SEVERE, "Cannot set data for " + username +
+                                         " because the format version of their user data (v" + data.getFormatVersion() +
+                                         ") is newer than the current format version (v" + UserData.CURRENT_FORMAT_VERSION + ").");
+                return false;
+            }
+
+            // Fire the PreSyncEvent
             final PreSyncEvent preSyncEvent = (PreSyncEvent) eventCannon.firePreSyncEvent(this, data).join();
             final UserData finalData = preSyncEvent.getUserData();
             final List<CompletableFuture<Void>> dataSetOperations = new ArrayList<>() {{
