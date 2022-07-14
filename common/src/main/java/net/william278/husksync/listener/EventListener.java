@@ -10,6 +10,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
@@ -29,9 +30,11 @@ public abstract class EventListener {
     protected final HuskSync plugin;
 
     /**
-     * Set of UUIDs current awaiting item synchronization. Events will be cancelled for these users
+     * Set of UUIDs of "locked players", for which events will be cancelled.
+     * </p>
+     * Players are locked while their items are being set (on join) or saved (on quit)
      */
-    private final HashSet<UUID> usersAwaitingSync;
+    private final Set<UUID> lockedPlayers;
 
     /**
      * Whether the plugin is currently being disabled
@@ -40,7 +43,7 @@ public abstract class EventListener {
 
     protected EventListener(@NotNull HuskSync plugin) {
         this.plugin = plugin;
-        this.usersAwaitingSync = new HashSet<>();
+        this.lockedPlayers = new HashSet<>();
         this.disabling = false;
     }
 
@@ -50,7 +53,7 @@ public abstract class EventListener {
      * @param user The {@link OnlineUser} to handle
      */
     protected final void handlePlayerJoin(@NotNull OnlineUser user) {
-        usersAwaitingSync.add(user.uuid);
+        lockedPlayers.add(user.uuid);
         CompletableFuture.runAsync(() -> {
             try {
                 // Hold reading data for the network latency threshold, to ensure the source server has set the redis key
@@ -121,7 +124,7 @@ public abstract class EventListener {
     private void handleSynchronisationCompletion(@NotNull OnlineUser user, boolean succeeded) {
         if (succeeded) {
             plugin.getLocales().getLocale("synchronisation_complete").ifPresent(user::sendActionBar);
-            usersAwaitingSync.remove(user.uuid);
+            lockedPlayers.remove(user.uuid);
             plugin.getDatabase().ensureUser(user).join();
             plugin.getEventCannon().fireSyncCompleteEvent(user);
         } else {
@@ -142,16 +145,17 @@ public abstract class EventListener {
             return;
         }
         // Don't sync players awaiting synchronization
-        if (usersAwaitingSync.contains(user.uuid)) {
+        if (lockedPlayers.contains(user.uuid)) {
             return;
         }
 
         // Handle asynchronous disconnection
+        lockedPlayers.add(user.uuid);
         CompletableFuture.runAsync(() -> plugin.getRedisManager().setUserServerSwitch(user)
                 .thenRun(() -> user.getUserData(plugin.getLoggingAdapter()).thenAccept(optionalUserData ->
                         optionalUserData.ifPresent(userData -> plugin.getRedisManager().setUserData(user, userData)
                                 .thenRun(() -> plugin.getDatabase().setUserData(user, userData, DataSaveCause.DISCONNECT)))))
-                .thenRun(() -> usersAwaitingSync.remove(user.uuid)).exceptionally(throwable -> {
+                .thenRun(() -> lockedPlayers.remove(user.uuid)).exceptionally(throwable -> {
                     plugin.getLoggingAdapter().log(Level.SEVERE,
                             "An exception occurred handling a player disconnection");
                     throwable.printStackTrace();
@@ -203,7 +207,7 @@ public abstract class EventListener {
      * @return Whether the event should be cancelled
      */
     protected final boolean cancelPlayerEvent(@NotNull OnlineUser user) {
-        return disabling || usersAwaitingSync.contains(user.uuid);
+        return disabling || lockedPlayers.contains(user.uuid);
     }
 
     /**
@@ -212,7 +216,7 @@ public abstract class EventListener {
     public final void handlePluginDisable() {
         disabling = true;
 
-        plugin.getOnlineUsers().stream().filter(user -> !usersAwaitingSync.contains(user.uuid)).forEach(
+        plugin.getOnlineUsers().stream().filter(user -> !lockedPlayers.contains(user.uuid)).forEach(
                 user -> user.getUserData(plugin.getLoggingAdapter()).join().ifPresent(
                         userData -> plugin.getDatabase().setUserData(user, userData, DataSaveCause.SERVER_SHUTDOWN).join()));
 
