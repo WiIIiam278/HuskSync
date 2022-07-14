@@ -265,7 +265,7 @@ public abstract class OnlineUser extends User {
                         getStatistics().join(), getLocation().join(), getPersistentDataContainer().join(),
                         getMinecraftVersion().toString())))
                 .exceptionally(exception -> {
-                    logger.log(Level.SEVERE, "Failed to fetch user data for online player " + username + " (" + exception.getMessage() + ")");
+                    logger.log(Level.SEVERE, "Failed to get user data from online player " + username + " (" + exception.getMessage() + ")");
                     exception.printStackTrace();
                     return Optional.empty();
                 });
