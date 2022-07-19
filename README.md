@@ -15,7 +15,7 @@
 - Supports segregating synchronisation across multiple distinct clusters on one network.
 
 ## Requirements
-* A MySQL Database (v8.0+)
+* A MySQL Database (v8.0+). MariaDB is [not currently supported](https://github.com/WiIIiam278/HuskSync/issues/40) - sorry!
 * A Redis Database (v5.0+)
 * Any number of proxied Spigot servers (Minecraft v1.16.5+)
 
