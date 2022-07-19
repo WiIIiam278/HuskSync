@@ -15,7 +15,7 @@ public class UserData {
      * </p>
      * This value is to be incremented whenever the format changes.
      */
-    public static final int CURRENT_FORMAT_VERSION = 1;
+    public static final int CURRENT_FORMAT_VERSION = 2;
 
     /**
      * Stores the user's status data, including health, food, etc.

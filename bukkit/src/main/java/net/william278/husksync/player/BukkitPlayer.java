@@ -7,7 +7,6 @@ import net.william278.husksync.BukkitHuskSync;
 import net.william278.husksync.data.*;
 import net.william278.husksync.editor.ItemEditorMenu;
 import net.william278.husksync.util.Version;
-import org.apache.commons.lang.ArrayUtils;
 import org.bukkit.*;
 import org.bukkit.advancement.Advancement;
 import org.bukkit.advancement.AdvancementProgress;
@@ -402,17 +401,20 @@ public class BukkitPlayer extends OnlineUser {
             if (container.isEmpty()) {
                 return new PersistentDataContainerData(new HashMap<>());
             }
-            final HashMap<String, Byte[]> persistentDataMap = new HashMap<>();
+            final HashMap<String, PersistentDataTag> persistentDataMap = new HashMap<>();
             // Set persistent data keys; ignore keys that we cannot synchronise as byte arrays
             for (final NamespacedKey key : container.getKeys()) {
-                try {
-                    persistentDataMap.put(key.toString(), ArrayUtils.toObject(container.get(key, PersistentDataType.BYTE_ARRAY)));
-                } catch (IllegalArgumentException | NullPointerException ignored) {
-                }
+                BukkitPersistentDataTagType.getKeyDataType(container, key).ifPresent(dataType -> {
+                    final Object value = container.get(key, dataType.dataType);
+                    if (value != null) {
+                        persistentDataMap.put(key.toString(), new PersistentDataTag(dataType.name(), value));
+                    }
+                });
             }
             return new PersistentDataContainerData(persistentDataMap);
         }).exceptionally(throwable -> {
-            BukkitHuskSync.getInstance().getLoggingAdapter().log(Level.WARNING, "Could not read " + player.getName() + "'s persistent data map, skipping!");
+            BukkitHuskSync.getInstance().getLoggingAdapter().log(Level.WARNING,
+                    "Could not read " + player.getName() + "'s persistent data map, skipping!");
             throwable.printStackTrace();
             return new PersistentDataContainerData(new HashMap<>());
         });
@@ -423,14 +425,48 @@ public class BukkitPlayer extends OnlineUser {
         return CompletableFuture.runAsync(() -> {
             player.getPersistentDataContainer().getKeys().forEach(namespacedKey ->
                     player.getPersistentDataContainer().remove(namespacedKey));
-            persistentDataContainerData.persistentDataMap.keySet().forEach(keyString -> {
+            final Map<String, PersistentDataTag> dataMap = persistentDataContainerData.persistentDataMap;
+            dataMap.keySet().forEach(keyString -> {
                 final NamespacedKey key = NamespacedKey.fromString(keyString);
                 if (key != null) {
-                    final byte[] data = ArrayUtils.toPrimitive(persistentDataContainerData
-                            .persistentDataMap.get(keyString));
-                    player.getPersistentDataContainer().set(key, PersistentDataType.BYTE_ARRAY, data);
+                    // Set a tag with the given key and value. This is crying out for a refactor.
+                    BukkitPersistentDataTagType.getDataType(dataMap.get(keyString).type).ifPresentOrElse(dataType -> {
+                        switch (dataType) {
+                            case BYTE -> player.getPersistentDataContainer().set(key,
+                                    PersistentDataType.BYTE, (byte) dataMap.get(keyString).value);
+                            case SHORT -> player.getPersistentDataContainer().set(key,
+                                    PersistentDataType.SHORT, (short) dataMap.get(keyString).value);
+                            case INTEGER -> player.getPersistentDataContainer().set(key,
+                                    PersistentDataType.INTEGER, (int) dataMap.get(keyString).value);
+                            case LONG -> player.getPersistentDataContainer().set(key,
+                                    PersistentDataType.LONG, (long) dataMap.get(keyString).value);
+                            case FLOAT -> player.getPersistentDataContainer().set(key,
+                                    PersistentDataType.FLOAT, (float) dataMap.get(keyString).value);
+                            case DOUBLE -> player.getPersistentDataContainer().set(key,
+                                    PersistentDataType.DOUBLE, (double) dataMap.get(keyString).value);
+                            case STRING -> player.getPersistentDataContainer().set(key,
+                                    PersistentDataType.STRING, (String) dataMap.get(keyString).value);
+                            case BYTE_ARRAY -> player.getPersistentDataContainer().set(key,
+                                    PersistentDataType.BYTE_ARRAY, (byte[]) dataMap.get(keyString).value);
+                            case INTEGER_ARRAY -> player.getPersistentDataContainer().set(key,
+                                    PersistentDataType.INTEGER_ARRAY, (int[]) dataMap.get(keyString).value);
+                            case LONG_ARRAY -> player.getPersistentDataContainer().set(key,
+                                    PersistentDataType.LONG_ARRAY, (long[]) dataMap.get(keyString).value);
+                            case TAG_CONTAINER -> player.getPersistentDataContainer().set(key,
+                                    PersistentDataType.TAG_CONTAINER, (PersistentDataContainer) dataMap.get(keyString).value);
+                            case TAG_CONTAINER_ARRAY -> player.getPersistentDataContainer().set(key,
+                                    PersistentDataType.TAG_CONTAINER_ARRAY, (PersistentDataContainer[]) dataMap.get(keyString).value);
+                        }
+                    }, () -> BukkitHuskSync.getInstance().getLoggingAdapter().log(Level.WARNING,
+                            "Could not set " + player.getName() + "'s persistent data key " + keyString +
+                            " with the invalid type, " + dataMap.get(keyString).type + ". Skipping!"));
                 }
             });
+        }).exceptionally(throwable -> {
+            BukkitHuskSync.getInstance().getLoggingAdapter().log(Level.WARNING,
+                    "Could not write " + player.getName() + "'s persistent data map, skipping!");
+            throwable.printStackTrace();
+            return null;
         });
     }
 

@@ -14,9 +14,9 @@ public class PersistentDataContainerData {
      * Map of namespaced key strings to a byte array representing the persistent data
      */
     @SerializedName("persistent_data_map")
-    public Map<String, Byte[]> persistentDataMap;
+    public Map<String, PersistentDataTag> persistentDataMap;
 
-    public PersistentDataContainerData(@NotNull final Map<String, Byte[]> persistentDataMap) {
+    public PersistentDataContainerData(@NotNull final Map<String, PersistentDataTag> persistentDataMap) {
         this.persistentDataMap = persistentDataMap;
     }
 
