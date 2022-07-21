@@ -3,12 +3,18 @@ package net.william278.husksync.data;
 import net.william278.husksync.logger.DummyLogger;
 import net.william278.husksync.player.DummyPlayer;
 import net.william278.husksync.player.OnlineUser;
+import net.william278.husksync.player.User;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+
+import static java.util.Map.*;
 
 /**
  * Tests for the data system {@link DataAdapter}
@@ -80,6 +86,28 @@ public class DataAdaptionTests {
                          && deserializedUserData.getStatusData().healthScale == dummyUserData.getStatusData().healthScale);
         });
         Assertions.assertTrue(isEquals.get());
+    }
+
+    private String getTestSerializedPersistentDataContainer() {
+        final HashMap<String, PersistentDataTag<?>> persistentDataTest = new HashMap<>();
+        persistentDataTest.put("husksync:byte_test", new PersistentDataTag<>(BukkitPersistentDataTagType.BYTE, 0x01));
+        persistentDataTest.put("husksync:double_test", new PersistentDataTag<>(BukkitPersistentDataTagType.DOUBLE, 2d));
+        persistentDataTest.put("husksync:string_test", new PersistentDataTag<>(BukkitPersistentDataTagType.STRING, "test"));
+        persistentDataTest.put("husksync:int_test", new PersistentDataTag<>(BukkitPersistentDataTagType.INTEGER, 3));
+        persistentDataTest.put("husksync:long_test", new PersistentDataTag<>(BukkitPersistentDataTagType.LONG, 4L));
+        persistentDataTest.put("husksync:float_test", new PersistentDataTag<>(BukkitPersistentDataTagType.FLOAT, 5f));
+        persistentDataTest.put("husksync:short_test", new PersistentDataTag<>(BukkitPersistentDataTagType.SHORT, 6));
+        final PersistentDataContainerData persistentDataContainerData = new PersistentDataContainerData(persistentDataTest);
+
+        final DataAdapter dataAdapter = new JsonDataAdapter();
+        UserData userData = new UserData();
+        userData.persistentDataContainerData = persistentDataContainerData;
+        return dataAdapter.toJson(userData, false);
+    }
+
+    @Test
+    public void testPersistentDataContainerSerialization() {
+        Assertions.assertEquals(getTestSerializedPersistentDataContainer(), "{\"persistent_data_container\":{\"persistent_data_map\":{\"husksync:int_test\":{\"type\":\"INTEGER\",\"value\":3},\"husksync:string_test\":{\"type\":\"STRING\",\"value\":\"test\"},\"husksync:long_test\":{\"type\":\"LONG\",\"value\":4},\"husksync:byte_test\":{\"type\":\"BYTE\",\"value\":1},\"husksync:short_test\":{\"type\":\"SHORT\",\"value\":6},\"husksync:double_test\":{\"type\":\"DOUBLE\",\"value\":2.0},\"husksync:float_test\":{\"type\":\"FLOAT\",\"value\":5.0}}},\"format_version\":0}");
     }
 
 }
