@@ -97,7 +97,7 @@ public class BukkitPlayer extends OnlineUser {
                 final double currentHealth = player.getHealth();
                 if (statusData.health != currentHealth) {
                     final double healthToSet = currentHealth > currentMaxHealth ? currentMaxHealth : statusData.health;
-                    if (healthToSet <= 0) {
+                    if (healthToSet < 1) {
                         Bukkit.getScheduler().runTask(BukkitHuskSync.getInstance(), () -> player.setHealth(healthToSet));
                     } else {
                         player.setHealth(healthToSet);
@@ -570,6 +570,11 @@ public class BukkitPlayer extends OnlineUser {
             inventory.setContents(inventoryContents);
             Bukkit.getScheduler().runTask(BukkitHuskSync.getInstance(), () -> player.openInventory(inventory));
         });
+    }
+
+    @Override
+    public boolean isDead() {
+        return player.getHealth() < 1;
     }
 
     @Override

@@ -38,6 +38,7 @@ synchronization:
   max_user_data_snapshots: 5
   save_on_world_save: true
   compress_data: true
+  save_dead_player_inventories: true
   network_latency_milliseconds: 500
   features:
     inventories: true

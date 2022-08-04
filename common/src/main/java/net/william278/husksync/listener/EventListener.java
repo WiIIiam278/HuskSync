@@ -152,9 +152,10 @@ public abstract class EventListener {
         // Handle asynchronous disconnection
         lockedPlayers.add(user.uuid);
         CompletableFuture.runAsync(() -> plugin.getRedisManager().setUserServerSwitch(user)
-                .thenRun(() -> user.getUserData(plugin.getLoggingAdapter()).thenAccept(optionalUserData ->
-                        optionalUserData.ifPresent(userData -> plugin.getRedisManager().setUserData(user, userData)
-                                .thenRun(() -> plugin.getDatabase().setUserData(user, userData, DataSaveCause.DISCONNECT)))))
+                .thenRun(() -> user.getUserData(plugin.getLoggingAdapter(), plugin.getSettings()).thenAccept(
+                        optionalUserData -> optionalUserData.ifPresent(userData -> plugin.getRedisManager()
+                                .setUserData(user, userData).thenRun(() -> plugin.getDatabase()
+                                        .setUserData(user, userData, DataSaveCause.DISCONNECT)))))
                 .thenRun(() -> lockedPlayers.remove(user.uuid)).exceptionally(throwable -> {
                     plugin.getLoggingAdapter().log(Level.SEVERE,
                             "An exception occurred handling a player disconnection");
@@ -172,7 +173,7 @@ public abstract class EventListener {
         if (disabling || !plugin.getSettings().getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SAVE_ON_WORLD_SAVE)) {
             return;
         }
-        usersInWorld.forEach(user -> user.getUserData(plugin.getLoggingAdapter()).join().ifPresent(
+        usersInWorld.forEach(user -> user.getUserData(plugin.getLoggingAdapter(), plugin.getSettings()).join().ifPresent(
                 userData -> plugin.getDatabase().setUserData(user, userData, DataSaveCause.WORLD_SAVE).join()));
     }
 
@@ -217,7 +218,7 @@ public abstract class EventListener {
         disabling = true;
 
         plugin.getOnlineUsers().stream().filter(user -> !lockedPlayers.contains(user.uuid)).forEach(
-                user -> user.getUserData(plugin.getLoggingAdapter()).join().ifPresent(
+                user -> user.getUserData(plugin.getLoggingAdapter(), plugin.getSettings()).join().ifPresent(
                         userData -> plugin.getDatabase().setUserData(user, userData, DataSaveCause.SERVER_SHUTDOWN).join()));
 
         plugin.getDatabase().close();

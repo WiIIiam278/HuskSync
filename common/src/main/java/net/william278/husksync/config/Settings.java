@@ -144,6 +144,7 @@ public class Settings {
         SYNCHRONIZATION_SAVE_ON_WORLD_SAVE("synchronization.save_on_world_save", OptionType.BOOLEAN, true),
         SYNCHRONIZATION_COMPRESS_DATA("synchronization.compress_data", OptionType.BOOLEAN, true),
         SYNCHRONIZATION_NETWORK_LATENCY_MILLISECONDS("synchronization.network_latency_milliseconds", OptionType.INTEGER, 500),
+        SYNCHRONIZATION_SAVE_DEAD_PLAYER_INVENTORIES("synchronization.save_dead_player_inventories", OptionType.BOOLEAN, true),
         SYNCHRONIZATION_SYNC_INVENTORIES("synchronization.features.inventories", OptionType.BOOLEAN, true),
         SYNCHRONIZATION_SYNC_ENDER_CHESTS("synchronization.features.ender_chests", OptionType.BOOLEAN, true),
         SYNCHRONIZATION_SYNC_HEALTH("synchronization.features.health", OptionType.BOOLEAN, true),

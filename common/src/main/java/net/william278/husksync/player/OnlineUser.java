@@ -261,15 +261,27 @@ public abstract class OnlineUser extends User {
     public abstract void showMenu(@NotNull ItemEditorMenu menu);
 
     /**
+     * Returns true if the player is dead
+     *
+     * @return true if the player is dead
+     */
+    public abstract boolean isDead();
+
+    /**
      * Get the player's current {@link UserData} in an {@link Optional}
-     * </p>
+     * <p>
+     * If the {@code SYNCHRONIZATION_SAVE_DEAD_PLAYER_INVENTORIES} ConfigOption has been set,
+     * the user's inventory will only be returned if they are alive
+     * <p>
      * If the user data could not be returned due to an exception, the optional will return empty
      *
      * @param logger The logger to use for handling exceptions
      * @return the player's current {@link UserData} in an optional; empty if an exception occurs
      */
-    public final CompletableFuture<Optional<UserData>> getUserData(@NotNull Logger logger) {
-        return CompletableFuture.supplyAsync(() -> Optional.of(new UserData(getStatus().join(), getInventory().join(),
+    public final CompletableFuture<Optional<UserData>> getUserData(@NotNull Logger logger, @NotNull Settings settings) {
+        return CompletableFuture.supplyAsync(() -> Optional.of(new UserData(getStatus().join(),
+                        (settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SAVE_DEAD_PLAYER_INVENTORIES)
+                                ? getInventory().join() : (isDead() ? new ItemData("") : getInventory().join())),
                         getEnderChest().join(), getPotionEffects().join(), getAdvancements().join(),
                         getStatistics().join(), getLocation().join(), getPersistentDataContainer().join(),
                         getMinecraftVersion().toString())))
