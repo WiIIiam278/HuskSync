@@ -9,6 +9,7 @@ import net.william278.husksync.util.UpdateChecker;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.logging.Level;
@@ -126,9 +127,12 @@ public class HuskSyncCommand extends CommandBase implements TabCompletable, Cons
 
     @Override
     public List<String> onTabComplete(@NotNull String[] args) {
-        return Arrays.stream(COMMAND_ARGUMENTS)
-                .filter(argument -> argument.startsWith(args.length >= 1 ? args[0] : ""))
-                .sorted().collect(Collectors.toList());
+        if (args.length <= 1) {
+            return Arrays.stream(COMMAND_ARGUMENTS)
+                    .filter(argument -> argument.startsWith(args.length >= 1 ? args[0] : ""))
+                    .sorted().collect(Collectors.toList());
+        }
+        return Collections.emptyList();
     }
 
     private void displayPluginInformation(@NotNull OnlineUser player) {

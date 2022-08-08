@@ -1,0 +1,3 @@
+enderchest {
+  name brigadier:string single_word;
+}

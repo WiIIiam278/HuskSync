@@ -1,0 +1,5 @@
+husksync {
+  update;
+  about;
+  reload;
+}

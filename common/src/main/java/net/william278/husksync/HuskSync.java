@@ -10,6 +10,7 @@ import net.william278.husksync.migrator.Migrator;
 import net.william278.husksync.player.OnlineUser;
 import net.william278.husksync.redis.RedisManager;
 import net.william278.husksync.util.Logger;
+import net.william278.husksync.util.ResourceReader;
 import net.william278.husksync.util.Version;
 import org.jetbrains.annotations.NotNull;
 
@@ -113,6 +114,14 @@ public interface HuskSync {
      */
     @NotNull
     Logger getLoggingAdapter();
+
+    /**
+     * Returns the plugin resource file reader
+     *
+     * @return the {@link ResourceReader}
+     */
+    @NotNull
+    ResourceReader getResourceReader();
 
     /**
      * Returns the plugin version

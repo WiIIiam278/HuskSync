@@ -14,6 +14,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -108,7 +109,7 @@ public abstract class Database {
      */
     @SuppressWarnings("SameParameterValue")
     protected final String[] getSchemaStatements(@NotNull String schemaFileName) throws IOException {
-        return formatStatementTables(new String(resourceReader.getResource(schemaFileName)
+        return formatStatementTables(new String(Objects.requireNonNull(resourceReader.getResource(schemaFileName))
                 .readAllBytes(), StandardCharsets.UTF_8)).split(";");
     }
 

@@ -268,6 +268,12 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync {
         return logger;
     }
 
+    @NotNull
+    @Override
+    public ResourceReader getResourceReader() {
+        return resourceReader;
+    }
+
     @Override
     public @NotNull Version getPluginVersion() {
         return Version.pluginVersion(getDescription().getVersion());

@@ -31,11 +31,12 @@ allprojects {
         maven { url 'https://repo.minebench.de/' }
         maven { url 'https://repo.alessiodp.com/releases/' }
         maven { url 'https://jitpack.io' }
+        maven { url 'https://libraries.minecraft.net/' }
     }
 
     dependencies {
-        testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'
-        testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.8.2'
+        testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.0'
+        testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.9.0'
     }
 
     test {

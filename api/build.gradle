@@ -7,6 +7,10 @@ dependencies {
 }
 
 shadowJar {
+    dependencies {
+        exclude(dependency('com.mojang:brigadier'))
+    }
+
     relocate 'org.apache', 'net.william278.husksync.libraries'
     relocate 'dev.dejvokep', 'net.william278.husksync.libraries'
     relocate 'de.themoep', 'net.william278.husksync.libraries'
@@ -16,6 +20,7 @@ shadowJar {
     relocate 'com.google', 'net.william278.husksync.libraries'
     relocate 'redis.clients', 'net.william278.husksync.libraries'
     relocate 'org.json', 'net.william278.husksync.libraries.json'
+    relocate 'me.lucko.commodore', 'net.william278.husksync.libraries.commodore'
 
     relocate 'net.byteflux.libby', 'net.william278.husksync.libraries.libby'
     relocate 'org.bstats', 'net.william278.husksync.libraries.bstats'

@@ -225,7 +225,7 @@ public class UserDataCommand extends CommandBase implements TabCompletable {
         switch (args.length) {
             case 0, 1 -> {
                 return Arrays.stream(COMMAND_ARGUMENTS)
-                        .filter(argument -> argument.startsWith(args.length >= 1 ? args[0] : ""))
+                        .filter(argument -> argument.startsWith(args.length == 1 ? args[0] : ""))
                         .sorted().collect(Collectors.toList());
             }
             case 2 -> {

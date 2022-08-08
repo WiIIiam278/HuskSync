@@ -1,0 +1,3 @@
+inventory {
+  name brigadier:string single_word;
+}
