@@ -1,14 +1,16 @@
 package net.william278.husksync.data;
 
-import net.william278.husksync.config.DummySettings;
+import net.william278.husksync.config.Settings;
 import net.william278.husksync.logger.DummyLogger;
 import net.william278.husksync.player.DummyPlayer;
 import net.william278.husksync.player.OnlineUser;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -105,5 +107,19 @@ public class DataAdaptionTests {
     public void testPersistentDataContainerSerialization() {
         Assertions.assertEquals(getTestSerializedPersistentDataContainer(), "{\"persistent_data_container\":{\"persistent_data_map\":{\"husksync:int_test\":{\"type\":\"INTEGER\",\"value\":3},\"husksync:string_test\":{\"type\":\"STRING\",\"value\":\"test\"},\"husksync:long_test\":{\"type\":\"LONG\",\"value\":4},\"husksync:byte_test\":{\"type\":\"BYTE\",\"value\":1},\"husksync:short_test\":{\"type\":\"SHORT\",\"value\":6},\"husksync:double_test\":{\"type\":\"DOUBLE\",\"value\":2.0},\"husksync:float_test\":{\"type\":\"FLOAT\",\"value\":5.0}}},\"format_version\":0}");
     }
+
+    // For testing settings
+    private static class DummySettings extends Settings {
+        private DummySettings(@NotNull Map<ConfigOption, Object> settings) {
+            super(settings);
+        }
+
+        public static DummySettings get() {
+            return new DummySettings(Map.of(
+                    ConfigOption.SYNCHRONIZATION_SAVE_DEAD_PLAYER_INVENTORIES, true
+            ));
+        }
+    }
+
 
 }
