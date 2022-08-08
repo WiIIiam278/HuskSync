@@ -4,10 +4,7 @@ import dev.dejvokep.boostedyaml.YamlDocument;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 /**
  * Settings used for the plugin, as read from the config file
@@ -17,7 +14,7 @@ public class Settings {
     /**
      * Map of {@link ConfigOption}s read from the config file
      */
-    private final HashMap<ConfigOption, Object> configOptions;
+    private final Map<ConfigOption, Object> configOptions;
 
     // Load the settings from the document
     private Settings(@NotNull YamlDocument config) {
@@ -31,6 +28,11 @@ public class Settings {
                     case INTEGER -> configOption.getIntValue(config);
                     case STRING_LIST -> configOption.getStringListValue(config);
                 }));
+    }
+
+    // Default constructor for empty settings
+    protected Settings(@NotNull Map<ConfigOption, Object> configOptions) {
+        this.configOptions = configOptions;
     }
 
     /**

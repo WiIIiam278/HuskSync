@@ -16,6 +16,7 @@ dependencies {
 
     testImplementation 'org.xerial.snappy:snappy-java:1.1.8.4'
     testImplementation 'com.github.plan-player-analytics:Plan:5.4.1690'
+    testCompileOnly 'dev.dejvokep:boosted-yaml:1.3'
     testCompileOnly 'org.jetbrains:annotations:23.0.0'
 }
 

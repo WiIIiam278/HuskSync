@@ -155,4 +155,9 @@ public class DummyPlayer extends OnlineUser {
         // do nothing
     }
 
+    @Override
+    public boolean isDead() {
+        return false;
+    }
+
 }
