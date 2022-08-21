@@ -9,6 +9,7 @@ softdepend:
   - MysqlPlayerDataBridge
   - Plan
 libraries:
+  - 'redis.clients:jedis:4.2.3'
   - 'mysql:mysql-connector-java:8.0.30'
   - 'org.xerial.snappy:snappy-java:1.1.8.4'
   - 'dev.dejvokep:boosted-yaml:1.3'
