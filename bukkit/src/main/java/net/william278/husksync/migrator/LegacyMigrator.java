@@ -18,6 +18,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
 
@@ -68,7 +69,7 @@ public class LegacyMigrator extends Migrator {
                 connectionPool.setPassword(sourcePassword);
                 connectionPool.setPoolName((getIdentifier() + "_migrator_pool").toUpperCase());
 
-                plugin.getLoggingAdapter().log(Level.INFO, "Downloading raw data from the legacy database...");
+                plugin.getLoggingAdapter().log(Level.INFO, "Downloading raw data from the legacy database (this might take a while)...");
                 final List<LegacyData> dataToMigrate = new ArrayList<>();
                 try (final Connection connection = connectionPool.getConnection()) {
                     try (final PreparedStatement statement = connection.prepareStatement("""
@@ -105,7 +106,7 @@ public class LegacyMigrator extends Migrator {
                                         resultSet.getString("location")
                                 ));
                                 playersMigrated++;
-                                if (playersMigrated % 25 == 0) {
+                                if (playersMigrated % 50 == 0) {
                                     plugin.getLoggingAdapter().log(Level.INFO, "Downloaded legacy data for " + playersMigrated + " players...");
                                 }
                             }
@@ -113,14 +114,22 @@ public class LegacyMigrator extends Migrator {
                     }
                 }
                 plugin.getLoggingAdapter().log(Level.INFO, "Completed download of " + dataToMigrate.size() + " entries from the legacy database!");
-                plugin.getLoggingAdapter().log(Level.INFO, "Converting HuskSync 1.x data to the latest HuskSync user data format...");
-                dataToMigrate.forEach(data -> data.toUserData(hslConverter, minecraftVersion).thenAccept(convertedData ->
-                        plugin.getDatabase().ensureUser(data.user()).thenRun(() ->
-                                plugin.getDatabase().setUserData(data.user(), convertedData, DataSaveCause.LEGACY_MIGRATION)
-                                        .exceptionally(exception -> {
-                                            plugin.getLoggingAdapter().log(Level.SEVERE, "Failed to migrate legacy data for " + data.user().username + ": " + exception.getMessage());
-                                            return null;
-                                        })).join()));
+                plugin.getLoggingAdapter().log(Level.INFO, "Converting HuskSync 1.x data to the new user data format (this might take a while)...");
+
+                final AtomicInteger playersConverted = new AtomicInteger();
+                dataToMigrate.forEach(data -> data.toUserData(hslConverter, minecraftVersion).thenAccept(convertedData -> {
+                    plugin.getDatabase().ensureUser(data.user()).thenRun(() ->
+                            plugin.getDatabase().setUserData(data.user(), convertedData, DataSaveCause.LEGACY_MIGRATION)
+                                    .exceptionally(exception -> {
+                                        plugin.getLoggingAdapter().log(Level.SEVERE, "Failed to migrate legacy data for " + data.user().username + ": " + exception.getMessage());
+                                        return null;
+                                    })).join();
+
+                    playersConverted.getAndIncrement();
+                    if (playersConverted.get() % 50 == 0) {
+                        plugin.getLoggingAdapter().log(Level.INFO, "Converted legacy data for " + playersConverted + " players...");
+                    }
+                }).join());
                 plugin.getLoggingAdapter().log(Level.INFO, "Migration complete for " + dataToMigrate.size() + " users in " + ((System.currentTimeMillis() - startTime) / 1000) + " seconds!");
                 return true;
             } catch (Exception e) {
