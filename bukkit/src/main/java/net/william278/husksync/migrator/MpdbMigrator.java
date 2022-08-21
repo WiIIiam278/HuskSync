@@ -74,7 +74,7 @@ public class MpdbMigrator extends Migrator {
                 connectionPool.setPassword(sourcePassword);
                 connectionPool.setPoolName((getIdentifier() + "_migrator_pool").toUpperCase());
 
-                plugin.getLoggingAdapter().log(Level.INFO, "Downloading raw data from the MySQLPlayerDataBridge database...");
+                plugin.getLoggingAdapter().log(Level.INFO, "Downloading raw data from the MySQLPlayerDataBridge database (this might take a while)...");
                 final List<MpdbData> dataToMigrate = new ArrayList<>();
                 try (final Connection connection = connectionPool.getConnection()) {
                     try (final PreparedStatement statement = connection.prepareStatement("""
@@ -109,7 +109,7 @@ public class MpdbMigrator extends Migrator {
                     }
                 }
                 plugin.getLoggingAdapter().log(Level.INFO, "Completed download of " + dataToMigrate.size() + " entries from the MySQLPlayerDataBridge database!");
-                plugin.getLoggingAdapter().log(Level.INFO, "Converting raw MySQLPlayerDataBridge data to HuskSync user data...");
+                plugin.getLoggingAdapter().log(Level.INFO, "Converting raw MySQLPlayerDataBridge data to HuskSync user data (this might take a while)...");
 
                 final AtomicInteger playersConverted = new AtomicInteger();
                 dataToMigrate.forEach(data -> data.toUserData(mpdbConverter, minecraftVersion).thenAccept(convertedData -> {
