@@ -184,7 +184,19 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync {
                 CompletableFuture.runAsync(() -> new UpdateChecker(getPluginVersion(), getLoggingAdapter()).logToConsole());
             }
         } catch (HuskSyncInitializationException exception) {
-            getLoggingAdapter().log(Level.SEVERE, exception.getMessage());
+            getLoggingAdapter().log(Level.SEVERE, """
+                    ***************************************************
+                               
+                              Failed to initialize HuskSync!
+                               
+                    ***************************************************
+                    The plugin was disabled due to an error. Please check
+                    the logs below for details.
+                    No user data will be synchronised.
+                    ***************************************************
+                    Caused by: %error_message%
+                    """
+                    .replaceAll("%error_message%", exception.getMessage()));
             initialized.set(false);
         } catch (Exception exception) {
             getLoggingAdapter().log(Level.SEVERE, "An unhandled exception occurred initializing HuskSync!", exception);
