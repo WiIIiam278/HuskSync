@@ -75,7 +75,8 @@ public class LegacyMigrator extends Migrator {
                             SELECT `uuid`, `username`, `inventory`, `ender_chest`, `health`, `max_health`, `health_scale`, `hunger`, `saturation`, `saturation_exhaustion`, `selected_slot`, `status_effects`, `total_experience`, `exp_level`, `exp_progress`, `game_mode`, `statistics`, `is_flying`, `advancements`, `location`
                             FROM `%source_players_table%`
                             INNER JOIN `%source_data_table%`
-                                ON `%source_players_table%`.`id` = `%source_data_table%`.`player_id`;
+                            ON `%source_players_table%`.`id` = `%source_data_table%`.`player_id`
+                            WHERE `username` IS NOT NULL;
                             """.replaceAll(Pattern.quote("%source_players_table%"), sourcePlayersTable)
                             .replaceAll(Pattern.quote("%source_data_table%"), sourceDataTable))) {
                         try (final ResultSet resultSet = statement.executeQuery()) {
@@ -119,7 +120,7 @@ public class LegacyMigrator extends Migrator {
                                         .exceptionally(exception -> {
                                             plugin.getLoggingAdapter().log(Level.SEVERE, "Failed to migrate legacy data for " + data.user().username + ": " + exception.getMessage());
                                             return null;
-                                        }))));
+                                        })).join()));
                 plugin.getLoggingAdapter().log(Level.INFO, "Migration complete for " + dataToMigrate.size() + " users in " + ((System.currentTimeMillis() - startTime) / 1000) + " seconds!");
                 return true;
             } catch (Exception e) {
