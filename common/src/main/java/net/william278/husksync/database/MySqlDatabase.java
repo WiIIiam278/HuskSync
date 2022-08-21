@@ -121,7 +121,7 @@ public class MySqlDatabase extends Database {
 
     @Override
     public CompletableFuture<Void> ensureUser(@NotNull User user) {
-        return CompletableFuture.runAsync(() -> getUser(user.uuid).thenAccept(optionalUser ->
+        return getUser(user.uuid).thenAccept(optionalUser ->
                 optionalUser.ifPresentOrElse(existingUser -> {
                             if (!existingUser.username.equals(user.username)) {
                                 // Update a user's name if it has changed in the database
@@ -155,7 +155,7 @@ public class MySqlDatabase extends Database {
                             } catch (SQLException e) {
                                 getLogger().log(Level.SEVERE, "Failed to insert a user into the database", e);
                             }
-                        })));
+                        }));
     }
 
     @Override
