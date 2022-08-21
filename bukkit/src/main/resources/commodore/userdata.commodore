@@ -2,23 +2,19 @@ userdata {
   view {
     name brigadier:string single_word {
       version brigadier:string single_word;
-      test;
     }
   }
   list {
     name brigadier:string single_word;
-    test;
   }
   delete {
     name brigadier:string single_word {
       version brigadier:string single_word;
-      test;
     }
   }
   restore {
     name brigadier:string single_word {
       version brigadier:string single_word;
-      test;
     }
   }
   pin {
