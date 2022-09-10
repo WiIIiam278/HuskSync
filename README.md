@@ -3,7 +3,7 @@
 [![JitPack API](https://img.shields.io/jitpack/version/net.william278/HuskSync?color=%2300fb9a&label=api&logo=gradle)](https://jitpack.io/#net.william278/HuskSync)
 [![Support Discord](https://img.shields.io/discord/818135932103557162.svg?label=&logo=discord&logoColor=fff&color=7389D8&labelColor=6A7EC2)](https://discord.gg/tVYhJfyDWG)
 
-[Documentation, Guides & API](https://william278.net/docs/husksync/Home) · [Resource Page](https://www.spigotmc.org/resources/husksync.97144/) · [Bug Reports](https://github.com/WiIIiam278/HuskSync/issues)
+[Documentation, Guides & API](https://william278.net/docs/husksync) · [Resource Page](https://www.spigotmc.org/resources/husksync.97144/) · [Bug Reports](https://github.com/WiIIiam278/HuskSync/issues)
 
 **HuskSync** is a modern, cross-server player data synchronisation system that enables the comprehensive synchronisation of your user's data across multiple proxied servers. It does this by making use of Redis and MySQL to optimally cache data while players change servers.
 
@@ -55,7 +55,7 @@ This plugin uses bStats to provide me with metrics about its usage:
 You can turn metric collection off by navigating to `~/plugins/bStats/config.yml` and editing the config to disable plugin metrics.
 
 ## Links
-- [Documentation, Guides & API](https://william278.net/docs/husksync/Home)
+- [Documentation, Guides & API](https://william278.net/docs/husksync)
 - [Resource Page](https://www.spigotmc.org/resources/husksync.97144/)
 - [Bug Reports](https://github.com/WiIIiam278/HuskSync/issues)
 - [Discord Support](https://discord.gg/tVYhJfyDWG) (Proof of purchase required)
