@@ -1,6 +1,7 @@
 # [![HuskSync Banner](images/banner-graphic.png)](https://github.com/WiIIiam278/HuskSync)
-![Github Actions](https://github.com/WiIIiam278/HuskSync/workflows/Java%20CI/badge.svg)
-[![Discord](https://img.shields.io/discord/818135932103557162?color=7289da&logo=discord)](https://discord.gg/tVYhJfyDWG)
+[![GitHub CI](https://img.shields.io/github/workflow/status/WiIIiam278/HuskSync/Java%20CI?logo=github)](https://github.com/WiIIiam278/HuskSync/actions/workflows/java_ci.yml)
+[![JitPack API](https://img.shields.io/jitpack/version/net.william278/HuskSync?color=%2300fb9a&label=api&logo=gradle)](https://jitpack.io/#net.william278/HuskSync)
+[![Support Discord](https://img.shields.io/discord/818135932103557162.svg?label=&logo=discord&logoColor=fff&color=7389D8&labelColor=6A7EC2)](https://discord.gg/tVYhJfyDWG)
 
 [Documentation, Guides & API](https://william278.net/docs/husksync/Home) · [Resource Page](https://www.spigotmc.org/resources/husksync.97144/) · [Bug Reports](https://github.com/WiIIiam278/HuskSync/issues)
 
