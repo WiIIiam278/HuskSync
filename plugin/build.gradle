@@ -1,6 +1,5 @@
 dependencies {
     implementation project(path: ':bukkit', configuration: 'shadow')
-    implementation project(path: ':api', configuration: 'shadow')
 }
 
 shadowJar {

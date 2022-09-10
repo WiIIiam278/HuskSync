@@ -56,14 +56,14 @@ subprojects {
     version rootProject.version
     archivesBaseName = "${rootProject.name}-${project.name.capitalize()}"
 
-    if (['bukkit', 'api', 'plugin'].contains(project.name)) {
+    if (['bukkit', 'plugin'].contains(project.name)) {
         shadowJar {
             destinationDirectory.set(file("$rootDir/target"))
             archiveClassifier.set('')
         }
 
         // API publishing
-        if ('api'.contains(project.name)) {
+        if ('bukkit'.contains(project.name)) {
             java {
                 withSourcesJar()
                 withJavadocJar()
