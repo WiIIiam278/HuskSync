@@ -9,7 +9,7 @@ import java.util.regex.Pattern;
 public class Version implements Comparable<Version> {
     private final static String VERSION_SEPARATOR = ".";
     private final static String MINECRAFT_META_SEPARATOR = "-";
-    private final static String PLUGIN_META_SEPARATOR = "+";
+    private final static String PLUGIN_META_SEPARATOR = "-";
 
     private int[] versions = new int[]{};
     @NotNull
