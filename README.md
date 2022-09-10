@@ -8,6 +8,8 @@
 **HuskSync** is a modern, cross-server player data synchronisation system that enables the comprehensive synchronisation of your user's data across multiple proxied servers. It does this by making use of Redis and MySQL to optimally cache data while players change servers.
 
 ## Features
+![Data snapshot viewer](images/data-snapshot-viewer.png)
+
 - Synchronise inventories, ender chests, advancements, statistics, experience points, health, max health, hunger, saturation, potion effects, persistent data container tags, game mode, location and more across multiple proxied servers. 
 - Create and manage "snapshot" backups of user data and roll back users to previous states on-the-fly. (`/userdata`)
 - Preview, list, delete, restore & pin user data snapshots in-game with an intuitive menu.
@@ -24,7 +26,7 @@
 1. Place the plugin jar file in the `/plugins/` directory of each Spigot server. You do not need to install HuskSync as a proxy plugin.
 2. Start, then stop every server to let HuskSync generate the config file.
 3. Navigate to the HuskSync config file on each server (`~/plugins/HuskSync/config.yml`) and fill in both the MySQL and Redis database credentials.
-4. Start every server again and synchronistaion will begin.
+4. Start every server again and synchronization will begin.
 
 ## Building
 To build HuskSync, simply run the following in the root of the repository:
