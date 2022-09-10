@@ -6,23 +6,12 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.Optional;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
  * Loaded locales used by the plugin to display various locales
  */
 public class Locales {
-
-    public static final String PLUGIN_INFORMATION = """
-            [HuskSync](#00fb9a bold) [| Version %version%](#00fb9a)
-            [A modern, cross-server player data synchronization system](gray)
-            [• Author:](white) [William278](gray show_text=&7Click to visit website open_url=https://william278.net)
-            [• Contributors:](white) [HarvelsX](gray show_text=&7Code), [HookWoods](gray show_text=&7Code)
-            [• Translators:](white) [Namiu](gray show_text=&7\\(うにたろう\\) - Japanese, ja-jp), [anchelthe](gray show_text=&7Spanish, es-es), [Melonzio](gray show_text=&7Spanish, es-es), [Ceddix](gray show_text=&7German, de-de), [Pukejoy_1](gray show_text=&7Bulgarian, bg-bg), [mateusneresrb](gray show_text=&7Brazilian Portuguese, pt-br], [小蔡](gray show_text=&7Traditional Chinese, zh-tw), [Ghost-chu](gray show_text=&7Simplified Chinese, zh-cn), [DJelly4K](gray show_text=&7Simplified Chinese, zh-cn), [Thourgard](gray show_text=&7Ukrainian, uk-ua), [xF3d3](gray show_text=&7Italian, it-it)
-            [• Documentation:](white) [[Link]](#00fb9a show_text=&7Click to open link open_url=https://william278.net/docs/husksync/Home/)
-            [• Bug reporting:](white) [[Link]](#00fb9a show_text=&7Click to open link open_url=https://github.com/WiIIiam278/HuskSync/issues)
-            [• Discord support:](white) [[Link]](#00fb9a show_text=&7Click to join open_url=https://discord.gg/tVYhJfyDWG)""";
 
     @NotNull
     private final HashMap<String, String> rawLocales;
@@ -104,36 +93,6 @@ public class Locales {
      */
     public static Locales load(@NotNull YamlDocument localesConfig) {
         return new Locales(localesConfig);
-    }
-
-    /**
-     * Strips a string of basic MineDown formatting, used for displaying plugin info to console
-     *
-     * @param string The string to strip
-     * @return The MineDown-stripped string
-     */
-    public String stripMineDown(@NotNull String string) {
-        final String[] in = string.split("\n");
-        final StringBuilder out = new StringBuilder();
-        String regex = "[^\\[\\]() ]*\\[([^()]+)]\\([^()]+open_url=(\\S+).*\\)";
-
-        for (int i = 0; i < in.length; i++) {
-            Pattern pattern = Pattern.compile(regex);
-            Matcher m = pattern.matcher(in[i]);
-
-            if (m.find()) {
-                out.append(in[i].replace(m.group(0), ""));
-                out.append(m.group(2));
-            } else {
-                out.append(in[i]);
-            }
-
-            if (i + 1 != in.length) {
-                out.append("\n");
-            }
-        }
-
-        return out.toString();
     }
 
 }

@@ -7,7 +7,7 @@ import net.william278.husksync.editor.ItemEditorMenu;
 import net.william278.husksync.event.EventCannon;
 import net.william278.husksync.event.PreSyncEvent;
 import net.william278.husksync.util.Logger;
-import net.william278.husksync.util.Version;
+import net.william278.desertwell.Version;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -176,7 +176,7 @@ public abstract class OnlineUser extends User {
                                                     @NotNull Version serverMinecraftVersion) {
         return CompletableFuture.supplyAsync(() -> {
             // Prevent synchronising user data from newer versions of Minecraft
-            if (Version.minecraftVersion(data.getMinecraftVersion()).compareTo(serverMinecraftVersion) > 0) {
+            if (Version.fromMinecraftVersionString(data.getMinecraftVersion()).compareTo(serverMinecraftVersion) > 0) {
                 logger.log(Level.SEVERE, "Cannot set data for " + username +
                                          " because the Minecraft version of their user data (" + data.getMinecraftVersion() +
                                          ") is newer than the server's Minecraft version (" + serverMinecraftVersion + ").");
