@@ -1,6 +1,8 @@
 package net.william278.husksync.player;
 
-import de.themoep.minedown.MineDown;
+import de.themoep.minedown.adventure.MineDown;
+import de.themoep.minedown.adventure.MineDownParser;
+import net.kyori.adventure.audience.Audience;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.william278.husksync.BukkitHuskSync;
@@ -47,10 +49,12 @@ public class BukkitPlayer extends OnlineUser {
             PersistentDataType.TAG_CONTAINER};
 
     private final Player player;
+    private final Audience audience;
 
     private BukkitPlayer(@NotNull Player player) {
         super(player.getUniqueId(), player.getName());
         this.player = player;
+        this.audience = BukkitHuskSync.getInstance().getAudiences().player(player);
     }
 
     public static BukkitPlayer adapt(@NotNull Player player) {
@@ -565,8 +569,11 @@ public class BukkitPlayer extends OnlineUser {
     @Override
     public void showMenu(@NotNull ItemEditorMenu menu) {
         BukkitSerializer.deserializeItemStackArray(menu.itemData.serializedItems).thenAccept(inventoryContents -> {
+            //todo show the inventory properly
+            /*final Inventory inventory = Bukkit.createInventory(player, menu.itemEditorMenuType.slotCount,
+                    BaseComponent.toLegacyText(menu.menuTitle.toComponent()));*/
             final Inventory inventory = Bukkit.createInventory(player, menu.itemEditorMenuType.slotCount,
-                    BaseComponent.toLegacyText(menu.menuTitle.toComponent()));
+                    menu.menuTitle.message());
             inventory.setContents(inventoryContents);
             Bukkit.getScheduler().runTask(BukkitHuskSync.getInstance(), () -> player.openInventory(inventory));
         });
@@ -579,12 +586,16 @@ public class BukkitPlayer extends OnlineUser {
 
     @Override
     public void sendActionBar(@NotNull MineDown mineDown) {
-        player.spigot().sendMessage(ChatMessageType.ACTION_BAR, mineDown.replace().toComponent());
+        audience.sendActionBar(mineDown
+                .disable(MineDownParser.Option.SIMPLE_FORMATTING)
+                .replace().toComponent());
     }
 
     @Override
     public void sendMessage(@NotNull MineDown mineDown) {
-        player.spigot().sendMessage(mineDown.replace().toComponent());
+        audience.sendMessage(mineDown
+                .disable(MineDownParser.Option.SIMPLE_FORMATTING)
+                .replace().toComponent());
     }
 
     /**

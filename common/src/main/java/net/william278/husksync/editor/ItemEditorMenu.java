@@ -1,6 +1,6 @@
 package net.william278.husksync.editor;
 
-import de.themoep.minedown.MineDown;
+import de.themoep.minedown.adventure.MineDown;
 import net.william278.husksync.command.Permission;
 import net.william278.husksync.config.Locales;
 import net.william278.husksync.data.ItemData;

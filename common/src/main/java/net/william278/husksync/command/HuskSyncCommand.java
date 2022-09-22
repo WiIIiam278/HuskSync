@@ -1,6 +1,6 @@
 package net.william278.husksync.command;
 
-import de.themoep.minedown.MineDown;
+import de.themoep.minedown.adventure.MineDown;
 import net.william278.desertwell.AboutMenu;
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.migrator.Migrator;

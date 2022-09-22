@@ -6,6 +6,7 @@ import dev.dejvokep.boostedyaml.settings.dumper.DumperSettings;
 import dev.dejvokep.boostedyaml.settings.general.GeneralSettings;
 import dev.dejvokep.boostedyaml.settings.loader.LoaderSettings;
 import dev.dejvokep.boostedyaml.settings.updater.UpdaterSettings;
+import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import net.william278.desertwell.Version;
 import net.william278.husksync.command.BukkitCommand;
 import net.william278.husksync.command.BukkitCommandType;
@@ -67,6 +68,8 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync {
     private Settings settings;
     private Locales locales;
     private List<Migrator> availableMigrators;
+
+    private BukkitAudiences audiences;
     private static BukkitHuskSync instance;
 
     /**
@@ -91,6 +94,9 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync {
             // Set the logging adapter and resource reader
             this.logger = new BukkitLogger(this.getLogger());
             this.resourceReader = new BukkitResourceReader(this);
+
+            // Create adventure audience
+            this.audiences = BukkitAudiences.create(this);
 
             // Load settings and locales
             getLoggingAdapter().log(Level.INFO, "Loading plugin configuration settings & locales...");
@@ -131,7 +137,7 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync {
                 getLoggingAdapter().log(Level.INFO, "Successfully established a connection to the database");
             } else {
                 throw new HuskSyncInitializationException("Failed to establish a connection to the database. " +
-                        "Please check the supplied database credentials in the config file");
+                                                          "Please check the supplied database credentials in the config file");
             }
 
             // Prepare redis connection
@@ -142,7 +148,7 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync {
                 getLoggingAdapter().log(Level.INFO, "Successfully established a connection to the Redis server");
             } else {
                 throw new HuskSyncInitializationException("Failed to establish a connection to the Redis server. " +
-                        "Please check the supplied Redis credentials in the config file");
+                                                          "Please check the supplied Redis credentials in the config file");
             }
 
             // Register events
@@ -188,7 +194,7 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync {
                 getLatestVersionIfOutdated().thenAccept(newestVersion ->
                         newestVersion.ifPresent(newVersion -> getLoggingAdapter().log(Level.WARNING,
                                 "An update is available for HuskSync, v" + newVersion
-                                        + " (Currently running v" + getPluginVersion() + ")")));
+                                + " (Currently running v" + getPluginVersion() + ")")));
             }
         } catch (HuskSyncInitializationException exception) {
             getLoggingAdapter().log(Level.SEVERE, """
@@ -303,6 +309,16 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync {
     @Override
     public Version getMinecraftVersion() {
         return Version.fromMinecraftVersionString(Bukkit.getBukkitVersion());
+    }
+
+    /**
+     * Returns the adventure Bukkit audiences
+     *
+     * @return The adventure Bukkit audiences
+     */
+    @NotNull
+    public BukkitAudiences getAudiences() {
+        return audiences;
     }
 
     @Override
