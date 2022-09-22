@@ -1,11 +1,10 @@
 package net.william278.husksync.command;
 
 import de.themoep.minedown.MineDown;
+import net.william278.desertwell.AboutMenu;
 import net.william278.husksync.HuskSync;
-import net.william278.husksync.config.Locales;
 import net.william278.husksync.migrator.Migrator;
 import net.william278.husksync.player.OnlineUser;
-import net.william278.husksync.util.UpdateChecker;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
@@ -17,16 +16,41 @@ import java.util.stream.Collectors;
 
 public class HuskSyncCommand extends CommandBase implements TabCompletable, ConsoleExecutable {
 
-    private final String[] COMMAND_ARGUMENTS = {"update", "about", "reload", "migrate"};
+    private final String[] SUB_COMMANDS = {"update", "about", "reload", "migrate"};
+    private final AboutMenu aboutMenu;
 
     public HuskSyncCommand(@NotNull HuskSync implementor) {
         super("husksync", Permission.COMMAND_HUSKSYNC, implementor);
+        this.aboutMenu = AboutMenu.create("HuskSync")
+                .withDescription("A modern, cross-server player data synchronization system")
+                .withVersion(implementor.getPluginVersion())
+                .addAttribution("Author",
+                        AboutMenu.Credit.of("William278").withDescription("Click to visit website").withUrl("https://william278.net"))
+                .addAttribution("Contributors",
+                        AboutMenu.Credit.of("HarvelsX").withDescription("Code"),
+                        AboutMenu.Credit.of("HookWoods").withDescription("Code"))
+                .addAttribution("Translators",
+                        AboutMenu.Credit.of("Namiu").withDescription("Japanese (ja-jp)"),
+                        AboutMenu.Credit.of("anchelthe").withDescription("Spanish (es-es)"),
+                        AboutMenu.Credit.of("Melonzio").withDescription("Spanish (es-es)"),
+                        AboutMenu.Credit.of("Ceddix").withDescription("German (de-de)"),
+                        AboutMenu.Credit.of("Pukejoy_1").withDescription("Bulgarian (bg-bg)"),
+                        AboutMenu.Credit.of("mateusneresrb").withDescription("Brazilian Portuguese (pt-br)"),
+                        AboutMenu.Credit.of("小蔡").withDescription("Traditional Chinese (zh-tw)"),
+                        AboutMenu.Credit.of("Ghost-chu").withDescription("Simplified Chinese (zh-cn)"),
+                        AboutMenu.Credit.of("DJelly4K").withDescription("Simplified Chinese (zh-cn)"),
+                        AboutMenu.Credit.of("Thourgard").withDescription("Ukrainian (uk-ua)"),
+                        AboutMenu.Credit.of("xF3d3").withDescription("Italian (it-it)"))
+                .addButtons(
+                        AboutMenu.Link.of("https://william278.net/docs/husksync").withText("Documentation").withIcon("⛏"),
+                        AboutMenu.Link.of("https://github.com/WiIIiam278/HuskSync/issues").withText("Issues").withIcon("❌").withColor("#ff9f0f"),
+                        AboutMenu.Link.of("https://discord.gg/tVYhJfyDWG").withText("Discord").withIcon("⭐").withColor("#6773f5"));
     }
 
     @Override
     public void onExecute(@NotNull OnlineUser player, @NotNull String[] args) {
         if (args.length < 1) {
-            displayPluginInformation(player);
+            sendAboutMenu(player);
             return;
         }
         switch (args[0].toLowerCase()) {
@@ -35,18 +59,16 @@ public class HuskSyncCommand extends CommandBase implements TabCompletable, Cons
                     plugin.getLocales().getLocale("error_no_permission").ifPresent(player::sendMessage);
                     return;
                 }
-                final UpdateChecker updateChecker = new UpdateChecker(plugin.getPluginVersion(), plugin.getLoggingAdapter());
-                updateChecker.fetchLatestVersion().thenAccept(latestVersion -> {
-                    if (updateChecker.isUpdateAvailable(latestVersion)) {
-                        player.sendMessage(new MineDown("[HuskSync](#00fb9a bold) [| A new update is available:](#00fb9a) [HuskSync " + latestVersion + "](#00fb9a bold)" +
-                                                        "[•](white) [Currently running:](#00fb9a) [Version " + updateChecker.getCurrentVersion() + "](gray)" +
-                                                        "[•](white) [Download links:](#00fb9a) [[⏩ Spigot]](gray open_url=https://www.spigotmc.org/resources/husksync.97144/updates) [•](#262626) [[⏩ Polymart]](gray open_url=https://polymart.org/resource/husksync.1634/updates) [•](#262626) [[⏩ Songoda]](gray open_url=https://songoda.com/marketplace/product/husksync-a-modern-cross-server-player-data-synchronization-system.758)"));
-                    } else {
-                        player.sendMessage(new MineDown("[HuskSync](#00fb9a bold) [| HuskSync is up-to-date, running version " + updateChecker.getCurrentVersion() + "](#00fb9a)"));
-                    }
-                });
+                plugin.getLatestVersionIfOutdated().thenAccept(newestVersion ->
+                        newestVersion.ifPresentOrElse(
+                                newVersion -> player.sendMessage(
+                                        new MineDown("[HuskSync](#00fb9a bold) [| A new version of HuskSync is available!"
+                                                + " (v" + newVersion + " (Running: v" + plugin.getPluginVersion() + ")](#00fb9a)")),
+                                () -> player.sendMessage(
+                                        new MineDown("[HuskSync](#00fb9a bold) [| HuskSync is up-to-date."
+                                                + " (Running: v" + plugin.getPluginVersion() + ")](#00fb9a)"))));
             }
-            case "info", "about" -> displayPluginInformation(player);
+            case "about", "info" -> sendAboutMenu(player);
             case "reload" -> {
                 if (!player.hasPermission(Permission.COMMAND_HUSKSYNC_RELOAD.node)) {
                     plugin.getLocales().getLocale("error_no_permission").ifPresent(player::sendMessage);
@@ -70,11 +92,14 @@ public class HuskSyncCommand extends CommandBase implements TabCompletable, Cons
             return;
         }
         switch (args[0].toLowerCase()) {
-            case "update", "version" ->
-                    new UpdateChecker(plugin.getPluginVersion(), plugin.getLoggingAdapter()).logToConsole();
-            case "info", "about" ->
-                    plugin.getLoggingAdapter().log(Level.INFO, new MineDown(plugin.getLocales().stripMineDown(
-                            Locales.PLUGIN_INFORMATION.replace("%version%", plugin.getPluginVersion().toString()))));
+            case "update", "version" -> plugin.getLatestVersionIfOutdated().thenAccept(newestVersion ->
+                    newestVersion.ifPresentOrElse(newVersion -> plugin.getLoggingAdapter().log(Level.WARNING,
+                                    "An update is available for HuskSync, v" + newVersion
+                                            + " (Running v" + plugin.getPluginVersion() + ")"),
+                            () -> plugin.getLoggingAdapter().log(Level.INFO,
+                                    "HuskSync is up to date" +
+                                            " (Running v" + plugin.getPluginVersion() + ")")));
+            case "about", "info" -> aboutMenu.toString().lines().forEach(plugin.getLoggingAdapter()::info);
             case "reload" -> {
                 plugin.reload();
                 plugin.getLoggingAdapter().log(Level.INFO, "Reloaded config & message files.");
@@ -108,7 +133,7 @@ public class HuskSyncCommand extends CommandBase implements TabCompletable, Cons
                 }, () -> {
                     plugin.getLoggingAdapter().log(Level.INFO,
                             "Please specify a valid migrator.\n" +
-                            "If a migrator is not available, please verify that you meet the prerequisites to use it.");
+                                    "If a migrator is not available, please verify that you meet the prerequisites to use it.");
                     logMigratorsList();
                 });
             }
@@ -120,26 +145,26 @@ public class HuskSyncCommand extends CommandBase implements TabCompletable, Cons
     private void logMigratorsList() {
         plugin.getLoggingAdapter().log(Level.INFO,
                 "List of available migrators:\nMigrator ID / Migrator Name:\n" +
-                plugin.getAvailableMigrators().stream()
-                        .map(migrator -> migrator.getIdentifier() + " - " + migrator.getName())
-                        .collect(Collectors.joining("\n")));
+                        plugin.getAvailableMigrators().stream()
+                                .map(migrator -> migrator.getIdentifier() + " - " + migrator.getName())
+                                .collect(Collectors.joining("\n")));
     }
 
     @Override
     public List<String> onTabComplete(@NotNull String[] args) {
         if (args.length <= 1) {
-            return Arrays.stream(COMMAND_ARGUMENTS)
+            return Arrays.stream(SUB_COMMANDS)
                     .filter(argument -> argument.startsWith(args.length >= 1 ? args[0] : ""))
                     .sorted().collect(Collectors.toList());
         }
         return Collections.emptyList();
     }
 
-    private void displayPluginInformation(@NotNull OnlineUser player) {
-        if (!player.hasPermission(Permission.COMMAND_HUSKSYNC_INFO.node)) {
+    private void sendAboutMenu(@NotNull OnlineUser player) {
+        if (!player.hasPermission(Permission.COMMAND_HUSKSYNC_ABOUT.node)) {
             plugin.getLocales().getLocale("error_no_permission").ifPresent(player::sendMessage);
             return;
         }
-        player.sendMessage(new MineDown(Locales.PLUGIN_INFORMATION.replace("%version%", plugin.getPluginVersion().toString())));
+        player.sendMessage(aboutMenu.toMineDown());
     }
 }

@@ -6,7 +6,7 @@ plugins {
 }
 
 group 'net.william278'
-version "$ext.plugin_version+${versionMetadata()}"
+version "$ext.plugin_version-${versionMetadata()}"
 
 ext {
     set 'version', version.toString()
@@ -102,5 +102,5 @@ def versionMetadata() {
     if (grgit == null) {
         return System.getenv("GITHUB_RUN_NUMBER") ? 'build.' + System.getenv("GITHUB_RUN_NUMBER") : 'unknown'
     }
-    return 'rev.' + grgit.head().abbreviatedId + (grgit.status().clean ? '' : '-indev')
+    return grgit.head().abbreviatedId + (grgit.status().clean ? '' : '-indev')
 }

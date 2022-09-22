@@ -6,6 +6,7 @@ import dev.dejvokep.boostedyaml.settings.dumper.DumperSettings;
 import dev.dejvokep.boostedyaml.settings.general.GeneralSettings;
 import dev.dejvokep.boostedyaml.settings.loader.LoaderSettings;
 import dev.dejvokep.boostedyaml.settings.updater.UpdaterSettings;
+import net.william278.desertwell.Version;
 import net.william278.husksync.command.BukkitCommand;
 import net.william278.husksync.command.BukkitCommandType;
 import net.william278.husksync.command.Permission;
@@ -28,7 +29,10 @@ import net.william278.husksync.migrator.MpdbMigrator;
 import net.william278.husksync.player.BukkitPlayer;
 import net.william278.husksync.player.OnlineUser;
 import net.william278.husksync.redis.RedisManager;
-import net.william278.husksync.util.*;
+import net.william278.husksync.util.BukkitLogger;
+import net.william278.husksync.util.BukkitResourceReader;
+import net.william278.husksync.util.Logger;
+import net.william278.husksync.util.ResourceReader;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
 import org.bukkit.command.PluginCommand;
@@ -127,7 +131,7 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync {
                 getLoggingAdapter().log(Level.INFO, "Successfully established a connection to the database");
             } else {
                 throw new HuskSyncInitializationException("Failed to establish a connection to the database. " +
-                                                          "Please check the supplied database credentials in the config file");
+                        "Please check the supplied database credentials in the config file");
             }
 
             // Prepare redis connection
@@ -138,7 +142,7 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync {
                 getLoggingAdapter().log(Level.INFO, "Successfully established a connection to the Redis server");
             } else {
                 throw new HuskSyncInitializationException("Failed to establish a connection to the Redis server. " +
-                                                          "Please check the supplied Redis credentials in the config file");
+                        "Please check the supplied Redis credentials in the config file");
             }
 
             // Register events
@@ -181,7 +185,10 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync {
             // Check for updates
             if (settings.getBooleanValue(Settings.ConfigOption.CHECK_FOR_UPDATES)) {
                 getLoggingAdapter().log(Level.INFO, "Checking for updates...");
-                CompletableFuture.runAsync(() -> new UpdateChecker(getPluginVersion(), getLoggingAdapter()).logToConsole());
+                getLatestVersionIfOutdated().thenAccept(newestVersion ->
+                        newestVersion.ifPresent(newVersion -> getLoggingAdapter().log(Level.WARNING,
+                                "An update is available for HuskSync, v" + newVersion
+                                        + " (Currently running v" + getPluginVersion() + ")")));
             }
         } catch (HuskSyncInitializationException exception) {
             getLoggingAdapter().log(Level.SEVERE, """
@@ -286,14 +293,16 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync {
         return resourceReader;
     }
 
+    @NotNull
     @Override
-    public @NotNull Version getPluginVersion() {
-        return Version.pluginVersion(getDescription().getVersion());
+    public Version getPluginVersion() {
+        return Version.fromString(getDescription().getVersion(), "-");
     }
 
+    @NotNull
     @Override
-    public @NotNull Version getMinecraftVersion() {
-        return Version.minecraftVersion(Bukkit.getBukkitVersion());
+    public Version getMinecraftVersion() {
+        return Version.fromMinecraftVersionString(Bukkit.getBukkitVersion());
     }
 
     @Override

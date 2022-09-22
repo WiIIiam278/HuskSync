@@ -18,7 +18,7 @@ public enum Permission {
     /**
      * Lets the user view plugin info {@code /husksync info}
      */
-    COMMAND_HUSKSYNC_INFO("husksync.command.husksync.info", DefaultAccess.EVERYONE),
+    COMMAND_HUSKSYNC_ABOUT("husksync.command.husksync.info", DefaultAccess.EVERYONE),
     /**
      * Lets the user reload the plugin {@code /husksync reload}
      */

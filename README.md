@@ -1,12 +1,15 @@
 # [![HuskSync Banner](images/banner-graphic.png)](https://github.com/WiIIiam278/HuskSync)
-![Github Actions](https://github.com/WiIIiam278/HuskSync/workflows/Java%20CI/badge.svg)
-[![Discord](https://img.shields.io/discord/818135932103557162?color=7289da&logo=discord)](https://discord.gg/tVYhJfyDWG)
+[![GitHub CI](https://img.shields.io/github/workflow/status/WiIIiam278/HuskSync/Java%20CI?logo=github)](https://github.com/WiIIiam278/HuskSync/actions/workflows/java_ci.yml)
+[![JitPack API](https://img.shields.io/jitpack/version/net.william278/HuskSync?color=%2300fb9a&label=api&logo=gradle)](https://jitpack.io/#net.william278/HuskSync)
+[![Support Discord](https://img.shields.io/discord/818135932103557162.svg?label=&logo=discord&logoColor=fff&color=7389D8&labelColor=6A7EC2)](https://discord.gg/tVYhJfyDWG)
 
-[Documentation, Guides & API](https://william278.net/docs/husksync/Home) · [Resource Page](https://www.spigotmc.org/resources/husksync.97144/) · [Bug Reports](https://github.com/WiIIiam278/HuskSync/issues)
+[Documentation, Guides & API](https://william278.net/docs/husksync) · [Resource Page](https://www.spigotmc.org/resources/husksync.97144/) · [Bug Reports](https://github.com/WiIIiam278/HuskSync/issues)
 
 **HuskSync** is a modern, cross-server player data synchronisation system that enables the comprehensive synchronisation of your user's data across multiple proxied servers. It does this by making use of Redis and MySQL to optimally cache data while players change servers.
 
 ## Features
+![Data snapshot viewer](images/data-snapshot-viewer.png)
+
 - Synchronise inventories, ender chests, advancements, statistics, experience points, health, max health, hunger, saturation, potion effects, persistent data container tags, game mode, location and more across multiple proxied servers. 
 - Create and manage "snapshot" backups of user data and roll back users to previous states on-the-fly. (`/userdata`)
 - Preview, list, delete, restore & pin user data snapshots in-game with an intuitive menu.
@@ -23,7 +26,7 @@
 1. Place the plugin jar file in the `/plugins/` directory of each Spigot server. You do not need to install HuskSync as a proxy plugin.
 2. Start, then stop every server to let HuskSync generate the config file.
 3. Navigate to the HuskSync config file on each server (`~/plugins/HuskSync/config.yml`) and fill in both the MySQL and Redis database credentials.
-4. Start every server again and synchronistaion will begin.
+4. Start every server again and synchronization will begin.
 
 ## Building
 To build HuskSync, simply run the following in the root of the repository:
@@ -52,7 +55,7 @@ This plugin uses bStats to provide me with metrics about its usage:
 You can turn metric collection off by navigating to `~/plugins/bStats/config.yml` and editing the config to disable plugin metrics.
 
 ## Links
-- [Documentation, Guides & API](https://william278.net/docs/husksync/Home)
+- [Documentation, Guides & API](https://william278.net/docs/husksync)
 - [Resource Page](https://www.spigotmc.org/resources/husksync.97144/)
 - [Bug Reports](https://github.com/WiIIiam278/HuskSync/issues)
 - [Discord Support](https://discord.gg/tVYhJfyDWG) (Proof of purchase required)

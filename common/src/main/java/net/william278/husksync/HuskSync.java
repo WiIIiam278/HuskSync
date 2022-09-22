@@ -1,5 +1,6 @@
 package net.william278.husksync;
 
+import net.william278.desertwell.UpdateChecker;
 import net.william278.husksync.config.Locales;
 import net.william278.husksync.config.Settings;
 import net.william278.husksync.data.DataAdapter;
@@ -11,7 +12,7 @@ import net.william278.husksync.player.OnlineUser;
 import net.william278.husksync.redis.RedisManager;
 import net.william278.husksync.util.Logger;
 import net.william278.husksync.util.ResourceReader;
-import net.william278.husksync.util.Version;
+import net.william278.desertwell.Version;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -24,6 +25,8 @@ import java.util.concurrent.CompletableFuture;
  * Abstract implementation of the HuskSync plugin.
  */
 public interface HuskSync {
+
+    int SPIGOT_RESOURCE_ID = 97144;
 
     /**
      * Returns a set of online players.
@@ -130,6 +133,22 @@ public interface HuskSync {
      */
     @NotNull
     Version getPluginVersion();
+
+    /**
+     * Returns a future returning the latest plugin {@link Version} if the plugin is out-of-date
+     *
+     * @return a {@link CompletableFuture} returning the latest {@link Version} if the current one is out-of-date
+     */
+    default CompletableFuture<Optional<Version>> getLatestVersionIfOutdated() {
+        final UpdateChecker updateChecker = UpdateChecker.create(getPluginVersion(), SPIGOT_RESOURCE_ID);
+        return updateChecker.isUpToDate().thenApply(upToDate -> {
+            if (upToDate) {
+                return Optional.empty();
+            } else {
+                return Optional.of(updateChecker.getLatestVersion().join());
+            }
+        });
+    }
 
     /**
      * Returns the Minecraft version implementation

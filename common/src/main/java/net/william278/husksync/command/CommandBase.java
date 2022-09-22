@@ -52,7 +52,7 @@ public abstract class CommandBase {
      */
     public String getDescription() {
         return plugin.getLocales().getRawLocale(command + "_command_description")
-                .orElse("A HuskHomes command");
+                .orElse("A HuskSync command");
     }
 
 }
