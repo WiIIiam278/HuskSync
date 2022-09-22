@@ -75,7 +75,7 @@ public class UserDataCommand extends CommandBase implements TabCompletable {
                 }
                 if (args.length < 2) {
                     plugin.getLocales().getLocale("error_invalid_syntax",
-                                    "/userdata list <username>")
+                                    "/userdata list <username> [page]")
                             .ifPresent(player::sendMessage);
                     return;
                 }
@@ -83,12 +83,28 @@ public class UserDataCommand extends CommandBase implements TabCompletable {
                 CompletableFuture.runAsync(() -> plugin.getDatabase().getUserByName(username.toLowerCase()).thenAccept(
                         optionalUser -> optionalUser.ifPresentOrElse(
                                 user -> plugin.getDatabase().getUserData(user).thenAccept(dataList -> {
+                                    // Check if there is data to display
                                     if (dataList.isEmpty()) {
                                         plugin.getLocales().getLocale("error_no_data_to_display")
                                                 .ifPresent(player::sendMessage);
                                         return;
                                     }
-                                    plugin.getDataEditor().displayDataList(player, dataList, user);
+
+                                    // Determine page to display
+                                    int page = 1;
+                                    if (args.length >= 3) {
+                                        try {
+                                            page = Integer.parseInt(args[2]);
+                                        } catch (NumberFormatException e) {
+                                            plugin.getLocales().getLocale("error_invalid_syntax",
+                                                            "/userdata list <username> [page]")
+                                                    .ifPresent(player::sendMessage);
+                                            return;
+                                        }
+                                    }
+
+                                    // Show list
+                                    plugin.getDataEditor().displayDataSnapshotList(player, dataList, user, page);
                                 }),
                                 () -> plugin.getLocales().getLocale("error_invalid_player")
                                         .ifPresent(player::sendMessage))));

@@ -9,7 +9,6 @@ import net.william278.husksync.player.OnlineUser;
 import net.william278.husksync.player.User;
 import org.jetbrains.annotations.NotNull;
 
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -143,32 +142,16 @@ public class DataEditor {
     }
 
     /**
-     * Display a chat list detailing a player's saved list of {@link UserDataSnapshot}
+     * Display a paginated chat list of {@link UserDataSnapshot}s
      *
      * @param user         The online user to display the message to
-     * @param userDataList The list of {@link UserDataSnapshot} to display
-     * @param dataOwner    The {@link User} who owns the {@link UserDataSnapshot}
+     * @param userDataList The list of {@link UserDataSnapshot}s to display
+     * @param dataOwner    The {@link User} who owns the {@link UserDataSnapshot}s
+     * @param page         The page of the list to display
      */
-    public void displayDataList(@NotNull OnlineUser user, @NotNull List<UserDataSnapshot> userDataList,
-                                @NotNull User dataOwner) {
-        locales.getLocale("data_list_title",
-                        dataOwner.username, dataOwner.uuid.toString())
-                .ifPresent(user::sendMessage);
-
-        final String[] numberedIcons = "①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳".split("");
-        for (int i = 0; i < Math.min(20, userDataList.size()); i++) {
-            final UserDataSnapshot userData = userDataList.get(i);
-            locales.getLocale("data_list_item",
-                            numberedIcons[i],
-                            DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT, Locale.getDefault())
-                                    .format(userData.versionTimestamp()),
-                            userData.versionUUID().toString().split("-")[0],
-                            userData.versionUUID().toString(),
-                            userData.cause().name().toLowerCase().replaceAll("_", " "),
-                            dataOwner.username,
-                            userData.pinned() ? "※" : "  ")
-                    .ifPresent(user::sendMessage);
-        }
+    public void displayDataSnapshotList(@NotNull OnlineUser user, @NotNull List<UserDataSnapshot> userDataList,
+                                        @NotNull User dataOwner, final int page) {
+        DataSnapshotList.create(userDataList, dataOwner, locales).displayPage(user, page);
     }
 
     /**

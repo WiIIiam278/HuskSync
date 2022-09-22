@@ -14,6 +14,7 @@ ext {
     set 'jedis_version', jedis_version.toString()
     set 'mysql_driver_version', mysql_driver_version.toString()
     set 'snappy_version', snappy_version.toString()
+    set 'commons_text_version', commons_text_version.toString()
 }
 
 import org.apache.tools.ant.filters.ReplaceTokens
