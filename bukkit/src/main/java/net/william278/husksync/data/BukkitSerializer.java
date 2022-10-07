@@ -1,5 +1,6 @@
 package net.william278.husksync.data;
 
+import net.william278.husksync.BukkitHuskSync;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.util.io.BukkitObjectInputStream;
@@ -13,6 +14,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.logging.Level;
 
 public class BukkitSerializer {
 
@@ -25,6 +27,8 @@ public class BukkitSerializer {
     public static CompletableFuture<String> serializeItemStackArray(@NotNull ItemStack[] inventoryContents)
             throws DataSerializationException {
         return CompletableFuture.supplyAsync(() -> {
+            BukkitHuskSync.getInstance().getLoggingAdapter().debug("[HS] Serializing inventory contents");
+
             // Return an empty string if there is no inventory item data to serialize
             if (inventoryContents.length == 0) {
                 return "";
@@ -45,6 +49,7 @@ public class BukkitSerializer {
                 // Return encoded data, using the encoder from SnakeYaml to get a ByteArray conversion
                 return Base64Coder.encodeLines(byteOutputStream.toByteArray());
             } catch (IOException e) {
+                BukkitHuskSync.getInstance().getLoggingAdapter().log(Level.SEVERE, "Failed to serialize item stack data", e);
                 throw new DataSerializationException("Failed to serialize item stack data", e);
             }
         });
@@ -95,6 +100,7 @@ public class BukkitSerializer {
                     return inventoryContents;
                 }
             } catch (IOException | ClassNotFoundException e) {
+                BukkitHuskSync.getInstance().getLoggingAdapter().log(Level.SEVERE, "Failed to deserialize item stack data", e);
                 throw new DataSerializationException("Failed to deserialize item stack data", e);
             }
         });
@@ -151,6 +157,7 @@ public class BukkitSerializer {
                 // Return encoded data, using the encoder from SnakeYaml to get a ByteArray conversion
                 return Base64Coder.encodeLines(byteOutputStream.toByteArray());
             } catch (IOException e) {
+                BukkitHuskSync.getInstance().getLoggingAdapter().log(Level.SEVERE, "Failed to serialize potion effect data", e);
                 throw new DataSerializationException("Failed to serialize potion effect data", e);
             }
         });
@@ -186,6 +193,7 @@ public class BukkitSerializer {
                     return potionEffects;
                 }
             } catch (IOException | ClassNotFoundException e) {
+                BukkitHuskSync.getInstance().getLoggingAdapter().log(Level.SEVERE, "Failed to deserialize potion effect data", e);
                 throw new DataSerializationException("Failed to deserialize potion effects", e);
             }
         });

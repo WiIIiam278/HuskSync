@@ -130,6 +130,8 @@ public class RedisManager {
                     jedis.setex(getKey(RedisKeyType.DATA_UPDATE, user.uuid),
                             RedisKeyType.DATA_UPDATE.timeToLive,
                             plugin.getDataAdapter().toBytes(userData));
+
+                    // Debug logging
                     plugin.getLoggingAdapter().debug("[" + user.username + "] Set " + RedisKeyType.DATA_UPDATE.name()
                                                      + " key to redis at: " +
                                                      new SimpleDateFormat("mm:ss.SSS").format(new Date()));
