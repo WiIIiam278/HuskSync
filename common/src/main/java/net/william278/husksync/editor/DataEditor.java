@@ -128,6 +128,11 @@ public class DataEditor {
                             dataOwner.username, userData.versionUUID().toString())
                     .ifPresent(user::sendMessage);
         }
+        if (user.hasPermission(Permission.COMMAND_USER_DATA_DUMP.node)) {
+            locales.getLocale("data_manager_system_buttons",
+                            dataOwner.username, userData.versionUUID().toString())
+                    .ifPresent(user::sendMessage);
+        }
     }
 
     @NotNull

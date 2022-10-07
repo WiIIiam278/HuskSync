@@ -24,4 +24,12 @@ userdata {
       version brigadier:string single_word;
     }
   }
+  dump {
+    name brigadier:string single_word {
+      version brigadier:string single_word {
+        web;
+        file;
+      }
+    }
+  }
 }

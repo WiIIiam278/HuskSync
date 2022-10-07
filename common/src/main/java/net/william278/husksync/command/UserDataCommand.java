@@ -3,18 +3,21 @@ package net.william278.husksync.command;
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.data.DataSaveCause;
 import net.william278.husksync.player.OnlineUser;
+import net.william278.husksync.util.DataDumper;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 public class UserDataCommand extends CommandBase implements TabCompletable {
 
-    private final String[] COMMAND_ARGUMENTS = {"view", "list", "delete", "restore", "pin"};
+    private final String[] COMMAND_ARGUMENTS = {"view", "list", "delete", "restore", "pin", "dump"};
 
     public UserDataCommand(@NotNull HuskSync implementor) {
         super("userdata", Permission.COMMAND_USER_DATA, implementor, "playerdata");
@@ -24,7 +27,7 @@ public class UserDataCommand extends CommandBase implements TabCompletable {
     public void onExecute(@NotNull OnlineUser player, @NotNull String[] args) {
         if (args.length < 1) {
             plugin.getLocales().getLocale("error_invalid_syntax",
-                            "/userdata <view/list/delete/restore/pin> <username> [version_uuid]")
+                            "/userdata <view/list/delete/restore/pin/dump> <username> [version_uuid]")
                     .ifPresent(player::sendMessage);
             return;
         }
@@ -199,6 +202,7 @@ public class UserDataCommand extends CommandBase implements TabCompletable {
                             .ifPresent(player::sendMessage);
                     return;
                 }
+
                 final String username = args[1];
                 try {
                     final UUID versionUuid = UUID.fromString(args[2]);
@@ -230,6 +234,45 @@ public class UserDataCommand extends CommandBase implements TabCompletable {
                 } catch (IllegalArgumentException e) {
                     plugin.getLocales().getLocale("error_invalid_syntax",
                                     "/userdata pin <username> <version_uuid>")
+                            .ifPresent(player::sendMessage);
+                }
+            }
+            case "dump" -> {
+                if (!player.hasPermission(Permission.COMMAND_USER_DATA_DUMP.node)) {
+                    plugin.getLocales().getLocale("error_no_permission").ifPresent(player::sendMessage);
+                    return;
+                }
+                if (args.length < 3) {
+                    plugin.getLocales().getLocale("error_invalid_syntax",
+                                    "/userdata dump <username> <version_uuid>")
+                            .ifPresent(player::sendMessage);
+                    return;
+                }
+
+                final boolean toWeb = args.length > 3 && args[3].equalsIgnoreCase("web");
+                final String username = args[1];
+                try {
+                    final UUID versionUuid = UUID.fromString(args[2]);
+                    CompletableFuture.runAsync(() -> plugin.getDatabase().getUserByName(username.toLowerCase()).thenAccept(
+                            optionalUser -> optionalUser.ifPresentOrElse(
+                                    user -> plugin.getDatabase().getUserData(user, versionUuid).thenAccept(
+                                            optionalUserData -> optionalUserData.ifPresentOrElse(userData -> {
+                                                try {
+                                                    final DataDumper dumper = DataDumper.create(userData, user, plugin);
+                                                    final String result = toWeb ? dumper.toWeb() : dumper.toFile();
+                                                    plugin.getLocales().getLocale("data_dumped", versionUuid.toString()
+                                                                    .split("-")[0], user.username, result)
+                                                            .ifPresent(player::sendMessage);
+                                                } catch (IOException e) {
+                                                    plugin.getLoggingAdapter().log(Level.SEVERE, "Failed to dump user data", e);
+                                                }
+                                            }, () -> plugin.getLocales().getLocale("error_invalid_version_uuid")
+                                                    .ifPresent(player::sendMessage))),
+                                    () -> plugin.getLocales().getLocale("error_invalid_player")
+                                            .ifPresent(player::sendMessage))));
+                } catch (IllegalArgumentException e) {
+                    plugin.getLocales().getLocale("error_invalid_syntax",
+                                    "/userdata dump <username> <version_uuid>")
                             .ifPresent(player::sendMessage);
                 }
             }

@@ -15,6 +15,7 @@ import net.william278.husksync.util.ResourceReader;
 import net.william278.desertwell.Version;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -133,6 +134,14 @@ public interface HuskSync {
      */
     @NotNull
     Version getPluginVersion();
+
+    /**
+     * Returns the plugin data folder
+     *
+     * @return the plugin data folder as a {@link File}
+     */
+    @NotNull
+    File getDataFolder();
 
     /**
      * Returns a future returning the latest plugin {@link Version} if the plugin is out-of-date
