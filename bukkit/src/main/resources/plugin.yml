@@ -9,7 +9,6 @@ softdepend:
   - MysqlPlayerDataBridge
   - Plan
 libraries:
-  - 'net.kyori:adventure-platform-bukkit:${adventure_version}'
   - 'redis.clients:jedis:${jedis_version}'
   - 'mysql:mysql-connector-java:${mysql_driver_version}'
   - 'org.xerial.snappy:snappy-java:${snappy_version}'
