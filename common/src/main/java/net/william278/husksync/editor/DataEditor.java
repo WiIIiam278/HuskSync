@@ -80,6 +80,7 @@ public class DataEditor {
      */
     public void displayDataOverview(@NotNull OnlineUser user, @NotNull UserDataSnapshot userData,
                                     @NotNull User dataOwner) {
+        // Title message, timestamp, owner and cause.
         locales.getLocale("data_manager_title",
                         userData.versionUUID().toString().split("-")[0],
                         userData.versionUUID().toString(),
@@ -95,19 +96,27 @@ public class DataEditor {
         locales.getLocale("data_manager_cause",
                         userData.cause().name().toLowerCase().replaceAll("_", " "))
                 .ifPresent(user::sendMessage);
-        locales.getLocale("data_manager_status",
-                        Integer.toString((int) userData.userData().getStatusData().health),
-                        Integer.toString((int) userData.userData().getStatusData().maxHealth),
-                        Integer.toString(userData.userData().getStatusData().hunger),
-                        Integer.toString(userData.userData().getStatusData().expLevel),
-                        userData.userData().getStatusData().gameMode.toLowerCase())
+
+        // User status data, if present in the snapshot
+        userData.userData().getStatus()
+                .flatMap(statusData -> locales.getLocale("data_manager_status",
+                        Integer.toString((int) statusData.health),
+                        Integer.toString((int) statusData.maxHealth),
+                        Integer.toString(statusData.hunger),
+                        Integer.toString(statusData.expLevel),
+                        statusData.gameMode.toLowerCase()))
                 .ifPresent(user::sendMessage);
-        locales.getLocale("data_manager_advancements_statistics",
-                        Integer.toString(userData.userData().getAdvancementData().size()),
-                        generateAdvancementPreview(userData.userData().getAdvancementData()),
-                        String.format("%.2f", (((userData.userData().getStatisticsData().untypedStatistics.getOrDefault(
-                                "PLAY_ONE_MINUTE", 0)) / 20d) / 60d) / 60d))
+
+        // Advancement and statistic data, if both are present in the snapshot
+        userData.userData().getAdvancements()
+                .flatMap(advancementData -> userData.userData().getStatistics()
+                        .flatMap(statisticsData -> locales.getLocale("data_manager_advancements_statistics",
+                                Integer.toString(advancementData.size()),
+                                generateAdvancementPreview(advancementData),
+                                String.format("%.2f", (((statisticsData.untypedStatistics.getOrDefault(
+                                        "PLAY_ONE_MINUTE", 0)) / 20d) / 60d) / 60d))))
                 .ifPresent(user::sendMessage);
+
         if (user.hasPermission(Permission.COMMAND_INVENTORY.node)
             && user.hasPermission(Permission.COMMAND_ENDER_CHEST.node)) {
             locales.getLocale("data_manager_item_buttons",

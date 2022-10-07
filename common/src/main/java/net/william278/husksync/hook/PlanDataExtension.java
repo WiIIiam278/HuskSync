@@ -10,7 +10,6 @@ import com.djrapitops.plan.extension.icon.Family;
 import com.djrapitops.plan.extension.icon.Icon;
 import com.djrapitops.plan.extension.table.Table;
 import com.djrapitops.plan.extension.table.TableColumnFormat;
-import net.william278.husksync.data.StatusData;
 import net.william278.husksync.data.UserDataSnapshot;
 import net.william278.husksync.database.Database;
 import net.william278.husksync.player.User;
@@ -114,9 +113,9 @@ public class PlanDataExtension implements DataExtension {
     )
     @Tab("Current Status")
     public String getCurrentDataId(@NotNull UUID uuid) {
-        return getCurrentUserData(uuid).join().map(
-                        versionedUserData -> versionedUserData.versionUUID().toString()
-                                .split(Pattern.quote("-"))[0])
+        return getCurrentUserData(uuid).join()
+                .map(versionedUserData -> versionedUserData.versionUUID().toString()
+                        .split(Pattern.quote("-"))[0])
                 .orElse(UNKNOWN_STRING);
     }
 
@@ -130,11 +129,9 @@ public class PlanDataExtension implements DataExtension {
     )
     @Tab("Current Status")
     public String getHealth(@NotNull UUID uuid) {
-        return getCurrentUserData(uuid).join().map(
-                        versionedUserData -> {
-                            final StatusData statusData = versionedUserData.userData().getStatusData();
-                            return (int) statusData.health + "/" + (int) statusData.maxHealth;
-                        })
+        return getCurrentUserData(uuid).join()
+                .flatMap(versionedUserData -> versionedUserData.userData().getStatus())
+                .map(statusData -> (int) statusData.health + "/" + (int) statusData.maxHealth)
                 .orElse(UNKNOWN_STRING);
     }
 
@@ -148,8 +145,9 @@ public class PlanDataExtension implements DataExtension {
     )
     @Tab("Current Status")
     public long getHunger(@NotNull UUID uuid) {
-        return getCurrentUserData(uuid).join().map(
-                        versionedUserData -> (long) versionedUserData.userData().getStatusData().hunger)
+        return getCurrentUserData(uuid).join()
+                .flatMap(versionedUserData -> versionedUserData.userData().getStatus())
+                .map(statusData -> (long) statusData.hunger)
                 .orElse(0L);
     }
 
@@ -163,8 +161,9 @@ public class PlanDataExtension implements DataExtension {
     )
     @Tab("Current Status")
     public long getExperienceLevel(@NotNull UUID uuid) {
-        return getCurrentUserData(uuid).join().map(
-                        versionedUserData -> (long) versionedUserData.userData().getStatusData().expLevel)
+        return getCurrentUserData(uuid).join()
+                .flatMap(versionedUserData -> versionedUserData.userData().getStatus())
+                .map(statusData -> (long) statusData.expLevel)
                 .orElse(0L);
     }
 
@@ -178,8 +177,9 @@ public class PlanDataExtension implements DataExtension {
     )
     @Tab("Current Status")
     public String getGameMode(@NotNull UUID uuid) {
-        return getCurrentUserData(uuid).join().map(
-                        versionedUserData -> versionedUserData.userData().getStatusData().gameMode.toLowerCase())
+        return getCurrentUserData(uuid).join()
+                .flatMap(versionedUserData -> versionedUserData.userData().getStatus())
+                .map(status -> status.gameMode)
                 .orElse(UNKNOWN_STRING);
     }
 
@@ -192,8 +192,9 @@ public class PlanDataExtension implements DataExtension {
     )
     @Tab("Current Status")
     public long getAdvancementsCompleted(@NotNull UUID playerUUID) {
-        return getCurrentUserData(playerUUID).join().map(
-                        versionedUserData -> (long) versionedUserData.userData().getAdvancementData().size())
+        return getCurrentUserData(playerUUID).join()
+                .flatMap(versionedUserData -> versionedUserData.userData().getAdvancements())
+                .map(advancementsData -> (long) advancementsData.size())
                 .orElse(0L);
     }
 
@@ -201,7 +202,7 @@ public class PlanDataExtension implements DataExtension {
     @TableProvider(tableColor = Color.LIGHT_BLUE)
     @Tab("Data Snapshots")
     public Table getDataSnapshots(@NotNull UUID playerUUID) {
-        Table.Factory dataSnapshotsTable = Table.builder()
+        final Table.Factory dataSnapshotsTable = Table.builder()
                 .columnOne("Time", new Icon(Family.SOLID, "clock", Color.NONE))
                 .columnOneFormat(TableColumnFormat.DATE_SECOND)
                 .columnTwo("ID", new Icon(Family.SOLID, "bolt", Color.NONE))

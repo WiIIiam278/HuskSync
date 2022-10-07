@@ -280,18 +280,14 @@ public class MpdbMigrator extends Migrator {
                 }
 
                 // Create user data record
-                return new UserData(new StatusData(20, 20, 0, 20, 10,
-                        1, 0, totalExp, expLevel, expProgress, "SURVIVAL",
-                        false),
-                        new ItemData(BukkitSerializer.serializeItemStackArray(inventory.getContents()).join()),
-                        new ItemData(BukkitSerializer.serializeItemStackArray(converter
-                                .getItemStackFromSerializedData(serializedEnderChest)).join()),
-                        new PotionEffectData(""), new ArrayList<>(),
-                        new StatisticsData(new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>()),
-                        new LocationData("world", UUID.randomUUID(), "NORMAL", 0, 0, 0,
-                                0f, 0f),
-                        new PersistentDataContainerData(new HashMap<>()),
-                        minecraftVersion);
+                return UserData.builder(minecraftVersion)
+                        .setStatus(new StatusData(20, 20, 0, 20, 10,
+                                1, 0, totalExp, expLevel, expProgress, "SURVIVAL",
+                                false))
+                        .setInventory(new ItemData(BukkitSerializer.serializeItemStackArray(inventory.getContents()).join()))
+                        .setEnderChest(new ItemData(BukkitSerializer.serializeItemStackArray(converter
+                                .getItemStackFromSerializedData(serializedEnderChest)).join()))
+                        .build();
             });
         }
     }

@@ -66,7 +66,7 @@ public class HuskSyncAPI extends BaseHuskSyncAPI {
         return CompletableFuture.runAsync(() -> getUserData(user).thenAccept(userData ->
                 userData.ifPresent(data -> serializeItemStackArray(inventoryContents)
                         .thenAccept(serializedInventory -> {
-                            data.getInventoryData().serializedItems = serializedInventory;
+                            data.getInventory().orElse(ItemData.empty()).serializedItems = serializedInventory;
                             setUserData(user, data).join();
                         }))));
     }
@@ -95,7 +95,7 @@ public class HuskSyncAPI extends BaseHuskSyncAPI {
         return CompletableFuture.runAsync(() -> getUserData(user).thenAccept(userData ->
                 userData.ifPresent(data -> serializeItemStackArray(enderChestContents)
                         .thenAccept(serializedInventory -> {
-                            data.getEnderChestData().serializedItems = serializedInventory;
+                            data.getEnderChest().orElse(ItemData.empty()).serializedItems = serializedInventory;
                             setUserData(user, data).join();
                         }))));
     }
@@ -106,12 +106,14 @@ public class HuskSyncAPI extends BaseHuskSyncAPI {
      * @param user the {@link User} to get the {@link BukkitInventoryMap} for
      * @return future returning the {@link BukkitInventoryMap} for the given {@link User} if they exist,
      * otherwise an empty {@link Optional}
+     * @apiNote If the {@link UserData} does not contain an inventory (i.e. inventory synchronisation is disabled), the
+     * returned {@link BukkitInventoryMap} will be equivalent an empty inventory.
      * @since 2.0
      */
     public CompletableFuture<Optional<BukkitInventoryMap>> getPlayerInventory(@NotNull User user) {
         return CompletableFuture.supplyAsync(() -> getUserData(user).join()
-                .map(userData -> deserializeInventory(userData
-                        .getInventoryData().serializedItems).join()));
+                .map(userData -> deserializeInventory(userData.getInventory()
+                        .orElse(ItemData.empty()).serializedItems).join()));
     }
 
     /**
@@ -120,12 +122,14 @@ public class HuskSyncAPI extends BaseHuskSyncAPI {
      * @param user the {@link User} to get the Ender Chest contents of
      * @return future returning the {@link ItemStack} array of Ender Chest items for the user if they exist,
      * otherwise an empty {@link Optional}
+     * @apiNote If the {@link UserData} does not contain an Ender Chest (i.e. Ender Chest synchronisation is disabled),
+     * the returned {@link BukkitInventoryMap} will be equivalent to an empty inventory.
      * @since 2.0
      */
     public CompletableFuture<Optional<ItemStack[]>> getPlayerEnderChest(@NotNull User user) {
         return CompletableFuture.supplyAsync(() -> getUserData(user).join()
-                .map(userData -> deserializeItemStackArray(userData
-                        .getEnderChestData().serializedItems).join()));
+                .map(userData -> deserializeItemStackArray(userData.getEnderChest()
+                        .orElse(ItemData.empty()).serializedItems).join()));
     }
 
     /**

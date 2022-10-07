@@ -11,7 +11,6 @@ import org.junit.jupiter.api.Test;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -22,28 +21,18 @@ public class DataAdaptionTests {
     @Test
     public void testJsonDataAdapter() {
         final OnlineUser dummyUser = DummyPlayer.create();
-        final AtomicBoolean isEquals = new AtomicBoolean(false);
         dummyUser.getUserData(new DummyLogger(), DummySettings.get()).join().ifPresent(dummyUserData -> {
             final DataAdapter dataAdapter = new JsonDataAdapter();
             final byte[] data = dataAdapter.toBytes(dummyUserData);
             final UserData deserializedUserData = dataAdapter.fromBytes(data);
 
-            isEquals.set(deserializedUserData.getInventoryData().serializedItems
-                                 .equals(dummyUserData.getInventoryData().serializedItems)
-                         && deserializedUserData.getEnderChestData().serializedItems
-                                 .equals(dummyUserData.getEnderChestData().serializedItems)
-                         && deserializedUserData.getPotionEffectsData().serializedPotionEffects
-                                 .equals(dummyUserData.getPotionEffectsData().serializedPotionEffects)
-                         && deserializedUserData.getStatusData().health == dummyUserData.getStatusData().health
-                         && deserializedUserData.getStatusData().hunger == dummyUserData.getStatusData().hunger
-                         && deserializedUserData.getStatusData().saturation == dummyUserData.getStatusData().saturation
-                         && deserializedUserData.getStatusData().saturationExhaustion == dummyUserData.getStatusData().saturationExhaustion
-                         && deserializedUserData.getStatusData().selectedItemSlot == dummyUserData.getStatusData().selectedItemSlot
-                         && deserializedUserData.getStatusData().totalExperience == dummyUserData.getStatusData().totalExperience
-                         && deserializedUserData.getStatusData().maxHealth == dummyUserData.getStatusData().maxHealth
-                         && deserializedUserData.getStatusData().healthScale == dummyUserData.getStatusData().healthScale);
+            // Assert all deserialized data is equal to the original data
+            Assertions.assertEquals(dummyUserData.getStatus(), deserializedUserData.getStatus());
+            Assertions.assertEquals(dummyUserData.getInventory(), deserializedUserData.getInventory());
+            Assertions.assertEquals(dummyUserData.getEnderChest(), deserializedUserData.getEnderChest());
+            Assertions.assertEquals(dummyUserData.getAdvancements(), deserializedUserData.getAdvancements());
+            Assertions.assertEquals(dummyUserData.getFormatVersion(), deserializedUserData.getFormatVersion());
         });
-        Assertions.assertTrue(isEquals.get());
     }
 
     @Test
@@ -62,28 +51,18 @@ public class DataAdaptionTests {
     @Test
     public void testCompressedDataAdapter() {
         final OnlineUser dummyUser = DummyPlayer.create();
-        AtomicBoolean isEquals = new AtomicBoolean(false);
         dummyUser.getUserData(new DummyLogger(), DummySettings.get()).join().ifPresent(dummyUserData -> {
             final DataAdapter dataAdapter = new CompressedDataAdapter();
             final byte[] data = dataAdapter.toBytes(dummyUserData);
             final UserData deserializedUserData = dataAdapter.fromBytes(data);
 
-            isEquals.set(deserializedUserData.getInventoryData().serializedItems
-                                 .equals(dummyUserData.getInventoryData().serializedItems)
-                         && deserializedUserData.getEnderChestData().serializedItems
-                                 .equals(dummyUserData.getEnderChestData().serializedItems)
-                         && deserializedUserData.getPotionEffectsData().serializedPotionEffects
-                                 .equals(dummyUserData.getPotionEffectsData().serializedPotionEffects)
-                         && deserializedUserData.getStatusData().health == dummyUserData.getStatusData().health
-                         && deserializedUserData.getStatusData().hunger == dummyUserData.getStatusData().hunger
-                         && deserializedUserData.getStatusData().saturation == dummyUserData.getStatusData().saturation
-                         && deserializedUserData.getStatusData().saturationExhaustion == dummyUserData.getStatusData().saturationExhaustion
-                         && deserializedUserData.getStatusData().selectedItemSlot == dummyUserData.getStatusData().selectedItemSlot
-                         && deserializedUserData.getStatusData().totalExperience == dummyUserData.getStatusData().totalExperience
-                         && deserializedUserData.getStatusData().maxHealth == dummyUserData.getStatusData().maxHealth
-                         && deserializedUserData.getStatusData().healthScale == dummyUserData.getStatusData().healthScale);
+            // Assert all deserialized data is equal to the original data
+            Assertions.assertEquals(dummyUserData.getStatus(), deserializedUserData.getStatus());
+            Assertions.assertEquals(dummyUserData.getInventory(), deserializedUserData.getInventory());
+            Assertions.assertEquals(dummyUserData.getEnderChest(), deserializedUserData.getEnderChest());
+            Assertions.assertEquals(dummyUserData.getAdvancements(), deserializedUserData.getAdvancements());
+            Assertions.assertEquals(dummyUserData.getFormatVersion(), deserializedUserData.getFormatVersion());
         });
-        Assertions.assertTrue(isEquals.get());
     }
 
     private String getTestSerializedPersistentDataContainer() {

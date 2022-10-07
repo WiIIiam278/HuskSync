@@ -287,13 +287,16 @@ public class LegacyMigrator extends Migrator {
                             legacyLocationData == null ? 90f : legacyLocationData.yaw(),
                             legacyLocationData == null ? 180f : legacyLocationData.pitch());
 
-                    return new UserData(new StatusData(health, maxHealth, healthScale, hunger, saturation,
-                            saturationExhaustion, selectedSlot, totalExp, expLevel, expProgress, gameMode, isFlying),
-                            new ItemData(serializedInventory), new ItemData(serializedEnderChest),
-                            new PotionEffectData(serializedPotionEffects), convertedAdvancements,
-                            convertedStatisticData, convertedLocationData,
-                            new PersistentDataContainerData(new HashMap<>()),
-                            minecraftVersion);
+                    return UserData.builder(minecraftVersion)
+                            .setStatus(new StatusData(health, maxHealth, healthScale, hunger, saturation,
+                                    saturationExhaustion, selectedSlot, totalExp, expLevel, expProgress, gameMode, isFlying))
+                            .setInventory(new ItemData(serializedInventory))
+                            .setEnderChest(new ItemData(serializedEnderChest))
+                            .setPotionEffects(new PotionEffectData(serializedPotionEffects))
+                            .setAdvancements(convertedAdvancements)
+                            .setStatistics(convertedStatisticData)
+                            .setLocation(convertedLocationData)
+                            .build();
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }

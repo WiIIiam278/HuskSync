@@ -14,6 +14,16 @@ public class ItemData {
     @SerializedName("serialized_items")
     public String serializedItems;
 
+    /**
+     * Get an empty item data object, representing an empty inventory or Ender Chest
+     *
+     * @return an empty item data object
+     */
+    @NotNull
+    public static ItemData empty() {
+        return new ItemData("");
+    }
+
     public ItemData(@NotNull final String serializedItems) {
         this.serializedItems = serializedItems;
     }

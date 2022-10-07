@@ -165,73 +165,6 @@ public abstract class OnlineUser extends User {
     public abstract Version getMinecraftVersion();
 
     /**
-     * Set {@link UserData} to a player
-     *
-     * @param data     The data to set
-     * @param settings Plugin settings, for determining what needs setting
-     * @return a future returning a boolean when complete; if the sync was successful, the future will return {@code true}
-     */
-    public final CompletableFuture<Boolean> setData(@NotNull UserData data, @NotNull Settings settings,
-                                                    @NotNull EventCannon eventCannon, @NotNull Logger logger,
-                                                    @NotNull Version serverMinecraftVersion) {
-        return CompletableFuture.supplyAsync(() -> {
-            // Prevent synchronising user data from newer versions of Minecraft
-            if (Version.fromMinecraftVersionString(data.getMinecraftVersion()).compareTo(serverMinecraftVersion) > 0) {
-                logger.log(Level.SEVERE, "Cannot set data for " + username +
-                                         " because the Minecraft version of their user data (" + data.getMinecraftVersion() +
-                                         ") is newer than the server's Minecraft version (" + serverMinecraftVersion + ").");
-                return false;
-            }
-            // Prevent synchronising user data from newer versions of the plugin
-            if (data.getFormatVersion() > UserData.CURRENT_FORMAT_VERSION) {
-                logger.log(Level.SEVERE, "Cannot set data for " + username +
-                                         " because the format version of their user data (v" + data.getFormatVersion() +
-                                         ") is newer than the current format version (v" + UserData.CURRENT_FORMAT_VERSION + ").");
-                return false;
-            }
-
-            // Fire the PreSyncEvent
-            final PreSyncEvent preSyncEvent = (PreSyncEvent) eventCannon.firePreSyncEvent(this, data).join();
-            final UserData finalData = preSyncEvent.getUserData();
-            final List<CompletableFuture<Void>> dataSetOperations = new ArrayList<>() {{
-                if (!isOffline() && !preSyncEvent.isCancelled()) {
-                    if (settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_INVENTORIES)) {
-                        add(setInventory(finalData.getInventoryData()));
-                    }
-                    if (settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_ENDER_CHESTS)) {
-                        add(setEnderChest(finalData.getEnderChestData()));
-                    }
-                    add(setStatus(finalData.getStatusData(), StatusDataFlag.getFromSettings(settings)));
-                    if (settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_POTION_EFFECTS)) {
-                        add(setPotionEffects(finalData.getPotionEffectsData()));
-                    }
-                    if (settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_ADVANCEMENTS)) {
-                        add(setAdvancements(finalData.getAdvancementData()));
-                    }
-                    if (settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_STATISTICS)) {
-                        add(setStatistics(finalData.getStatisticsData()));
-                    }
-                    if (settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_LOCATION)) {
-                        add(setLocation(finalData.getLocationData()));
-                    }
-                    if (settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_PERSISTENT_DATA_CONTAINER)) {
-                        add(setPersistentDataContainer(finalData.getPersistentDataContainerData()));
-                    }
-                }
-            }};
-            // Apply operations in parallel, join when complete
-            return CompletableFuture.allOf(dataSetOperations.toArray(new CompletableFuture[0])).thenApply(unused -> true)
-                    .exceptionally(exception -> {
-                        // Handle synchronisation exceptions
-                        logger.log(Level.SEVERE, "Failed to set data for player " + username + " (" + exception.getMessage() + ")");
-                        exception.printStackTrace();
-                        return false;
-                    }).join();
-        });
-
-    }
-
-    /**
      * Dispatch a MineDown-formatted message to this player
      *
      * @param mineDown the parsed {@link MineDown} to send
@@ -268,10 +201,88 @@ public abstract class OnlineUser extends User {
     public abstract boolean isDead();
 
     /**
-     * Get the player's current {@link UserData} in an {@link Optional}
+     * Apply {@link UserData} to a player, updating their inventory, status, statistics, etc. as per the config.
      * <p>
-     * If the {@code SYNCHRONIZATION_SAVE_DEAD_PLAYER_INVENTORIES} ConfigOption has been set,
-     * the user's inventory will only be returned if they are alive
+     * This will only set data that is enabled as per the enabled settings in the config file.
+     * Data present in the {@link UserData} object, but not enabled to be set in the config, will be ignored.
+     *
+     * @param data                   The {@link UserData} to set to the player
+     * @param settings               The plugin {@link Settings} to determine which data to set
+     * @param eventCannon            The {@link EventCannon} to fire the synchronisation events
+     * @param logger                 The {@link Logger} for debug and error logging
+     * @param serverMinecraftVersion The server's Minecraft version, for validating the format of the {@link UserData}
+     * @return a future returning a boolean when complete; if the sync was successful, the future will return {@code true}.
+     */
+    public final CompletableFuture<Boolean> setData(@NotNull UserData data, @NotNull Settings settings,
+                                                    @NotNull EventCannon eventCannon, @NotNull Logger logger,
+                                                    @NotNull Version serverMinecraftVersion) {
+        return CompletableFuture.supplyAsync(() -> {
+            // Prevent synchronising user data from newer versions of Minecraft
+            if (Version.fromMinecraftVersionString(data.getMinecraftVersion()).compareTo(serverMinecraftVersion) > 0) {
+                logger.log(Level.SEVERE, "Cannot set data for " + username +
+                                         " because the Minecraft version of their user data (" + data.getMinecraftVersion() +
+                                         ") is newer than the server's Minecraft version (" + serverMinecraftVersion + ").");
+                return false;
+            }
+            // Prevent synchronising user data from newer versions of the plugin
+            if (data.getFormatVersion() > UserData.CURRENT_FORMAT_VERSION) {
+                logger.log(Level.SEVERE, "Cannot set data for " + username +
+                                         " because the format version of their user data (v" + data.getFormatVersion() +
+                                         ") is newer than the current format version (v" + UserData.CURRENT_FORMAT_VERSION + ").");
+                return false;
+            }
+
+            // Fire the PreSyncEvent
+            final PreSyncEvent preSyncEvent = (PreSyncEvent) eventCannon.firePreSyncEvent(this, data).join();
+            final UserData finalData = preSyncEvent.getUserData();
+            final List<CompletableFuture<Void>> dataSetOperations = new ArrayList<>() {{
+                if (!isOffline() && !preSyncEvent.isCancelled()) {
+                    if (settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_INVENTORIES)) {
+                        finalData.getInventory().ifPresent(itemData -> add(setInventory(itemData)));
+                    }
+                    if (settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_ENDER_CHESTS)) {
+                        finalData.getEnderChest().ifPresent(itemData -> add(setEnderChest(itemData)));
+                    }
+                    finalData.getStatus().ifPresent(statusData -> add(setStatus(statusData,
+                            StatusDataFlag.getFromSettings(settings))));
+                    if (settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_POTION_EFFECTS)) {
+                        finalData.getPotionEffects().ifPresent(potionEffectData -> add(setPotionEffects(potionEffectData)));
+                    }
+                    if (settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_ADVANCEMENTS)) {
+                        finalData.getAdvancements().ifPresent(advancementData -> add(setAdvancements(advancementData)));
+                    }
+                    if (settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_STATISTICS)) {
+                        finalData.getStatistics().ifPresent(statisticData -> add(setStatistics(statisticData)));
+                    }
+                    if (settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_LOCATION)) {
+                        finalData.getLocation().ifPresent(locationData -> add(setLocation(locationData)));
+                    }
+                    if (settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_PERSISTENT_DATA_CONTAINER)) {
+                        finalData.getPersistentDataContainer().ifPresent(persistentDataContainerData ->
+                                add(setPersistentDataContainer(persistentDataContainerData)));
+                    }
+                }
+            }};
+            // Apply operations in parallel, join when complete
+            return CompletableFuture.allOf(dataSetOperations.toArray(new CompletableFuture[0])).thenApply(unused -> true)
+                    .exceptionally(exception -> {
+                        // Handle synchronisation exceptions
+                        logger.log(Level.SEVERE, "Failed to set data for player " + username + " (" + exception.getMessage() + ")");
+                        exception.printStackTrace();
+                        return false;
+                    }).join();
+        });
+
+    }
+
+    /**
+     * Get the player's current {@link UserData} in an {@link Optional}.
+     * <p>
+     * Since v2.1, this method will respect the data synchronisation settings; user data will only be as big as the
+     * enabled synchronisation values set in the config file
+     * <p>
+     * Also note that if the {@code SYNCHRONIZATION_SAVE_DEAD_PLAYER_INVENTORIES} ConfigOption has been set,
+     * the user's inventory will only be returned if the player is alive.
      * <p>
      * If the user data could not be returned due to an exception, the optional will return empty
      *
@@ -279,12 +290,43 @@ public abstract class OnlineUser extends User {
      * @return the player's current {@link UserData} in an optional; empty if an exception occurs
      */
     public final CompletableFuture<Optional<UserData>> getUserData(@NotNull Logger logger, @NotNull Settings settings) {
-        return CompletableFuture.supplyAsync(() -> Optional.of(new UserData(getStatus().join(),
-                        (settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SAVE_DEAD_PLAYER_INVENTORIES)
-                                ? getInventory().join() : (isDead() ? new ItemData("") : getInventory().join())),
-                        getEnderChest().join(), getPotionEffects().join(), getAdvancements().join(),
-                        getStatistics().join(), getLocation().join(), getPersistentDataContainer().join(),
-                        getMinecraftVersion().toString())))
+        return CompletableFuture.supplyAsync(() -> {
+                    final UserDataBuilder builder = UserData.builder(getMinecraftVersion());
+                    final List<CompletableFuture<Void>> dataGetOperations = new ArrayList<>() {{
+                        if (!isOffline()) {
+                            if (settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_INVENTORIES)) {
+                                if (isDead() && settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SAVE_DEAD_PLAYER_INVENTORIES)) {
+                                    add(CompletableFuture.runAsync(() -> builder.setInventory(ItemData.empty())));
+                                } else {
+                                    add(getInventory().thenAccept(builder::setInventory));
+                                }
+                            }
+                            if (settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_ENDER_CHESTS)) {
+                                add(getEnderChest().thenAccept(builder::setEnderChest));
+                            }
+                            add(getStatus().thenAccept(builder::setStatus));
+                            if (settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_POTION_EFFECTS)) {
+                                add(getPotionEffects().thenAccept(builder::setPotionEffects));
+                            }
+                            if (settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_ADVANCEMENTS)) {
+                                add(getAdvancements().thenAccept(builder::setAdvancements));
+                            }
+                            if (settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_STATISTICS)) {
+                                add(getStatistics().thenAccept(builder::setStatistics));
+                            }
+                            if (settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_LOCATION)) {
+                                add(getLocation().thenAccept(builder::setLocation));
+                            }
+                            if (settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_PERSISTENT_DATA_CONTAINER)) {
+                                add(getPersistentDataContainer().thenAccept(builder::setPersistentDataContainer));
+                            }
+                        }
+                    }};
+
+                    // Apply operations in parallel, join when complete
+                    CompletableFuture.allOf(dataGetOperations.toArray(new CompletableFuture[0])).join();
+                    return Optional.of(builder.build());
+                })
                 .exceptionally(exception -> {
                     logger.log(Level.SEVERE, "Failed to get user data from online player " + username + " (" + exception.getMessage() + ")");
                     exception.printStackTrace();

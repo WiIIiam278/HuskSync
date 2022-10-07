@@ -1,6 +1,7 @@
 package net.william278.husksync.data;
 
 import com.google.gson.annotations.SerializedName;
+import net.william278.desertwell.Version;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -86,12 +87,28 @@ public class UserData {
      * Stores the version of the data format being used
      */
     @SerializedName("format_version")
-    protected int formatVersion;
+    protected int formatVersion = CURRENT_FORMAT_VERSION;
 
-    public UserData(@NotNull StatusData statusData, @NotNull ItemData inventoryData,
-                    @NotNull ItemData enderChestData, @NotNull PotionEffectData potionEffectData,
-                    @NotNull List<AdvancementData> advancementData, @NotNull StatisticsData statisticData,
-                    @NotNull LocationData locationData, @NotNull PersistentDataContainerData persistentDataContainerData,
+    /**
+     * Create a new {@link UserData} object with the provided data
+     *
+     * @param statusData                  the user's status data ({@link StatusData})
+     * @param inventoryData               the user's inventory data ({@link ItemData})
+     * @param enderChestData              the user's ender chest data ({@link ItemData})
+     * @param potionEffectData            the user's potion effect data ({@link PotionEffectData})
+     * @param advancementData             the user's advancement data ({@link AdvancementData})
+     * @param statisticData               the user's statistic data ({@link StatisticsData})
+     * @param locationData                the user's location data ({@link LocationData})
+     * @param persistentDataContainerData the user's persistent data container data ({@link PersistentDataContainerData})
+     * @param minecraftVersion            the version of Minecraft this data was generated in (e.g. {@code "1.19.2"})
+     * @deprecated see {@link #builder(String)} or {@link #builder(Version)} to create a {@link UserDataBuilder}, which
+     * you can use to {@link UserDataBuilder#build()} a {@link UserData} instance with
+     */
+    @Deprecated(since = "2.1")
+    public UserData(@Nullable StatusData statusData, @Nullable ItemData inventoryData,
+                    @Nullable ItemData enderChestData, @Nullable PotionEffectData potionEffectData,
+                    @Nullable List<AdvancementData> advancementData, @Nullable StatisticsData statisticData,
+                    @Nullable LocationData locationData, @Nullable PersistentDataContainerData persistentDataContainerData,
                     @NotNull String minecraftVersion) {
         this.statusData = statusData;
         this.inventoryData = inventoryData;
@@ -102,7 +119,6 @@ public class UserData {
         this.locationData = locationData;
         this.persistentDataContainerData = persistentDataContainerData;
         this.minecraftVersion = minecraftVersion;
-        this.formatVersion = CURRENT_FORMAT_VERSION;
     }
 
     // Empty constructor to facilitate json serialization
@@ -312,5 +328,30 @@ public class UserData {
     public int getFormatVersion() {
         return formatVersion;
     }
+
+    /**
+     * Get a new {@link UserDataBuilder} for creating {@link UserData}
+     *
+     * @param minecraftVersion the version of Minecraft this data was generated in (e.g. {@code "1.19.2"})
+     * @return a UserData {@link UserDataBuilder} instance
+     * @since 2.1
+     */
+    @NotNull
+    public static UserDataBuilder builder(@NotNull String minecraftVersion) {
+        return new UserDataBuilder(minecraftVersion);
+    }
+
+    /**
+     * Get a new {@link UserDataBuilder} for creating {@link UserData}
+     *
+     * @param minecraftVersion a {@link Version} object, representing the Minecraft version this data was generated in
+     * @return a UserData {@link UserDataBuilder} instance
+     * @since 2.1
+     */
+    @NotNull
+    public static UserDataBuilder builder(@NotNull Version minecraftVersion) {
+        return builder(minecraftVersion.toStringWithoutMetadata());
+    }
+
 
 }

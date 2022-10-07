@@ -1,6 +1,5 @@
 package net.william278.husksync.logger;
 
-import de.themoep.minedown.adventure.MineDown;
 import net.william278.husksync.util.Logger;
 import org.jetbrains.annotations.NotNull;
 
