@@ -17,7 +17,7 @@ import java.util.StringJoiner;
 import java.util.logging.Level;
 
 /**
- * Utility class for dumping {@link UserDataSnapshot}s to a file
+ * Utility class for dumping {@link UserDataSnapshot}s to a file or as a paste on the web
  */
 public class DataDumper {
 
