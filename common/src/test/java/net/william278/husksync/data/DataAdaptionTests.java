@@ -25,10 +25,9 @@ public class DataAdaptionTests {
             final UserData deserializedUserData = dataAdapter.fromBytes(data);
 
             // Assert all deserialized data is equal to the original data
-            Assertions.assertEquals(dummyUserData.getStatus(), deserializedUserData.getStatus());
-            Assertions.assertEquals(dummyUserData.getInventory(), deserializedUserData.getInventory());
-            Assertions.assertEquals(dummyUserData.getEnderChest(), deserializedUserData.getEnderChest());
-            Assertions.assertEquals(dummyUserData.getAdvancements(), deserializedUserData.getAdvancements());
+            Assertions.assertTrue(dummyUserData.getInventory().isPresent());
+            Assertions.assertTrue(deserializedUserData.getInventory().isPresent());
+            Assertions.assertEquals(dummyUserData.getInventory().get().serializedItems, deserializedUserData.getInventory().get().serializedItems);
             Assertions.assertEquals(dummyUserData.getFormatVersion(), deserializedUserData.getFormatVersion());
         });
     }
@@ -36,7 +35,7 @@ public class DataAdaptionTests {
     @Test
     public void testJsonFormat() {
         final OnlineUser dummyUser = DummyPlayer.create();
-        final String expectedJson = "{\"status\":{\"health\":20.0,\"max_health\":20.0,\"health_scale\":0.0,\"hunger\":20,\"saturation\":5.0,\"saturation_exhaustion\":5.0,\"selected_item_slot\":1,\"total_experience\":100,\"experience_level\":1,\"experience_progress\":1.0,\"game_mode\":\"SURVIVAL\",\"is_flying\":false},\"inventory\":{\"serialized_items\":\"\"},\"ender_chest\":{\"serialized_items\":\"\"},\"potion_effects\":{\"serialized_potion_effects\":\"\"},\"advancements\":[],\"statistics\":{\"untyped_statistics\":{},\"block_statistics\":{},\"item_statistics\":{},\"entity_statistics\":{}},\"location\":{\"world_name\":\"dummy_world\",\"world_uuid\":\"00000000-0000-0000-0000-000000000000\",\"world_environment\":\"NORMAL\",\"x\":0.0,\"y\":64.0,\"z\":0.0,\"yaw\":90.0,\"pitch\":180.0},\"persistent_data_container\":{\"persistent_data_map\":{}},\"minecraft_version\":\"1.19-beta123456\",\"format_version\":2}";
+        final String expectedJson = "{\"status\":{\"health\":20.0,\"max_health\":20.0,\"health_scale\":0.0,\"hunger\":20,\"saturation\":5.0,\"saturation_exhaustion\":5.0,\"selected_item_slot\":1,\"total_experience\":100,\"experience_level\":1,\"experience_progress\":1.0,\"game_mode\":\"SURVIVAL\",\"is_flying\":false},\"inventory\":{\"serialized_items\":\"\"},\"ender_chest\":{\"serialized_items\":\"\"},\"potion_effects\":{\"serialized_potion_effects\":\"\"},\"advancements\":[],\"statistics\":{\"untyped_statistics\":{},\"block_statistics\":{},\"item_statistics\":{},\"entity_statistics\":{}},\"minecraft_version\":\"1.19\",\"format_version\":3}";
         AtomicReference<String> json = new AtomicReference<>();
         dummyUser.getUserData(new DummyLogger(), new Settings()).join().ifPresent(dummyUserData -> {
             final DataAdapter dataAdapter = new JsonDataAdapter();
@@ -55,10 +54,9 @@ public class DataAdaptionTests {
             final UserData deserializedUserData = dataAdapter.fromBytes(data);
 
             // Assert all deserialized data is equal to the original data
-            Assertions.assertEquals(dummyUserData.getStatus(), deserializedUserData.getStatus());
-            Assertions.assertEquals(dummyUserData.getInventory(), deserializedUserData.getInventory());
-            Assertions.assertEquals(dummyUserData.getEnderChest(), deserializedUserData.getEnderChest());
-            Assertions.assertEquals(dummyUserData.getAdvancements(), deserializedUserData.getAdvancements());
+            Assertions.assertTrue(dummyUserData.getInventory().isPresent());
+            Assertions.assertTrue(deserializedUserData.getInventory().isPresent());
+            Assertions.assertEquals(dummyUserData.getInventory().get().serializedItems, deserializedUserData.getInventory().get().serializedItems);
             Assertions.assertEquals(dummyUserData.getFormatVersion(), deserializedUserData.getFormatVersion());
         });
     }
@@ -82,7 +80,7 @@ public class DataAdaptionTests {
 
     @Test
     public void testPersistentDataContainerSerialization() {
-        Assertions.assertEquals(getTestSerializedPersistentDataContainer(), "{\"persistent_data_container\":{\"persistent_data_map\":{\"husksync:int_test\":{\"type\":\"INTEGER\",\"value\":3},\"husksync:string_test\":{\"type\":\"STRING\",\"value\":\"test\"},\"husksync:long_test\":{\"type\":\"LONG\",\"value\":4},\"husksync:byte_test\":{\"type\":\"BYTE\",\"value\":1},\"husksync:short_test\":{\"type\":\"SHORT\",\"value\":6},\"husksync:double_test\":{\"type\":\"DOUBLE\",\"value\":2.0},\"husksync:float_test\":{\"type\":\"FLOAT\",\"value\":5.0}}},\"format_version\":0}");
+        Assertions.assertEquals(getTestSerializedPersistentDataContainer(), "{\"persistent_data_container\":{\"persistent_data_map\":{\"husksync:int_test\":{\"type\":\"INTEGER\",\"value\":3},\"husksync:string_test\":{\"type\":\"STRING\",\"value\":\"test\"},\"husksync:long_test\":{\"type\":\"LONG\",\"value\":4},\"husksync:byte_test\":{\"type\":\"BYTE\",\"value\":1},\"husksync:short_test\":{\"type\":\"SHORT\",\"value\":6},\"husksync:double_test\":{\"type\":\"DOUBLE\",\"value\":2.0},\"husksync:float_test\":{\"type\":\"FLOAT\",\"value\":5.0}}},\"format_version\":3}");
     }
 
 
