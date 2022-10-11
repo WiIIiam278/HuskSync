@@ -1,12 +1,7 @@
 package net.william278.husksync;
 
-import dev.dejvokep.boostedyaml.YamlDocument;
-import dev.dejvokep.boostedyaml.dvs.versioning.BasicVersioning;
-import dev.dejvokep.boostedyaml.settings.dumper.DumperSettings;
-import dev.dejvokep.boostedyaml.settings.general.GeneralSettings;
-import dev.dejvokep.boostedyaml.settings.loader.LoaderSettings;
-import dev.dejvokep.boostedyaml.settings.updater.UpdaterSettings;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
+import net.william278.annotaml.Annotaml;
 import net.william278.desertwell.Version;
 import net.william278.husksync.command.BukkitCommand;
 import net.william278.husksync.command.BukkitCommandType;
@@ -45,6 +40,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -102,14 +98,14 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync {
             getLoggingAdapter().log(Level.INFO, "Loading plugin configuration settings & locales...");
             initialized.set(reload().join());
             if (initialized.get()) {
-                logger.showDebugLogs(settings.getBooleanValue(Settings.ConfigOption.DEBUG_LOGGING));
+                logger.showDebugLogs(settings.debugLogging);
                 getLoggingAdapter().log(Level.INFO, "Successfully loaded plugin configuration settings & locales");
             } else {
                 throw new HuskSyncInitializationException("Failed to load plugin configuration settings and/or locales");
             }
 
             // Prepare data adapter
-            if (settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_COMPRESS_DATA)) {
+            if (settings.compressData) {
                 dataAdapter = new CompressedDataAdapter();
             } else {
                 dataAdapter = new JsonDataAdapter();
@@ -189,7 +185,7 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync {
             }
 
             // Check for updates
-            if (settings.getBooleanValue(Settings.ConfigOption.CHECK_FOR_UPDATES)) {
+            if (settings.checkForUpdates) {
                 getLoggingAdapter().log(Level.INFO, "Checking for updates...");
                 getLatestVersionIfOutdated().thenAccept(newestVersion ->
                         newestVersion.ifPresent(newVersion -> getLoggingAdapter().log(Level.WARNING,
@@ -325,11 +321,17 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync {
     public CompletableFuture<Boolean> reload() {
         return CompletableFuture.supplyAsync(() -> {
             try {
-                this.settings = Settings.load(YamlDocument.create(new File(getDataFolder(), "config.yml"), Objects.requireNonNull(resourceReader.getResource("config.yml")), GeneralSettings.builder().setUseDefaults(false).build(), LoaderSettings.builder().setAutoUpdate(true).build(), DumperSettings.builder().setEncoding(DumperSettings.Encoding.UNICODE).build(), UpdaterSettings.builder().setVersioning(new BasicVersioning("config_version")).build()));
+                // Load plugin settings
+                this.settings = Annotaml.create(new File(getDataFolder(), "config.yml"), new Settings()).get();
 
-                this.locales = Locales.load(YamlDocument.create(new File(getDataFolder(), "messages-" + settings.getStringValue(Settings.ConfigOption.LANGUAGE) + ".yml"), Objects.requireNonNull(resourceReader.getResource("locales/" + settings.getStringValue(Settings.ConfigOption.LANGUAGE) + ".yml"))));
+                // Load locales from language preset default
+                final Locales languagePresets = Annotaml.create(Locales.class,
+                        Objects.requireNonNull(getResource("locales/" + settings.language + ".yml"))).get();
+                this.locales = Annotaml.create(new File(getDataFolder(), "messages_" + settings.language + ".yml"),
+                        languagePresets).get();
                 return true;
-            } catch (IOException | NullPointerException e) {
+            } catch (IOException | NullPointerException | InvocationTargetException | IllegalAccessException |
+                     InstantiationException e) {
                 getLoggingAdapter().log(Level.SEVERE, "Failed to load data from the config", e);
                 return false;
             }

@@ -5,6 +5,7 @@ import de.themoep.minedown.adventure.MineDownParser;
 import net.kyori.adventure.audience.Audience;
 import net.william278.desertwell.Version;
 import net.william278.husksync.BukkitHuskSync;
+import net.william278.husksync.config.Settings;
 import net.william278.husksync.data.*;
 import net.william278.husksync.editor.ItemEditorMenu;
 import org.bukkit.*;
@@ -83,19 +84,18 @@ public class BukkitPlayer extends OnlineUser {
     }
 
     @Override
-    public CompletableFuture<Void> setStatus(@NotNull StatusData statusData,
-                                             @NotNull List<StatusDataFlag> statusDataFlags) {
+    public CompletableFuture<Void> setStatus(@NotNull StatusData statusData, @NotNull Settings settings) {
         return CompletableFuture.runAsync(() -> {
             double currentMaxHealth = Objects.requireNonNull(player.getAttribute(Attribute.GENERIC_MAX_HEALTH))
                     .getBaseValue();
-            if (statusDataFlags.contains(StatusDataFlag.SET_MAX_HEALTH)) {
+            if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.MAX_HEALTH)) {
                 if (statusData.maxHealth != 0d) {
                     Objects.requireNonNull(player.getAttribute(Attribute.GENERIC_MAX_HEALTH))
                             .setBaseValue(statusData.maxHealth);
                     currentMaxHealth = statusData.maxHealth;
                 }
             }
-            if (statusDataFlags.contains(StatusDataFlag.SET_HEALTH)) {
+            if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.HEALTH)) {
                 final double currentHealth = player.getHealth();
                 if (statusData.health != currentHealth) {
                     final double healthToSet = currentHealth > currentMaxHealth ? currentMaxHealth : statusData.health;
@@ -113,24 +113,24 @@ public class BukkitPlayer extends OnlineUser {
                 }
                 player.setHealthScaled(statusData.healthScale != 0D);
             }
-            if (statusDataFlags.contains(StatusDataFlag.SET_HUNGER)) {
+            if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.HUNGER)) {
                 player.setFoodLevel(statusData.hunger);
                 player.setSaturation(statusData.saturation);
                 player.setExhaustion(statusData.saturationExhaustion);
             }
-            if (statusDataFlags.contains(StatusDataFlag.SET_SELECTED_ITEM_SLOT)) {
+            if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.INVENTORIES)) {
                 player.getInventory().setHeldItemSlot(statusData.selectedItemSlot);
             }
-            if (statusDataFlags.contains(StatusDataFlag.SET_EXPERIENCE)) {
+            if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.EXPERIENCE)) {
                 player.setTotalExperience(statusData.totalExperience);
                 player.setLevel(statusData.expLevel);
                 player.setExp(statusData.expProgress);
             }
-            if (statusDataFlags.contains(StatusDataFlag.SET_GAME_MODE)) {
+            if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.GAME_MODE)) {
                 Bukkit.getScheduler().runTask(BukkitHuskSync.getInstance(), () ->
                         player.setGameMode(GameMode.valueOf(statusData.gameMode)));
             }
-            if (statusDataFlags.contains(StatusDataFlag.SET_FLYING)) {
+            if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.LOCATION)) {
                 Bukkit.getScheduler().runTask(BukkitHuskSync.getInstance(), () -> {
                     if (statusData.isFlying) {
                         player.setAllowFlight(true);

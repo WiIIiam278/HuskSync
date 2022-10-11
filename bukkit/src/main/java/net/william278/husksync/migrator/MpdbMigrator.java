@@ -2,7 +2,6 @@ package net.william278.husksync.migrator;
 
 import com.zaxxer.hikari.HikariDataSource;
 import net.william278.husksync.BukkitHuskSync;
-import net.william278.husksync.config.Settings;
 import net.william278.husksync.data.*;
 import net.william278.husksync.player.User;
 import net.william278.mpdbconverter.MPDBConverter;
@@ -16,7 +15,9 @@ import org.jetbrains.annotations.NotNull;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
@@ -41,11 +42,11 @@ public class MpdbMigrator extends Migrator {
     public MpdbMigrator(@NotNull BukkitHuskSync plugin, @NotNull Plugin mySqlPlayerDataBridge) {
         super(plugin);
         this.mpdbConverter = MPDBConverter.getInstance(mySqlPlayerDataBridge);
-        this.sourceHost = plugin.getSettings().getStringValue(Settings.ConfigOption.DATABASE_HOST);
-        this.sourcePort = plugin.getSettings().getIntegerValue(Settings.ConfigOption.DATABASE_PORT);
-        this.sourceUsername = plugin.getSettings().getStringValue(Settings.ConfigOption.DATABASE_USERNAME);
-        this.sourcePassword = plugin.getSettings().getStringValue(Settings.ConfigOption.DATABASE_PASSWORD);
-        this.sourceDatabase = plugin.getSettings().getStringValue(Settings.ConfigOption.DATABASE_NAME);
+        this.sourceHost = plugin.getSettings().mySqlHost;
+        this.sourcePort = plugin.getSettings().mySqlPort;
+        this.sourceUsername = plugin.getSettings().mySqlUsername;
+        this.sourcePassword = plugin.getSettings().mySqlPassword;
+        this.sourceDatabase = plugin.getSettings().mySqlDatabase;
         this.sourceInventoryTable = "mpdb_inventory";
         this.sourceEnderChestTable = "mpdb_enderchest";
         this.sourceExperienceTable = "mpdb_experience";

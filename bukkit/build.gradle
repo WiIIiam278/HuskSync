@@ -12,6 +12,7 @@ dependencies {
     compileOnly 'dev.dejvokep:boosted-yaml:1.3'
     compileOnly 'com.zaxxer:HikariCP:5.0.1'
     compileOnly 'net.william278:DesertWell:1.1'
+    compileOnly 'net.william278:Annotaml:2.0'
 }
 
 shadowJar {
@@ -35,4 +36,5 @@ shadowJar {
     relocate 'org.bstats', 'net.william278.husksync.libraries.bstats'
     relocate 'net.william278.mpdbconverter', 'net.william278.husksync.libraries.mpdbconverter'
     relocate 'net.william278.hslmigrator', 'net.william278.husksync.libraries.hslconverter'
+    relocate 'net.william278.annotaml', 'net.william278.husksync.libraries.annotaml'
 }

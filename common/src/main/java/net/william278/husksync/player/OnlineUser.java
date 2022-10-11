@@ -39,9 +39,30 @@ public abstract class OnlineUser extends User {
      * @param statusData      the player's {@link StatusData}
      * @param statusDataFlags the flags to use for setting the status data
      * @return a future returning void when complete
+     * @deprecated Use {@link #setStatus(StatusData, Settings)} instead
+     */
+    @Deprecated(since = "2.1")
+    public final CompletableFuture<Void> setStatus(@NotNull StatusData statusData,
+                                                   @NotNull List<StatusDataFlag> statusDataFlags) {
+        final Settings settings = new Settings();
+        settings.synchronizationFeatures.put(Settings.SynchronizationFeature.HEALTH.name().toLowerCase(), statusDataFlags.contains(StatusDataFlag.SET_HEALTH));
+        settings.synchronizationFeatures.put(Settings.SynchronizationFeature.MAX_HEALTH.name().toLowerCase(), statusDataFlags.contains(StatusDataFlag.SET_MAX_HEALTH));
+        settings.synchronizationFeatures.put(Settings.SynchronizationFeature.HUNGER.name().toLowerCase(), statusDataFlags.contains(StatusDataFlag.SET_HUNGER));
+        settings.synchronizationFeatures.put(Settings.SynchronizationFeature.EXPERIENCE.name().toLowerCase(), statusDataFlags.contains(StatusDataFlag.SET_EXPERIENCE));
+        settings.synchronizationFeatures.put(Settings.SynchronizationFeature.INVENTORIES.name().toLowerCase(), statusDataFlags.contains(StatusDataFlag.SET_SELECTED_ITEM_SLOT));
+        settings.synchronizationFeatures.put(Settings.SynchronizationFeature.LOCATION.name().toLowerCase(), statusDataFlags.contains(StatusDataFlag.SET_GAME_MODE) || statusDataFlags.contains(StatusDataFlag.SET_FLYING));
+        return setStatus(statusData, settings);
+    }
+
+    /**
+     * Set the player's {@link StatusData}
+     *
+     * @param statusData the player's {@link StatusData}
+     * @param settings   settings, containing information about which features should be synced
+     * @return a future returning void when complete
      */
     public abstract CompletableFuture<Void> setStatus(@NotNull StatusData statusData,
-                                                      @NotNull List<StatusDataFlag> statusDataFlags);
+                                                      @NotNull Settings settings);
 
     /**
      * Get the player's inventory {@link ItemData} contents
@@ -237,27 +258,26 @@ public abstract class OnlineUser extends User {
             final UserData finalData = preSyncEvent.getUserData();
             final List<CompletableFuture<Void>> dataSetOperations = new ArrayList<>() {{
                 if (!isOffline() && !preSyncEvent.isCancelled()) {
-                    if (settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_INVENTORIES)) {
+                    if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.INVENTORIES)) {
                         finalData.getInventory().ifPresent(itemData -> add(setInventory(itemData)));
                     }
-                    if (settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_ENDER_CHESTS)) {
+                    if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.ENDER_CHESTS)) {
                         finalData.getEnderChest().ifPresent(itemData -> add(setEnderChest(itemData)));
                     }
-                    finalData.getStatus().ifPresent(statusData -> add(setStatus(statusData,
-                            StatusDataFlag.getFromSettings(settings))));
-                    if (settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_POTION_EFFECTS)) {
+                    finalData.getStatus().ifPresent(statusData -> add(setStatus(statusData, settings)));
+                    if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.POTION_EFFECTS)) {
                         finalData.getPotionEffects().ifPresent(potionEffectData -> add(setPotionEffects(potionEffectData)));
                     }
-                    if (settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_ADVANCEMENTS)) {
+                    if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.ADVANCEMENTS)) {
                         finalData.getAdvancements().ifPresent(advancementData -> add(setAdvancements(advancementData)));
                     }
-                    if (settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_STATISTICS)) {
+                    if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.STATISTICS)) {
                         finalData.getStatistics().ifPresent(statisticData -> add(setStatistics(statisticData)));
                     }
-                    if (settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_LOCATION)) {
+                    if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.LOCATION)) {
                         finalData.getLocation().ifPresent(locationData -> add(setLocation(locationData)));
                     }
-                    if (settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_PERSISTENT_DATA_CONTAINER)) {
+                    if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.PERSISTENT_DATA_CONTAINER)) {
                         finalData.getPersistentDataContainer().ifPresent(persistentDataContainerData ->
                                 add(setPersistentDataContainer(persistentDataContainerData)));
                     }
@@ -294,30 +314,30 @@ public abstract class OnlineUser extends User {
                     final UserDataBuilder builder = UserData.builder(getMinecraftVersion());
                     final List<CompletableFuture<Void>> dataGetOperations = new ArrayList<>() {{
                         if (!isOffline()) {
-                            if (settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_INVENTORIES)) {
-                                if (isDead() && settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SAVE_DEAD_PLAYER_INVENTORIES)) {
+                            if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.INVENTORIES)) {
+                                if (isDead() && settings.saveDeadPlayerInventories) {
                                     add(CompletableFuture.runAsync(() -> builder.setInventory(ItemData.empty())));
                                 } else {
                                     add(getInventory().thenAccept(builder::setInventory));
                                 }
                             }
-                            if (settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_ENDER_CHESTS)) {
+                            if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.ENDER_CHESTS)) {
                                 add(getEnderChest().thenAccept(builder::setEnderChest));
                             }
                             add(getStatus().thenAccept(builder::setStatus));
-                            if (settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_POTION_EFFECTS)) {
+                            if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.POTION_EFFECTS)) {
                                 add(getPotionEffects().thenAccept(builder::setPotionEffects));
                             }
-                            if (settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_ADVANCEMENTS)) {
+                            if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.ADVANCEMENTS)) {
                                 add(getAdvancements().thenAccept(builder::setAdvancements));
                             }
-                            if (settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_STATISTICS)) {
+                            if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.STATISTICS)) {
                                 add(getStatistics().thenAccept(builder::setStatistics));
                             }
-                            if (settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_LOCATION)) {
+                            if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.LOCATION)) {
                                 add(getLocation().thenAccept(builder::setLocation));
                             }
-                            if (settings.getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SYNC_PERSISTENT_DATA_CONTAINER)) {
+                            if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.PERSISTENT_DATA_CONTAINER)) {
                                 add(getPersistentDataContainer().thenAccept(builder::setPersistentDataContainer));
                             }
                         }

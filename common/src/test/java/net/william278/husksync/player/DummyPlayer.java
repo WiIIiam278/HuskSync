@@ -1,6 +1,7 @@
 package net.william278.husksync.player;
 
 import de.themoep.minedown.adventure.MineDown;
+import net.william278.husksync.config.Settings;
 import net.william278.husksync.data.*;
 import net.william278.husksync.editor.ItemEditorMenu;
 import net.william278.desertwell.Version;
@@ -31,7 +32,7 @@ public class DummyPlayer extends OnlineUser {
     }
 
     @Override
-    public CompletableFuture<Void> setStatus(@NotNull StatusData statusData, @NotNull List<StatusDataFlag> statusDataFlags) {
+    public CompletableFuture<Void> setStatus(@NotNull StatusData statusData, @NotNull Settings settings) {
         return CompletableFuture.runAsync(() -> {
             // do nothing
         });

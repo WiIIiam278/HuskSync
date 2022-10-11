@@ -1,32 +1,37 @@
 package net.william278.husksync.config;
 
 import de.themoep.minedown.adventure.MineDown;
-import dev.dejvokep.boostedyaml.YamlDocument;
+import net.william278.annotaml.YamlFile;
 import net.william278.paginedown.ListOptions;
 import org.apache.commons.text.StringEscapeUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 /**
- * Loaded locales used by the plugin to display various locales
+ * Loaded locales used by the plugin to display styled messages
  */
+@YamlFile(rootedMap = true, header = """
+        ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+        ┃      HuskHomes Locales       ┃
+        ┃    Developed by William278   ┃
+        ┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+        ┣╸ See plugin about menu for international locale credits
+        ┣╸ Formatted in MineDown: https://github.com/Phoenix616/MineDown
+        ┗╸ Translate HuskSync: https://william278.net/docs/husksync/Translations""")
 public class Locales {
 
+    /**
+     * The raw set of locales loaded from yaml
+     */
     @NotNull
-    private final HashMap<String, String> rawLocales;
-
-    private Locales(@NotNull YamlDocument localesConfig) {
-        this.rawLocales = new HashMap<>();
-        for (String localeId : localesConfig.getRoutesAsStrings(false)) {
-            rawLocales.put(localeId, localesConfig.getString(localeId));
-        }
-    }
+    public Map<String, String> rawLocales = new HashMap<>();
 
     /**
-     * Returns an un-formatted locale loaded from the locales file
+     * Returns a raw, un-formatted locale loaded from the locales file
      *
      * @param localeId String identifier of the locale, corresponding to a key in the file
      * @return An {@link Optional} containing the locale corresponding to the id, if it exists
@@ -36,7 +41,9 @@ public class Locales {
     }
 
     /**
-     * Returns an un-formatted locale loaded from the locales file, with replacements applied
+     * Returns a raw, un-formatted locale loaded from the locales file, with replacements applied
+     * <p>
+     * Note that replacements will not be MineDown-escaped; use {@link #escapeMineDown(String)} to escape replacements
      *
      * @param localeId     String identifier of the locale, corresponding to a key in the file
      * @param replacements Ordered array of replacement strings to fill in placeholders with
@@ -77,12 +84,13 @@ public class Locales {
      * @param replacements Ordered array of replacement strings to fill in placeholders with
      * @return the raw locale, with inserted placeholders
      */
+    @NotNull
     private String applyReplacements(@NotNull String rawLocale, @NotNull String... replacements) {
         int replacementIndexer = 1;
         for (String replacement : replacements) {
             String replacementString = "%" + replacementIndexer + "%";
             rawLocale = rawLocale.replace(replacementString, replacement);
-            replacementIndexer = replacementIndexer + 1;
+            replacementIndexer += 1;
         }
         return rawLocale;
     }
@@ -143,14 +151,8 @@ public class Locales {
                 .setSpaceBeforeFooter(false);
     }
 
-    /**
-     * Load the locales from a BoostedYaml {@link YamlDocument} locales file
-     *
-     * @param localesConfig The loaded {@link YamlDocument} locales.yml file
-     * @return the loaded {@link Locales}
-     */
-    public static Locales load(@NotNull YamlDocument localesConfig) {
-        return new Locales(localesConfig);
+    @SuppressWarnings("unused")
+    public Locales() {
     }
 
 }

@@ -4,7 +4,6 @@ import com.zaxxer.hikari.HikariDataSource;
 import me.william278.husksync.bukkit.data.DataSerializer;
 import net.william278.hslmigrator.HSLConverter;
 import net.william278.husksync.HuskSync;
-import net.william278.husksync.config.Settings;
 import net.william278.husksync.data.*;
 import net.william278.husksync.player.User;
 import org.bukkit.Material;
@@ -38,11 +37,11 @@ public class LegacyMigrator extends Migrator {
     public LegacyMigrator(@NotNull HuskSync plugin) {
         super(plugin);
         this.hslConverter = HSLConverter.getInstance();
-        this.sourceHost = plugin.getSettings().getStringValue(Settings.ConfigOption.DATABASE_HOST);
-        this.sourcePort = plugin.getSettings().getIntegerValue(Settings.ConfigOption.DATABASE_PORT);
-        this.sourceUsername = plugin.getSettings().getStringValue(Settings.ConfigOption.DATABASE_USERNAME);
-        this.sourcePassword = plugin.getSettings().getStringValue(Settings.ConfigOption.DATABASE_PASSWORD);
-        this.sourceDatabase = plugin.getSettings().getStringValue(Settings.ConfigOption.DATABASE_NAME);
+        this.sourceHost = plugin.getSettings().mySqlHost;
+        this.sourcePort = plugin.getSettings().mySqlPort;
+        this.sourceUsername = plugin.getSettings().mySqlUsername;
+        this.sourcePassword = plugin.getSettings().mySqlPassword;
+        this.sourceDatabase = plugin.getSettings().mySqlDatabase;
         this.sourcePlayersTable = "husksync_players";
         this.sourceDataTable = "husksync_data";
         this.minecraftVersion = plugin.getMinecraftVersion().toString();

@@ -1,7 +1,6 @@
 package net.william278.husksync.redis;
 
 import net.william278.husksync.HuskSync;
-import net.william278.husksync.config.Settings;
 import net.william278.husksync.data.UserData;
 import net.william278.husksync.player.User;
 import org.jetbrains.annotations.NotNull;
@@ -33,13 +32,13 @@ public class RedisManager {
 
     public RedisManager(@NotNull HuskSync plugin) {
         this.plugin = plugin;
-        clusterId = plugin.getSettings().getStringValue(Settings.ConfigOption.CLUSTER_ID);
+        clusterId = plugin.getSettings().clusterId;
 
         // Set redis credentials
-        this.redisHost = plugin.getSettings().getStringValue(Settings.ConfigOption.REDIS_HOST);
-        this.redisPort = plugin.getSettings().getIntegerValue(Settings.ConfigOption.REDIS_PORT);
-        this.redisPassword = plugin.getSettings().getStringValue(Settings.ConfigOption.REDIS_PASSWORD);
-        this.redisUseSsl = plugin.getSettings().getBooleanValue(Settings.ConfigOption.REDIS_USE_SSL);
+        this.redisHost = plugin.getSettings().redisHost;
+        this.redisPort = plugin.getSettings().redisPort;
+        this.redisPassword = plugin.getSettings().redisPassword;
+        this.redisUseSsl = plugin.getSettings().redisUseSsl;
 
         // Configure the jedis pool
         this.jedisPoolConfig = new JedisPoolConfig();

@@ -40,9 +40,9 @@ public class MySqlDatabase extends Database {
 
     private final int hikariMaximumPoolSize;
     private final int hikariMinimumIdle;
-    private final int hikariMaximumLifetime;
-    private final int hikariKeepAliveTime;
-    private final int hikariConnectionTimeOut;
+    private final long hikariMaximumLifetime;
+    private final long hikariKeepAliveTime;
+    private final long hikariConnectionTimeOut;
 
     private static final String DATA_POOL_NAME = "HuskSyncHikariPool";
 
@@ -53,21 +53,21 @@ public class MySqlDatabase extends Database {
 
     public MySqlDatabase(@NotNull Settings settings, @NotNull ResourceReader resourceReader, @NotNull Logger logger,
                          @NotNull DataAdapter dataAdapter, @NotNull EventCannon eventCannon) {
-        super(settings.getStringValue(Settings.ConfigOption.DATABASE_USERS_TABLE_NAME),
-                settings.getStringValue(Settings.ConfigOption.DATABASE_USER_DATA_TABLE_NAME),
-                Math.max(1, Math.min(20, settings.getIntegerValue(Settings.ConfigOption.SYNCHRONIZATION_MAX_USER_DATA_SNAPSHOTS))),
+        super(settings.getTableName(Settings.TableName.USERS),
+                settings.getTableName(Settings.TableName.USER_DATA),
+                Math.max(1, Math.min(20, settings.maxUserDataSnapshots)),
                 resourceReader, dataAdapter, eventCannon, logger);
-        this.mySqlHost = settings.getStringValue(Settings.ConfigOption.DATABASE_HOST);
-        this.mySqlPort = settings.getIntegerValue(Settings.ConfigOption.DATABASE_PORT);
-        this.mySqlDatabaseName = settings.getStringValue(Settings.ConfigOption.DATABASE_NAME);
-        this.mySqlUsername = settings.getStringValue(Settings.ConfigOption.DATABASE_USERNAME);
-        this.mySqlPassword = settings.getStringValue(Settings.ConfigOption.DATABASE_PASSWORD);
-        this.mySqlConnectionParameters = settings.getStringValue(Settings.ConfigOption.DATABASE_CONNECTION_PARAMS);
-        this.hikariMaximumPoolSize = settings.getIntegerValue(Settings.ConfigOption.DATABASE_CONNECTION_POOL_MAX_SIZE);
-        this.hikariMinimumIdle = settings.getIntegerValue(Settings.ConfigOption.DATABASE_CONNECTION_POOL_MIN_IDLE);
-        this.hikariMaximumLifetime = settings.getIntegerValue(Settings.ConfigOption.DATABASE_CONNECTION_POOL_MAX_LIFETIME);
-        this.hikariKeepAliveTime = settings.getIntegerValue(Settings.ConfigOption.DATABASE_CONNECTION_POOL_KEEPALIVE);
-        this.hikariConnectionTimeOut = settings.getIntegerValue(Settings.ConfigOption.DATABASE_CONNECTION_POOL_TIMEOUT);
+        this.mySqlHost = settings.mySqlHost;
+        this.mySqlPort = settings.mySqlPort;
+        this.mySqlDatabaseName = settings.mySqlDatabase;
+        this.mySqlUsername = settings.mySqlUsername;
+        this.mySqlPassword = settings.mySqlPassword;
+        this.mySqlConnectionParameters = settings.mySqlConnectionParameters;
+        this.hikariMaximumPoolSize = settings.mySqlConnectionPoolSize;
+        this.hikariMinimumIdle = settings.mySqlConnectionPoolIdle;
+        this.hikariMaximumLifetime = settings.mySqlConnectionPoolLifetime;
+        this.hikariKeepAliveTime = settings.mySqlConnectionPoolKeepAlive;
+        this.hikariConnectionTimeOut = settings.mySqlConnectionPoolTimeout;
     }
 
     /**

@@ -1,11 +1,10 @@
 package net.william278.husksync.listener;
 
 import net.william278.husksync.HuskSync;
-import net.william278.husksync.config.Settings;
-import net.william278.husksync.data.ItemData;
 import net.william278.husksync.data.DataSaveCause;
-import net.william278.husksync.player.OnlineUser;
+import net.william278.husksync.data.ItemData;
 import net.william278.husksync.editor.ItemEditorMenuType;
+import net.william278.husksync.player.OnlineUser;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashSet;
@@ -57,7 +56,7 @@ public abstract class EventListener {
         CompletableFuture.runAsync(() -> {
             try {
                 // Hold reading data for the network latency threshold, to ensure the source server has set the redis key
-                Thread.sleep(Math.max(0, plugin.getSettings().getIntegerValue(Settings.ConfigOption.SYNCHRONIZATION_NETWORK_LATENCY_MILLISECONDS)));
+                Thread.sleep(Math.max(0, plugin.getSettings().networkLatencyMilliseconds));
             } catch (InterruptedException e) {
                 plugin.getLoggingAdapter().log(Level.SEVERE, "An exception occurred handling a player join", e);
             } finally {
@@ -170,7 +169,7 @@ public abstract class EventListener {
      * @param usersInWorld a list of users in the world that is being saved
      */
     protected final void handleAsyncWorldSave(@NotNull List<OnlineUser> usersInWorld) {
-        if (disabling || !plugin.getSettings().getBooleanValue(Settings.ConfigOption.SYNCHRONIZATION_SAVE_ON_WORLD_SAVE)) {
+        if (disabling || !plugin.getSettings().saveOnWorldSave) {
             return;
         }
         usersInWorld.forEach(user -> user.getUserData(plugin.getLoggingAdapter(), plugin.getSettings()).join().ifPresent(
