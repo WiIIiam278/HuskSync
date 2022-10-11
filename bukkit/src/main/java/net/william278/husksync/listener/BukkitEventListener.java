@@ -131,9 +131,16 @@ public class BukkitEventListener extends EventListener implements Listener {
 
     @EventHandler(ignoreCancelled = true)
     public void onPlayerDeath(PlayerDeathEvent event) {
-        if (cancelPlayerEvent(BukkitPlayer.adapt(event.getEntity()))) {
+        final OnlineUser user = BukkitPlayer.adapt(event.getEntity());
+
+        // If the player is locked or the plugin disabling, clear their death drops and return
+        if (cancelPlayerEvent(user)) {
             event.getDrops().clear();
+            return;
         }
+
+        // Handle their death, e.g. if we need to save their inventory
+        super.handlePlayerDeath(user);
     }
 
 }

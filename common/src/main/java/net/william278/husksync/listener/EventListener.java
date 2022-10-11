@@ -177,6 +177,20 @@ public abstract class EventListener {
     }
 
     /**
+     * Asynchronously handles a player death
+     *
+     * @param user The user who died
+     */
+    protected void handlePlayerDeath(@NotNull OnlineUser user) {
+        if (disabling || !plugin.getSettings().saveOnDeath) {
+            return;
+        }
+        user.getUserData(plugin.getLoggingAdapter(), plugin.getSettings())
+                .thenAccept(data -> data.ifPresent(userData -> plugin.getDatabase()
+                        .setUserData(user, userData, DataSaveCause.DEATH)));
+    }
+
+    /**
      * Handle an inventory menu closing
      *
      * @param user          The user who closed the menu

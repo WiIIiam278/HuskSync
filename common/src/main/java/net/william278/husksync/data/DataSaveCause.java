@@ -27,6 +27,12 @@ public enum DataSaveCause {
      */
     WORLD_SAVE,
     /**
+     * Indicates data saved when the user died
+     *
+     * @since 2.1
+     */
+    DEATH,
+    /**
      * Indicates data saved when the server shut down
      *
      * @since 2.0
