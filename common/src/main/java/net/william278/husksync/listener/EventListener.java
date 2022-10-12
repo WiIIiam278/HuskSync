@@ -164,11 +164,11 @@ public abstract class EventListener {
     }
 
     /**
-     * Asynchronously handles a world save event
+     * Handles the saving of data when the world save event is fired
      *
      * @param usersInWorld a list of users in the world that is being saved
      */
-    protected final void handleAsyncWorldSave(@NotNull List<OnlineUser> usersInWorld) {
+    protected final void saveOnWorldSave(@NotNull List<OnlineUser> usersInWorld) {
         if (disabling || !plugin.getSettings().saveOnWorldSave) {
             return;
         }
@@ -177,11 +177,12 @@ public abstract class EventListener {
     }
 
     /**
-     * Asynchronously handles a player death
+     * Handles the saving of data when a player dies
      *
-     * @param user The user who died
+     * @param user  The user who died
+     * @param drops The items that this user would have dropped
      */
-    protected void handlePlayerDeath(@NotNull OnlineUser user, @NotNull ItemData drops) {
+    protected void saveOnPlayerDeath(@NotNull OnlineUser user, @NotNull ItemData drops) {
         if (disabling || !plugin.getSettings().saveOnDeath) {
             return;
         }

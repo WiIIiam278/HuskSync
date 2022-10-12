@@ -53,8 +53,11 @@ public class BukkitEventListener extends EventListener implements Listener {
 
     @EventHandler(ignoreCancelled = true)
     public void onWorldSave(@NotNull WorldSaveEvent event) {
-        CompletableFuture.runAsync(() -> super.handleAsyncWorldSave(event.getWorld().getPlayers().stream()
-                .map(BukkitPlayer::adapt)
+        // Handle saving player data snapshots when the world saves
+        if (!plugin.getSettings().saveOnWorldSave) return;
+
+        CompletableFuture.runAsync(() -> super.saveOnWorldSave(event.getWorld().getPlayers()
+                .stream().map(BukkitPlayer::adapt)
                 .collect(Collectors.toList())));
     }
 
@@ -78,6 +81,29 @@ public class BukkitEventListener extends EventListener implements Listener {
             }
         });
     }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onPlayerDeath(PlayerDeathEvent event) {
+        final OnlineUser user = BukkitPlayer.adapt(event.getEntity());
+
+        // If the player is locked or the plugin disabling, clear their drops
+        if (cancelPlayerEvent(user)) {
+            event.getDrops().clear();
+            return;
+        }
+
+        // Handle saving player data snapshots on death
+        if (!plugin.getSettings().saveOnDeath) return;
+
+        // Truncate the drops list to the inventory size and save the player's inventory
+        final int maxInventorySize = BukkitInventoryMap.INVENTORY_SLOT_COUNT;
+        if (event.getDrops().size() > maxInventorySize) {
+            event.getDrops().subList(maxInventorySize, event.getDrops().size()).clear();
+        }
+        BukkitSerializer.serializeItemStackArray(event.getDrops().toArray(new ItemStack[0]))
+                .thenAccept(serializedDrops -> super.saveOnPlayerDeath(user, new ItemData(serializedDrops)));
+    }
+
 
     /*
      * Events to cancel if the player has not been set yet
@@ -130,26 +156,6 @@ public class BukkitEventListener extends EventListener implements Listener {
         if (event.getEntity() instanceof Player player) {
             event.setCancelled(cancelPlayerEvent(BukkitPlayer.adapt(player)));
         }
-    }
-
-    @EventHandler(ignoreCancelled = true)
-    public void onPlayerDeath(PlayerDeathEvent event) {
-        final OnlineUser user = BukkitPlayer.adapt(event.getEntity());
-
-        // If the player is locked or the plugin disabling, clear their death drops and return
-        if (cancelPlayerEvent(user)) {
-            event.getDrops().clear();
-            return;
-        }
-
-        // Truncate the drops list to the maximum allowed (44)
-        if (event.getDrops().size() > BukkitInventoryMap.INVENTORY_SLOT_COUNT) {
-            event.getDrops().subList(BukkitInventoryMap.INVENTORY_SLOT_COUNT, event.getDrops().size()).clear();
-        }
-
-        // Convert the death drops to a serialized item stack array
-        BukkitSerializer.serializeItemStackArray(event.getDrops().toArray(new ItemStack[0]))
-                .thenAccept(serializedDrops -> super.handlePlayerDeath(user, new ItemData(serializedDrops)));
     }
 
 }
