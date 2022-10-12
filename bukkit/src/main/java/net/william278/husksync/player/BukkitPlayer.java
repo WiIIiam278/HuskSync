@@ -579,7 +579,8 @@ public class BukkitPlayer extends OnlineUser {
                 final StorageBuilder guiBuilder = Gui.storage()
                         .title(title.toComponent())
                         .rows(Math.max(minimumRows, (int) Math.ceil(itemCount / 9.0)))
-                        .disableAllInteractions();
+                        .disableAllInteractions()
+                        .enableOtherActions();
                 final StorageGui gui = editable ? guiBuilder.enableAllInteractions().create() : guiBuilder.create();
                 for (int i = 0; i < itemCount; i++) {
                     if (items[i] != null) {
