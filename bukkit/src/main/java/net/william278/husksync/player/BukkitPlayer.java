@@ -568,7 +568,7 @@ public class BukkitPlayer extends OnlineUser {
 
     @Override
     public CompletableFuture<Optional<ItemData>> showMenu(@NotNull ItemData itemData, boolean editable,
-                                                          int rows, @NotNull MineDown title) {
+                                                          int minimumRows, @NotNull MineDown title) {
         final CompletableFuture<Optional<ItemData>> updatedData = new CompletableFuture<>();
 
         // Deserialize the item data to be shown and show it in a triumph GUI
@@ -576,7 +576,10 @@ public class BukkitPlayer extends OnlineUser {
             try {
                 // Build the GUI and populate with items
                 final int itemCount = items.length;
-                final StorageBuilder guiBuilder = Gui.storage().title(title.toComponent()).rows(rows).disableAllInteractions();
+                final StorageBuilder guiBuilder = Gui.storage()
+                        .title(title.toComponent())
+                        .rows(Math.max(minimumRows, (int) Math.ceil(itemCount / 9.0)))
+                        .disableAllInteractions();
                 final StorageGui gui = editable ? guiBuilder.enableAllInteractions().create() : guiBuilder.create();
                 for (int i = 0; i < itemCount; i++) {
                     if (items[i] != null) {

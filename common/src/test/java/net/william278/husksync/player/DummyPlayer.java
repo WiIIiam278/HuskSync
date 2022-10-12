@@ -149,7 +149,7 @@ public class DummyPlayer extends OnlineUser {
 
     @Override
     public CompletableFuture<Optional<ItemData>> showMenu(@NotNull ItemData itemData, boolean editable,
-                                                                      int rows, @NotNull MineDown title) {
+                                                          int minimumRows, @NotNull MineDown title) {
         // do nothing
         return CompletableFuture.completedFuture(Optional.empty());
     }

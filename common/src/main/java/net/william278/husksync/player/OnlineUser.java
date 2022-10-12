@@ -206,8 +206,18 @@ public abstract class OnlineUser extends User {
      */
     public abstract boolean hasPermission(@NotNull String node);
 
+    /**
+     * Show a GUI chest menu to the player, containing the given {@link ItemData}
+     *
+     * @param itemData    Item data to be shown in the GUI
+     * @param editable    If the player should be able to remove, replace and move around the items
+     * @param minimumRows The minimum number of rows to show in the chest menu
+     * @param title       The title of the chest menu, as a {@link MineDown} locale
+     * @return A future returning the {@link ItemData} in the chest menu when the player closes it
+     * @since 2.1
+     */
     public abstract CompletableFuture<Optional<ItemData>> showMenu(@NotNull ItemData itemData, boolean editable,
-                                                                      int rows, @NotNull MineDown title);
+                                                                   int minimumRows, @NotNull MineDown title);
 
     /**
      * Returns true if the player is dead
