@@ -2,6 +2,7 @@ package net.william278.husksync.command;
 
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.data.DataSaveCause;
+import net.william278.husksync.data.UserData;
 import net.william278.husksync.player.OnlineUser;
 import net.william278.husksync.util.DataDumper;
 import org.jetbrains.annotations.NotNull;
@@ -173,8 +174,13 @@ public class UserDataCommand extends CommandBase implements TabCompletable {
                                                     .ifPresent(player::sendMessage);
                                             return;
                                         }
-                                        plugin.getDatabase().setUserData(user, data.get().userData(),
-                                                DataSaveCause.BACKUP_RESTORE);
+
+                                        // Restore users with a minimum of one health (prevent restoring players with <=0 health)
+                                        final UserData userData = data.get().userData();
+                                        userData.getStatus().ifPresent(status -> status.health = Math.max(1, status.health));
+
+                                        // Set the users data and send a message
+                                        plugin.getDatabase().setUserData(user, userData, DataSaveCause.BACKUP_RESTORE);
                                         plugin.getRedisManager().sendUserDataUpdate(user, data.get().userData()).join();
                                         plugin.getLocales().getLocale("data_restored",
                                                         user.username,
