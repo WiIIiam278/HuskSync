@@ -3,14 +3,10 @@ package net.william278.husksync.player;
 import de.themoep.minedown.adventure.MineDown;
 import net.william278.husksync.config.Settings;
 import net.william278.husksync.data.*;
-import net.william278.husksync.editor.ItemEditorMenu;
 import net.william278.desertwell.Version;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 public class DummyPlayer extends OnlineUser {
@@ -152,9 +148,12 @@ public class DummyPlayer extends OnlineUser {
     }
 
     @Override
-    public void showMenu(@NotNull ItemEditorMenu menu) {
+    public CompletableFuture<Optional<ItemData>> showMenu(@NotNull ItemData itemData, boolean editable,
+                                                                      int rows, @NotNull MineDown title) {
         // do nothing
+        return CompletableFuture.completedFuture(Optional.empty());
     }
+
 
     @Override
     public boolean isDead() {

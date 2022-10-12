@@ -4,7 +4,6 @@ import net.william278.desertwell.UpdateChecker;
 import net.william278.husksync.config.Locales;
 import net.william278.husksync.config.Settings;
 import net.william278.husksync.data.DataAdapter;
-import net.william278.husksync.editor.DataEditor;
 import net.william278.husksync.database.Database;
 import net.william278.husksync.event.EventCannon;
 import net.william278.husksync.migrator.Migrator;
@@ -70,14 +69,6 @@ public interface HuskSync {
      */
     @NotNull
     DataAdapter getDataAdapter();
-
-    /**
-     * Returns the data editor implementation
-     *
-     * @return the {@link DataEditor} implementation
-     */
-    @NotNull
-    DataEditor getDataEditor();
 
     /**
      * Returns the event firing cannon

@@ -2,12 +2,14 @@ package net.william278.husksync.player;
 
 import de.themoep.minedown.adventure.MineDown;
 import de.themoep.minedown.adventure.MineDownParser;
+import dev.triumphteam.gui.builder.gui.StorageBuilder;
+import dev.triumphteam.gui.guis.Gui;
+import dev.triumphteam.gui.guis.StorageGui;
 import net.kyori.adventure.audience.Audience;
 import net.william278.desertwell.Version;
 import net.william278.husksync.BukkitHuskSync;
 import net.william278.husksync.config.Settings;
 import net.william278.husksync.data.*;
-import net.william278.husksync.editor.ItemEditorMenu;
 import org.bukkit.*;
 import org.bukkit.advancement.Advancement;
 import org.bukkit.advancement.AdvancementProgress;
@@ -15,7 +17,7 @@ import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerTeleportEvent;
-import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffect;
@@ -565,16 +567,49 @@ public class BukkitPlayer extends OnlineUser {
     }
 
     @Override
-    public void showMenu(@NotNull ItemEditorMenu menu) {
-        BukkitSerializer.deserializeItemStackArray(menu.itemData.serializedItems).thenAccept(inventoryContents -> {
-            //todo show the inventory properly
-            /*final Inventory inventory = Bukkit.createInventory(player, menu.itemEditorMenuType.slotCount,
-                    BaseComponent.toLegacyText(menu.menuTitle.toComponent()));*/
-            final Inventory inventory = Bukkit.createInventory(player, menu.itemEditorMenuType.slotCount,
-                    menu.menuTitle.message());
-            inventory.setContents(inventoryContents);
-            Bukkit.getScheduler().runTask(BukkitHuskSync.getInstance(), () -> player.openInventory(inventory));
+    public CompletableFuture<Optional<ItemData>> showMenu(@NotNull ItemData itemData, boolean editable,
+                                                          int rows, @NotNull MineDown title) {
+        final CompletableFuture<Optional<ItemData>> updatedData = new CompletableFuture<>();
+
+        // Deserialize the item data to be shown and show it in a triumph GUI
+        BukkitSerializer.deserializeItemStackArray(itemData.serializedItems).thenAccept(items -> {
+            try {
+                // Build the GUI and populate with items
+                final int itemCount = items.length;
+                final StorageBuilder guiBuilder = Gui.storage().title(title.toComponent()).rows(rows).disableAllInteractions();
+                final StorageGui gui = editable ? guiBuilder.enableAllInteractions().create() : guiBuilder.create();
+                for (int i = 0; i < itemCount; i++) {
+                    if (items[i] != null) {
+                        gui.getInventory().setItem(i, items[i]);
+                    }
+                }
+
+                // Complete the future with updated data (if editable) when the GUI is closed
+                gui.setCloseGuiAction(event -> {
+                    if (!editable) {
+                        updatedData.complete(Optional.empty());
+                        return;
+                    }
+
+                    // Get and save the updated items
+                    final ItemStack[] updatedItems = Arrays.copyOf(event.getPlayer().getOpenInventory()
+                            .getTopInventory().getContents().clone(), itemCount);
+                    BukkitSerializer.serializeItemStackArray(updatedItems).thenAccept(serializedItems -> {
+                        if (serializedItems.equals(itemData.serializedItems)) {
+                            updatedData.complete(Optional.empty());
+                            return;
+                        }
+                        updatedData.complete(Optional.of(new ItemData(serializedItems)));
+                    });
+                });
+
+                // Display the GUI (synchronously; on the main server thread)
+                Bukkit.getScheduler().runTask(BukkitHuskSync.getInstance(), () -> gui.open(player));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         });
+        return updatedData;
     }
 
     @Override

@@ -1,15 +1,17 @@
 package net.william278.husksync.command;
 
+import de.themoep.minedown.adventure.MineDown;
 import net.william278.husksync.HuskSync;
-import net.william278.husksync.data.*;
-import net.william278.husksync.editor.ItemEditorMenu;
+import net.william278.husksync.data.DataSaveCause;
+import net.william278.husksync.data.UserData;
+import net.william278.husksync.data.UserDataBuilder;
+import net.william278.husksync.data.UserDataSnapshot;
 import net.william278.husksync.player.OnlineUser;
 import net.william278.husksync.player.User;
 import org.jetbrains.annotations.NotNull;
 
-import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.List;
-import java.util.Locale;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -53,37 +55,42 @@ public class EnderChestCommand extends CommandBase implements TabCompletable {
     }
 
     private void showEnderChestMenu(@NotNull OnlineUser player, @NotNull UserDataSnapshot userDataSnapshot,
-                                    @NotNull User dataOwner, final boolean allowEdit) {
+                                    @NotNull User dataOwner, boolean allowEdit) {
         CompletableFuture.runAsync(() -> {
             final UserData data = userDataSnapshot.userData();
-            final ItemEditorMenu menu = ItemEditorMenu.createEnderChestMenu(
-                    data.getEnderChest().orElse(ItemData.empty()),
-                    dataOwner, player, plugin.getLocales(), allowEdit);
-            plugin.getLocales().getLocale("viewing_ender_chest_of", dataOwner.username,
-                            DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT, Locale.getDefault())
-                                    .format(userDataSnapshot.versionTimestamp()))
-                    .ifPresent(player::sendMessage);
-            plugin.getDataEditor().openItemEditorMenu(player, menu).thenAccept(enderChestDataOnClose -> {
-                if (!menu.canEdit) {
-                    return;
-                }
+            data.getEnderChest().ifPresent(itemData -> {
+                // Show message
+                plugin.getLocales().getLocale("ender_chest_viewer_opened", dataOwner.username,
+                                new SimpleDateFormat("MMM dd yyyy, HH:mm:ss.sss")
+                                        .format(userDataSnapshot.versionTimestamp()))
+                        .ifPresent(player::sendMessage);
 
-                final UserDataBuilder builder = UserData.builder(plugin.getMinecraftVersion());
-                data.getStatus().ifPresent(builder::setStatus);
-                data.getInventory().ifPresent(builder::setInventory);
-                data.getAdvancements().ifPresent(builder::setAdvancements);
-                data.getLocation().ifPresent(builder::setLocation);
-                data.getPersistentDataContainer().ifPresent(builder::setPersistentDataContainer);
-                data.getStatistics().ifPresent(builder::setStatistics);
-                data.getPotionEffects().ifPresent(builder::setPotionEffects);
-                builder.setEnderChest(enderChestDataOnClose);
-                final UserData updatedUserData = builder.build();
+                // Show inventory menu
+                player.showMenu(itemData, allowEdit, 3, plugin.getLocales()
+                        .getLocale("ender_chest_viewer_menu_title", dataOwner.username)
+                        .orElse(new MineDown("Ender Chest Viewer"))).thenAccept(dataOnClose -> {
+                    if (dataOnClose.isEmpty() || !allowEdit) {
+                        return;
+                    }
 
-                plugin.getDatabase().setUserData(dataOwner, updatedUserData, DataSaveCause.ENDERCHEST_COMMAND).join();
-                plugin.getRedisManager().sendUserDataUpdate(dataOwner, updatedUserData).join();
+                    // Create the updated data
+                    final UserDataBuilder builder = UserData.builder(plugin.getMinecraftVersion());
+                    data.getStatus().ifPresent(builder::setStatus);
+                    data.getAdvancements().ifPresent(builder::setAdvancements);
+                    data.getLocation().ifPresent(builder::setLocation);
+                    data.getPersistentDataContainer().ifPresent(builder::setPersistentDataContainer);
+                    data.getStatistics().ifPresent(builder::setStatistics);
+                    data.getPotionEffects().ifPresent(builder::setPotionEffects);
+                    data.getInventory().ifPresent(builder::setInventory);
+                    builder.setEnderChest(dataOnClose.get());
+
+                    // Set the updated data
+                    final UserData updatedUserData = builder.build();
+                    plugin.getDatabase().setUserData(dataOwner, updatedUserData, DataSaveCause.INVENTORY_COMMAND).join();
+                    plugin.getRedisManager().sendUserDataUpdate(dataOwner, updatedUserData).join();
+                });
             });
         });
-
     }
 
     @Override

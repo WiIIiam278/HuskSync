@@ -27,8 +27,6 @@ public class BukkitSerializer {
     public static CompletableFuture<String> serializeItemStackArray(@NotNull ItemStack[] inventoryContents)
             throws DataSerializationException {
         return CompletableFuture.supplyAsync(() -> {
-            BukkitHuskSync.getInstance().getLoggingAdapter().debug("[HS] Serializing inventory contents");
-
             // Return an empty string if there is no inventory item data to serialize
             if (inventoryContents.length == 0) {
                 return "";

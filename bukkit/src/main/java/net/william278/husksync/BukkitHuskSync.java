@@ -13,7 +13,6 @@ import net.william278.husksync.data.DataAdapter;
 import net.william278.husksync.data.JsonDataAdapter;
 import net.william278.husksync.database.Database;
 import net.william278.husksync.database.MySqlDatabase;
-import net.william278.husksync.editor.DataEditor;
 import net.william278.husksync.event.BukkitEventCannon;
 import net.william278.husksync.event.EventCannon;
 import net.william278.husksync.hook.PlanHook;
@@ -59,7 +58,6 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync {
     private ResourceReader resourceReader;
     private EventListener eventListener;
     private DataAdapter dataAdapter;
-    private DataEditor dataEditor;
     private EventCannon eventCannon;
     private Settings settings;
     private Locales locales;
@@ -113,9 +111,6 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync {
 
             // Prepare event cannon
             eventCannon = new BukkitEventCannon();
-
-            // Prepare data editor
-            dataEditor = new DataEditor(locales);
 
             // Prepare migrators
             availableMigrators = new ArrayList<>();
@@ -256,11 +251,6 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync {
     @Override
     public @NotNull DataAdapter getDataAdapter() {
         return dataAdapter;
-    }
-
-    @Override
-    public @NotNull DataEditor getDataEditor() {
-        return dataEditor;
     }
 
     @Override

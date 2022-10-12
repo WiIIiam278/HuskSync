@@ -1,4 +1,4 @@
-package net.william278.husksync.editor;
+package net.william278.husksync.util;
 
 import net.william278.husksync.config.Locales;
 import net.william278.husksync.data.UserDataSnapshot;
@@ -7,9 +7,8 @@ import net.william278.husksync.player.User;
 import net.william278.paginedown.PaginatedList;
 import org.jetbrains.annotations.NotNull;
 
-import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.List;
-import java.util.Locale;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -29,8 +28,8 @@ public class DataSnapshotList {
         this.paginatedList = PaginatedList.of(snapshots.stream()
                         .map(snapshot -> locales.getRawLocale("data_list_item",
                                         getNumberIcon(snapshotNumber.getAndIncrement()),
-                                        DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT,
-                                                Locale.getDefault()).format(snapshot.versionTimestamp()),
+                                        new SimpleDateFormat("MMM dd yyyy, HH:mm:ss.sss")
+                                                .format(snapshot.versionTimestamp()),
                                         snapshot.versionUUID().toString().split("-")[0],
                                         snapshot.versionUUID().toString(),
                                         snapshot.cause().name().toLowerCase().replaceAll("_", " "),
@@ -53,8 +52,8 @@ public class DataSnapshotList {
      * @param locales   The {@link Locales} instance
      * @return A new {@link DataSnapshotList}, to be viewed with {@link #displayPage(OnlineUser, int)}
      */
-    protected static DataSnapshotList create(@NotNull List<UserDataSnapshot> snapshots, @NotNull User user,
-                                             @NotNull Locales locales) {
+    public static DataSnapshotList create(@NotNull List<UserDataSnapshot> snapshots, @NotNull User user,
+                                          @NotNull Locales locales) {
         return new DataSnapshotList(snapshots, user, locales);
     }
 
@@ -77,7 +76,7 @@ public class DataSnapshotList {
      * @param onlineUser The online user to display the message to
      * @param page       The page number to display
      */
-    protected void displayPage(@NotNull OnlineUser onlineUser, int page) {
+    public void displayPage(@NotNull OnlineUser onlineUser, int page) {
         onlineUser.sendMessage(paginatedList.getNearestValidPage(page));
     }
 

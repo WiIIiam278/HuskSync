@@ -3,7 +3,6 @@ package net.william278.husksync.listener;
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.data.DataSaveCause;
 import net.william278.husksync.data.ItemData;
-import net.william278.husksync.editor.ItemEditorMenuType;
 import net.william278.husksync.player.OnlineUser;
 import org.jetbrains.annotations.NotNull;
 
@@ -192,30 +191,6 @@ public abstract class EventListener {
                     userData.getInventory().orElse(ItemData.empty()).serializedItems = drops.serializedItems;
                     plugin.getDatabase().setUserData(user, userData, DataSaveCause.DEATH);
                 }));
-    }
-
-    /**
-     * Handle an inventory menu closing
-     *
-     * @param user          The user who closed the menu
-     * @param menuInventory Serialized {@link ItemData} containing the inventory contents
-     * @implNote The size of the serialized {@link ItemData} array is determined by the {@link ItemEditorMenuType} of the closed inventory
-     */
-    protected final void handleMenuClose(@NotNull OnlineUser user, @NotNull ItemData menuInventory) {
-        if (disabling) {
-            return;
-        }
-        plugin.getDataEditor().closeInventoryMenu(user, menuInventory);
-    }
-
-    /**
-     * Determine whether an inventory click should be cancelled
-     *
-     * @param user {@link OnlineUser} performing the event
-     * @return Whether the event should be cancelled
-     */
-    protected final boolean cancelInventoryClick(@NotNull OnlineUser user) {
-        return plugin.getDataEditor().cancelMenuEdit(user) || cancelPlayerEvent(user);
     }
 
     /**

@@ -34,6 +34,7 @@ allprojects {
         maven { url 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/' }
         maven { url 'https://repo.minebench.de/' }
         maven { url 'https://repo.alessiodp.com/releases/' }
+        maven { url 'https://repo.mattstudios.me/artifactory/public/' }
         maven { url 'https://jitpack.io' }
         maven { url 'https://libraries.minecraft.net/' }
     }

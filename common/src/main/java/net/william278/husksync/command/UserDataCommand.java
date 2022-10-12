@@ -3,6 +3,7 @@ package net.william278.husksync.command;
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.data.DataSaveCause;
 import net.william278.husksync.data.UserData;
+import net.william278.husksync.util.DataSnapshotList;
 import net.william278.husksync.player.OnlineUser;
 import net.william278.husksync.util.DataDumper;
 import org.jetbrains.annotations.NotNull;
@@ -45,31 +46,32 @@ public class UserDataCommand extends CommandBase implements TabCompletable {
                 if (args.length >= 3) {
                     try {
                         final UUID versionUuid = UUID.fromString(args[2]);
-                        CompletableFuture.runAsync(() -> plugin.getDatabase().getUserByName(username.toLowerCase()).thenAccept(
-                                optionalUser -> optionalUser.ifPresentOrElse(
-                                        user -> plugin.getDatabase().getUserData(user, versionUuid).thenAccept(data ->
-                                                data.ifPresentOrElse(userData -> plugin.getDataEditor()
-                                                                .displayDataOverview(player, userData, user),
-                                                        () -> plugin.getLocales().getLocale("error_invalid_version_uuid")
-                                                                .ifPresent(player::sendMessage))),
-                                        () -> plugin.getLocales().getLocale("error_invalid_player")
-                                                .ifPresent(player::sendMessage))));
+                        CompletableFuture.runAsync(() -> plugin.getDatabase()
+                                .getUserByName(username.toLowerCase())
+                                .thenAccept(optionalUser -> optionalUser
+                                        .ifPresentOrElse(user -> plugin.getDatabase().getUserData(user, versionUuid)
+                                                        .thenAccept(data -> data.ifPresentOrElse(
+                                                                userData -> userData.displayDataOverview(player, user, plugin.getLocales()),
+                                                                () -> plugin.getLocales().getLocale("error_invalid_version_uuid")
+                                                                        .ifPresent(player::sendMessage))),
+                                                () -> plugin.getLocales().getLocale("error_invalid_player")
+                                                        .ifPresent(player::sendMessage))));
                     } catch (IllegalArgumentException e) {
                         plugin.getLocales().getLocale("error_invalid_syntax",
                                         "/userdata view <username> [version_uuid]")
                                 .ifPresent(player::sendMessage);
                     }
                 } else {
-                    CompletableFuture.runAsync(() -> plugin.getDatabase().getUserByName(username.toLowerCase()).thenAccept(
-                            optionalUser -> optionalUser.ifPresentOrElse(
-                                    user -> plugin.getDatabase().getCurrentUserData(user).thenAccept(
-                                            latestData -> latestData.ifPresentOrElse(
-                                                    userData -> plugin.getDataEditor()
-                                                            .displayDataOverview(player, userData, user),
-                                                    () -> plugin.getLocales().getLocale("error_no_data_to_display")
-                                                            .ifPresent(player::sendMessage))),
-                                    () -> plugin.getLocales().getLocale("error_invalid_player")
-                                            .ifPresent(player::sendMessage))));
+                    CompletableFuture.runAsync(() -> plugin.getDatabase()
+                            .getUserByName(username.toLowerCase())
+                            .thenAccept(optionalUser -> optionalUser
+                                    .ifPresentOrElse(user -> plugin.getDatabase().getCurrentUserData(user)
+                                                    .thenAccept(latestData -> latestData.ifPresentOrElse(
+                                                            userData -> userData.displayDataOverview(player, user, plugin.getLocales()),
+                                                            () -> plugin.getLocales().getLocale("error_no_data_to_display")
+                                                                    .ifPresent(player::sendMessage))),
+                                            () -> plugin.getLocales().getLocale("error_invalid_player")
+                                                    .ifPresent(player::sendMessage))));
                 }
             }
             case "list" -> {
@@ -84,8 +86,9 @@ public class UserDataCommand extends CommandBase implements TabCompletable {
                     return;
                 }
                 final String username = args[1];
-                CompletableFuture.runAsync(() -> plugin.getDatabase().getUserByName(username.toLowerCase()).thenAccept(
-                        optionalUser -> optionalUser.ifPresentOrElse(
+                CompletableFuture.runAsync(() -> plugin.getDatabase()
+                        .getUserByName(username.toLowerCase())
+                        .thenAccept(optionalUser -> optionalUser.ifPresentOrElse(
                                 user -> plugin.getDatabase().getUserData(user).thenAccept(dataList -> {
                                     // Check if there is data to display
                                     if (dataList.isEmpty()) {
@@ -107,8 +110,9 @@ public class UserDataCommand extends CommandBase implements TabCompletable {
                                         }
                                     }
 
-                                    // Show list
-                                    plugin.getDataEditor().displayDataSnapshotList(player, dataList, user, page);
+                                    // Show the list to the player
+                                    DataSnapshotList.create(dataList, user, plugin.getLocales())
+                                            .displayPage(player, page);
                                 }),
                                 () -> plugin.getLocales().getLocale("error_invalid_player")
                                         .ifPresent(player::sendMessage))));
@@ -128,8 +132,9 @@ public class UserDataCommand extends CommandBase implements TabCompletable {
                 final String username = args[1];
                 try {
                     final UUID versionUuid = UUID.fromString(args[2]);
-                    CompletableFuture.runAsync(() -> plugin.getDatabase().getUserByName(username.toLowerCase()).thenAccept(
-                            optionalUser -> optionalUser.ifPresentOrElse(
+                    CompletableFuture.runAsync(() -> plugin.getDatabase()
+                            .getUserByName(username.toLowerCase())
+                            .thenAccept(optionalUser -> optionalUser.ifPresentOrElse(
                                     user -> plugin.getDatabase().deleteUserData(user, versionUuid).thenAccept(deleted -> {
                                         if (deleted) {
                                             plugin.getLocales().getLocale("data_deleted",
@@ -166,8 +171,9 @@ public class UserDataCommand extends CommandBase implements TabCompletable {
                 final String username = args[1];
                 try {
                     final UUID versionUuid = UUID.fromString(args[2]);
-                    CompletableFuture.runAsync(() -> plugin.getDatabase().getUserByName(username.toLowerCase()).thenAccept(
-                            optionalUser -> optionalUser.ifPresentOrElse(
+                    CompletableFuture.runAsync(() -> plugin.getDatabase()
+                            .getUserByName(username.toLowerCase())
+                            .thenAccept(optionalUser -> optionalUser.ifPresentOrElse(
                                     user -> plugin.getDatabase().getUserData(user, versionUuid).thenAccept(data -> {
                                         if (data.isEmpty()) {
                                             plugin.getLocales().getLocale("error_invalid_version_uuid")
@@ -212,8 +218,9 @@ public class UserDataCommand extends CommandBase implements TabCompletable {
                 final String username = args[1];
                 try {
                     final UUID versionUuid = UUID.fromString(args[2]);
-                    CompletableFuture.runAsync(() -> plugin.getDatabase().getUserByName(username.toLowerCase()).thenAccept(
-                            optionalUser -> optionalUser.ifPresentOrElse(
+                    CompletableFuture.runAsync(() -> plugin.getDatabase()
+                            .getUserByName(username.toLowerCase())
+                            .thenAccept(optionalUser -> optionalUser.ifPresentOrElse(
                                     user -> plugin.getDatabase().getUserData(user, versionUuid).thenAccept(
                                             optionalUserData -> optionalUserData.ifPresentOrElse(userData -> {
                                                 if (userData.pinned()) {
@@ -259,8 +266,9 @@ public class UserDataCommand extends CommandBase implements TabCompletable {
                 final String username = args[1];
                 try {
                     final UUID versionUuid = UUID.fromString(args[2]);
-                    CompletableFuture.runAsync(() -> plugin.getDatabase().getUserByName(username.toLowerCase()).thenAccept(
-                            optionalUser -> optionalUser.ifPresentOrElse(
+                    CompletableFuture.runAsync(() -> plugin.getDatabase()
+                            .getUserByName(username.toLowerCase())
+                            .thenAccept(optionalUser -> optionalUser.ifPresentOrElse(
                                     user -> plugin.getDatabase().getUserData(user, versionUuid).thenAccept(
                                             optionalUserData -> optionalUserData.ifPresentOrElse(userData -> {
                                                 try {
