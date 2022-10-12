@@ -44,7 +44,7 @@ public enum Permission {
     /**
      * Lets the user dump user data to a file or the web {@code /userdata dump (player) (version_uuid)}
      */
-    COMMAND_USER_DATA_DUMP("husksync.command.userdata.dump", DefaultAccess.OPERATORS),
+    COMMAND_USER_DATA_DUMP("husksync.command.userdata.dump", DefaultAccess.NOBODY),
 
     /*
      * /inventory command permissions
