@@ -11,6 +11,8 @@ import java.util.Optional;
 @SuppressWarnings("unused")
 public class BukkitInventoryMap {
 
+    public static final int INVENTORY_SLOT_COUNT = 41;
+
     private ItemStack[] contents;
 
     /**

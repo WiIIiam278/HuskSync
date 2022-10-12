@@ -181,13 +181,16 @@ public abstract class EventListener {
      *
      * @param user The user who died
      */
-    protected void handlePlayerDeath(@NotNull OnlineUser user) {
+    protected void handlePlayerDeath(@NotNull OnlineUser user, @NotNull ItemData drops) {
         if (disabling || !plugin.getSettings().saveOnDeath) {
             return;
         }
+
         user.getUserData(plugin.getLoggingAdapter(), plugin.getSettings())
-                .thenAccept(data -> data.ifPresent(userData -> plugin.getDatabase()
-                        .setUserData(user, userData, DataSaveCause.DEATH)));
+                .thenAccept(data -> data.ifPresent(userData -> {
+                    userData.getInventory().orElse(ItemData.empty()).serializedItems = drops.serializedItems;
+                    plugin.getDatabase().setUserData(user, userData, DataSaveCause.DEATH);
+                }));
     }
 
     /**

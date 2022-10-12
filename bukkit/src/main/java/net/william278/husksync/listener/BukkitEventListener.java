@@ -1,6 +1,7 @@
 package net.william278.husksync.listener;
 
 import net.william278.husksync.BukkitHuskSync;
+import net.william278.husksync.data.BukkitInventoryMap;
 import net.william278.husksync.data.BukkitSerializer;
 import net.william278.husksync.data.DataSerializationException;
 import net.william278.husksync.data.ItemData;
@@ -25,6 +26,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.world.WorldSaveEvent;
+import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
@@ -52,7 +54,8 @@ public class BukkitEventListener extends EventListener implements Listener {
     @EventHandler(ignoreCancelled = true)
     public void onWorldSave(@NotNull WorldSaveEvent event) {
         CompletableFuture.runAsync(() -> super.handleAsyncWorldSave(event.getWorld().getPlayers().stream()
-                .map(BukkitPlayer::adapt).collect(Collectors.toList())));
+                .map(BukkitPlayer::adapt)
+                .collect(Collectors.toList())));
     }
 
     @EventHandler(ignoreCancelled = true)
@@ -139,8 +142,14 @@ public class BukkitEventListener extends EventListener implements Listener {
             return;
         }
 
-        // Handle their death, e.g. if we need to save their inventory
-        super.handlePlayerDeath(user);
+        // Truncate the drops list to the maximum allowed (44)
+        if (event.getDrops().size() > BukkitInventoryMap.INVENTORY_SLOT_COUNT) {
+            event.getDrops().subList(BukkitInventoryMap.INVENTORY_SLOT_COUNT, event.getDrops().size()).clear();
+        }
+
+        // Convert the death drops to a serialized item stack array
+        BukkitSerializer.serializeItemStackArray(event.getDrops().toArray(new ItemStack[0]))
+                .thenAccept(serializedDrops -> super.handlePlayerDeath(user, new ItemData(serializedDrops)));
     }
 
 }
