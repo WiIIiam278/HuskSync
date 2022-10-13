@@ -118,7 +118,7 @@ public class LegacyMigrator extends Migrator {
                 final AtomicInteger playersConverted = new AtomicInteger();
                 dataToMigrate.forEach(data -> data.toUserData(hslConverter, minecraftVersion).thenAccept(convertedData -> {
                     plugin.getDatabase().ensureUser(data.user()).thenRun(() ->
-                            plugin.getDatabase().setUserData(data.user(), convertedData, DataSaveCause.LEGACY_MIGRATION)
+                            plugin.getDatabase().setUserData(data.user(), convertedData, DataSaveCause.LEGACY_MIGRATION, plugin.getSettings().serverID)
                                     .exceptionally(exception -> {
                                         plugin.getLoggingAdapter().log(Level.SEVERE, "Failed to migrate legacy data for " + data.user().username + ": " + exception.getMessage());
                                         return null;

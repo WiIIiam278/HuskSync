@@ -186,7 +186,7 @@ public class UserDataCommand extends CommandBase implements TabCompletable {
                                         userData.getStatus().ifPresent(status -> status.health = Math.max(1, status.health));
 
                                         // Set the users data and send a message
-                                        plugin.getDatabase().setUserData(user, userData, DataSaveCause.BACKUP_RESTORE);
+                                        plugin.getDatabase().setUserData(user, userData, DataSaveCause.BACKUP_RESTORE, plugin.getSettings().serverID);
                                         plugin.getRedisManager().sendUserDataUpdate(user, data.get().userData()).join();
                                         plugin.getLocales().getLocale("data_restored",
                                                         user.username,

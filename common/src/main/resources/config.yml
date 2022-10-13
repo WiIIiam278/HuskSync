@@ -35,6 +35,7 @@ redis:
   use_ssl: false
 
 synchronization:
+  server_id: 'node-1'
   max_user_data_snapshots: 5
   save_on_world_save: true
   compress_data: true

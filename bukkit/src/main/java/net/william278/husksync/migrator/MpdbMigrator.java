@@ -115,7 +115,7 @@ public class MpdbMigrator extends Migrator {
                 final AtomicInteger playersConverted = new AtomicInteger();
                 dataToMigrate.forEach(data -> data.toUserData(mpdbConverter, minecraftVersion).thenAccept(convertedData -> {
                     plugin.getDatabase().ensureUser(data.user()).thenRun(() ->
-                                    plugin.getDatabase().setUserData(data.user(), convertedData, DataSaveCause.MPDB_MIGRATION))
+                                    plugin.getDatabase().setUserData(data.user(), convertedData, DataSaveCause.MPDB_MIGRATION, plugin.getSettings().serverID))
                             .exceptionally(exception -> {
                                 plugin.getLoggingAdapter().log(Level.SEVERE, "Failed to migrate MySQLPlayerDataBridge data for " + data.user().username + ": " + exception.getMessage());
                                 return null;

@@ -210,7 +210,7 @@ public class MySqlDatabase extends Database {
         return CompletableFuture.supplyAsync(() -> {
             try (Connection connection = getConnection()) {
                 try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
-                        SELECT `version_uuid`, `timestamp`, `save_cause`, `pinned`, `data`
+                        SELECT `version_uuid`, `timestamp`, `save_cause`, `server_id`, `pinned`, `data`
                         FROM `%user_data_table%`
                         WHERE `player_uuid`=?
                         ORDER BY `timestamp` DESC
@@ -242,7 +242,7 @@ public class MySqlDatabase extends Database {
             final List<UserDataSnapshot> retrievedData = new ArrayList<>();
             try (Connection connection = getConnection()) {
                 try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
-                        SELECT `version_uuid`, `timestamp`, `save_cause`, `pinned`, `data`
+                        SELECT `version_uuid`, `timestamp`, `save_cause`, `server_id`, `pinned`, `data`
                         FROM `%user_data_table%`
                         WHERE `player_uuid`=?
                         ORDER BY `timestamp` DESC;"""))) {
@@ -274,7 +274,7 @@ public class MySqlDatabase extends Database {
         return CompletableFuture.supplyAsync(() -> {
             try (Connection connection = getConnection()) {
                 try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
-                        SELECT `version_uuid`, `timestamp`, `save_cause`, `pinned`, `data`
+                        SELECT `version_uuid`, `timestamp`, `save_cause`, `server_id`, `pinned`, `data`
                         FROM `%user_data_table%`
                         WHERE `player_uuid`=? AND `version_uuid`=?
                         ORDER BY `timestamp` DESC
@@ -346,7 +346,7 @@ public class MySqlDatabase extends Database {
 
     @Override
     public CompletableFuture<Void> setUserData(@NotNull User user, @NotNull UserData userData,
-                                               @NotNull DataSaveCause saveCause) {
+                                               @NotNull DataSaveCause saveCause, @NotNull String serverID) {
         return CompletableFuture.runAsync(() -> {
             final DataSaveEvent dataSaveEvent = (DataSaveEvent) getEventCannon().fireDataSaveEvent(user,
                     userData, saveCause).join();
@@ -355,11 +355,12 @@ public class MySqlDatabase extends Database {
                 try (Connection connection = getConnection()) {
                     try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
                             INSERT INTO `%user_data_table%`
-                            (`player_uuid`,`version_uuid`,`timestamp`,`save_cause`,`data`)
-                            VALUES (?,UUID(),NOW(),?,?);"""))) {
+                            (`player_uuid`,`version_uuid`,`timestamp`,`save_cause`,`server_id`,`data`)
+                            VALUES (?,UUID(),NOW(),?,?,?);"""))) {
                         statement.setString(1, user.uuid.toString());
                         statement.setString(2, saveCause.name());
-                        statement.setBlob(3, new ByteArrayInputStream(
+                        statement.setString(3, serverID);
+                        statement.setBlob(4, new ByteArrayInputStream(
                                 getDataAdapter().toBytes(finalData)));
                         statement.executeUpdate();
                     }

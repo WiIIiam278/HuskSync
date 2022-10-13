@@ -99,6 +99,9 @@ public class Settings {
 
     // Synchronization settings
     @YamlComment("Synchronization settings")
+    @YamlKey("synchronization.server_id")
+    public String serverID = "node-1";
+
     @YamlKey("synchronization.max_user_data_snapshots")
     public int maxUserDataSnapshots = 5;
 

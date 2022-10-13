@@ -204,10 +204,11 @@ public abstract class Database {
      *
      * @param user     The user to add data for
      * @param userData The {@link UserData} to set. The implementation should version it with a random UUID and the current timestamp during insertion.
+     * @param serverID Server ID/Name where snapshot was created.
      * @return A future returning void when complete
      * @see UserDataSnapshot#create(UserData)
      */
-    public abstract CompletableFuture<Void> setUserData(@NotNull User user, @NotNull UserData userData, @NotNull DataSaveCause dataSaveCause);
+    public abstract CompletableFuture<Void> setUserData(@NotNull User user, @NotNull UserData userData, @NotNull DataSaveCause dataSaveCause, @NotNull String serverID);
 
     /**
      * Pin a saved {@link UserDataSnapshot} by given version UUID, setting it's {@code pinned} state to {@code true}.

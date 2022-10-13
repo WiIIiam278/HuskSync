@@ -89,7 +89,7 @@ public class InventoryCommand extends CommandBase implements TabCompletable {
 
                             // Set the updated data
                             final UserData updatedUserData = builder.build();
-                            plugin.getDatabase().setUserData(dataOwner, updatedUserData, DataSaveCause.INVENTORY_COMMAND).join();
+                            plugin.getDatabase().setUserData(dataOwner, updatedUserData, DataSaveCause.INVENTORY_COMMAND, plugin.getSettings().serverID).join();
                             plugin.getRedisManager().sendUserDataUpdate(dataOwner, updatedUserData).join();
                         });
             });

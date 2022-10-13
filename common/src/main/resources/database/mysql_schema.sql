@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS `%user_data_table%`
     `player_uuid`  char(36)    NOT NULL,
     `timestamp`    datetime    NOT NULL,
     `save_cause`   varchar(32) NOT NULL,
+    `server_id`    varchar(32) NOT NULL,
     `pinned`       boolean     NOT NULL DEFAULT FALSE,
     `data`         longblob    NOT NULL,
     PRIMARY KEY (`version_uuid`, `player_uuid`),

@@ -153,7 +153,7 @@ public abstract class EventListener {
                 .thenRun(() -> user.getUserData(plugin.getLoggingAdapter(), plugin.getSettings()).thenAccept(
                         optionalUserData -> optionalUserData.ifPresent(userData -> plugin.getRedisManager()
                                 .setUserData(user, userData).thenRun(() -> plugin.getDatabase()
-                                        .setUserData(user, userData, DataSaveCause.DISCONNECT)))))
+                                        .setUserData(user, userData, DataSaveCause.DISCONNECT, plugin.getSettings().serverID)))))
                 .thenRun(() -> lockedPlayers.remove(user.uuid)).exceptionally(throwable -> {
                     plugin.getLoggingAdapter().log(Level.SEVERE,
                             "An exception occurred handling a player disconnection");
@@ -172,7 +172,7 @@ public abstract class EventListener {
             return;
         }
         usersInWorld.forEach(user -> user.getUserData(plugin.getLoggingAdapter(), plugin.getSettings()).join().ifPresent(
-                userData -> plugin.getDatabase().setUserData(user, userData, DataSaveCause.WORLD_SAVE).join()));
+                userData -> plugin.getDatabase().setUserData(user, userData, DataSaveCause.WORLD_SAVE, plugin.getSettings().serverID).join()));
     }
 
     /**
@@ -189,7 +189,7 @@ public abstract class EventListener {
         user.getUserData(plugin.getLoggingAdapter(), plugin.getSettings())
                 .thenAccept(data -> data.ifPresent(userData -> {
                     userData.getInventory().orElse(ItemData.empty()).serializedItems = drops.serializedItems;
-                    plugin.getDatabase().setUserData(user, userData, DataSaveCause.DEATH);
+                    plugin.getDatabase().setUserData(user, userData, DataSaveCause.DEATH, plugin.getSettings().serverID);
                 }));
     }
 
@@ -211,7 +211,7 @@ public abstract class EventListener {
 
         plugin.getOnlineUsers().stream().filter(user -> !lockedPlayers.contains(user.uuid)).forEach(
                 user -> user.getUserData(plugin.getLoggingAdapter(), plugin.getSettings()).join().ifPresent(
-                        userData -> plugin.getDatabase().setUserData(user, userData, DataSaveCause.SERVER_SHUTDOWN).join()));
+                        userData -> plugin.getDatabase().setUserData(user, userData, DataSaveCause.SERVER_SHUTDOWN, plugin.getSettings().serverID).join()));
 
         plugin.getDatabase().close();
         plugin.getRedisManager().close();
