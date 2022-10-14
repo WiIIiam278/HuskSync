@@ -19,15 +19,17 @@ import java.util.UUID;
  * @param versionTimestamp An epoch milliseconds timestamp of when this data was created
  * @param userData         The {@link UserData} that has been versioned
  * @param cause            The {@link DataSaveCause} that caused this data to be saved
+ * @param serverID         The Server ID/Name where snapshot was created.
  */
 public record UserDataSnapshot(@NotNull UUID versionUUID, @NotNull Date versionTimestamp,
-                               @NotNull DataSaveCause cause, boolean pinned,
+                               @NotNull DataSaveCause cause, @NotNull String serverID, boolean pinned,
                                @NotNull UserData userData) implements Comparable<UserDataSnapshot> {
 
     /**
      * Version {@link UserData} into a {@link UserDataSnapshot}, assigning it a random {@link UUID} and the current timestamp {@link Date}
      * </p>
      * Note that this method will set {@code cause} to {@link DataSaveCause#API}
+     * Note that this method will set {@code serverID} to {@link DataServerID#getServerID()}
      *
      * @param userData The {@link UserData} to version
      * @return A new {@link UserDataSnapshot}
@@ -36,7 +38,7 @@ public record UserDataSnapshot(@NotNull UUID versionUUID, @NotNull Date versionT
      */
     public static UserDataSnapshot create(@NotNull UserData userData) {
         return new UserDataSnapshot(UUID.randomUUID(), new Date(),
-                DataSaveCause.API, false, userData);
+                DataSaveCause.API, DataServerID.getServerID(), false, userData);
     }
 
     /**

@@ -225,6 +225,7 @@ public class MySqlDatabase extends Database {
                                 UUID.fromString(resultSet.getString("version_uuid")),
                                 Date.from(resultSet.getTimestamp("timestamp").toInstant()),
                                 DataSaveCause.getCauseByName(resultSet.getString("save_cause")),
+                                resultSet.getString("server_id"),
                                 resultSet.getBoolean("pinned"),
                                 getDataAdapter().fromBytes(dataByteArray)));
                     }
@@ -256,6 +257,7 @@ public class MySqlDatabase extends Database {
                                 UUID.fromString(resultSet.getString("version_uuid")),
                                 Date.from(resultSet.getTimestamp("timestamp").toInstant()),
                                 DataSaveCause.getCauseByName(resultSet.getString("save_cause")),
+                                resultSet.getString("server_id"),
                                 resultSet.getBoolean("pinned"),
                                 getDataAdapter().fromBytes(dataByteArray));
                         retrievedData.add(data);
@@ -290,6 +292,7 @@ public class MySqlDatabase extends Database {
                                 UUID.fromString(resultSet.getString("version_uuid")),
                                 Date.from(resultSet.getTimestamp("timestamp").toInstant()),
                                 DataSaveCause.getCauseByName(resultSet.getString("save_cause")),
+                                resultSet.getString("server_id"),
                                 resultSet.getBoolean("pinned"),
                                 getDataAdapter().fromBytes(dataByteArray)));
                     }

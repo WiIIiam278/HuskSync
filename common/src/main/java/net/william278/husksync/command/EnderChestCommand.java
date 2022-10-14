@@ -2,10 +2,7 @@ package net.william278.husksync.command;
 
 import de.themoep.minedown.adventure.MineDown;
 import net.william278.husksync.HuskSync;
-import net.william278.husksync.data.DataSaveCause;
-import net.william278.husksync.data.UserData;
-import net.william278.husksync.data.UserDataBuilder;
-import net.william278.husksync.data.UserDataSnapshot;
+import net.william278.husksync.data.*;
 import net.william278.husksync.player.OnlineUser;
 import net.william278.husksync.player.User;
 import org.jetbrains.annotations.NotNull;
@@ -86,7 +83,7 @@ public class EnderChestCommand extends CommandBase implements TabCompletable {
 
                     // Set the updated data
                     final UserData updatedUserData = builder.build();
-                    plugin.getDatabase().setUserData(dataOwner, updatedUserData, DataSaveCause.INVENTORY_COMMAND, plugin.getSettings().serverID).join();
+                    plugin.getDatabase().setUserData(dataOwner, updatedUserData, DataSaveCause.INVENTORY_COMMAND, DataServerID.getServerID()).join();
                     plugin.getRedisManager().sendUserDataUpdate(dataOwner, updatedUserData).join();
                 });
             });

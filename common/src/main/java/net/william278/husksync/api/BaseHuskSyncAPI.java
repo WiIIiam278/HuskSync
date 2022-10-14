@@ -2,6 +2,7 @@ package net.william278.husksync.api;
 
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.data.DataSaveCause;
+import net.william278.husksync.data.DataServerID;
 import net.william278.husksync.data.UserData;
 import net.william278.husksync.data.UserDataSnapshot;
 import net.william278.husksync.player.OnlineUser;
@@ -91,7 +92,7 @@ public abstract class BaseHuskSyncAPI {
      */
     public final CompletableFuture<Void> setUserData(@NotNull User user, @NotNull UserData userData) {
         return CompletableFuture.runAsync(() ->
-                plugin.getDatabase().setUserData(user, userData, DataSaveCause.API, plugin.getSettings().serverID)
+                plugin.getDatabase().setUserData(user, userData, DataSaveCause.API, DataServerID.getServerID())
                         .thenRun(() -> plugin.getRedisManager().sendUserDataUpdate(user, userData).join()));
     }
 
@@ -105,7 +106,7 @@ public abstract class BaseHuskSyncAPI {
     public final CompletableFuture<Void> saveUserData(@NotNull OnlineUser user) {
         return CompletableFuture.runAsync(() -> user.getUserData(plugin.getLoggingAdapter(), plugin.getSettings())
                 .thenAccept(optionalUserData -> optionalUserData.ifPresent(
-                        userData -> plugin.getDatabase().setUserData(user, userData, DataSaveCause.API, plugin.getSettings().serverID).join())));
+                        userData -> plugin.getDatabase().setUserData(user, userData, DataSaveCause.API, DataServerID.getServerID()).join())));
     }
 
     /**

@@ -2,6 +2,7 @@ package net.william278.husksync.command;
 
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.data.DataSaveCause;
+import net.william278.husksync.data.DataServerID;
 import net.william278.husksync.data.UserData;
 import net.william278.husksync.util.DataSnapshotList;
 import net.william278.husksync.player.OnlineUser;
@@ -186,7 +187,7 @@ public class UserDataCommand extends CommandBase implements TabCompletable {
                                         userData.getStatus().ifPresent(status -> status.health = Math.max(1, status.health));
 
                                         // Set the users data and send a message
-                                        plugin.getDatabase().setUserData(user, userData, DataSaveCause.BACKUP_RESTORE, plugin.getSettings().serverID);
+                                        plugin.getDatabase().setUserData(user, userData, DataSaveCause.BACKUP_RESTORE, DataServerID.getServerID());
                                         plugin.getRedisManager().sendUserDataUpdate(user, data.get().userData()).join();
                                         plugin.getLocales().getLocale("data_restored",
                                                         user.username,

@@ -2,6 +2,7 @@ package net.william278.husksync.listener;
 
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.data.DataSaveCause;
+import net.william278.husksync.data.DataServerID;
 import net.william278.husksync.data.ItemData;
 import net.william278.husksync.player.OnlineUser;
 import org.jetbrains.annotations.NotNull;
@@ -153,7 +154,7 @@ public abstract class EventListener {
                 .thenRun(() -> user.getUserData(plugin.getLoggingAdapter(), plugin.getSettings()).thenAccept(
                         optionalUserData -> optionalUserData.ifPresent(userData -> plugin.getRedisManager()
                                 .setUserData(user, userData).thenRun(() -> plugin.getDatabase()
-                                        .setUserData(user, userData, DataSaveCause.DISCONNECT, plugin.getSettings().serverID)))))
+                                        .setUserData(user, userData, DataSaveCause.DISCONNECT, DataServerID.getServerID())))))
                 .thenRun(() -> lockedPlayers.remove(user.uuid)).exceptionally(throwable -> {
                     plugin.getLoggingAdapter().log(Level.SEVERE,
                             "An exception occurred handling a player disconnection");
@@ -172,7 +173,7 @@ public abstract class EventListener {
             return;
         }
         usersInWorld.forEach(user -> user.getUserData(plugin.getLoggingAdapter(), plugin.getSettings()).join().ifPresent(
-                userData -> plugin.getDatabase().setUserData(user, userData, DataSaveCause.WORLD_SAVE, plugin.getSettings().serverID).join()));
+                userData -> plugin.getDatabase().setUserData(user, userData, DataSaveCause.WORLD_SAVE, DataServerID.getServerID()).join()));
     }
 
     /**
@@ -189,7 +190,7 @@ public abstract class EventListener {
         user.getUserData(plugin.getLoggingAdapter(), plugin.getSettings())
                 .thenAccept(data -> data.ifPresent(userData -> {
                     userData.getInventory().orElse(ItemData.empty()).serializedItems = drops.serializedItems;
-                    plugin.getDatabase().setUserData(user, userData, DataSaveCause.DEATH, plugin.getSettings().serverID);
+                    plugin.getDatabase().setUserData(user, userData, DataSaveCause.DEATH, DataServerID.getServerID());
                 }));
     }
 
