@@ -62,6 +62,9 @@ public record UserDataSnapshot(@NotNull UUID versionUUID, @NotNull Date versionT
         locales.getLocale("data_manager_cause", cause().name().toLowerCase().replaceAll("_", " "))
                 .ifPresent(user::sendMessage);
 
+        locales.getLocale("data_manager_server", serverID)
+                .ifPresent(user::sendMessage);
+
         // User status data, if present in the snapshot
         userData().getStatus()
                 .flatMap(statusData -> locales.getLocale("data_manager_status",
