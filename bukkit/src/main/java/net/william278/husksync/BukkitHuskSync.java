@@ -10,6 +10,7 @@ import net.william278.husksync.config.Locales;
 import net.william278.husksync.config.Settings;
 import net.william278.husksync.data.CompressedDataAdapter;
 import net.william278.husksync.data.DataAdapter;
+import net.william278.husksync.data.DataServerID;
 import net.william278.husksync.data.JsonDataAdapter;
 import net.william278.husksync.database.Database;
 import net.william278.husksync.database.MySqlDatabase;
@@ -97,6 +98,7 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync {
             initialized.set(reload().join());
             if (initialized.get()) {
                 logger.showDebugLogs(settings.debugLogging);
+                DataServerID.setServerID(settings.serverID);
                 getLoggingAdapter().log(Level.INFO, "Successfully loaded plugin configuration settings & locales");
             } else {
                 throw new HuskSyncInitializationException("Failed to load plugin configuration settings and/or locales");
