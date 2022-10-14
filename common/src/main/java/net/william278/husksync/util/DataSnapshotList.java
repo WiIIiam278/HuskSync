@@ -34,7 +34,9 @@ public class DataSnapshotList {
                                         snapshot.versionUUID().toString(),
                                         snapshot.cause().name().toLowerCase().replaceAll("_", " "),
                                         dataOwner.username,
-                                        snapshot.pinned() ? "※" : "  ")
+                                        snapshot.pinned() ? "※" : "  ",
+                                        snapshot.serverID()
+                                )
                                 .orElse("• " + snapshot.versionUUID())).toList(),
                 locales.getBaseChatList(6)
                         .setHeaderFormat(locales.getRawLocale("data_list_title", dataOwner.username,
