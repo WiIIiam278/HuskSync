@@ -11,7 +11,7 @@ public abstract class Logger {
 
     private boolean debug;
 
-    public abstract void log(@NotNull Level level, @NotNull String message, @NotNull Exception e);
+    public abstract void log(@NotNull Level level, @NotNull String message, @NotNull Throwable e);
 
     public abstract void log(@NotNull Level level, @NotNull String message);
 

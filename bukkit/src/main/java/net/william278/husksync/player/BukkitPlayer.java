@@ -573,45 +573,45 @@ public class BukkitPlayer extends OnlineUser {
 
         // Deserialize the item data to be shown and show it in a triumph GUI
         BukkitSerializer.deserializeItemStackArray(itemData.serializedItems).thenAccept(items -> {
-            try {
-                // Build the GUI and populate with items
-                final int itemCount = items.length;
-                final StorageBuilder guiBuilder = Gui.storage()
-                        .title(title.toComponent())
-                        .rows(Math.max(minimumRows, (int) Math.ceil(itemCount / 9.0)))
-                        .disableAllInteractions()
-                        .enableOtherActions();
-                final StorageGui gui = editable ? guiBuilder.enableAllInteractions().create() : guiBuilder.create();
-                for (int i = 0; i < itemCount; i++) {
-                    if (items[i] != null) {
-                        gui.getInventory().setItem(i, items[i]);
-                    }
+            // Build the GUI and populate with items
+            final int itemCount = items.length;
+            final StorageBuilder guiBuilder = Gui.storage()
+                    .title(title.toComponent())
+                    .rows(Math.max(minimumRows, (int) Math.ceil(itemCount / 9.0)))
+                    .disableAllInteractions()
+                    .enableOtherActions();
+            final StorageGui gui = editable ? guiBuilder.enableAllInteractions().create() : guiBuilder.create();
+            for (int i = 0; i < itemCount; i++) {
+                if (items[i] != null) {
+                    gui.getInventory().setItem(i, items[i]);
+                }
+            }
+
+            // Complete the future with updated data (if editable) when the GUI is closed
+            gui.setCloseGuiAction(event -> {
+                if (!editable) {
+                    updatedData.complete(Optional.empty());
+                    return;
                 }
 
-                // Complete the future with updated data (if editable) when the GUI is closed
-                gui.setCloseGuiAction(event -> {
-                    if (!editable) {
+                // Get and save the updated items
+                final ItemStack[] updatedItems = Arrays.copyOf(event.getPlayer().getOpenInventory()
+                        .getTopInventory().getContents().clone(), itemCount);
+                BukkitSerializer.serializeItemStackArray(updatedItems).thenAccept(serializedItems -> {
+                    if (serializedItems.equals(itemData.serializedItems)) {
                         updatedData.complete(Optional.empty());
                         return;
                     }
-
-                    // Get and save the updated items
-                    final ItemStack[] updatedItems = Arrays.copyOf(event.getPlayer().getOpenInventory()
-                            .getTopInventory().getContents().clone(), itemCount);
-                    BukkitSerializer.serializeItemStackArray(updatedItems).thenAccept(serializedItems -> {
-                        if (serializedItems.equals(itemData.serializedItems)) {
-                            updatedData.complete(Optional.empty());
-                            return;
-                        }
-                        updatedData.complete(Optional.of(new ItemData(serializedItems)));
-                    });
+                    updatedData.complete(Optional.of(new ItemData(serializedItems)));
                 });
+            });
 
-                // Display the GUI (synchronously; on the main server thread)
-                Bukkit.getScheduler().runTask(BukkitHuskSync.getInstance(), () -> gui.open(player));
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            // Display the GUI (synchronously; on the main server thread)
+            Bukkit.getScheduler().runTask(BukkitHuskSync.getInstance(), () -> gui.open(player));
+        }).exceptionally(throwable -> {
+            // Handle exceptions
+            updatedData.completeExceptionally(throwable);
+            return null;
         });
         return updatedData;
     }

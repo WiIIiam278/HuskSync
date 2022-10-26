@@ -13,7 +13,7 @@ public class BukkitLogger extends Logger {
     }
 
     @Override
-    public void log(@NotNull Level level, @NotNull String message, @NotNull Exception e) {
+    public void log(@NotNull Level level, @NotNull String message, @NotNull Throwable e) {
         logger.log(level, message, e);
     }
 

@@ -12,8 +12,10 @@ import org.jetbrains.annotations.NotNull;
 
 import java.text.SimpleDateFormat;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 public class InventoryCommand extends CommandBase implements TabCompletable {
@@ -69,12 +71,14 @@ public class InventoryCommand extends CommandBase implements TabCompletable {
                 player.showMenu(itemData, allowEdit, 5, plugin.getLocales()
                                 .getLocale("inventory_viewer_menu_title", dataOwner.username)
                                 .orElse(new MineDown("Inventory Viewer")))
+                        .exceptionally(throwable -> {
+                            plugin.getLoggingAdapter().log(Level.WARNING, "Exception displaying inventory menu to " + player.username, throwable);
+                            return Optional.empty();
+                        })
                         .thenAccept(dataOnClose -> {
                             if (dataOnClose.isEmpty() || !allowEdit) {
                                 return;
                             }
-
-                            plugin.getLoggingAdapter().debug("Inventory data changed, updating user, etc!");
 
                             // Create the updated data
                             final UserDataBuilder builder = UserData.builder(plugin.getMinecraftVersion());
@@ -89,8 +93,9 @@ public class InventoryCommand extends CommandBase implements TabCompletable {
 
                             // Set the updated data
                             final UserData updatedUserData = builder.build();
-                            plugin.getDatabase().setUserData(dataOwner, updatedUserData, DataSaveCause.INVENTORY_COMMAND).join();
-                            plugin.getRedisManager().sendUserDataUpdate(dataOwner, updatedUserData).join();
+                            plugin.getDatabase()
+                                    .setUserData(dataOwner, updatedUserData, DataSaveCause.INVENTORY_COMMAND)
+                                    .thenRun(() -> plugin.getRedisManager().sendUserDataUpdate(dataOwner, updatedUserData));
                         });
             });
         });

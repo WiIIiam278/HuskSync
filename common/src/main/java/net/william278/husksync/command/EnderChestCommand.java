@@ -12,8 +12,10 @@ import org.jetbrains.annotations.NotNull;
 
 import java.text.SimpleDateFormat;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 public class EnderChestCommand extends CommandBase implements TabCompletable {
@@ -67,28 +69,34 @@ public class EnderChestCommand extends CommandBase implements TabCompletable {
 
                 // Show inventory menu
                 player.showMenu(itemData, allowEdit, 3, plugin.getLocales()
-                        .getLocale("ender_chest_viewer_menu_title", dataOwner.username)
-                        .orElse(new MineDown("Ender Chest Viewer"))).thenAccept(dataOnClose -> {
-                    if (dataOnClose.isEmpty() || !allowEdit) {
-                        return;
-                    }
+                                .getLocale("ender_chest_viewer_menu_title", dataOwner.username)
+                                .orElse(new MineDown("Ender Chest Viewer")))
+                        .exceptionally(throwable -> {
+                            plugin.getLoggingAdapter().log(Level.WARNING, "Exception displaying inventory menu to " + player.username, throwable);
+                            return Optional.empty();
+                        })
+                        .thenAccept(dataOnClose -> {
+                            if (dataOnClose.isEmpty() || !allowEdit) {
+                                return;
+                            }
 
-                    // Create the updated data
-                    final UserDataBuilder builder = UserData.builder(plugin.getMinecraftVersion());
-                    data.getStatus().ifPresent(builder::setStatus);
-                    data.getAdvancements().ifPresent(builder::setAdvancements);
-                    data.getLocation().ifPresent(builder::setLocation);
-                    data.getPersistentDataContainer().ifPresent(builder::setPersistentDataContainer);
-                    data.getStatistics().ifPresent(builder::setStatistics);
-                    data.getPotionEffects().ifPresent(builder::setPotionEffects);
-                    data.getInventory().ifPresent(builder::setInventory);
-                    builder.setEnderChest(dataOnClose.get());
+                            // Create the updated data
+                            final UserDataBuilder builder = UserData.builder(plugin.getMinecraftVersion());
+                            data.getStatus().ifPresent(builder::setStatus);
+                            data.getAdvancements().ifPresent(builder::setAdvancements);
+                            data.getLocation().ifPresent(builder::setLocation);
+                            data.getPersistentDataContainer().ifPresent(builder::setPersistentDataContainer);
+                            data.getStatistics().ifPresent(builder::setStatistics);
+                            data.getPotionEffects().ifPresent(builder::setPotionEffects);
+                            data.getInventory().ifPresent(builder::setInventory);
+                            builder.setEnderChest(dataOnClose.get());
 
-                    // Set the updated data
-                    final UserData updatedUserData = builder.build();
-                    plugin.getDatabase().setUserData(dataOwner, updatedUserData, DataSaveCause.INVENTORY_COMMAND).join();
-                    plugin.getRedisManager().sendUserDataUpdate(dataOwner, updatedUserData).join();
-                });
+                            // Set the updated data
+                            final UserData updatedUserData = builder.build();
+                            plugin.getDatabase()
+                                    .setUserData(dataOwner, updatedUserData, DataSaveCause.INVENTORY_COMMAND)
+                                    .thenRun(() -> plugin.getRedisManager().sendUserDataUpdate(dataOwner, updatedUserData));
+                        });
             });
         });
     }

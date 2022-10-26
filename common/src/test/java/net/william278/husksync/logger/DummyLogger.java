@@ -11,7 +11,7 @@ public class DummyLogger extends Logger {
     }
 
     @Override
-    public void log(@NotNull Level level, @NotNull String message, @NotNull Exception e) {
+    public void log(@NotNull Level level, @NotNull String message, @NotNull Throwable e) {
         System.out.println(level.getName() + ": " + message);
         e.printStackTrace();
     }
