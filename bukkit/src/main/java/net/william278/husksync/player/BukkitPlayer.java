@@ -618,7 +618,7 @@ public class BukkitPlayer extends OnlineUser {
 
     @Override
     public boolean isDead() {
-        return player.getHealth() < 1;
+        return player.isDead() || player.getHealth() <= 0;
     }
 
     @Override
