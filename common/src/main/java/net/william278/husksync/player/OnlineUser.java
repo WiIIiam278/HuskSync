@@ -321,6 +321,7 @@ public abstract class OnlineUser extends User {
                         if (!isOffline()) {
                             if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.INVENTORIES)) {
                                 if (isDead() && settings.saveDeadPlayerInventories) {
+                                    logger.debug("Player " + username + " is dead, so their inventory will be set to empty.");
                                     add(CompletableFuture.runAsync(() -> builder.setInventory(ItemData.empty())));
                                 } else {
                                     add(getInventory().thenAccept(builder::setInventory));
