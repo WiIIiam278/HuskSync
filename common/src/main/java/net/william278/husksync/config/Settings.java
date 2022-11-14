@@ -143,7 +143,6 @@ public class Settings {
             return Map.entry(name().toLowerCase(), defaultName);
         }
 
-        @SuppressWarnings("unchecked")
         private static Map<String, String> getDefaults() {
             return Map.ofEntries(Arrays.stream(values())
                     .map(TableName::toEntry)
@@ -179,7 +178,6 @@ public class Settings {
             return Map.entry(name().toLowerCase(), enabledByDefault);
         }
 
-        @SuppressWarnings("unchecked")
         private static Map<String, Boolean> getDefaults() {
             return Map.ofEntries(Arrays.stream(values())
                     .map(SynchronizationFeature::toEntry)
