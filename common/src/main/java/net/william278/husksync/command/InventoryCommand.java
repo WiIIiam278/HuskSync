@@ -46,9 +46,10 @@ public class InventoryCommand extends CommandBase implements TabCompletable {
                                     "/inventory <player> [version_uuid]").ifPresent(player::sendMessage);
                         }
                     } else {
-                        // View latest user data
+                        // View (and edit) the latest user data
                         plugin.getDatabase().getCurrentUserData(user).thenAccept(optionalData -> optionalData.ifPresentOrElse(
-                                versionedUserData -> showInventoryMenu(player, versionedUserData, user, true),
+                                versionedUserData -> showInventoryMenu(player, versionedUserData, user,
+                                        player.hasPermission(Permission.COMMAND_INVENTORY_EDIT.node)),
                                 () -> plugin.getLocales().getLocale("error_no_data_to_display")
                                         .ifPresent(player::sendMessage)));
                     }
