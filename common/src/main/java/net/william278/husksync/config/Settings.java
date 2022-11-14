@@ -20,7 +20,7 @@ import java.util.Optional;
         ┣╸ Information: https://william278.net/project/husksync
         ┗╸ Documentation: https://william278.net/docs/husksync""",
 
-        versionField = "config_version", versionNumber = 2)
+        versionField = "config_version", versionNumber = 3)
 public class Settings {
 
     // Top-level settings
@@ -125,6 +125,15 @@ public class Settings {
                 .orElse(feature.enabledByDefault);
     }
 
+    @YamlKey("synchronization.event_priorities")
+    public Map<String, EventPriority> synchronizationEventPriorities = EventType.getDefaults();
+
+    @NotNull
+    public EventPriority getEventPriority(@NotNull Settings.EventType eventType) {
+        return Optional.ofNullable(synchronizationEventPriorities.get(eventType.name().toLowerCase()))
+                .orElse(EventPriority.NORMAL);
+    }
+
 
     /**
      * Represents the names of tables in the database
@@ -143,6 +152,7 @@ public class Settings {
             return Map.entry(name().toLowerCase(), defaultName);
         }
 
+        @SuppressWarnings("unchecked")
         private static Map<String, String> getDefaults() {
             return Map.ofEntries(Arrays.stream(values())
                     .map(TableName::toEntry)
@@ -178,11 +188,58 @@ public class Settings {
             return Map.entry(name().toLowerCase(), enabledByDefault);
         }
 
+
+        @SuppressWarnings("unchecked")
         private static Map<String, Boolean> getDefaults() {
             return Map.ofEntries(Arrays.stream(values())
                     .map(SynchronizationFeature::toEntry)
                     .toArray(Map.Entry[]::new));
         }
+    }
+
+    /**
+     * Represents events that HuskSync listens to, with a configurable priority listener
+     */
+    public enum EventType {
+        JOIN_LISTENER(EventPriority.LOWEST),
+        QUIT_LISTENER(EventPriority.LOWEST),
+        DEATH_LISTENER(EventPriority.NORMAL);
+
+        private final EventPriority defaultPriority;
+
+        EventType(@NotNull EventPriority defaultPriority) {
+            this.defaultPriority = defaultPriority;
+        }
+
+        private Map.Entry<String, EventPriority> toEntry() {
+            return Map.entry(name(), defaultPriority);
+        }
+
+
+        @SuppressWarnings("unchecked")
+        private static Map<String, EventPriority> getDefaults() {
+            return Map.ofEntries(Arrays.stream(values())
+                    .map(EventType::toEntry)
+                    .toArray(Map.Entry[]::new));
+        }
+    }
+
+    /**
+     * Represents priorities for events that HuskSync listens to
+     */
+    public enum EventPriority {
+        /**
+         * Listens and processes the event execution last
+         */
+        HIGHEST,
+        /**
+         * Listens in between {@link #HIGHEST} and {@link #LOWEST} priority marked
+         */
+        NORMAL,
+        /**
+         * Listens and processes the event execution first
+         */
+        LOWEST
     }
 
 }
