@@ -37,7 +37,6 @@ public class BukkitEventListener extends EventListener implements BukkitJoinEven
 
     @Override
     public boolean handleEvent(@NotNull Settings.EventType type, @NotNull Settings.EventPriority priority) {
-        plugin.getLoggingAdapter().debug("Handling event " + type.name() + " with priority " + priority.name());
         return plugin.getSettings().getEventPriority(type).equals(priority);
     }
 
