@@ -126,12 +126,16 @@ public class Settings {
     }
 
     @YamlKey("synchronization.event_priorities")
-    public Map<String, EventPriority> synchronizationEventPriorities = EventType.getDefaults();
+    public Map<String, String> synchronizationEventPriorities = EventType.getDefaults();
 
     @NotNull
     public EventPriority getEventPriority(@NotNull Settings.EventType eventType) {
-        return Optional.ofNullable(synchronizationEventPriorities.get(eventType.name().toLowerCase()))
-                .orElse(EventPriority.NORMAL);
+        try {
+            return EventPriority.valueOf(synchronizationEventPriorities.get(eventType.name().toLowerCase()));
+        } catch (IllegalArgumentException e) {
+            e.printStackTrace();
+            return EventPriority.NORMAL;
+        }
     }
 
 
@@ -211,13 +215,13 @@ public class Settings {
             this.defaultPriority = defaultPriority;
         }
 
-        private Map.Entry<String, EventPriority> toEntry() {
-            return Map.entry(name(), defaultPriority);
+        private Map.Entry<String, String> toEntry() {
+            return Map.entry(name().toLowerCase(), defaultPriority.name());
         }
 
 
         @SuppressWarnings("unchecked")
-        private static Map<String, EventPriority> getDefaults() {
+        private static Map<String, String> getDefaults() {
             return Map.ofEntries(Arrays.stream(values())
                     .map(EventType::toEntry)
                     .toArray(Map.Entry[]::new));
