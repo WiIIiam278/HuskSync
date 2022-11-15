@@ -8,12 +8,12 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.MapMeta;
-import org.bukkit.map.MapCanvas;
-import org.bukkit.map.MapRenderer;
-import org.bukkit.map.MapView;
+import org.bukkit.map.*;
 import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.awt.*;
 import java.io.IOException;
 import java.util.Objects;
 import java.util.logging.Level;
@@ -31,8 +31,9 @@ public class BukkitMapHandler {
      *
      * @param itemStack the {@link ItemStack} to get the {@link MapData} from
      */
-    public static void persistMapData(@NotNull ItemStack itemStack) {
-        if (itemStack.getType() != Material.FILLED_MAP) {
+    @SuppressWarnings("ConstantConditions")
+    public static void persistMapData(@Nullable ItemStack itemStack) {
+        if (itemStack == null || itemStack.getType() != Material.FILLED_MAP) {
             return;
         }
         final MapMeta mapMeta = (MapMeta) itemStack.getItemMeta();
@@ -40,24 +41,28 @@ public class BukkitMapHandler {
             return;
         }
 
-        // Get the map view
+        // Get the map view from the map
         final MapView mapView = mapMeta.getMapView();
         if (mapView == null || !mapView.isLocked() || mapView.isVirtual()) {
             return;
         }
-        final int mapId = mapView.getId();
-        if (mapId < 0) {
-            return;
-        }
 
         // Get the map data
-        try {
-            if (!itemStack.getItemMeta().getPersistentDataContainer().has(MAP_DATA_KEY, PersistentDataType.STRING)) {
-                itemStack.getItemMeta().getPersistentDataContainer().set(MAP_DATA_KEY, PersistentDataType.STRING,
-                        MapData.getFromFile(Bukkit.getWorlds().get(0).getWorldFolder(), mapId).toString());
-            }
-        } catch (IOException e) {
-            plugin.getLogger().log(Level.WARNING, "Failed to serialize map data for map " + mapId + ")");
+        plugin.getLoggingAdapter().debug("Rendering map view onto canvas for locked map");
+        final LockedMapCanvas canvas = new LockedMapCanvas(mapView);
+        for (MapRenderer renderer : mapView.getRenderers()) {
+            renderer.render(mapView, canvas, Bukkit.getServer()
+                    .getOnlinePlayers().stream()
+                    .findAny()
+                    .orElse(null));
+        }
+
+        // Save the extracted rendered map data
+        plugin.getLoggingAdapter().debug("Saving pixel canvas data for locked map");
+        if (!mapMeta.getPersistentDataContainer().has(MAP_DATA_KEY, PersistentDataType.BYTE_ARRAY)) {
+            mapMeta.getPersistentDataContainer().set(MAP_DATA_KEY, PersistentDataType.BYTE_ARRAY,
+                    canvas.extractMapData().toBytes());
+            itemStack.setItemMeta(mapMeta);
         }
     }
 
@@ -66,8 +71,8 @@ public class BukkitMapHandler {
      *
      * @param itemStack the {@link ItemStack} to set the map data of
      */
-    public static void setMapRenderer(@NotNull ItemStack itemStack) {
-        if (itemStack.getType() != Material.FILLED_MAP) {
+    public static void setMapRenderer(@Nullable ItemStack itemStack) {
+        if (itemStack == null || itemStack.getType() != Material.FILLED_MAP) {
             return;
         }
 
@@ -76,35 +81,43 @@ public class BukkitMapHandler {
             return;
         }
 
-        if (!itemStack.getItemMeta().getPersistentDataContainer().has(MAP_DATA_KEY, PersistentDataType.STRING)) {
+        plugin.getLoggingAdapter().debug("Setting map renderer for item stack " + itemStack);
+        if (!itemStack.getItemMeta().getPersistentDataContainer().has(MAP_DATA_KEY, PersistentDataType.BYTE_ARRAY)) {
             return;
         }
 
+        plugin.getLoggingAdapter().debug("Map data found for item stack " + itemStack);
         try {
-            final String serializedData = Objects.requireNonNull(itemStack
-                    .getItemMeta().getPersistentDataContainer().get(MAP_DATA_KEY, PersistentDataType.STRING));
-            final MapData mapData = MapData.fromString(serializedData);
+            final byte[] serializedData = itemStack.getItemMeta().getPersistentDataContainer()
+                    .get(MAP_DATA_KEY, PersistentDataType.BYTE_ARRAY);
+            final MapData mapData = MapData.fromByteArray(Objects.requireNonNull(serializedData));
+            plugin.getLoggingAdapter().debug("Deserialized map data for " + itemStack + " (" + mapData + ")");
 
             // Create a new map view renderer with the map data color at each pixel
-            final MapView mapView = mapMeta.getMapView();
-            if (mapView == null) {
-                return;
-            }
-            mapView.getRenderers().forEach(mapView::removeRenderer);
-            mapView.addRenderer(new BukkitMapDataRenderer(mapData));
-        } catch (IOException e) {
-            plugin.getLogger().log(Level.WARNING, "Failed to deserialize map data for a player");
+            final MapView view = Bukkit.createMap(Bukkit.getWorlds().get(0));
+            view.getRenderers().clear();
+            view.addRenderer(new PersistentMapRenderer(mapData));
+            view.setLocked(true);
+            view.setScale(MapView.Scale.NORMAL);
+            view.setTrackingPosition(false);
+            view.setUnlimitedTracking(false);
+            mapMeta.setMapView(view);
+            itemStack.setItemMeta(mapMeta);
+            plugin.getLoggingAdapter().debug("Set map renderer for item stack " + itemStack);
+        } catch (IOException | NullPointerException e) {
+            plugin.getLogger().log(Level.WARNING, "Failed to deserialize map data for a player", e);
         }
     }
 
     /**
-     * Renders {@link MapData} to a bukkit {@link MapView}.
+     * A {@link MapRenderer} that can be used to render persistently serialized {@link MapData} to a {@link MapView}
      */
-    public static class BukkitMapDataRenderer extends MapRenderer {
+    public static class PersistentMapRenderer extends MapRenderer {
 
         private final MapData mapData;
 
-        protected BukkitMapDataRenderer(@NotNull MapData mapData) {
+        private PersistentMapRenderer(@NotNull MapData mapData) {
+            super(false);
             this.mapData = mapData;
         }
 
@@ -112,10 +125,85 @@ public class BukkitMapHandler {
         public void render(@NotNull MapView map, @NotNull MapCanvas canvas, @NotNull Player player) {
             for (int i = 0; i < 128; i++) {
                 for (int j = 0; j < 128; j++) {
-                    canvas.setPixel(i, j, (byte) mapData.getColorAt(i, j).intValue());
+                    // We set the pixels in this order to avoid the map being rendered upside down
+                    canvas.setPixel(j, i, (byte) mapData.getColorAt(i, j));
                 }
             }
-            map.setLocked(true);
+        }
+    }
+
+    /**
+     * A {@link MapCanvas} implementation used for pre-rendering maps to be converted into {@link MapData}
+     */
+    public static class LockedMapCanvas implements MapCanvas {
+
+        private final MapView mapView;
+        private final int[][] pixels = new int[128][128];
+        private MapCursorCollection cursors;
+
+        private LockedMapCanvas(@NotNull MapView mapView) {
+            this.mapView = mapView;
+        }
+
+        @NotNull
+        @Override
+        public MapView getMapView() {
+            return mapView;
+        }
+
+        @NotNull
+        @Override
+        public MapCursorCollection getCursors() {
+            return cursors == null ? (cursors = new MapCursorCollection()) : cursors;
+        }
+
+        @Override
+        public void setCursors(@NotNull MapCursorCollection cursors) {
+            this.cursors = cursors;
+        }
+
+        @Override
+        public void setPixel(int x, int y, byte color) {
+            pixels[x][y] = color;
+        }
+
+        @Override
+        public byte getPixel(int x, int y) {
+            return (byte) pixels[x][y];
+        }
+
+        @Override
+        public byte getBasePixel(int x, int y) {
+            return getPixel(x, y);
+        }
+
+        @Override
+        public void drawImage(int x, int y, @NotNull Image image) {
+            // Not implemented
+        }
+
+        @Override
+        public void drawText(int x, int y, @NotNull MapFont font, @NotNull String text) {
+            // Not implemented
+        }
+
+        @NotNull
+        private String getDimension() {
+            return mapView.getWorld() == null ? "minecraft:overworld"
+                    : switch (mapView.getWorld().getEnvironment()) {
+                case NETHER -> "minecraft:the_nether";
+                case THE_END -> "minecraft:the_end";
+                default -> "minecraft:overworld";
+            };
+        }
+
+        /**
+         * Extract the map data from the canvas. Must be rendered first
+         * @return the extracted map data
+         */
+        @NotNull
+        private MapData extractMapData() {
+            return MapData.fromPixels(pixels, getDimension(), (byte) 2);
         }
     }
 }
