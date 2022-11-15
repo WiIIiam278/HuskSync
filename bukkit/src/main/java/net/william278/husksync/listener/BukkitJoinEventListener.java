@@ -28,7 +28,7 @@ public interface BukkitJoinEventListener extends Listener {
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     default void onPlayerJoinLowest(@NotNull PlayerJoinEvent event) {
-        if (handleEvent(Settings.EventType.JOIN_LISTENER, Settings.EventPriority.NORMAL)) {
+        if (handleEvent(Settings.EventType.JOIN_LISTENER, Settings.EventPriority.LOWEST)) {
             handlePlayerJoin(BukkitPlayer.adapt(event.getPlayer()));
         }
     }

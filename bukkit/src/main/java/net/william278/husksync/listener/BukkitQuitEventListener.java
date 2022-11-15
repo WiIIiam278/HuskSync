@@ -28,7 +28,7 @@ public interface BukkitQuitEventListener extends Listener {
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     default void onPlayerQuitLowest(@NotNull PlayerQuitEvent event) {
-        if (handleEvent(Settings.EventType.QUIT_LISTENER, Settings.EventPriority.NORMAL)) {
+        if (handleEvent(Settings.EventType.QUIT_LISTENER, Settings.EventPriority.LOWEST)) {
             handlePlayerQuit(BukkitPlayer.adapt(event.getPlayer()));
         }
     }

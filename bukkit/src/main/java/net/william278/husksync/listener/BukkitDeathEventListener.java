@@ -27,7 +27,7 @@ public interface BukkitDeathEventListener extends Listener {
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     default void onPlayerDeathLowest(@NotNull PlayerDeathEvent event) {
-        if (handleEvent(Settings.EventType.DEATH_LISTENER, Settings.EventPriority.NORMAL)) {
+        if (handleEvent(Settings.EventType.DEATH_LISTENER, Settings.EventPriority.LOWEST)) {
             handlePlayerDeath(event);
         }
     }
