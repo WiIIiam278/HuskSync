@@ -47,7 +47,7 @@ public class Settings {
     @YamlKey("database.credentials.database")
     public String mySqlDatabase = "HuskSync";
 
-    @YamlKey("database.mysql.credentials.username")
+    @YamlKey("database.credentials.username")
     public String mySqlUsername = "root";
 
     @YamlKey("database.credentials.password")
