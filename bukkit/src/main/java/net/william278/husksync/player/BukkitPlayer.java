@@ -6,6 +6,8 @@ import dev.triumphteam.gui.builder.gui.StorageBuilder;
 import dev.triumphteam.gui.guis.Gui;
 import dev.triumphteam.gui.guis.StorageGui;
 import net.kyori.adventure.audience.Audience;
+import net.roxeez.advancement.display.FrameType;
+import net.william278.andjam.Toast;
 import net.william278.desertwell.Version;
 import net.william278.husksync.BukkitHuskSync;
 import net.william278.husksync.config.Settings;
@@ -534,7 +536,7 @@ public class BukkitPlayer extends OnlineUser {
                         }
                     }, () -> BukkitHuskSync.getInstance().getLoggingAdapter().log(Level.WARNING,
                             "Could not set " + player.getName() + "'s persistent data key " + keyString +
-                            " as it has an invalid type. Skipping!"));
+                                    " as it has an invalid type. Skipping!"));
                 }
             });
         }).exceptionally(throwable -> {
@@ -626,6 +628,19 @@ public class BukkitPlayer extends OnlineUser {
         audience.sendActionBar(mineDown
                 .disable(MineDownParser.Option.SIMPLE_FORMATTING)
                 .replace().toComponent());
+    }
+
+    @Override
+    public void sendToast(@NotNull MineDown title, @NotNull MineDown description,
+                          @NotNull String iconMaterial, @NotNull String backgroundType) {
+        final Material material = Material.matchMaterial(iconMaterial);
+        Toast.builder(BukkitHuskSync.getInstance())
+                .setTitle(title.toComponent())
+                .setDescription(description.toComponent())
+                .setIcon(material != null ? material : Material.BARRIER)
+                .setFrameType(FrameType.valueOf(backgroundType))
+                .build()
+                .show(player);
     }
 
     @Override

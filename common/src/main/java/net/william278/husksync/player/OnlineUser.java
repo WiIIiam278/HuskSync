@@ -199,6 +199,17 @@ public abstract class OnlineUser extends User {
     public abstract void sendActionBar(@NotNull MineDown mineDown);
 
     /**
+     * Dispatch a toast message to this player
+     *
+     * @param title          the title of the toast
+     * @param description    the description of the toast
+     * @param iconMaterial   the namespace-keyed material to use as an icon of the toast
+     * @param backgroundType the background ("ToastType") of the toast
+     */
+    public abstract void sendToast(@NotNull MineDown title, @NotNull MineDown description,
+                                   @NotNull String iconMaterial, @NotNull String backgroundType);
+
+    /**
      * Returns if the player has the permission node
      *
      * @param node The permission node string
@@ -246,15 +257,15 @@ public abstract class OnlineUser extends User {
             // Prevent synchronising user data from newer versions of Minecraft
             if (Version.fromMinecraftVersionString(data.getMinecraftVersion()).compareTo(serverMinecraftVersion) > 0) {
                 logger.log(Level.SEVERE, "Cannot set data for " + username +
-                                         " because the Minecraft version of their user data (" + data.getMinecraftVersion() +
-                                         ") is newer than the server's Minecraft version (" + serverMinecraftVersion + ").");
+                        " because the Minecraft version of their user data (" + data.getMinecraftVersion() +
+                        ") is newer than the server's Minecraft version (" + serverMinecraftVersion + ").");
                 return false;
             }
             // Prevent synchronising user data from newer versions of the plugin
             if (data.getFormatVersion() > UserData.CURRENT_FORMAT_VERSION) {
                 logger.log(Level.SEVERE, "Cannot set data for " + username +
-                                         " because the format version of their user data (v" + data.getFormatVersion() +
-                                         ") is newer than the current format version (v" + UserData.CURRENT_FORMAT_VERSION + ").");
+                        " because the format version of their user data (v" + data.getFormatVersion() +
+                        ") is newer than the current format version (v" + UserData.CURRENT_FORMAT_VERSION + ").");
                 return false;
             }
 

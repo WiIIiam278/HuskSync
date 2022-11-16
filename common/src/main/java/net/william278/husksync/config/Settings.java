@@ -108,6 +108,9 @@ public class Settings {
     @YamlKey("synchronization.compress_data")
     public boolean compressData = true;
 
+    @YamlKey("synchronization.notification_display_slot")
+    public NotificationDisplaySlot notificationDisplaySlot = NotificationDisplaySlot.TOAST;
+
     @YamlKey("synchronization.save_dead_player_inventories")
     public boolean saveDeadPlayerInventories = true;
 
@@ -160,6 +163,28 @@ public class Settings {
                     .map(TableName::toEntry)
                     .toArray(Map.Entry[]::new));
         }
+    }
+
+    /**
+     * Determines the slot a system notification should be displayed in
+     */
+    public enum NotificationDisplaySlot {
+        /**
+         * Displays the notification in the action bar
+         */
+        ACTION_BAR,
+        /**
+         * Displays the notification in the chat
+         */
+        CHAT,
+        /**
+         * Displays the notification in an advancement toast
+         */
+        TOAST,
+        /**
+         * Does not display the notification
+         */
+        NONE
     }
 
     /**

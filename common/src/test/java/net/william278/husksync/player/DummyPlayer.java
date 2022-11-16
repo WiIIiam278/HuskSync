@@ -143,6 +143,12 @@ public class DummyPlayer extends OnlineUser {
     }
 
     @Override
+    public void sendToast(@NotNull MineDown title, @NotNull MineDown description,
+                          @NotNull String iconMaterial, @NotNull String backgroundType) {
+        // do nothing
+    }
+
+    @Override
     public boolean hasPermission(@NotNull String node) {
         return true;
     }

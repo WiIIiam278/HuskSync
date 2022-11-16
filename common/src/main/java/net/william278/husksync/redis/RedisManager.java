@@ -1,5 +1,6 @@
 package net.william278.husksync.redis;
 
+import de.themoep.minedown.adventure.MineDown;
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.data.UserData;
 import net.william278.husksync.player.User;
@@ -85,8 +86,19 @@ public class RedisManager {
                                 user.setData(userData, plugin.getSettings(), plugin.getEventCannon(),
                                         plugin.getLoggingAdapter(), plugin.getMinecraftVersion()).thenAccept(succeeded -> {
                                     if (succeeded) {
-                                        plugin.getLocales().getLocale("data_update_complete")
-                                                .ifPresent(user::sendActionBar);
+                                        switch (plugin.getSettings().notificationDisplaySlot) {
+                                            case CHAT -> plugin.getLocales().getLocale("data_update_complete")
+                                                    .ifPresent(user::sendMessage);
+                                            case ACTION_BAR -> plugin.getLocales().getLocale("data_update_complete")
+                                                    .ifPresent(user::sendActionBar);
+                                            case TOAST -> {
+                                                // todo locale implementation
+                                                user.sendToast(new MineDown("Data updated"),
+                                                        new MineDown("Your data has been updated"),
+                                                        "minecraft:structure_void",
+                                                        "task");
+                                            }
+                                        }
                                         plugin.getEventCannon().fireSyncCompleteEvent(user);
                                     } else {
                                         plugin.getLocales().getLocale("data_update_failed")

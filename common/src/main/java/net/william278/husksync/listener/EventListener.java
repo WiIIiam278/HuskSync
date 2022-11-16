@@ -1,5 +1,6 @@
 package net.william278.husksync.listener;
 
+import de.themoep.minedown.adventure.MineDown;
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.data.DataSaveCause;
 import net.william278.husksync.data.ItemData;
@@ -121,7 +122,19 @@ public abstract class EventListener {
      */
     private void handleSynchronisationCompletion(@NotNull OnlineUser user, boolean succeeded) {
         if (succeeded) {
-            plugin.getLocales().getLocale("synchronisation_complete").ifPresent(user::sendActionBar);
+            switch (plugin.getSettings().notificationDisplaySlot) {
+                case CHAT ->  plugin.getLocales().getLocale("synchronisation_complete")
+                        .ifPresent(user::sendActionBar);
+                case ACTION_BAR ->  plugin.getLocales().getLocale("synchronisation_complete")
+                        .ifPresent(user::sendActionBar);
+                case TOAST -> {
+                    // todo locale implementation
+                    user.sendToast(new MineDown("Synchronization complete"),
+                            new MineDown("Your data has been synchronized"),
+                            "minecraft:structure_void",
+                            "task");
+                }
+            }
             plugin.getDatabase().ensureUser(user).join();
             lockedPlayers.remove(user.uuid);
             plugin.getEventCannon().fireSyncCompleteEvent(user);
