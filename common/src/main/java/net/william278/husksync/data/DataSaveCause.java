@@ -1,5 +1,6 @@
 package net.william278.husksync.data;
 
+import net.william278.husksync.config.Locales;
 import net.william278.husksync.player.OnlineUser;
 import net.william278.husksync.api.BaseHuskSyncAPI;
 import net.william278.husksync.player.User;
@@ -98,6 +99,11 @@ public enum DataSaveCause {
             }
         }
         return UNKNOWN;
+    }
+
+    @NotNull
+    public String getDisplayName() {
+        return Locales.truncate(name().toLowerCase(), 10);
     }
 
 }

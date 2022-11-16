@@ -122,6 +122,21 @@ public class Locales {
     }
 
     /**
+     * Truncates a String to a specified length, and appends an ellipsis if it is longer than the specified length
+     *
+     * @param string The string to truncate
+     * @param length The maximum length of the string
+     * @return The truncated string
+     */
+    @NotNull
+    public static String truncate(@NotNull String string, int length) {
+        if (string.length() > length) {
+            return string.substring(0, length) + "…";
+        }
+        return string;
+    }
+
+    /**
      * Returns the base list options to use for a paginated chat list
      *
      * @param itemsPerPage The number of items to display per page

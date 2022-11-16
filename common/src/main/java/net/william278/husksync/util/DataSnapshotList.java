@@ -32,7 +32,7 @@ public class DataSnapshotList {
                                                 .format(snapshot.versionTimestamp()),
                                         snapshot.versionUUID().toString().split("-")[0],
                                         snapshot.versionUUID().toString(),
-                                        snapshot.cause().name().toLowerCase().replaceAll("_", " "),
+                                        snapshot.cause().getDisplayName(),
                                         dataOwner.username,
                                         snapshot.pinned() ? "※" : "  ")
                                 .orElse("• " + snapshot.versionUUID())).toList(),
