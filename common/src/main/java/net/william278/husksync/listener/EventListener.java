@@ -154,7 +154,6 @@ public abstract class EventListener {
                         optionalUserData -> optionalUserData.ifPresent(userData -> plugin.getRedisManager()
                                 .setUserData(user, userData).thenRun(() -> plugin.getDatabase()
                                         .setUserData(user, userData, DataSaveCause.DISCONNECT)))))
-                .thenRun(() -> lockedPlayers.remove(user.uuid))
                 .exceptionally(throwable -> {
                     plugin.getLoggingAdapter().log(Level.SEVERE,
                             "An exception occurred handling a player disconnection");
@@ -210,10 +209,17 @@ public abstract class EventListener {
     public final void handlePluginDisable() {
         disabling = true;
 
-        plugin.getOnlineUsers().stream().filter(user -> !lockedPlayers.contains(user.uuid)).forEach(
-                user -> user.getUserData(plugin.getLoggingAdapter(), plugin.getSettings()).join().ifPresent(
-                        userData -> plugin.getDatabase().setUserData(user, userData, DataSaveCause.SERVER_SHUTDOWN).join()));
+        // Save data for all online users
+        plugin.getOnlineUsers().stream()
+                .filter(user -> !lockedPlayers.contains(user.uuid))
+                .forEach(user -> {
+                    lockedPlayers.add(user.uuid);
+                    user.getUserData(plugin.getLoggingAdapter(), plugin.getSettings()).join()
+                            .ifPresent(userData -> plugin.getDatabase()
+                                    .setUserData(user, userData, DataSaveCause.SERVER_SHUTDOWN).join());
+                });
 
+        // Close outstanding connections
         plugin.getDatabase().close();
         plugin.getRedisManager().close();
     }
