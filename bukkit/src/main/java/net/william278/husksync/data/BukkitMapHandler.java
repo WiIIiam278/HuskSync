@@ -81,17 +81,15 @@ public class BukkitMapHandler {
             return;
         }
 
-        plugin.getLoggingAdapter().debug("Setting map renderer for item stack " + itemStack);
         if (!itemStack.getItemMeta().getPersistentDataContainer().has(MAP_DATA_KEY, PersistentDataType.BYTE_ARRAY)) {
             return;
         }
 
-        plugin.getLoggingAdapter().debug("Map data found for item stack " + itemStack);
         try {
             final byte[] serializedData = itemStack.getItemMeta().getPersistentDataContainer()
                     .get(MAP_DATA_KEY, PersistentDataType.BYTE_ARRAY);
             final MapData mapData = MapData.fromByteArray(Objects.requireNonNull(serializedData));
-            plugin.getLoggingAdapter().debug("Deserialized map data for " + itemStack + " (" + mapData + ")");
+            plugin.getLoggingAdapter().debug("Setting deserialized map data for an item stack");
 
             // Create a new map view renderer with the map data color at each pixel
             final MapView view = Bukkit.createMap(Bukkit.getWorlds().get(0));
@@ -103,7 +101,7 @@ public class BukkitMapHandler {
             view.setUnlimitedTracking(false);
             mapMeta.setMapView(view);
             itemStack.setItemMeta(mapMeta);
-            plugin.getLoggingAdapter().debug("Set map renderer for item stack " + itemStack);
+            plugin.getLoggingAdapter().debug("Successfully applied renderer to map item stack");
         } catch (IOException | NullPointerException e) {
             plugin.getLogger().log(Level.WARNING, "Failed to deserialize map data for a player", e);
         }
