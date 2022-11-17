@@ -123,17 +123,13 @@ public abstract class EventListener {
     private void handleSynchronisationCompletion(@NotNull OnlineUser user, boolean succeeded) {
         if (succeeded) {
             switch (plugin.getSettings().notificationDisplaySlot) {
-                case CHAT ->  plugin.getLocales().getLocale("synchronisation_complete")
+                case CHAT -> plugin.getLocales().getLocale("synchronisation_complete")
+                        .ifPresent(user::sendMessage);
+                case ACTION_BAR -> plugin.getLocales().getLocale("synchronisation_complete")
                         .ifPresent(user::sendActionBar);
-                case ACTION_BAR ->  plugin.getLocales().getLocale("synchronisation_complete")
-                        .ifPresent(user::sendActionBar);
-                case TOAST -> {
-                    // todo locale implementation
-                    user.sendToast(new MineDown("Synchronization complete"),
-                            new MineDown("Your data has been synchronized"),
-                            "minecraft:structure_void",
-                            "task");
-                }
+                case TOAST -> plugin.getLocales().getLocale("synchronisation_complete")
+                        .ifPresent(locale -> user.sendToast(locale, new MineDown(""),
+                                "minecraft:bell", "TASK"));
             }
             plugin.getDatabase().ensureUser(user).join();
             lockedPlayers.remove(user.uuid);

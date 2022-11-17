@@ -91,13 +91,9 @@ public class RedisManager {
                                                     .ifPresent(user::sendMessage);
                                             case ACTION_BAR -> plugin.getLocales().getLocale("data_update_complete")
                                                     .ifPresent(user::sendActionBar);
-                                            case TOAST -> {
-                                                // todo locale implementation
-                                                user.sendToast(new MineDown("Data updated"),
-                                                        new MineDown("Your data has been updated"),
-                                                        "minecraft:structure_void",
-                                                        "task");
-                                            }
+                                            case TOAST -> plugin.getLocales().getLocale("data_update_complete")
+                                                    .ifPresent(locale -> user.sendToast(locale, new MineDown(""),
+                                                            "minecraft:bell", "TASK"));
                                         }
                                         plugin.getEventCannon().fireSyncCompleteEvent(user);
                                     } else {

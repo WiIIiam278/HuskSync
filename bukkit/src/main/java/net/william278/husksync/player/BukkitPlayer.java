@@ -536,7 +536,7 @@ public class BukkitPlayer extends OnlineUser {
                         }
                     }, () -> BukkitHuskSync.getInstance().getLoggingAdapter().log(Level.WARNING,
                             "Could not set " + player.getName() + "'s persistent data key " + keyString +
-                                    " as it has an invalid type. Skipping!"));
+                            " as it has an invalid type. Skipping!"));
                 }
             });
         }).exceptionally(throwable -> {
@@ -633,14 +633,18 @@ public class BukkitPlayer extends OnlineUser {
     @Override
     public void sendToast(@NotNull MineDown title, @NotNull MineDown description,
                           @NotNull String iconMaterial, @NotNull String backgroundType) {
-        final Material material = Material.matchMaterial(iconMaterial);
-        Toast.builder(BukkitHuskSync.getInstance())
-                .setTitle(title.toComponent())
-                .setDescription(description.toComponent())
-                .setIcon(material != null ? material : Material.BARRIER)
-                .setFrameType(FrameType.valueOf(backgroundType))
-                .build()
-                .show(player);
+        try {
+            final Material material = Material.matchMaterial(iconMaterial);
+            Toast.builder(BukkitHuskSync.getInstance())
+                    .setTitle(title.toComponent())
+                    .setDescription(description.toComponent())
+                    .setIcon(material != null ? material : Material.BARRIER)
+                    .setFrameType(FrameType.valueOf(backgroundType))
+                    .build()
+                    .show(player);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
