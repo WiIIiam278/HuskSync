@@ -134,7 +134,7 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync {
             // Prepare redis connection
             this.redisManager = new RedisManager(this);
             getLoggingAdapter().log(Level.INFO, "Attempting to establish connection to the Redis server...");
-            initialized.set(this.redisManager.initialize().join());
+            initialized.set(this.redisManager.initialize());
             if (initialized.get()) {
                 getLoggingAdapter().log(Level.INFO, "Successfully established a connection to the Redis server");
             } else {
