@@ -109,7 +109,7 @@ public class Settings {
     public boolean compressData = true;
 
     @YamlKey("synchronization.notification_display_slot")
-    public NotificationDisplaySlot notificationDisplaySlot = NotificationDisplaySlot.TOAST;
+    public NotificationDisplaySlot notificationDisplaySlot = NotificationDisplaySlot.ACTION_BAR;
 
     @YamlKey("synchronization.save_dead_player_inventories")
     public boolean saveDeadPlayerInventories = true;
