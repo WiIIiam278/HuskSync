@@ -20,7 +20,7 @@
 ## Requirements
 * A MySQL Database (v8.0+).
 * A Redis Database (v5.0+)
-* Any number of proxied Spigot servers (Minecraft v1.16.5+)
+* Any number of proxied Spigot servers (Minecraft v1.16.5+, Java 16+)
 
 ## Setup
 1. Place the plugin jar file in the `/plugins/` directory of each Spigot server. You do not need to install HuskSync as a proxy plugin.
