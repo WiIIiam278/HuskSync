@@ -1,5 +1,5 @@
 # [![HuskSync Banner](images/banner-graphic.png)](https://github.com/WiIIiam278/HuskSync)
-[![GitHub CI](https://img.shields.io/github/workflow/status/WiIIiam278/HuskSync/Java%20CI?logo=github)](https://github.com/WiIIiam278/HuskSync/actions/workflows/java_ci.yml)
+[![GitHub CI](https://img.shields.io/github/actions/workflow/status/WiIIiam278/HuskSync/java_ci.yml?branch=master&logo=github)](https://github.com/WiIIiam278/HuskSync/actions/workflows/java_ci.yml)
 [![JitPack API](https://img.shields.io/jitpack/version/net.william278/HuskSync?color=%2300fb9a&label=api&logo=gradle)](https://jitpack.io/#net.william278/HuskSync)
 [![Support Discord](https://img.shields.io/discord/818135932103557162.svg?label=&logo=discord&logoColor=fff&color=7389D8&labelColor=6A7EC2)](https://discord.gg/tVYhJfyDWG)
 
@@ -20,7 +20,7 @@
 ## Requirements
 * A MySQL Database (v8.0+).
 * A Redis Database (v5.0+)
-* Any number of proxied Spigot servers (Minecraft v1.16.5+)
+* Any number of proxied Spigot servers (Minecraft v1.16.5+, Java 16+)
 
 ## Setup
 1. Place the plugin jar file in the `/plugins/` directory of each Spigot server. You do not need to install HuskSync as a proxy plugin.
