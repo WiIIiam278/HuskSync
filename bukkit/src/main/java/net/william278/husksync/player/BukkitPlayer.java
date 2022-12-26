@@ -157,7 +157,9 @@ public class BukkitPlayer extends OnlineUser {
         return BukkitSerializer.deserializeInventory(itemData.serializedItems).thenApplyAsync(contents -> {
             final CompletableFuture<Void> inventorySetFuture = new CompletableFuture<>();
             Bukkit.getScheduler().runTask(BukkitHuskSync.getInstance(), () -> {
+                player.setItemOnCursor(null);
                 player.getInventory().setContents(contents.getContents());
+                player.updateInventory();
                 inventorySetFuture.complete(null);
             });
             return inventorySetFuture.join();
