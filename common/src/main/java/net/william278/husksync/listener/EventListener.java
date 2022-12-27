@@ -180,8 +180,11 @@ public abstract class EventListener {
         if (disabling || !plugin.getSettings().saveOnWorldSave) {
             return;
         }
-        usersInWorld.forEach(user -> user.getUserData(plugin.getLoggingAdapter(), plugin.getSettings()).join().ifPresent(
-                userData -> plugin.getDatabase().setUserData(user, userData, DataSaveCause.WORLD_SAVE).join()));
+        usersInWorld.stream()
+                .filter(user -> !lockedPlayers.contains(user.uuid))
+                .forEach(user -> user.getUserData(plugin.getLoggingAdapter(), plugin.getSettings())
+                        .thenAccept(data -> data.ifPresent(userData -> plugin.getDatabase()
+                                .setUserData(user, userData, DataSaveCause.WORLD_SAVE))));
     }
 
     /**
@@ -191,7 +194,7 @@ public abstract class EventListener {
      * @param drops The items that this user would have dropped
      */
     protected void saveOnPlayerDeath(@NotNull OnlineUser user, @NotNull ItemData drops) {
-        if (disabling || !plugin.getSettings().saveOnDeath) {
+        if (disabling || !plugin.getSettings().saveOnDeath || lockedPlayers.contains(user.uuid)) {
             return;
         }
 
