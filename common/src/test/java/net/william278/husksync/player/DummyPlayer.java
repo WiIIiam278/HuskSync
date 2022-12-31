@@ -166,4 +166,9 @@ public class DummyPlayer extends OnlineUser {
         return false;
     }
 
+    @Override
+    public boolean isLocked() {
+        return false;
+    }
+
 }
