@@ -165,4 +165,6 @@ public interface HuskSync {
      */
     CompletableFuture<Boolean> reload();
 
+    Set<UUID> getLockedPlayers();
+
 }
