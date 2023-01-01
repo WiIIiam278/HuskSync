@@ -236,4 +236,8 @@ public abstract class EventListener {
         plugin.getRedisManager().close();
     }
 
+    public final Set<UUID> getLockedPlayers() {
+        return this.lockedPlayers;
+    }
+
 }

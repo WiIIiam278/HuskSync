@@ -308,6 +308,11 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync {
     }
 
     @Override
+    public Set<UUID> getLockedPlayers() {
+        return this.eventListener.getLockedPlayers();
+    }
+
+    @Override
     public CompletableFuture<Boolean> reload() {
         return CompletableFuture.supplyAsync(() -> {
             try {

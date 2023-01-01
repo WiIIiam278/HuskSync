@@ -371,4 +371,10 @@ public abstract class OnlineUser extends User {
                 });
     }
 
+    /**
+     * Get if the player is locked
+     *
+     * @return the player's locked status
+     */
+    public abstract boolean isLocked();
 }
