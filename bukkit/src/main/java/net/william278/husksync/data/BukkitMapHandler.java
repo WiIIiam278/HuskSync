@@ -77,7 +77,7 @@ public class BukkitMapHandler {
         }
 
         final MapMeta mapMeta = (MapMeta) itemStack.getItemMeta();
-        if (mapMeta == null || mapMeta.getMapView() == null || !mapMeta.getMapView().isLocked()) {
+        if (mapMeta == null) {
             return;
         }
 
