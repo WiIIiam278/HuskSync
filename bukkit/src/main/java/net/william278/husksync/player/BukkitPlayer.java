@@ -695,4 +695,9 @@ public class BukkitPlayer extends OnlineUser {
         return maxHealth;
     }
 
+    @Override
+    public boolean isLocked() {
+        return BukkitHuskSync.getInstance().getLockedPlayers().contains(player.getUniqueId());
+    }
+
 }
