@@ -11,7 +11,7 @@ import java.util.Map;
 public class StatisticsData {
 
     /**
-     * Map of untyped statistic names to their values
+     * Map of generic statistic names to their values
      */
     @SerializedName("untyped_statistics")
     public Map<String, Integer> untypedStatistics;

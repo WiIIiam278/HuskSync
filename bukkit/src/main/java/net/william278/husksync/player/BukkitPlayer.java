@@ -106,7 +106,7 @@ public class BukkitPlayer extends OnlineUser {
                     if (healthToSet < 1) {
                         Bukkit.getScheduler().runTask(BukkitHuskSync.getInstance(), () -> player.setHealth(healthToSet));
                     } else {
-                        player.setHealth(healthToSet);
+                        player.setHealth(Math.min(healthToSet, currentMaxHealth));
                     }
                 }
 
@@ -355,32 +355,52 @@ public class BukkitPlayer extends OnlineUser {
     @Override
     public CompletableFuture<Void> setStatistics(@NotNull StatisticsData statisticsData) {
         return CompletableFuture.runAsync(() -> {
-            // Set untyped statistics
+            // Set generic statistics
             for (String statistic : statisticsData.untypedStatistics.keySet()) {
-                player.setStatistic(Statistic.valueOf(statistic), statisticsData.untypedStatistics.get(statistic));
+                try {
+                    player.setStatistic(Statistic.valueOf(statistic), statisticsData.untypedStatistics.get(statistic));
+                } catch (IllegalArgumentException e) {
+                    BukkitHuskSync.getInstance().getLogger().log(Level.WARNING,
+                            "Failed to set generic statistic " + statistic + " for " + username);
+                }
             }
 
             // Set block statistics
             for (String statistic : statisticsData.blockStatistics.keySet()) {
                 for (String blockMaterial : statisticsData.blockStatistics.get(statistic).keySet()) {
-                    player.setStatistic(Statistic.valueOf(statistic), Material.valueOf(blockMaterial),
-                            statisticsData.blockStatistics.get(statistic).get(blockMaterial));
+                    try {
+                        player.setStatistic(Statistic.valueOf(statistic), Material.valueOf(blockMaterial),
+                                statisticsData.blockStatistics.get(statistic).get(blockMaterial));
+                    } catch (IllegalArgumentException e) {
+                        BukkitHuskSync.getInstance().getLogger().log(Level.WARNING,
+                                "Failed to set " + blockMaterial + " statistic " + statistic + " for " + username);
+                    }
                 }
             }
 
             // Set item statistics
             for (String statistic : statisticsData.itemStatistics.keySet()) {
                 for (String itemMaterial : statisticsData.itemStatistics.get(statistic).keySet()) {
-                    player.setStatistic(Statistic.valueOf(statistic), Material.valueOf(itemMaterial),
-                            statisticsData.itemStatistics.get(statistic).get(itemMaterial));
+                    try {
+                        player.setStatistic(Statistic.valueOf(statistic), Material.valueOf(itemMaterial),
+                                statisticsData.itemStatistics.get(statistic).get(itemMaterial));
+                    } catch (IllegalArgumentException e) {
+                        BukkitHuskSync.getInstance().getLogger().log(Level.WARNING,
+                                "Failed to set " + itemMaterial + " statistic " + statistic + " for " + username);
+                    }
                 }
             }
 
             // Set entity statistics
             for (String statistic : statisticsData.entityStatistics.keySet()) {
                 for (String entityType : statisticsData.entityStatistics.get(statistic).keySet()) {
-                    player.setStatistic(Statistic.valueOf(statistic), EntityType.valueOf(entityType),
-                            statisticsData.entityStatistics.get(statistic).get(entityType));
+                    try {
+                        player.setStatistic(Statistic.valueOf(statistic), EntityType.valueOf(entityType),
+                                statisticsData.entityStatistics.get(statistic).get(entityType));
+                    } catch (IllegalArgumentException e) {
+                        BukkitHuskSync.getInstance().getLogger().log(Level.WARNING,
+                                "Failed to set " + entityType + " statistic " + statistic + " for " + username);
+                    }
                 }
             }
         });
