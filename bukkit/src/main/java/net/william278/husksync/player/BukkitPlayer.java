@@ -90,8 +90,8 @@ public class BukkitPlayer extends OnlineUser {
     @Override
     public CompletableFuture<Void> setStatus(@NotNull StatusData statusData, @NotNull Settings settings) {
         return CompletableFuture.runAsync(() -> {
-            double currentMaxHealth = Objects.requireNonNull(player.getAttribute(Attribute.GENERIC_MAX_HEALTH))
-                    .getBaseValue();
+            // Set max health
+            double currentMaxHealth = Objects.requireNonNull(player.getAttribute(Attribute.GENERIC_MAX_HEALTH)).getBaseValue();
             if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.MAX_HEALTH)) {
                 if (statusData.maxHealth != 0d) {
                     Objects.requireNonNull(player.getAttribute(Attribute.GENERIC_MAX_HEALTH))
@@ -100,22 +100,33 @@ public class BukkitPlayer extends OnlineUser {
                 }
             }
             if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.HEALTH)) {
+                // Set health
                 final double currentHealth = player.getHealth();
                 if (statusData.health != currentHealth) {
                     final double healthToSet = currentHealth > currentMaxHealth ? currentMaxHealth : statusData.health;
-                    if (healthToSet < 1) {
-                        Bukkit.getScheduler().runTask(BukkitHuskSync.getInstance(), () -> player.setHealth(healthToSet));
-                    } else {
-                        player.setHealth(Math.min(healthToSet, currentMaxHealth));
-                    }
+                    final double maxHealth = currentMaxHealth;
+                    Bukkit.getScheduler().runTask(BukkitHuskSync.getInstance(), () -> {
+                        try {
+                            player.setHealth(Math.min(healthToSet, maxHealth));
+                        } catch (IllegalArgumentException e) {
+                            BukkitHuskSync.getInstance().getLogger().log(Level.WARNING,
+                                    "Failed to set health of player " + player.getName() + " to " + healthToSet);
+                        }
+                    });
                 }
 
-                if (statusData.healthScale != 0d) {
-                    player.setHealthScale(statusData.healthScale);
-                } else {
-                    player.setHealthScale(statusData.maxHealth);
+                // Set health scale
+                try {
+                    if (statusData.healthScale != 0d) {
+                        player.setHealthScale(statusData.healthScale);
+                    } else {
+                        player.setHealthScale(statusData.maxHealth);
+                    }
+                    player.setHealthScaled(statusData.healthScale != 0D);
+                } catch (IllegalArgumentException e) {
+                    BukkitHuskSync.getInstance().getLogger().log(Level.WARNING,
+                            "Failed to set health scale of player " + player.getName() + " to " + statusData.healthScale);
                 }
-                player.setHealthScaled(statusData.healthScale != 0D);
             }
             if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.HUNGER)) {
                 player.setFoodLevel(statusData.hunger);
