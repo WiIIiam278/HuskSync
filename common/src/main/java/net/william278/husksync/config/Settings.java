@@ -202,7 +202,7 @@ public class Settings {
         GAME_MODE(true),
         STATISTICS(true),
         PERSISTENT_DATA_CONTAINER(false),
-        LOCKED_MAPS(true),
+        LOCKED_MAPS(false),
         LOCATION(false);
 
         private final boolean enabledByDefault;
