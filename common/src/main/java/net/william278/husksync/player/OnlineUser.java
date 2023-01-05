@@ -257,15 +257,15 @@ public abstract class OnlineUser extends User {
             // Prevent synchronising user data from newer versions of Minecraft
             if (Version.fromMinecraftVersionString(data.getMinecraftVersion()).compareTo(serverMinecraftVersion) > 0) {
                 logger.log(Level.SEVERE, "Cannot set data for " + username +
-                        " because the Minecraft version of their user data (" + data.getMinecraftVersion() +
-                        ") is newer than the server's Minecraft version (" + serverMinecraftVersion + ").");
+                                         " because the Minecraft version of their user data (" + data.getMinecraftVersion() +
+                                         ") is newer than the server's Minecraft version (" + serverMinecraftVersion + ").");
                 return false;
             }
             // Prevent synchronising user data from newer versions of the plugin
             if (data.getFormatVersion() > UserData.CURRENT_FORMAT_VERSION) {
                 logger.log(Level.SEVERE, "Cannot set data for " + username +
-                        " because the format version of their user data (v" + data.getFormatVersion() +
-                        ") is newer than the current format version (v" + UserData.CURRENT_FORMAT_VERSION + ").");
+                                         " because the format version of their user data (v" + data.getFormatVersion() +
+                                         ") is newer than the current format version (v" + UserData.CURRENT_FORMAT_VERSION + ").");
                 return false;
             }
 
@@ -377,4 +377,11 @@ public abstract class OnlineUser extends User {
      * @return the player's locked status
      */
     public abstract boolean isLocked();
+
+    /**
+     * Get if the player is a NPC
+     *
+     * @return if the player is a NPC with metadata
+     */
+    public abstract boolean isNpc();
 }

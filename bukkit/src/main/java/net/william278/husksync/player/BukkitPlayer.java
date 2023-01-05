@@ -711,4 +711,9 @@ public class BukkitPlayer extends OnlineUser {
         return BukkitHuskSync.getInstance().getLockedPlayers().contains(player.getUniqueId());
     }
 
+    @Override
+    public boolean isNpc() {
+        return player.hasMetadata("NPC");
+    }
+
 }

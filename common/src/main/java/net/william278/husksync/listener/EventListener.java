@@ -52,6 +52,10 @@ public abstract class EventListener {
      * @param user The {@link OnlineUser} to handle
      */
     protected final void handlePlayerJoin(@NotNull OnlineUser user) {
+        if (user.isNpc()) {
+            return;
+        }
+
         lockedPlayers.add(user.uuid);
         CompletableFuture.runAsync(() -> {
             try {
@@ -152,7 +156,7 @@ public abstract class EventListener {
             return;
         }
         // Don't sync players awaiting synchronization
-        if (lockedPlayers.contains(user.uuid)) {
+        if (lockedPlayers.contains(user.uuid) || user.isNpc()) {
             return;
         }
 
@@ -181,7 +185,7 @@ public abstract class EventListener {
             return;
         }
         usersInWorld.stream()
-                .filter(user -> !lockedPlayers.contains(user.uuid))
+                .filter(user -> !lockedPlayers.contains(user.uuid) && !user.isNpc())
                 .forEach(user -> user.getUserData(plugin.getLoggingAdapter(), plugin.getSettings())
                         .thenAccept(data -> data.ifPresent(userData -> plugin.getDatabase()
                                 .setUserData(user, userData, DataSaveCause.WORLD_SAVE))));
@@ -194,7 +198,7 @@ public abstract class EventListener {
      * @param drops The items that this user would have dropped
      */
     protected void saveOnPlayerDeath(@NotNull OnlineUser user, @NotNull ItemData drops) {
-        if (disabling || !plugin.getSettings().saveOnDeath || lockedPlayers.contains(user.uuid)) {
+        if (disabling || !plugin.getSettings().saveOnDeath || lockedPlayers.contains(user.uuid) || user.isNpc()) {
             return;
         }
 
@@ -223,7 +227,7 @@ public abstract class EventListener {
 
         // Save data for all online users
         plugin.getOnlineUsers().stream()
-                .filter(user -> !lockedPlayers.contains(user.uuid))
+                .filter(user -> !lockedPlayers.contains(user.uuid) && !user.isNpc())
                 .forEach(user -> {
                     lockedPlayers.add(user.uuid);
                     user.getUserData(plugin.getLoggingAdapter(), plugin.getSettings()).join()
