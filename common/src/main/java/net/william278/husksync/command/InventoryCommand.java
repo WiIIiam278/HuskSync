@@ -73,7 +73,7 @@ public class InventoryCommand extends CommandBase implements TabCompletable {
                                 .getLocale("inventory_viewer_menu_title", dataOwner.username)
                                 .orElse(new MineDown("Inventory Viewer")))
                         .exceptionally(throwable -> {
-                            plugin.getLoggingAdapter().log(Level.WARNING, "Exception displaying inventory menu to " + player.username, throwable);
+                            plugin.log(Level.WARNING, "Exception displaying inventory menu to " + player.username, throwable);
                             return Optional.empty();
                         })
                         .thenAccept(dataOnClose -> {

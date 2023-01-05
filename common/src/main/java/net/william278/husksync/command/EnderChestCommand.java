@@ -73,7 +73,7 @@ public class EnderChestCommand extends CommandBase implements TabCompletable {
                                 .getLocale("ender_chest_viewer_menu_title", dataOwner.username)
                                 .orElse(new MineDown("Ender Chest Viewer")))
                         .exceptionally(throwable -> {
-                            plugin.getLoggingAdapter().log(Level.WARNING, "Exception displaying inventory menu to " + player.username, throwable);
+                            plugin.log(Level.WARNING, "Exception displaying inventory menu to " + player.username, throwable);
                             return Optional.empty();
                         })
                         .thenAccept(dataOnClose -> {

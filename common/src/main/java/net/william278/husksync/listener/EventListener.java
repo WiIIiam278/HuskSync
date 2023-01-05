@@ -62,7 +62,7 @@ public abstract class EventListener {
                 // Hold reading data for the network latency threshold, to ensure the source server has set the redis key
                 Thread.sleep(Math.max(0, plugin.getSettings().networkLatencyMilliseconds));
             } catch (InterruptedException e) {
-                plugin.getLoggingAdapter().log(Level.SEVERE, "An exception occurred handling a player join", e);
+                plugin.log(Level.SEVERE, "An exception occurred handling a player join", e);
             } finally {
                 plugin.getRedisManager().getUserServerSwitch(user).thenAccept(changingServers -> {
                     if (!changingServers) {
@@ -88,8 +88,7 @@ public abstract class EventListener {
                                 }
                                 plugin.getRedisManager().getUserData(user).thenAccept(redisUserData ->
                                         redisUserData.ifPresent(redisData -> {
-                                            user.setData(redisData, plugin.getSettings(), plugin.getEventCannon(),
-                                                            plugin.getLoggingAdapter(), plugin.getMinecraftVersion())
+                                            user.setData(redisData, plugin)
                                                     .thenAccept(succeeded -> handleSynchronisationCompletion(user, succeeded)).join();
                                             executor.shutdown();
                                         })).join();
@@ -111,8 +110,7 @@ public abstract class EventListener {
     private CompletableFuture<Boolean> setUserFromDatabase(@NotNull OnlineUser user) {
         return plugin.getDatabase().getCurrentUserData(user).thenApply(databaseUserData -> {
             if (databaseUserData.isPresent()) {
-                return user.setData(databaseUserData.get().userData(), plugin.getSettings(), plugin.getEventCannon(),
-                        plugin.getLoggingAdapter(), plugin.getMinecraftVersion()).join();
+                return user.setData(databaseUserData.get().userData(), plugin).join();
             }
             return true;
         });
@@ -163,12 +161,12 @@ public abstract class EventListener {
         // Handle asynchronous disconnection
         lockedPlayers.add(user.uuid);
         CompletableFuture.runAsync(() -> plugin.getRedisManager().setUserServerSwitch(user)
-                .thenRun(() -> user.getUserData(plugin.getLoggingAdapter(), plugin.getSettings()).thenAccept(
+                .thenRun(() -> user.getUserData(plugin).thenAccept(
                         optionalUserData -> optionalUserData.ifPresent(userData -> plugin.getRedisManager()
                                 .setUserData(user, userData).thenRun(() -> plugin.getDatabase()
                                         .setUserData(user, userData, DataSaveCause.DISCONNECT)))))
                 .exceptionally(throwable -> {
-                    plugin.getLoggingAdapter().log(Level.SEVERE,
+                    plugin.log(Level.SEVERE,
                             "An exception occurred handling a player disconnection");
                     throwable.printStackTrace();
                     return null;
@@ -186,7 +184,7 @@ public abstract class EventListener {
         }
         usersInWorld.stream()
                 .filter(user -> !lockedPlayers.contains(user.uuid) && !user.isNpc())
-                .forEach(user -> user.getUserData(plugin.getLoggingAdapter(), plugin.getSettings())
+                .forEach(user -> user.getUserData(plugin)
                         .thenAccept(data -> data.ifPresent(userData -> plugin.getDatabase()
                                 .setUserData(user, userData, DataSaveCause.WORLD_SAVE))));
     }
@@ -202,7 +200,7 @@ public abstract class EventListener {
             return;
         }
 
-        user.getUserData(plugin.getLoggingAdapter(), plugin.getSettings())
+        user.getUserData(plugin)
                 .thenAccept(data -> data.ifPresent(userData -> {
                     userData.getInventory().orElse(ItemData.empty()).serializedItems = drops.serializedItems;
                     plugin.getDatabase().setUserData(user, userData, DataSaveCause.DEATH);
@@ -230,7 +228,7 @@ public abstract class EventListener {
                 .filter(user -> !lockedPlayers.contains(user.uuid) && !user.isNpc())
                 .forEach(user -> {
                     lockedPlayers.add(user.uuid);
-                    user.getUserData(plugin.getLoggingAdapter(), plugin.getSettings()).join()
+                    user.getUserData(plugin).join()
                             .ifPresent(userData -> plugin.getDatabase()
                                     .setUserData(user, userData, DataSaveCause.SERVER_SHUTDOWN).join());
                 });

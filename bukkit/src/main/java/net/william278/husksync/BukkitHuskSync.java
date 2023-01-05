@@ -24,10 +24,6 @@ import net.william278.husksync.migrator.MpdbMigrator;
 import net.william278.husksync.player.BukkitPlayer;
 import net.william278.husksync.player.OnlineUser;
 import net.william278.husksync.redis.RedisManager;
-import net.william278.husksync.util.BukkitLogger;
-import net.william278.husksync.util.BukkitResourceReader;
-import net.william278.husksync.util.Logger;
-import net.william278.husksync.util.ResourceReader;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
 import org.bukkit.command.PluginCommand;
@@ -54,8 +50,6 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync {
     private static final int METRICS_ID = 13140;
     private Database database;
     private RedisManager redisManager;
-    private Logger logger;
-    private ResourceReader resourceReader;
     private EventListener eventListener;
     private DataAdapter dataAdapter;
     private EventCannon eventCannon;
@@ -85,19 +79,14 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync {
         // Initialize HuskSync
         final AtomicBoolean initialized = new AtomicBoolean(true);
         try {
-            // Set the logging adapter and resource reader
-            this.logger = new BukkitLogger(this.getLogger());
-            this.resourceReader = new BukkitResourceReader(this);
-
             // Create adventure audience
             this.audiences = BukkitAudiences.create(this);
 
             // Load settings and locales
-            getLoggingAdapter().log(Level.INFO, "Loading plugin configuration settings & locales...");
+            log(Level.INFO, "Loading plugin configuration settings & locales...");
             initialized.set(reload().join());
             if (initialized.get()) {
-                logger.showDebugLogs(settings.debugLogging);
-                getLoggingAdapter().log(Level.INFO, "Successfully loaded plugin configuration settings & locales");
+                log(Level.INFO, "Successfully loaded plugin configuration settings & locales");
             } else {
                 throw new HuskSyncInitializationException("Failed to load plugin configuration settings and/or locales");
             }
@@ -121,11 +110,11 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync {
             }
 
             // Prepare database connection
-            this.database = new MySqlDatabase(settings, resourceReader, logger, dataAdapter, eventCannon);
-            getLoggingAdapter().log(Level.INFO, "Attempting to establish connection to the database...");
+            this.database = new MySqlDatabase(this);
+            log(Level.INFO, "Attempting to establish connection to the database...");
             initialized.set(this.database.initialize());
             if (initialized.get()) {
-                getLoggingAdapter().log(Level.INFO, "Successfully established a connection to the database");
+                log(Level.INFO, "Successfully established a connection to the database");
             } else {
                 throw new HuskSyncInitializationException("Failed to establish a connection to the database. " +
                                                           "Please check the supplied database credentials in the config file");
@@ -133,22 +122,22 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync {
 
             // Prepare redis connection
             this.redisManager = new RedisManager(this);
-            getLoggingAdapter().log(Level.INFO, "Attempting to establish connection to the Redis server...");
+            log(Level.INFO, "Attempting to establish connection to the Redis server...");
             initialized.set(this.redisManager.initialize());
             if (initialized.get()) {
-                getLoggingAdapter().log(Level.INFO, "Successfully established a connection to the Redis server");
+                log(Level.INFO, "Successfully established a connection to the Redis server");
             } else {
                 throw new HuskSyncInitializationException("Failed to establish a connection to the Redis server. " +
                                                           "Please check the supplied Redis credentials in the config file");
             }
 
             // Register events
-            getLoggingAdapter().log(Level.INFO, "Registering events...");
+            log(Level.INFO, "Registering events...");
             this.eventListener = new BukkitEventListener(this);
-            getLoggingAdapter().log(Level.INFO, "Successfully registered events listener");
+            log(Level.INFO, "Successfully registered events listener");
 
             // Register permissions
-            getLoggingAdapter().log(Level.INFO, "Registering permissions & commands...");
+            log(Level.INFO, "Registering permissions & commands...");
             Arrays.stream(Permission.values()).forEach(permission -> getServer().getPluginManager()
                     .addPermission(new org.bukkit.permissions.Permission(permission.node, switch (permission.defaultAccess) {
                         case EVERYONE -> PermissionDefault.TRUE;
@@ -163,32 +152,32 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync {
                     new BukkitCommand(bukkitCommandType.commandBase, this).register(pluginCommand);
                 }
             }
-            getLoggingAdapter().log(Level.INFO, "Successfully registered permissions & commands");
+            log(Level.INFO, "Successfully registered permissions & commands");
 
             // Hook into plan
             if (Bukkit.getPluginManager().getPlugin("Plan") != null) {
-                getLoggingAdapter().log(Level.INFO, "Enabling Plan integration...");
-                new PlanHook(database, logger).hookIntoPlan();
-                getLoggingAdapter().log(Level.INFO, "Plan integration enabled!");
+                log(Level.INFO, "Enabling Plan integration...");
+                new PlanHook(this).hookIntoPlan();
+                log(Level.INFO, "Plan integration enabled!");
             }
 
             // Hook into bStats metrics
             try {
                 new Metrics(this, METRICS_ID);
             } catch (final Exception e) {
-                getLoggingAdapter().log(Level.WARNING, "Skipped bStats metrics initialization due to an exception.");
+                log(Level.WARNING, "Skipped bStats metrics initialization due to an exception.");
             }
 
             // Check for updates
             if (settings.checkForUpdates) {
-                getLoggingAdapter().log(Level.INFO, "Checking for updates...");
+                log(Level.INFO, "Checking for updates...");
                 getLatestVersionIfOutdated().thenAccept(newestVersion ->
-                        newestVersion.ifPresent(newVersion -> getLoggingAdapter().log(Level.WARNING,
+                        newestVersion.ifPresent(newVersion -> log(Level.WARNING,
                                 "An update is available for HuskSync, v" + newVersion
                                 + " (Currently running v" + getPluginVersion() + ")")));
             }
         } catch (HuskSyncInitializationException exception) {
-            getLoggingAdapter().log(Level.SEVERE, """
+            log(Level.SEVERE, """
                     ***************************************************
                                
                               Failed to initialize HuskSync!
@@ -203,14 +192,14 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync {
                     .replaceAll("%error_message%", exception.getMessage()));
             initialized.set(false);
         } catch (Exception exception) {
-            getLoggingAdapter().log(Level.SEVERE, "An unhandled exception occurred initializing HuskSync!", exception);
+            log(Level.SEVERE, "An unhandled exception occurred initializing HuskSync!", exception);
             initialized.set(false);
         } finally {
             // Validate initialization
             if (initialized.get()) {
-                getLoggingAdapter().log(Level.INFO, "Successfully enabled HuskSync v" + getPluginVersion());
+                log(Level.INFO, "Successfully enabled HuskSync v" + getPluginVersion());
             } else {
-                getLoggingAdapter().log(Level.SEVERE, "Failed to initialize HuskSync. The plugin will now be disabled");
+                log(Level.SEVERE, "Failed to initialize HuskSync. The plugin will now be disabled");
                 getServer().getPluginManager().disablePlugin(this);
             }
         }
@@ -221,7 +210,7 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync {
         if (this.eventListener != null) {
             this.eventListener.handlePluginDisable();
         }
-        getLoggingAdapter().log(Level.INFO, "Successfully disabled HuskSync v" + getPluginVersion());
+        log(Level.INFO, "Successfully disabled HuskSync v" + getPluginVersion());
     }
 
     @Override
@@ -275,14 +264,8 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync {
     }
 
     @Override
-    public @NotNull Logger getLoggingAdapter() {
-        return logger;
-    }
-
-    @NotNull
-    @Override
-    public ResourceReader getResourceReader() {
-        return resourceReader;
+    public void log(@NotNull Level level, @NotNull String message, @NotNull Throwable... throwable) {
+        getLogger().log(level, message, throwable);
     }
 
     @NotNull
@@ -327,7 +310,7 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync {
                 return true;
             } catch (IOException | NullPointerException | InvocationTargetException | IllegalAccessException |
                      InstantiationException e) {
-                getLoggingAdapter().log(Level.SEVERE, "Failed to load data from the config", e);
+                log(Level.SEVERE, "Failed to load data from the config", e);
                 return false;
             }
         });

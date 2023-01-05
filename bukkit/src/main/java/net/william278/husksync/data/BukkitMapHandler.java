@@ -48,7 +48,7 @@ public class BukkitMapHandler {
         }
 
         // Get the map data
-        plugin.getLoggingAdapter().debug("Rendering map view onto canvas for locked map");
+        plugin.debug("Rendering map view onto canvas for locked map");
         final LockedMapCanvas canvas = new LockedMapCanvas(mapView);
         for (MapRenderer renderer : mapView.getRenderers()) {
             renderer.render(mapView, canvas, Bukkit.getServer()
@@ -58,7 +58,7 @@ public class BukkitMapHandler {
         }
 
         // Save the extracted rendered map data
-        plugin.getLoggingAdapter().debug("Saving pixel canvas data for locked map");
+        plugin.debug("Saving pixel canvas data for locked map");
         if (!mapMeta.getPersistentDataContainer().has(MAP_DATA_KEY, PersistentDataType.BYTE_ARRAY)) {
             mapMeta.getPersistentDataContainer().set(MAP_DATA_KEY, PersistentDataType.BYTE_ARRAY,
                     canvas.extractMapData().toBytes());
@@ -89,7 +89,7 @@ public class BukkitMapHandler {
             final byte[] serializedData = itemStack.getItemMeta().getPersistentDataContainer()
                     .get(MAP_DATA_KEY, PersistentDataType.BYTE_ARRAY);
             final MapData mapData = MapData.fromByteArray(Objects.requireNonNull(serializedData));
-            plugin.getLoggingAdapter().debug("Setting deserialized map data for an item stack");
+            plugin.debug("Setting deserialized map data for an item stack");
 
             // Create a new map view renderer with the map data color at each pixel
             final MapView view = Bukkit.createMap(Bukkit.getWorlds().get(0));
@@ -101,7 +101,7 @@ public class BukkitMapHandler {
             view.setUnlimitedTracking(false);
             mapMeta.setMapView(view);
             itemStack.setItemMeta(mapMeta);
-            plugin.getLoggingAdapter().debug("Successfully applied renderer to map item stack");
+            plugin.debug("Successfully applied renderer to map item stack");
         } catch (IOException | NullPointerException e) {
             plugin.getLogger().log(Level.WARNING, "Failed to deserialize map data for a player", e);
         }

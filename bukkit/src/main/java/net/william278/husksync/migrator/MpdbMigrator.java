@@ -56,26 +56,26 @@ public class MpdbMigrator extends Migrator {
 
     @Override
     public CompletableFuture<Boolean> start() {
-        plugin.getLoggingAdapter().log(Level.INFO, "Starting migration from MySQLPlayerDataBridge to HuskSync...");
+        plugin.log(Level.INFO, "Starting migration from MySQLPlayerDataBridge to HuskSync...");
         final long startTime = System.currentTimeMillis();
         return CompletableFuture.supplyAsync(() -> {
             // Wipe the existing database, preparing it for data import
-            plugin.getLoggingAdapter().log(Level.INFO, "Preparing existing database (wiping)...");
+            plugin.log(Level.INFO, "Preparing existing database (wiping)...");
             plugin.getDatabase().wipeDatabase().join();
-            plugin.getLoggingAdapter().log(Level.INFO, "Successfully wiped user data database (took " + (System.currentTimeMillis() - startTime) + "ms)");
+            plugin.log(Level.INFO, "Successfully wiped user data database (took " + (System.currentTimeMillis() - startTime) + "ms)");
 
             // Create jdbc driver connection url
             final String jdbcUrl = "jdbc:mysql://" + sourceHost + ":" + sourcePort + "/" + sourceDatabase;
 
             // Create a new data source for the mpdb converter
             try (final HikariDataSource connectionPool = new HikariDataSource()) {
-                plugin.getLoggingAdapter().log(Level.INFO, "Establishing connection to MySQLPlayerDataBridge database...");
+                plugin.log(Level.INFO, "Establishing connection to MySQLPlayerDataBridge database...");
                 connectionPool.setJdbcUrl(jdbcUrl);
                 connectionPool.setUsername(sourceUsername);
                 connectionPool.setPassword(sourcePassword);
                 connectionPool.setPoolName((getIdentifier() + "_migrator_pool").toUpperCase());
 
-                plugin.getLoggingAdapter().log(Level.INFO, "Downloading raw data from the MySQLPlayerDataBridge database (this might take a while)...");
+                plugin.log(Level.INFO, "Downloading raw data from the MySQLPlayerDataBridge database (this might take a while)...");
                 final List<MpdbData> dataToMigrate = new ArrayList<>();
                 try (final Connection connection = connectionPool.getConnection()) {
                     try (final PreparedStatement statement = connection.prepareStatement("""
@@ -103,32 +103,32 @@ public class MpdbMigrator extends Migrator {
                                 ));
                                 playersMigrated++;
                                 if (playersMigrated % 25 == 0) {
-                                    plugin.getLoggingAdapter().log(Level.INFO, "Downloaded MySQLPlayerDataBridge data for " + playersMigrated + " players...");
+                                    plugin.log(Level.INFO, "Downloaded MySQLPlayerDataBridge data for " + playersMigrated + " players...");
                                 }
                             }
                         }
                     }
                 }
-                plugin.getLoggingAdapter().log(Level.INFO, "Completed download of " + dataToMigrate.size() + " entries from the MySQLPlayerDataBridge database!");
-                plugin.getLoggingAdapter().log(Level.INFO, "Converting raw MySQLPlayerDataBridge data to HuskSync user data (this might take a while)...");
+                plugin.log(Level.INFO, "Completed download of " + dataToMigrate.size() + " entries from the MySQLPlayerDataBridge database!");
+                plugin.log(Level.INFO, "Converting raw MySQLPlayerDataBridge data to HuskSync user data (this might take a while)...");
 
                 final AtomicInteger playersConverted = new AtomicInteger();
                 dataToMigrate.forEach(data -> data.toUserData(mpdbConverter, minecraftVersion).thenAccept(convertedData -> {
                     plugin.getDatabase().ensureUser(data.user()).thenRun(() ->
                                     plugin.getDatabase().setUserData(data.user(), convertedData, DataSaveCause.MPDB_MIGRATION))
                             .exceptionally(exception -> {
-                                plugin.getLoggingAdapter().log(Level.SEVERE, "Failed to migrate MySQLPlayerDataBridge data for " + data.user().username + ": " + exception.getMessage());
+                                plugin.log(Level.SEVERE, "Failed to migrate MySQLPlayerDataBridge data for " + data.user().username + ": " + exception.getMessage());
                                 return null;
                             }).join();
                     playersConverted.getAndIncrement();
                     if (playersConverted.get() % 50 == 0) {
-                        plugin.getLoggingAdapter().log(Level.INFO, "Converted MySQLPlayerDataBridge data for " + playersConverted + " players...");
+                        plugin.log(Level.INFO, "Converted MySQLPlayerDataBridge data for " + playersConverted + " players...");
                     }
                 }).join());
-                plugin.getLoggingAdapter().log(Level.INFO, "Migration complete for " + dataToMigrate.size() + " users in " + ((System.currentTimeMillis() - startTime) / 1000) + " seconds!");
+                plugin.log(Level.INFO, "Migration complete for " + dataToMigrate.size() + " users in " + ((System.currentTimeMillis() - startTime) / 1000) + " seconds!");
                 return true;
             } catch (Exception e) {
-                plugin.getLoggingAdapter().log(Level.SEVERE, "Error while migrating data: " + e.getMessage() + " - are your source database credentials correct?");
+                plugin.log(Level.SEVERE, "Error while migrating data: " + e.getMessage() + " - are your source database credentials correct?");
                 return false;
             }
         });
@@ -176,15 +176,15 @@ public class MpdbMigrator extends Migrator {
                 }
                 default -> false;
             }) {
-                plugin.getLoggingAdapter().log(Level.INFO, getHelpMenu());
-                plugin.getLoggingAdapter().log(Level.INFO, "Successfully set " + args[0] + " to " +
+                plugin.log(Level.INFO, getHelpMenu());
+                plugin.log(Level.INFO, "Successfully set " + args[0] + " to " +
                                                            obfuscateDataString(args[1]));
             } else {
-                plugin.getLoggingAdapter().log(Level.INFO, "Invalid operation, could not set " + args[0] + " to " +
+                plugin.log(Level.INFO, "Invalid operation, could not set " + args[0] + " to " +
                                                            obfuscateDataString(args[1]) + " (is it a valid option?)");
             }
         } else {
-            plugin.getLoggingAdapter().log(Level.INFO, getHelpMenu());
+            plugin.log(Level.INFO, getHelpMenu());
         }
     }
 

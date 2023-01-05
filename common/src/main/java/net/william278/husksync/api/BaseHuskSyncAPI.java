@@ -72,7 +72,7 @@ public abstract class BaseHuskSyncAPI {
     public final CompletableFuture<Optional<UserData>> getUserData(@NotNull User user) {
         return CompletableFuture.supplyAsync(() -> {
             if (user instanceof OnlineUser) {
-                return ((OnlineUser) user).getUserData(plugin.getLoggingAdapter(), plugin.getSettings()).join();
+                return ((OnlineUser) user).getUserData(plugin).join();
             } else {
                 return plugin.getDatabase().getCurrentUserData(user).join().map(UserDataSnapshot::userData);
             }
@@ -103,7 +103,7 @@ public abstract class BaseHuskSyncAPI {
      * @since 2.0
      */
     public final CompletableFuture<Void> saveUserData(@NotNull OnlineUser user) {
-        return CompletableFuture.runAsync(() -> user.getUserData(plugin.getLoggingAdapter(), plugin.getSettings())
+        return CompletableFuture.runAsync(() -> user.getUserData(plugin)
                 .thenAccept(optionalUserData -> optionalUserData.ifPresent(
                         userData -> plugin.getDatabase().setUserData(user, userData, DataSaveCause.API).join())));
     }

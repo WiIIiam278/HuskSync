@@ -278,7 +278,7 @@ public class UserDataCommand extends CommandBase implements TabCompletable {
                                                                     .split("-")[0], user.username, result)
                                                             .ifPresent(player::sendMessage);
                                                 } catch (IOException e) {
-                                                    plugin.getLoggingAdapter().log(Level.SEVERE, "Failed to dump user data", e);
+                                                    plugin.log(Level.SEVERE, "Failed to dump user data", e);
                                                 }
                                             }, () -> plugin.getLocales().getLocale("error_invalid_version_uuid")
                                                     .ifPresent(player::sendMessage))),

@@ -60,6 +60,7 @@ public class BukkitPlayer extends OnlineUser {
         this.audience = BukkitHuskSync.getInstance().getAudiences().player(player);
     }
 
+    @NotNull
     public static BukkitPlayer adapt(@NotNull Player player) {
         return new BukkitPlayer(player);
     }
@@ -507,7 +508,7 @@ public class BukkitPlayer extends OnlineUser {
             }
             return new PersistentDataContainerData(persistentDataMap);
         }).exceptionally(throwable -> {
-            BukkitHuskSync.getInstance().getLoggingAdapter().log(Level.WARNING,
+            BukkitHuskSync.getInstance().log(Level.WARNING,
                     "Could not read " + player.getName() + "'s persistent data map, skipping!");
             throwable.printStackTrace();
             return new PersistentDataContainerData(new HashMap<>());
@@ -515,65 +516,62 @@ public class BukkitPlayer extends OnlineUser {
     }
 
     @Override
-    public CompletableFuture<Void> setPersistentDataContainer(@NotNull PersistentDataContainerData persistentDataContainerData) {
+    public CompletableFuture<Void> setPersistentDataContainer(@NotNull PersistentDataContainerData container) {
         return CompletableFuture.runAsync(() -> {
             player.getPersistentDataContainer().getKeys().forEach(namespacedKey ->
                     player.getPersistentDataContainer().remove(namespacedKey));
-            persistentDataContainerData.getTags().forEach(keyString -> {
+            container.getTags().forEach(keyString -> {
                 final NamespacedKey key = NamespacedKey.fromString(keyString);
                 if (key != null) {
                     // Set a tag with the given key and value. This is crying out for a refactor.
-                    persistentDataContainerData.getTagType(keyString).ifPresentOrElse(dataType -> {
+                    container.getTagType(keyString).ifPresentOrElse(dataType -> {
                         switch (dataType) {
-                            case BYTE -> persistentDataContainerData.getTagValue(keyString, byte.class).ifPresent(
+                            case BYTE -> container.getTagValue(keyString, byte.class).ifPresent(
                                     value -> player.getPersistentDataContainer().set(key,
                                             PersistentDataType.BYTE, value));
-                            case SHORT -> persistentDataContainerData.getTagValue(keyString, short.class).ifPresent(
+                            case SHORT -> container.getTagValue(keyString, short.class).ifPresent(
                                     value -> player.getPersistentDataContainer().set(key,
                                             PersistentDataType.SHORT, value));
-                            case INTEGER -> persistentDataContainerData.getTagValue(keyString, int.class).ifPresent(
+                            case INTEGER -> container.getTagValue(keyString, int.class).ifPresent(
                                     value -> player.getPersistentDataContainer().set(key,
                                             PersistentDataType.INTEGER, value));
-                            case LONG -> persistentDataContainerData.getTagValue(keyString, long.class).ifPresent(
+                            case LONG -> container.getTagValue(keyString, long.class).ifPresent(
                                     value -> player.getPersistentDataContainer().set(key,
                                             PersistentDataType.LONG, value));
-                            case FLOAT -> persistentDataContainerData.getTagValue(keyString, float.class).ifPresent(
+                            case FLOAT -> container.getTagValue(keyString, float.class).ifPresent(
                                     value -> player.getPersistentDataContainer().set(key,
                                             PersistentDataType.FLOAT, value));
-                            case DOUBLE -> persistentDataContainerData.getTagValue(keyString, double.class).ifPresent(
+                            case DOUBLE -> container.getTagValue(keyString, double.class).ifPresent(
                                     value -> player.getPersistentDataContainer().set(key,
                                             PersistentDataType.DOUBLE, value));
-                            case STRING -> persistentDataContainerData.getTagValue(keyString, String.class).ifPresent(
+                            case STRING -> container.getTagValue(keyString, String.class).ifPresent(
                                     value -> player.getPersistentDataContainer().set(key,
                                             PersistentDataType.STRING, value));
-                            case BYTE_ARRAY ->
-                                    persistentDataContainerData.getTagValue(keyString, byte[].class).ifPresent(
-                                            value -> player.getPersistentDataContainer().set(key,
-                                                    PersistentDataType.BYTE_ARRAY, value));
-                            case INTEGER_ARRAY ->
-                                    persistentDataContainerData.getTagValue(keyString, int[].class).ifPresent(
-                                            value -> player.getPersistentDataContainer().set(key,
-                                                    PersistentDataType.INTEGER_ARRAY, value));
-                            case LONG_ARRAY ->
-                                    persistentDataContainerData.getTagValue(keyString, long[].class).ifPresent(
-                                            value -> player.getPersistentDataContainer().set(key,
-                                                    PersistentDataType.LONG_ARRAY, value));
+                            case BYTE_ARRAY -> container.getTagValue(keyString, byte[].class).ifPresent(
+                                    value -> player.getPersistentDataContainer().set(key,
+                                            PersistentDataType.BYTE_ARRAY, value));
+                            case INTEGER_ARRAY -> container.getTagValue(keyString, int[].class).ifPresent(
+                                    value -> player.getPersistentDataContainer().set(key,
+                                            PersistentDataType.INTEGER_ARRAY, value));
+                            case LONG_ARRAY -> container.getTagValue(keyString, long[].class).ifPresent(
+                                    value -> player.getPersistentDataContainer().set(key,
+                                            PersistentDataType.LONG_ARRAY, value));
                             case TAG_CONTAINER ->
-                                    persistentDataContainerData.getTagValue(keyString, PersistentDataContainer.class).ifPresent(
+                                    container.getTagValue(keyString, PersistentDataContainer.class).ifPresent(
                                             value -> player.getPersistentDataContainer().set(key,
                                                     PersistentDataType.TAG_CONTAINER, value));
                             case TAG_CONTAINER_ARRAY ->
-                                    persistentDataContainerData.getTagValue(keyString, PersistentDataContainer[].class).ifPresent(
+                                    container.getTagValue(keyString, PersistentDataContainer[].class).ifPresent(
                                             value -> player.getPersistentDataContainer().set(key,
                                                     PersistentDataType.TAG_CONTAINER_ARRAY, value));
                         }
-                    }, () -> BukkitHuskSync.getInstance().getLoggingAdapter().log(Level.WARNING,
+                    }, () -> BukkitHuskSync.getInstance().log(Level.WARNING,
                             "Could not set " + player.getName() + "'s persistent data key " + keyString +
                             " as it has an invalid type. Skipping!"));
                 }
             });
         }).exceptionally(throwable -> {
-            BukkitHuskSync.getInstance().getLoggingAdapter().log(Level.WARNING,
+            BukkitHuskSync.getInstance().log(Level.WARNING,
                     "Could not write " + player.getName() + "'s persistent data map, skipping!");
             throwable.printStackTrace();
             return null;

@@ -2,20 +2,17 @@ package net.william278.husksync.hook;
 
 import com.djrapitops.plan.capability.CapabilityService;
 import com.djrapitops.plan.extension.ExtensionService;
-import net.william278.husksync.database.Database;
-import net.william278.husksync.util.Logger;
+import net.william278.husksync.HuskSync;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.logging.Level;
 
 public class PlanHook {
 
-    private final Database database;
-    private final Logger logger;
+    private final HuskSync plugin;
 
-    public PlanHook(@NotNull Database database, @NotNull Logger logger) {
-        this.database = database;
-        this.logger = logger;
+    public PlanHook(@NotNull HuskSync plugin) {
+        this.plugin = plugin;
     }
 
     public void hookIntoPlan() {
@@ -33,13 +30,9 @@ public class PlanHook {
 
     private void registerDataExtension() {
         try {
-            ExtensionService.getInstance().register(new PlanDataExtension(database));
-        } catch (IllegalStateException planIsNotEnabled) {
-            logger.log(Level.SEVERE, "Plan extension hook failed to register. Plan is not enabled.", planIsNotEnabled);
-            // Plan is not enabled, handle exception
-        } catch (IllegalArgumentException dataExtensionImplementationIsInvalid) {
-            logger.log(Level.SEVERE, "Plan extension hook failed to register. Data hook implementation is invalid.", dataExtensionImplementationIsInvalid);
-            // The DataExtension implementation has an implementation error, handle exception
+            ExtensionService.getInstance().register(new PlanDataExtension(plugin));
+        } catch (IllegalStateException | IllegalArgumentException e) {
+            plugin.log(Level.WARNING, "Failed to register Plan data extension: " + e.getMessage(), e);
         }
     }
 

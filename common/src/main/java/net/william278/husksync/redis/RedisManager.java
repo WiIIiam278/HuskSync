@@ -89,8 +89,7 @@ public class RedisManager extends JedisPubSub {
         final RedisMessage redisMessage = RedisMessage.fromJson(message);
         plugin.getOnlineUser(redisMessage.targetUserUuid).ifPresent(user -> {
             final UserData userData = plugin.getDataAdapter().fromBytes(redisMessage.data);
-            user.setData(userData, plugin.getSettings(), plugin.getEventCannon(),
-                    plugin.getLoggingAdapter(), plugin.getMinecraftVersion()).thenAccept(succeeded -> {
+            user.setData(userData, plugin).thenAccept(succeeded -> {
                 if (succeeded) {
                     switch (plugin.getSettings().notificationDisplaySlot) {
                         case CHAT -> plugin.getLocales().getLocale("data_update_complete")
@@ -140,7 +139,7 @@ public class RedisManager extends JedisPubSub {
                             plugin.getDataAdapter().toBytes(userData));
 
                     // Debug logging
-                    plugin.getLoggingAdapter().debug("[" + user.username + "] Set " + RedisKeyType.DATA_UPDATE.name()
+                    plugin.debug("[" + user.username + "] Set " + RedisKeyType.DATA_UPDATE.name()
                                                      + " key to redis at: " +
                                                      new SimpleDateFormat("mm:ss.SSS").format(new Date()));
                 }
@@ -156,7 +155,7 @@ public class RedisManager extends JedisPubSub {
             try (Jedis jedis = jedisPool.getResource()) {
                 jedis.setex(getKey(RedisKeyType.SERVER_SWITCH, user.uuid),
                         RedisKeyType.SERVER_SWITCH.timeToLive, new byte[0]);
-                plugin.getLoggingAdapter().debug("[" + user.username + "] Set " + RedisKeyType.SERVER_SWITCH.name()
+                plugin.debug("[" + user.username + "] Set " + RedisKeyType.SERVER_SWITCH.name()
                                                  + " key to redis at: " +
                                                  new SimpleDateFormat("mm:ss.SSS").format(new Date()));
             } catch (Exception e) {
@@ -177,12 +176,12 @@ public class RedisManager extends JedisPubSub {
                 final byte[] key = getKey(RedisKeyType.DATA_UPDATE, user.uuid);
                 final byte[] dataByteArray = jedis.get(key);
                 if (dataByteArray == null) {
-                    plugin.getLoggingAdapter().debug("[" + user.username + "] Could not read " +
+                    plugin.debug("[" + user.username + "] Could not read " +
                                                      RedisKeyType.DATA_UPDATE.name() + " key from redis at: " +
                                                      new SimpleDateFormat("mm:ss.SSS").format(new Date()));
                     return Optional.empty();
                 }
-                plugin.getLoggingAdapter().debug("[" + user.username + "] Successfully read "
+                plugin.debug("[" + user.username + "] Successfully read "
                                                  + RedisKeyType.DATA_UPDATE.name() + " key from redis at: " +
                                                  new SimpleDateFormat("mm:ss.SSS").format(new Date()));
 
@@ -204,12 +203,12 @@ public class RedisManager extends JedisPubSub {
                 final byte[] key = getKey(RedisKeyType.SERVER_SWITCH, user.uuid);
                 final byte[] readData = jedis.get(key);
                 if (readData == null) {
-                    plugin.getLoggingAdapter().debug("[" + user.username + "] Could not read " +
+                    plugin.debug("[" + user.username + "] Could not read " +
                                                      RedisKeyType.SERVER_SWITCH.name() + " key from redis at: " +
                                                      new SimpleDateFormat("mm:ss.SSS").format(new Date()));
                     return false;
                 }
-                plugin.getLoggingAdapter().debug("[" + user.username + "] Successfully read "
+                plugin.debug("[" + user.username + "] Successfully read "
                                                  + RedisKeyType.SERVER_SWITCH.name() + " key from redis at: " +
                                                  new SimpleDateFormat("mm:ss.SSS").format(new Date()));
 
