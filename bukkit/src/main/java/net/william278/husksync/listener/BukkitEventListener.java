@@ -46,7 +46,7 @@ public class BukkitEventListener extends EventListener implements BukkitJoinEven
     @Override
     public void handlePlayerQuit(@NotNull BukkitPlayer bukkitPlayer) {
         final Player player = bukkitPlayer.getPlayer();
-        if (!player.getItemOnCursor().getType().isAir()) {
+        if (!bukkitPlayer.isLocked() && !player.getItemOnCursor().getType().isAir()) {
             player.getWorld().dropItem(player.getLocation(), player.getItemOnCursor());
             player.setItemOnCursor(null);
         }
