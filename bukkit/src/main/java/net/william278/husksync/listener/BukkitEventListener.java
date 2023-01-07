@@ -8,6 +8,7 @@ import net.william278.husksync.data.ItemData;
 import net.william278.husksync.player.BukkitPlayer;
 import net.william278.husksync.player.OnlineUser;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -17,6 +18,7 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.entity.ProjectileLaunchEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
@@ -87,6 +89,16 @@ public class BukkitEventListener extends EventListener implements BukkitJoinEven
     /*
      * Events to cancel if the player has not been set yet
      */
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onProjectileLaunch(@NotNull ProjectileLaunchEvent event) {
+        if (event.getEntity().getType() == EntityType.TRIDENT) {
+            var player = (Player) event.getEntity().getShooter();
+            if (player != null) {
+                event.setCancelled(cancelPlayerEvent(player.getUniqueId()));
+            }
+        }
+    }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onDropItem(@NotNull PlayerDropItemEvent event) {
