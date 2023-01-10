@@ -10,6 +10,7 @@ import net.william278.husksync.player.OnlineUser;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -97,11 +98,9 @@ public class BukkitEventListener extends EventListener implements BukkitJoinEven
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onProjectileLaunch(@NotNull ProjectileLaunchEvent event) {
-        if (event.getEntity().getType() == EntityType.TRIDENT) {
-            var player = (Player) event.getEntity().getShooter();
-            if (player != null) {
-                event.setCancelled(cancelPlayerEvent(player.getUniqueId()));
-            }
+        final Projectile projectile = event.getEntity();
+        if (projectile.getShooter() instanceof Player player && projectile.getType() == EntityType.TRIDENT) {
+            event.setCancelled(cancelPlayerEvent(player.getUniqueId()));
         }
     }
 
