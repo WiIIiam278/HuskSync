@@ -24,6 +24,7 @@
     </b>
 </p>
 <br/>
+
 **HuskSync** is a modern, cross-server player data synchronisation system that enables the comprehensive synchronisation of your user's data across multiple proxied servers. It does this by making use of Redis and MySQL to optimally cache data while players change servers.
 
 ## Features
