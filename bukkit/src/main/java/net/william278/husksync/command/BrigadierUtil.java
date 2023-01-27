@@ -18,13 +18,12 @@ public class BrigadierUtil {
     protected static void registerCommodore(@NotNull BukkitHuskSync plugin, @NotNull PluginCommand pluginCommand,
                                             @NotNull CommandBase command) {
         // Register command descriptions via commodore (brigadier wrapper)
-        try (InputStream pluginFile = plugin.getResourceReader()
-                .getResource("commodore/" + command.command + ".commodore")) {
+        try (InputStream pluginFile = plugin.getResource("commodore/" + command.command + ".commodore")) {
             CommodoreProvider.getCommodore(plugin).register(pluginCommand,
                     CommodoreFileReader.INSTANCE.parse(pluginFile),
                     player -> player.hasPermission(command.permission));
         } catch (IOException e) {
-            plugin.getLoggingAdapter().log(Level.SEVERE,
+            plugin.log(Level.SEVERE,
                     "Failed to load " + command.command + ".commodore command definitions", e);
         }
     }

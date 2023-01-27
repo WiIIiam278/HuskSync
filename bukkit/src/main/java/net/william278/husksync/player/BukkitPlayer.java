@@ -60,6 +60,7 @@ public class BukkitPlayer extends OnlineUser {
         this.audience = BukkitHuskSync.getInstance().getAudiences().player(player);
     }
 
+    @NotNull
     public static BukkitPlayer adapt(@NotNull Player player) {
         return new BukkitPlayer(player);
     }
@@ -90,8 +91,8 @@ public class BukkitPlayer extends OnlineUser {
     @Override
     public CompletableFuture<Void> setStatus(@NotNull StatusData statusData, @NotNull Settings settings) {
         return CompletableFuture.runAsync(() -> {
-            double currentMaxHealth = Objects.requireNonNull(player.getAttribute(Attribute.GENERIC_MAX_HEALTH))
-                    .getBaseValue();
+            // Set max health
+            double currentMaxHealth = Objects.requireNonNull(player.getAttribute(Attribute.GENERIC_MAX_HEALTH)).getBaseValue();
             if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.MAX_HEALTH)) {
                 if (statusData.maxHealth != 0d) {
                     Objects.requireNonNull(player.getAttribute(Attribute.GENERIC_MAX_HEALTH))
@@ -100,22 +101,33 @@ public class BukkitPlayer extends OnlineUser {
                 }
             }
             if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.HEALTH)) {
+                // Set health
                 final double currentHealth = player.getHealth();
                 if (statusData.health != currentHealth) {
                     final double healthToSet = currentHealth > currentMaxHealth ? currentMaxHealth : statusData.health;
-                    if (healthToSet < 1) {
-                        Bukkit.getScheduler().runTask(BukkitHuskSync.getInstance(), () -> player.setHealth(healthToSet));
-                    } else {
-                        player.setHealth(healthToSet);
-                    }
+                    final double maxHealth = currentMaxHealth;
+                    Bukkit.getScheduler().runTask(BukkitHuskSync.getInstance(), () -> {
+                        try {
+                            player.setHealth(Math.min(healthToSet, maxHealth));
+                        } catch (IllegalArgumentException e) {
+                            BukkitHuskSync.getInstance().getLogger().log(Level.WARNING,
+                                    "Failed to set health of player " + player.getName() + " to " + healthToSet);
+                        }
+                    });
                 }
 
-                if (statusData.healthScale != 0d) {
-                    player.setHealthScale(statusData.healthScale);
-                } else {
-                    player.setHealthScale(statusData.maxHealth);
+                // Set health scale
+                try {
+                    if (statusData.healthScale != 0d) {
+                        player.setHealthScale(statusData.healthScale);
+                    } else {
+                        player.setHealthScale(statusData.maxHealth);
+                    }
+                    player.setHealthScaled(statusData.healthScale != 0D);
+                } catch (IllegalArgumentException e) {
+                    BukkitHuskSync.getInstance().getLogger().log(Level.WARNING,
+                            "Failed to set health scale of player " + player.getName() + " to " + statusData.healthScale);
                 }
-                player.setHealthScaled(statusData.healthScale != 0D);
             }
             if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.HUNGER)) {
                 player.setFoodLevel(statusData.hunger);
@@ -157,7 +169,9 @@ public class BukkitPlayer extends OnlineUser {
         return BukkitSerializer.deserializeInventory(itemData.serializedItems).thenApplyAsync(contents -> {
             final CompletableFuture<Void> inventorySetFuture = new CompletableFuture<>();
             Bukkit.getScheduler().runTask(BukkitHuskSync.getInstance(), () -> {
+                player.setItemOnCursor(null);
                 player.getInventory().setContents(contents.getContents());
+                player.updateInventory();
                 inventorySetFuture.complete(null);
             });
             return inventorySetFuture.join();
@@ -353,32 +367,52 @@ public class BukkitPlayer extends OnlineUser {
     @Override
     public CompletableFuture<Void> setStatistics(@NotNull StatisticsData statisticsData) {
         return CompletableFuture.runAsync(() -> {
-            // Set untyped statistics
+            // Set generic statistics
             for (String statistic : statisticsData.untypedStatistics.keySet()) {
-                player.setStatistic(Statistic.valueOf(statistic), statisticsData.untypedStatistics.get(statistic));
+                try {
+                    player.setStatistic(Statistic.valueOf(statistic), statisticsData.untypedStatistics.get(statistic));
+                } catch (IllegalArgumentException e) {
+                    BukkitHuskSync.getInstance().getLogger().log(Level.WARNING,
+                            "Failed to set generic statistic " + statistic + " for " + username);
+                }
             }
 
             // Set block statistics
             for (String statistic : statisticsData.blockStatistics.keySet()) {
                 for (String blockMaterial : statisticsData.blockStatistics.get(statistic).keySet()) {
-                    player.setStatistic(Statistic.valueOf(statistic), Material.valueOf(blockMaterial),
-                            statisticsData.blockStatistics.get(statistic).get(blockMaterial));
+                    try {
+                        player.setStatistic(Statistic.valueOf(statistic), Material.valueOf(blockMaterial),
+                                statisticsData.blockStatistics.get(statistic).get(blockMaterial));
+                    } catch (IllegalArgumentException e) {
+                        BukkitHuskSync.getInstance().getLogger().log(Level.WARNING,
+                                "Failed to set " + blockMaterial + " statistic " + statistic + " for " + username);
+                    }
                 }
             }
 
             // Set item statistics
             for (String statistic : statisticsData.itemStatistics.keySet()) {
                 for (String itemMaterial : statisticsData.itemStatistics.get(statistic).keySet()) {
-                    player.setStatistic(Statistic.valueOf(statistic), Material.valueOf(itemMaterial),
-                            statisticsData.itemStatistics.get(statistic).get(itemMaterial));
+                    try {
+                        player.setStatistic(Statistic.valueOf(statistic), Material.valueOf(itemMaterial),
+                                statisticsData.itemStatistics.get(statistic).get(itemMaterial));
+                    } catch (IllegalArgumentException e) {
+                        BukkitHuskSync.getInstance().getLogger().log(Level.WARNING,
+                                "Failed to set " + itemMaterial + " statistic " + statistic + " for " + username);
+                    }
                 }
             }
 
             // Set entity statistics
             for (String statistic : statisticsData.entityStatistics.keySet()) {
                 for (String entityType : statisticsData.entityStatistics.get(statistic).keySet()) {
-                    player.setStatistic(Statistic.valueOf(statistic), EntityType.valueOf(entityType),
-                            statisticsData.entityStatistics.get(statistic).get(entityType));
+                    try {
+                        player.setStatistic(Statistic.valueOf(statistic), EntityType.valueOf(entityType),
+                                statisticsData.entityStatistics.get(statistic).get(entityType));
+                    } catch (IllegalArgumentException e) {
+                        BukkitHuskSync.getInstance().getLogger().log(Level.WARNING,
+                                "Failed to set " + entityType + " statistic " + statistic + " for " + username);
+                    }
                 }
             }
         });
@@ -474,7 +508,7 @@ public class BukkitPlayer extends OnlineUser {
             }
             return new PersistentDataContainerData(persistentDataMap);
         }).exceptionally(throwable -> {
-            BukkitHuskSync.getInstance().getLoggingAdapter().log(Level.WARNING,
+            BukkitHuskSync.getInstance().log(Level.WARNING,
                     "Could not read " + player.getName() + "'s persistent data map, skipping!");
             throwable.printStackTrace();
             return new PersistentDataContainerData(new HashMap<>());
@@ -482,65 +516,62 @@ public class BukkitPlayer extends OnlineUser {
     }
 
     @Override
-    public CompletableFuture<Void> setPersistentDataContainer(@NotNull PersistentDataContainerData persistentDataContainerData) {
+    public CompletableFuture<Void> setPersistentDataContainer(@NotNull PersistentDataContainerData container) {
         return CompletableFuture.runAsync(() -> {
             player.getPersistentDataContainer().getKeys().forEach(namespacedKey ->
                     player.getPersistentDataContainer().remove(namespacedKey));
-            persistentDataContainerData.getTags().forEach(keyString -> {
+            container.getTags().forEach(keyString -> {
                 final NamespacedKey key = NamespacedKey.fromString(keyString);
                 if (key != null) {
                     // Set a tag with the given key and value. This is crying out for a refactor.
-                    persistentDataContainerData.getTagType(keyString).ifPresentOrElse(dataType -> {
+                    container.getTagType(keyString).ifPresentOrElse(dataType -> {
                         switch (dataType) {
-                            case BYTE -> persistentDataContainerData.getTagValue(keyString, byte.class).ifPresent(
+                            case BYTE -> container.getTagValue(keyString, byte.class).ifPresent(
                                     value -> player.getPersistentDataContainer().set(key,
                                             PersistentDataType.BYTE, value));
-                            case SHORT -> persistentDataContainerData.getTagValue(keyString, short.class).ifPresent(
+                            case SHORT -> container.getTagValue(keyString, short.class).ifPresent(
                                     value -> player.getPersistentDataContainer().set(key,
                                             PersistentDataType.SHORT, value));
-                            case INTEGER -> persistentDataContainerData.getTagValue(keyString, int.class).ifPresent(
+                            case INTEGER -> container.getTagValue(keyString, int.class).ifPresent(
                                     value -> player.getPersistentDataContainer().set(key,
                                             PersistentDataType.INTEGER, value));
-                            case LONG -> persistentDataContainerData.getTagValue(keyString, long.class).ifPresent(
+                            case LONG -> container.getTagValue(keyString, long.class).ifPresent(
                                     value -> player.getPersistentDataContainer().set(key,
                                             PersistentDataType.LONG, value));
-                            case FLOAT -> persistentDataContainerData.getTagValue(keyString, float.class).ifPresent(
+                            case FLOAT -> container.getTagValue(keyString, float.class).ifPresent(
                                     value -> player.getPersistentDataContainer().set(key,
                                             PersistentDataType.FLOAT, value));
-                            case DOUBLE -> persistentDataContainerData.getTagValue(keyString, double.class).ifPresent(
+                            case DOUBLE -> container.getTagValue(keyString, double.class).ifPresent(
                                     value -> player.getPersistentDataContainer().set(key,
                                             PersistentDataType.DOUBLE, value));
-                            case STRING -> persistentDataContainerData.getTagValue(keyString, String.class).ifPresent(
+                            case STRING -> container.getTagValue(keyString, String.class).ifPresent(
                                     value -> player.getPersistentDataContainer().set(key,
                                             PersistentDataType.STRING, value));
-                            case BYTE_ARRAY ->
-                                    persistentDataContainerData.getTagValue(keyString, byte[].class).ifPresent(
-                                            value -> player.getPersistentDataContainer().set(key,
-                                                    PersistentDataType.BYTE_ARRAY, value));
-                            case INTEGER_ARRAY ->
-                                    persistentDataContainerData.getTagValue(keyString, int[].class).ifPresent(
-                                            value -> player.getPersistentDataContainer().set(key,
-                                                    PersistentDataType.INTEGER_ARRAY, value));
-                            case LONG_ARRAY ->
-                                    persistentDataContainerData.getTagValue(keyString, long[].class).ifPresent(
-                                            value -> player.getPersistentDataContainer().set(key,
-                                                    PersistentDataType.LONG_ARRAY, value));
+                            case BYTE_ARRAY -> container.getTagValue(keyString, byte[].class).ifPresent(
+                                    value -> player.getPersistentDataContainer().set(key,
+                                            PersistentDataType.BYTE_ARRAY, value));
+                            case INTEGER_ARRAY -> container.getTagValue(keyString, int[].class).ifPresent(
+                                    value -> player.getPersistentDataContainer().set(key,
+                                            PersistentDataType.INTEGER_ARRAY, value));
+                            case LONG_ARRAY -> container.getTagValue(keyString, long[].class).ifPresent(
+                                    value -> player.getPersistentDataContainer().set(key,
+                                            PersistentDataType.LONG_ARRAY, value));
                             case TAG_CONTAINER ->
-                                    persistentDataContainerData.getTagValue(keyString, PersistentDataContainer.class).ifPresent(
+                                    container.getTagValue(keyString, PersistentDataContainer.class).ifPresent(
                                             value -> player.getPersistentDataContainer().set(key,
                                                     PersistentDataType.TAG_CONTAINER, value));
                             case TAG_CONTAINER_ARRAY ->
-                                    persistentDataContainerData.getTagValue(keyString, PersistentDataContainer[].class).ifPresent(
+                                    container.getTagValue(keyString, PersistentDataContainer[].class).ifPresent(
                                             value -> player.getPersistentDataContainer().set(key,
                                                     PersistentDataType.TAG_CONTAINER_ARRAY, value));
                         }
-                    }, () -> BukkitHuskSync.getInstance().getLoggingAdapter().log(Level.WARNING,
+                    }, () -> BukkitHuskSync.getInstance().log(Level.WARNING,
                             "Could not set " + player.getName() + "'s persistent data key " + keyString +
                             " as it has an invalid type. Skipping!"));
                 }
             });
         }).exceptionally(throwable -> {
-            BukkitHuskSync.getInstance().getLoggingAdapter().log(Level.WARNING,
+            BukkitHuskSync.getInstance().log(Level.WARNING,
                     "Could not write " + player.getName() + "'s persistent data map, skipping!");
             throwable.printStackTrace();
             return null;
@@ -671,6 +702,16 @@ public class BukkitPlayer extends OnlineUser {
             maxHealth -= healthBoostBonus;
         }
         return maxHealth;
+    }
+
+    @Override
+    public boolean isLocked() {
+        return BukkitHuskSync.getInstance().getLockedPlayers().contains(player.getUniqueId());
+    }
+
+    @Override
+    public boolean isNpc() {
+        return player.hasMetadata("NPC");
     }
 
 }

@@ -19,7 +19,7 @@ import java.util.concurrent.CompletableFuture;
 /**
  * Manages the connection to the Redis server, handling the caching of user data
  */
-public class RedisManager {
+public class RedisManager extends JedisPubSub {
 
     protected static final String KEY_NAMESPACE = "husksync:";
     protected static String clusterId = "";
@@ -53,21 +53,19 @@ public class RedisManager {
      *
      * @return a future returning void when complete
      */
-    public CompletableFuture<Boolean> initialize() {
-        return CompletableFuture.supplyAsync(() -> {
-            if (redisPassword.isBlank()) {
-                jedisPool = new JedisPool(jedisPoolConfig, redisHost, redisPort, 0, redisUseSsl);
-            } else {
-                jedisPool = new JedisPool(jedisPoolConfig, redisHost, redisPort, 0, redisPassword, redisUseSsl);
-            }
-            try {
-                jedisPool.getResource().ping();
-            } catch (JedisException e) {
-                return false;
-            }
-            CompletableFuture.runAsync(this::subscribe);
-            return true;
-        });
+    public boolean initialize() {
+        if (redisPassword.isBlank()) {
+            jedisPool = new JedisPool(jedisPoolConfig, redisHost, redisPort, 0, redisUseSsl);
+        } else {
+            jedisPool = new JedisPool(jedisPoolConfig, redisHost, redisPort, 0, redisPassword, redisUseSsl);
+        }
+        try {
+            jedisPool.getResource().ping();
+        } catch (JedisException e) {
+            return false;
+        }
+        CompletableFuture.runAsync(this::subscribe);
+        return true;
     }
 
     private void subscribe() {
@@ -75,38 +73,40 @@ public class RedisManager {
                 new Jedis(redisHost, redisPort, DefaultJedisClientConfig.builder()
                         .password(redisPassword).timeoutMillis(0).ssl(redisUseSsl).build())) {
             subscriber.connect();
-            subscriber.subscribe(new JedisPubSub() {
-                @Override
-                public void onMessage(@NotNull String channel, @NotNull String message) {
-                    RedisMessageType.getTypeFromChannel(channel).ifPresent(messageType -> {
-                        if (messageType == RedisMessageType.UPDATE_USER_DATA) {
-                            final RedisMessage redisMessage = RedisMessage.fromJson(message);
-                            plugin.getOnlineUser(redisMessage.targetUserUuid).ifPresent(user -> {
-                                final UserData userData = plugin.getDataAdapter().fromBytes(redisMessage.data);
-                                user.setData(userData, plugin.getSettings(), plugin.getEventCannon(),
-                                        plugin.getLoggingAdapter(), plugin.getMinecraftVersion()).thenAccept(succeeded -> {
-                                    if (succeeded) {
-                                        switch (plugin.getSettings().notificationDisplaySlot) {
-                                            case CHAT -> plugin.getLocales().getLocale("data_update_complete")
-                                                    .ifPresent(user::sendMessage);
-                                            case ACTION_BAR -> plugin.getLocales().getLocale("data_update_complete")
-                                                    .ifPresent(user::sendActionBar);
-                                            case TOAST -> plugin.getLocales().getLocale("data_update_complete")
-                                                    .ifPresent(locale -> user.sendToast(locale, new MineDown(""),
-                                                            "minecraft:bell", "TASK"));
-                                        }
-                                        plugin.getEventCannon().fireSyncCompleteEvent(user);
-                                    } else {
-                                        plugin.getLocales().getLocale("data_update_failed")
-                                                .ifPresent(user::sendMessage);
-                                    }
-                                });
-                            });
-                        }
-                    });
-                }
-            }, Arrays.stream(RedisMessageType.values()).map(RedisMessageType::getMessageChannel).toArray(String[]::new));
+            subscriber.subscribe(this, Arrays.stream(RedisMessageType.values())
+                    .map(RedisMessageType::getMessageChannel)
+                    .toArray(String[]::new));
         }
+    }
+
+    @Override
+    public void onMessage(@NotNull String channel, @NotNull String message) {
+        final RedisMessageType messageType = RedisMessageType.getTypeFromChannel(channel).orElse(null);
+        if (messageType != RedisMessageType.UPDATE_USER_DATA) {
+            return;
+        }
+
+        final RedisMessage redisMessage = RedisMessage.fromJson(message);
+        plugin.getOnlineUser(redisMessage.targetUserUuid).ifPresent(user -> {
+            final UserData userData = plugin.getDataAdapter().fromBytes(redisMessage.data);
+            user.setData(userData, plugin).thenAccept(succeeded -> {
+                if (succeeded) {
+                    switch (plugin.getSettings().notificationDisplaySlot) {
+                        case CHAT -> plugin.getLocales().getLocale("data_update_complete")
+                                .ifPresent(user::sendMessage);
+                        case ACTION_BAR -> plugin.getLocales().getLocale("data_update_complete")
+                                .ifPresent(user::sendActionBar);
+                        case TOAST -> plugin.getLocales().getLocale("data_update_complete")
+                                .ifPresent(locale -> user.sendToast(locale, new MineDown(""),
+                                        "minecraft:bell", "TASK"));
+                    }
+                    plugin.getEventCannon().fireSyncCompleteEvent(user);
+                } else {
+                    plugin.getLocales().getLocale("data_update_failed")
+                            .ifPresent(user::sendMessage);
+                }
+            });
+        });
     }
 
     protected void sendMessage(@NotNull String channel, @NotNull String message) {
@@ -139,7 +139,7 @@ public class RedisManager {
                             plugin.getDataAdapter().toBytes(userData));
 
                     // Debug logging
-                    plugin.getLoggingAdapter().debug("[" + user.username + "] Set " + RedisKeyType.DATA_UPDATE.name()
+                    plugin.debug("[" + user.username + "] Set " + RedisKeyType.DATA_UPDATE.name()
                                                      + " key to redis at: " +
                                                      new SimpleDateFormat("mm:ss.SSS").format(new Date()));
                 }
@@ -155,7 +155,7 @@ public class RedisManager {
             try (Jedis jedis = jedisPool.getResource()) {
                 jedis.setex(getKey(RedisKeyType.SERVER_SWITCH, user.uuid),
                         RedisKeyType.SERVER_SWITCH.timeToLive, new byte[0]);
-                plugin.getLoggingAdapter().debug("[" + user.username + "] Set " + RedisKeyType.SERVER_SWITCH.name()
+                plugin.debug("[" + user.username + "] Set " + RedisKeyType.SERVER_SWITCH.name()
                                                  + " key to redis at: " +
                                                  new SimpleDateFormat("mm:ss.SSS").format(new Date()));
             } catch (Exception e) {
@@ -176,12 +176,12 @@ public class RedisManager {
                 final byte[] key = getKey(RedisKeyType.DATA_UPDATE, user.uuid);
                 final byte[] dataByteArray = jedis.get(key);
                 if (dataByteArray == null) {
-                    plugin.getLoggingAdapter().debug("[" + user.username + "] Could not read " +
+                    plugin.debug("[" + user.username + "] Could not read " +
                                                      RedisKeyType.DATA_UPDATE.name() + " key from redis at: " +
                                                      new SimpleDateFormat("mm:ss.SSS").format(new Date()));
                     return Optional.empty();
                 }
-                plugin.getLoggingAdapter().debug("[" + user.username + "] Successfully read "
+                plugin.debug("[" + user.username + "] Successfully read "
                                                  + RedisKeyType.DATA_UPDATE.name() + " key from redis at: " +
                                                  new SimpleDateFormat("mm:ss.SSS").format(new Date()));
 
@@ -203,12 +203,12 @@ public class RedisManager {
                 final byte[] key = getKey(RedisKeyType.SERVER_SWITCH, user.uuid);
                 final byte[] readData = jedis.get(key);
                 if (readData == null) {
-                    plugin.getLoggingAdapter().debug("[" + user.username + "] Could not read " +
+                    plugin.debug("[" + user.username + "] Could not read " +
                                                      RedisKeyType.SERVER_SWITCH.name() + " key from redis at: " +
                                                      new SimpleDateFormat("mm:ss.SSS").format(new Date()));
                     return false;
                 }
-                plugin.getLoggingAdapter().debug("[" + user.username + "] Successfully read "
+                plugin.debug("[" + user.username + "] Successfully read "
                                                  + RedisKeyType.SERVER_SWITCH.name() + " key from redis at: " +
                                                  new SimpleDateFormat("mm:ss.SSS").format(new Date()));
 

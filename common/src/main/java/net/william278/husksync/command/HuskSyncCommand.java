@@ -63,10 +63,10 @@ public class HuskSyncCommand extends CommandBase implements TabCompletable, Cons
                         newestVersion.ifPresentOrElse(
                                 newVersion -> player.sendMessage(
                                         new MineDown("[HuskSync](#00fb9a bold) [| A new version of HuskSync is available!"
-                                                + " (v" + newVersion + " (Running: v" + plugin.getPluginVersion() + ")](#00fb9a)")),
+                                                     + " (v" + newVersion + " (Running: v" + plugin.getPluginVersion() + ")](#00fb9a)")),
                                 () -> player.sendMessage(
                                         new MineDown("[HuskSync](#00fb9a bold) [| HuskSync is up-to-date."
-                                                + " (Running: v" + plugin.getPluginVersion() + ")](#00fb9a)"))));
+                                                     + " (Running: v" + plugin.getPluginVersion() + ")](#00fb9a)"))));
             }
             case "about", "info" -> sendAboutMenu(player);
             case "reload" -> {
@@ -88,25 +88,25 @@ public class HuskSyncCommand extends CommandBase implements TabCompletable, Cons
     @Override
     public void onConsoleExecute(@NotNull String[] args) {
         if (args.length < 1) {
-            plugin.getLoggingAdapter().log(Level.INFO, "Console usage: \"husksync <update/about/reload/migrate>\"");
+            plugin.log(Level.INFO, "Console usage: \"husksync <update/about/reload/migrate>\"");
             return;
         }
         switch (args[0].toLowerCase()) {
             case "update", "version" -> plugin.getLatestVersionIfOutdated().thenAccept(newestVersion ->
-                    newestVersion.ifPresentOrElse(newVersion -> plugin.getLoggingAdapter().log(Level.WARNING,
+                    newestVersion.ifPresentOrElse(newVersion -> plugin.log(Level.WARNING,
                                     "An update is available for HuskSync, v" + newVersion
-                                            + " (Running v" + plugin.getPluginVersion() + ")"),
-                            () -> plugin.getLoggingAdapter().log(Level.INFO,
+                                    + " (Running v" + plugin.getPluginVersion() + ")"),
+                            () -> plugin.log(Level.INFO,
                                     "HuskSync is up to date" +
-                                            " (Running v" + plugin.getPluginVersion() + ")")));
-            case "about", "info" -> aboutMenu.toString().lines().forEach(plugin.getLoggingAdapter()::info);
+                                    " (Running v" + plugin.getPluginVersion() + ")")));
+            case "about", "info" -> aboutMenu.toString().lines().forEach(line -> plugin.log(Level.INFO, line));
             case "reload" -> {
                 plugin.reload();
-                plugin.getLoggingAdapter().log(Level.INFO, "Reloaded config & message files.");
+                plugin.log(Level.INFO, "Reloaded config & message files.");
             }
             case "migrate" -> {
                 if (args.length < 2) {
-                    plugin.getLoggingAdapter().log(Level.INFO,
+                    plugin.log(Level.INFO,
                             "Please choose a migrator, then run \"husksync migrate <migrator>\"");
                     logMigratorsList();
                     return;
@@ -115,39 +115,39 @@ public class HuskSyncCommand extends CommandBase implements TabCompletable, Cons
                         availableMigrator.getIdentifier().equalsIgnoreCase(args[1])).findFirst();
                 selectedMigrator.ifPresentOrElse(migrator -> {
                     if (args.length < 3) {
-                        plugin.getLoggingAdapter().log(Level.INFO, migrator.getHelpMenu());
+                        plugin.log(Level.INFO, migrator.getHelpMenu());
                         return;
                     }
                     switch (args[2]) {
                         case "start" -> migrator.start().thenAccept(succeeded -> {
                             if (succeeded) {
-                                plugin.getLoggingAdapter().log(Level.INFO, "Migration completed successfully!");
+                                plugin.log(Level.INFO, "Migration completed successfully!");
                             } else {
-                                plugin.getLoggingAdapter().log(Level.WARNING, "Migration failed!");
+                                plugin.log(Level.WARNING, "Migration failed!");
                             }
                         });
                         case "set" -> migrator.handleConfigurationCommand(Arrays.copyOfRange(args, 3, args.length));
-                        default -> plugin.getLoggingAdapter().log(Level.INFO,
+                        default -> plugin.log(Level.INFO,
                                 "Invalid syntax. Console usage: \"husksync migrate " + args[1] + " <start/set>");
                     }
                 }, () -> {
-                    plugin.getLoggingAdapter().log(Level.INFO,
+                    plugin.log(Level.INFO,
                             "Please specify a valid migrator.\n" +
-                                    "If a migrator is not available, please verify that you meet the prerequisites to use it.");
+                            "If a migrator is not available, please verify that you meet the prerequisites to use it.");
                     logMigratorsList();
                 });
             }
-            default -> plugin.getLoggingAdapter().log(Level.INFO,
+            default -> plugin.log(Level.INFO,
                     "Invalid syntax. Console usage: \"husksync <update/about/reload/migrate>\"");
         }
     }
 
     private void logMigratorsList() {
-        plugin.getLoggingAdapter().log(Level.INFO,
+        plugin.log(Level.INFO,
                 "List of available migrators:\nMigrator ID / Migrator Name:\n" +
-                        plugin.getAvailableMigrators().stream()
-                                .map(migrator -> migrator.getIdentifier() + " - " + migrator.getName())
-                                .collect(Collectors.joining("\n")));
+                plugin.getAvailableMigrators().stream()
+                        .map(migrator -> migrator.getIdentifier() + " - " + migrator.getName())
+                        .collect(Collectors.joining("\n")));
     }
 
     @Override

@@ -9,17 +9,17 @@ import net.william278.husksync.event.EventCannon;
 import net.william278.husksync.migrator.Migrator;
 import net.william278.husksync.player.OnlineUser;
 import net.william278.husksync.redis.RedisManager;
-import net.william278.husksync.util.Logger;
-import net.william278.husksync.util.ResourceReader;
 import net.william278.desertwell.Version;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.io.InputStream;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.logging.Level;
 
 /**
  * Abstract implementation of the HuskSync plugin.
@@ -103,20 +103,33 @@ public interface HuskSync {
     Locales getLocales();
 
     /**
-     * Returns the plugin {@link Logger}
+     * Get a resource as an {@link InputStream} from the plugin jar
      *
-     * @return the {@link Logger}
+     * @param name the path to the resource
+     * @return the {@link InputStream} of the resource
      */
-    @NotNull
-    Logger getLoggingAdapter();
+    InputStream getResource(@NotNull String name);
 
     /**
-     * Returns the plugin resource file reader
+     * Log a message to the console
      *
-     * @return the {@link ResourceReader}
+     * @param level     the level of the message
+     * @param message   the message to log
+     * @param throwable a throwable to log
      */
-    @NotNull
-    ResourceReader getResourceReader();
+    void log(@NotNull Level level, @NotNull String message, @NotNull Throwable... throwable);
+
+    /**
+     * Send a debug message to the console, if debug logging is enabled
+     *
+     * @param message   the message to log
+     * @param throwable a throwable to log
+     */
+    default void debug(@NotNull String message, @NotNull Throwable... throwable) {
+        if (getSettings().debugLogging) {
+            log(Level.INFO, "[DEBUG] " + message, throwable);
+        }
+    }
 
     /**
      * Returns the plugin version
@@ -164,5 +177,7 @@ public interface HuskSync {
      * @return a {@link CompletableFuture} that will be completed when the plugin reload is complete and if it was successful
      */
     CompletableFuture<Boolean> reload();
+
+    Set<UUID> getLockedPlayers();
 
 }

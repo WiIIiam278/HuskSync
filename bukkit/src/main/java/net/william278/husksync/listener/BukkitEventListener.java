@@ -8,7 +8,9 @@ import net.william278.husksync.data.ItemData;
 import net.william278.husksync.player.BukkitPlayer;
 import net.william278.husksync.player.OnlineUser;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -17,6 +19,7 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.entity.ProjectileLaunchEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
@@ -42,13 +45,18 @@ public class BukkitEventListener extends EventListener implements BukkitJoinEven
     }
 
     @Override
-    public void handlePlayerQuit(@NotNull BukkitPlayer player) {
-        super.handlePlayerQuit(player);
+    public void handlePlayerQuit(@NotNull BukkitPlayer bukkitPlayer) {
+        final Player player = bukkitPlayer.getPlayer();
+        if (!bukkitPlayer.isLocked() && !player.getItemOnCursor().getType().isAir()) {
+            player.getWorld().dropItem(player.getLocation(), player.getItemOnCursor());
+            player.setItemOnCursor(null);
+        }
+        super.handlePlayerQuit(bukkitPlayer);
     }
 
     @Override
-    public void handlePlayerJoin(@NotNull BukkitPlayer player) {
-        super.handlePlayerJoin(player);
+    public void handlePlayerJoin(@NotNull BukkitPlayer bukkitPlayer) {
+        super.handlePlayerJoin(bukkitPlayer);
     }
 
     @Override
@@ -87,6 +95,14 @@ public class BukkitEventListener extends EventListener implements BukkitJoinEven
     /*
      * Events to cancel if the player has not been set yet
      */
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onProjectileLaunch(@NotNull ProjectileLaunchEvent event) {
+        final Projectile projectile = event.getEntity();
+        if (projectile.getShooter() instanceof Player player && projectile.getType() == EntityType.TRIDENT) {
+            event.setCancelled(cancelPlayerEvent(player.getUniqueId()));
+        }
+    }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onDropItem(@NotNull PlayerDropItemEvent event) {

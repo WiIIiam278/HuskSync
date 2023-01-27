@@ -1,13 +1,11 @@
 package net.william278.husksync.database;
 
 import com.zaxxer.hikari.HikariDataSource;
+import net.william278.husksync.HuskSync;
 import net.william278.husksync.config.Settings;
 import net.william278.husksync.data.*;
 import net.william278.husksync.event.DataSaveEvent;
-import net.william278.husksync.event.EventCannon;
 import net.william278.husksync.player.User;
-import net.william278.husksync.util.Logger;
-import net.william278.husksync.util.ResourceReader;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.ByteArrayInputStream;
@@ -51,12 +49,9 @@ public class MySqlDatabase extends Database {
      */
     private HikariDataSource connectionPool;
 
-    public MySqlDatabase(@NotNull Settings settings, @NotNull ResourceReader resourceReader, @NotNull Logger logger,
-                         @NotNull DataAdapter dataAdapter, @NotNull EventCannon eventCannon) {
-        super(settings.getTableName(Settings.TableName.USERS),
-                settings.getTableName(Settings.TableName.USER_DATA),
-                Math.max(1, Math.min(20, settings.maxUserDataSnapshots)),
-                resourceReader, dataAdapter, eventCannon, logger);
+    public MySqlDatabase(@NotNull HuskSync plugin) {
+        super(plugin);
+        final Settings settings = plugin.getSettings();
         this.mySqlHost = settings.mySqlHost;
         this.mySqlPort = settings.mySqlPort;
         this.mySqlDatabaseName = settings.mySqlDatabase;
@@ -111,10 +106,10 @@ public class MySqlDatabase extends Database {
                 }
                 return true;
             } catch (SQLException | IOException e) {
-                getLogger().log(Level.SEVERE, "Failed to perform database setup: " + e.getMessage());
+                plugin.log(Level.SEVERE, "Failed to perform database setup: " + e.getMessage());
             }
         } catch (Exception e) {
-            getLogger().log(Level.SEVERE, "An unhandled exception occurred during database setup!", e);
+            plugin.log(Level.SEVERE, "An unhandled exception occurred during database setup!", e);
         }
         return false;
     }
@@ -135,9 +130,9 @@ public class MySqlDatabase extends Database {
                                         statement.setString(2, existingUser.uuid.toString());
                                         statement.executeUpdate();
                                     }
-                                    getLogger().log(Level.INFO, "Updated " + user.username + "'s name in the database (" + existingUser.username + " -> " + user.username + ")");
+                                    plugin.log(Level.INFO, "Updated " + user.username + "'s name in the database (" + existingUser.username + " -> " + user.username + ")");
                                 } catch (SQLException e) {
-                                    getLogger().log(Level.SEVERE, "Failed to update a user's name on the database", e);
+                                    plugin.log(Level.SEVERE, "Failed to update a user's name on the database", e);
                                 }
                             }
                         },
@@ -153,7 +148,7 @@ public class MySqlDatabase extends Database {
                                     statement.executeUpdate();
                                 }
                             } catch (SQLException e) {
-                                getLogger().log(Level.SEVERE, "Failed to insert a user into the database", e);
+                                plugin.log(Level.SEVERE, "Failed to insert a user into the database", e);
                             }
                         }));
     }
@@ -176,7 +171,7 @@ public class MySqlDatabase extends Database {
                     }
                 }
             } catch (SQLException e) {
-                getLogger().log(Level.SEVERE, "Failed to fetch a user from uuid from the database", e);
+                plugin.log(Level.SEVERE, "Failed to fetch a user from uuid from the database", e);
             }
             return Optional.empty();
         });
@@ -199,7 +194,7 @@ public class MySqlDatabase extends Database {
                     }
                 }
             } catch (SQLException e) {
-                getLogger().log(Level.SEVERE, "Failed to fetch a user by name from the database", e);
+                plugin.log(Level.SEVERE, "Failed to fetch a user by name from the database", e);
             }
             return Optional.empty();
         });
@@ -226,11 +221,11 @@ public class MySqlDatabase extends Database {
                                 Date.from(resultSet.getTimestamp("timestamp").toInstant()),
                                 DataSaveCause.getCauseByName(resultSet.getString("save_cause")),
                                 resultSet.getBoolean("pinned"),
-                                getDataAdapter().fromBytes(dataByteArray)));
+                                plugin.getDataAdapter().fromBytes(dataByteArray)));
                     }
                 }
             } catch (SQLException | DataAdaptionException e) {
-                getLogger().log(Level.SEVERE, "Failed to fetch a user's current user data from the database", e);
+                plugin.log(Level.SEVERE, "Failed to fetch a user's current user data from the database", e);
             }
             return Optional.empty();
         });
@@ -257,13 +252,13 @@ public class MySqlDatabase extends Database {
                                 Date.from(resultSet.getTimestamp("timestamp").toInstant()),
                                 DataSaveCause.getCauseByName(resultSet.getString("save_cause")),
                                 resultSet.getBoolean("pinned"),
-                                getDataAdapter().fromBytes(dataByteArray));
+                                plugin.getDataAdapter().fromBytes(dataByteArray));
                         retrievedData.add(data);
                     }
                     return retrievedData;
                 }
             } catch (SQLException | DataAdaptionException e) {
-                getLogger().log(Level.SEVERE, "Failed to fetch a user's current user data from the database", e);
+                plugin.log(Level.SEVERE, "Failed to fetch a user's current user data from the database", e);
             }
             return retrievedData;
         });
@@ -291,11 +286,11 @@ public class MySqlDatabase extends Database {
                                 Date.from(resultSet.getTimestamp("timestamp").toInstant()),
                                 DataSaveCause.getCauseByName(resultSet.getString("save_cause")),
                                 resultSet.getBoolean("pinned"),
-                                getDataAdapter().fromBytes(dataByteArray)));
+                                plugin.getDataAdapter().fromBytes(dataByteArray)));
                     }
                 }
             } catch (SQLException | DataAdaptionException e) {
-                getLogger().log(Level.SEVERE, "Failed to fetch specific user data by UUID from the database", e);
+                plugin.log(Level.SEVERE, "Failed to fetch specific user data by UUID from the database", e);
             }
             return Optional.empty();
         });
@@ -306,7 +301,7 @@ public class MySqlDatabase extends Database {
         return CompletableFuture.runAsync(() -> {
             final List<UserDataSnapshot> unpinnedUserData = getUserData(user).join().stream()
                     .filter(dataSnapshot -> !dataSnapshot.pinned()).toList();
-            if (unpinnedUserData.size() > maxUserDataRecords) {
+            if (unpinnedUserData.size() > plugin.getSettings().maxUserDataSnapshots) {
                 try (Connection connection = getConnection()) {
                     try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
                             DELETE FROM `%user_data_table%`
@@ -314,12 +309,12 @@ public class MySqlDatabase extends Database {
                             AND `pinned` IS FALSE
                             ORDER BY `timestamp` ASC
                             LIMIT %entry_count%;""".replace("%entry_count%",
-                            Integer.toString(unpinnedUserData.size() - maxUserDataRecords))))) {
+                            Integer.toString(unpinnedUserData.size() - plugin.getSettings().maxUserDataSnapshots))))) {
                         statement.setString(1, user.uuid.toString());
                         statement.executeUpdate();
                     }
                 } catch (SQLException e) {
-                    getLogger().log(Level.SEVERE, "Failed to prune user data from the database", e);
+                    plugin.log(Level.SEVERE, "Failed to prune user data from the database", e);
                 }
             }
         });
@@ -338,7 +333,7 @@ public class MySqlDatabase extends Database {
                     return statement.executeUpdate() > 0;
                 }
             } catch (SQLException e) {
-                getLogger().log(Level.SEVERE, "Failed to delete specific user data from the database", e);
+                plugin.log(Level.SEVERE, "Failed to delete specific user data from the database", e);
             }
             return false;
         });
@@ -348,7 +343,7 @@ public class MySqlDatabase extends Database {
     public CompletableFuture<Void> setUserData(@NotNull User user, @NotNull UserData userData,
                                                @NotNull DataSaveCause saveCause) {
         return CompletableFuture.runAsync(() -> {
-            final DataSaveEvent dataSaveEvent = (DataSaveEvent) getEventCannon().fireDataSaveEvent(user,
+            final DataSaveEvent dataSaveEvent = (DataSaveEvent) plugin.getEventCannon().fireDataSaveEvent(user,
                     userData, saveCause).join();
             if (!dataSaveEvent.isCancelled()) {
                 final UserData finalData = dataSaveEvent.getUserData();
@@ -360,11 +355,11 @@ public class MySqlDatabase extends Database {
                         statement.setString(1, user.uuid.toString());
                         statement.setString(2, saveCause.name());
                         statement.setBlob(3, new ByteArrayInputStream(
-                                getDataAdapter().toBytes(finalData)));
+                                plugin.getDataAdapter().toBytes(finalData)));
                         statement.executeUpdate();
                     }
                 } catch (SQLException | DataAdaptionException e) {
-                    getLogger().log(Level.SEVERE, "Failed to set user data in the database", e);
+                    plugin.log(Level.SEVERE, "Failed to set user data in the database", e);
                 }
             }
         }).thenRun(() -> rotateUserData(user).join());
@@ -384,7 +379,7 @@ public class MySqlDatabase extends Database {
                     statement.executeUpdate();
                 }
             } catch (SQLException e) {
-                getLogger().log(Level.SEVERE, "Failed to pin user data in the database", e);
+                plugin.log(Level.SEVERE, "Failed to pin user data in the database", e);
             }
         });
     }
@@ -403,7 +398,7 @@ public class MySqlDatabase extends Database {
                     statement.executeUpdate();
                 }
             } catch (SQLException e) {
-                getLogger().log(Level.SEVERE, "Failed to unpin user data in the database", e);
+                plugin.log(Level.SEVERE, "Failed to unpin user data in the database", e);
             }
         });
     }
@@ -416,7 +411,7 @@ public class MySqlDatabase extends Database {
                     statement.executeUpdate(formatStatementTables("DELETE FROM `%user_data_table%`;"));
                 }
             } catch (SQLException e) {
-                getLogger().log(Level.SEVERE, "Failed to wipe the database", e);
+                plugin.log(Level.SEVERE, "Failed to wipe the database", e);
             }
         });
     }

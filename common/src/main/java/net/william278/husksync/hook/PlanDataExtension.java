@@ -10,8 +10,8 @@ import com.djrapitops.plan.extension.icon.Family;
 import com.djrapitops.plan.extension.icon.Icon;
 import com.djrapitops.plan.extension.table.Table;
 import com.djrapitops.plan.extension.table.TableColumnFormat;
+import net.william278.husksync.HuskSync;
 import net.william278.husksync.data.UserDataSnapshot;
-import net.william278.husksync.database.Database;
 import net.william278.husksync.player.User;
 import org.jetbrains.annotations.NotNull;
 
@@ -43,14 +43,14 @@ import java.util.regex.Pattern;
 @SuppressWarnings("unused")
 public class PlanDataExtension implements DataExtension {
 
-    private Database database;
+    private HuskSync plugin;
 
     private static final String UNKNOWN_STRING = "N/A";
 
     private static final String PINNED_HTML_STRING = "&#128205;&nbsp;";
 
-    protected PlanDataExtension(@NotNull Database database) {
-        this.database = database;
+    protected PlanDataExtension(@NotNull HuskSync plugin) {
+        this.plugin = plugin;
     }
 
     protected PlanDataExtension() {
@@ -66,9 +66,9 @@ public class PlanDataExtension implements DataExtension {
 
     private CompletableFuture<Optional<UserDataSnapshot>> getCurrentUserData(@NotNull UUID uuid) {
         return CompletableFuture.supplyAsync(() -> {
-            final Optional<User> optionalUser = database.getUser(uuid).join();
+            final Optional<User> optionalUser = plugin.getDatabase().getUser(uuid).join();
             if (optionalUser.isPresent()) {
-                return database.getCurrentUserData(optionalUser.get()).join();
+                return plugin.getDatabase().getCurrentUserData(optionalUser.get()).join();
             }
             return Optional.empty();
         });
@@ -208,8 +208,8 @@ public class PlanDataExtension implements DataExtension {
                 .columnTwo("ID", new Icon(Family.SOLID, "bolt", Color.NONE))
                 .columnThree("Cause", new Icon(Family.SOLID, "flag", Color.NONE))
                 .columnFour("Pinned", new Icon(Family.SOLID, "thumbtack", Color.NONE));
-        database.getUser(playerUUID).join().ifPresent(user ->
-                database.getUserData(user).join().forEach(versionedUserData -> dataSnapshotsTable.addRow(
+        plugin.getDatabase().getUser(playerUUID).join().ifPresent(user ->
+                plugin.getDatabase().getUserData(user).join().forEach(versionedUserData -> dataSnapshotsTable.addRow(
                         versionedUserData.versionTimestamp().getTime(),
                         versionedUserData.versionUUID().toString().split("-")[0],
                         versionedUserData.cause().name().toLowerCase().replaceAll("_", " "),

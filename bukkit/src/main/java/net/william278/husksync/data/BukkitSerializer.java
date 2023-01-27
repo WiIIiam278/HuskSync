@@ -52,7 +52,7 @@ public class BukkitSerializer {
                 // Return encoded data, using the encoder from SnakeYaml to get a ByteArray conversion
                 return Base64Coder.encodeLines(byteOutputStream.toByteArray());
             } catch (IOException e) {
-                BukkitHuskSync.getInstance().getLoggingAdapter().log(Level.SEVERE, "Failed to serialize item stack data", e);
+                BukkitHuskSync.getInstance().log(Level.SEVERE, "Failed to serialize item stack data", e);
                 throw new DataSerializationException("Failed to serialize item stack data", e);
             }
         });
@@ -108,7 +108,7 @@ public class BukkitSerializer {
                     return inventoryContents;
                 }
             } catch (IOException | ClassNotFoundException e) {
-                BukkitHuskSync.getInstance().getLoggingAdapter().log(Level.SEVERE, "Failed to deserialize item stack data", e);
+                BukkitHuskSync.getInstance().log(Level.SEVERE, "Failed to deserialize item stack data", e);
                 throw new DataSerializationException("Failed to deserialize item stack data", e);
             }
         });
@@ -165,7 +165,7 @@ public class BukkitSerializer {
                 // Return encoded data, using the encoder from SnakeYaml to get a ByteArray conversion
                 return Base64Coder.encodeLines(byteOutputStream.toByteArray());
             } catch (IOException e) {
-                BukkitHuskSync.getInstance().getLoggingAdapter().log(Level.SEVERE, "Failed to serialize potion effect data", e);
+                BukkitHuskSync.getInstance().log(Level.SEVERE, "Failed to serialize potion effect data", e);
                 throw new DataSerializationException("Failed to serialize potion effect data", e);
             }
         });
@@ -201,7 +201,7 @@ public class BukkitSerializer {
                     return potionEffects;
                 }
             } catch (IOException | ClassNotFoundException e) {
-                BukkitHuskSync.getInstance().getLoggingAdapter().log(Level.SEVERE, "Failed to deserialize potion effect data", e);
+                BukkitHuskSync.getInstance().log(Level.SEVERE, "Failed to deserialize potion effect data", e);
                 throw new DataSerializationException("Failed to deserialize potion effects", e);
             }
         });

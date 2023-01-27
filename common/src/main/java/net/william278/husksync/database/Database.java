@@ -1,14 +1,12 @@
 package net.william278.husksync.database;
 
-import net.william278.husksync.data.DataAdapter;
+import net.william278.husksync.HuskSync;
+import net.william278.husksync.config.Settings;
 import net.william278.husksync.data.DataSaveCause;
 import net.william278.husksync.data.UserData;
 import net.william278.husksync.data.UserDataSnapshot;
-import net.william278.husksync.event.EventCannon;
 import net.william278.husksync.migrator.Migrator;
 import net.william278.husksync.player.User;
-import net.william278.husksync.util.Logger;
-import net.william278.husksync.util.ResourceReader;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -26,78 +24,10 @@ import java.util.concurrent.CompletableFuture;
  */
 public abstract class Database {
 
-    /**
-     * Name of the table that stores player information
-     */
-    protected final String playerTableName;
+    protected final HuskSync plugin;
 
-    /**
-     * Name of the table that stores data
-     */
-    protected final String dataTableName;
-
-    /**
-     * The maximum number of user records to store in the database at once per user
-     */
-    protected final int maxUserDataRecords;
-
-    /**
-     * {@link DataAdapter} implementation used for adapting {@link UserData} to and from JSON
-     */
-    private final DataAdapter dataAdapter;
-
-    /**
-     * Returns the {@link DataAdapter} used to adapt {@link UserData} to and from JSON
-     *
-     * @return instance of the {@link DataAdapter} implementation
-     */
-    protected DataAdapter getDataAdapter() {
-        return dataAdapter;
-    }
-
-    /**
-     * {@link EventCannon} implementation used for firing events
-     */
-    private final EventCannon eventCannon;
-
-    /**
-     * Returns the {@link EventCannon} used to fire events
-     *
-     * @return instance of the {@link EventCannon} implementation
-     */
-    protected EventCannon getEventCannon() {
-        return eventCannon;
-    }
-
-    /**
-     * Logger instance used for database error logging
-     */
-    private final Logger logger;
-
-    /**
-     * Returns the {@link Logger} used to log database errors
-     *
-     * @return the {@link Logger} instance
-     */
-    protected Logger getLogger() {
-        return logger;
-    }
-
-    /**
-     * The {@link ResourceReader} used to read internal resource files by name
-     */
-    private final ResourceReader resourceReader;
-
-    protected Database(@NotNull String playerTableName, @NotNull String dataTableName, final int maxUserDataRecords,
-                       @NotNull ResourceReader resourceReader, @NotNull DataAdapter dataAdapter,
-                       @NotNull EventCannon eventCannon, @NotNull Logger logger) {
-        this.playerTableName = playerTableName;
-        this.dataTableName = dataTableName;
-        this.maxUserDataRecords = maxUserDataRecords;
-        this.resourceReader = resourceReader;
-        this.dataAdapter = dataAdapter;
-        this.eventCannon = eventCannon;
-        this.logger = logger;
+    protected Database(@NotNull HuskSync plugin) {
+        this.plugin = plugin;
     }
 
     /**
@@ -109,7 +39,7 @@ public abstract class Database {
      */
     @SuppressWarnings("SameParameterValue")
     protected final String[] getSchemaStatements(@NotNull String schemaFileName) throws IOException {
-        return formatStatementTables(new String(Objects.requireNonNull(resourceReader.getResource(schemaFileName))
+        return formatStatementTables(new String(Objects.requireNonNull(plugin.getResource(schemaFileName))
                 .readAllBytes(), StandardCharsets.UTF_8)).split(";");
     }
 
@@ -120,8 +50,8 @@ public abstract class Database {
      * @return the formatted statement, with table placeholders replaced with the correct names
      */
     protected final String formatStatementTables(@NotNull String sql) {
-        return sql.replaceAll("%users_table%", playerTableName)
-                .replaceAll("%user_data_table%", dataTableName);
+        return sql.replaceAll("%users_table%", plugin.getSettings().getTableName(Settings.TableName.USERS))
+                .replaceAll("%user_data_table%", plugin.getSettings().getTableName(Settings.TableName.USER_DATA));
     }
 
     /**

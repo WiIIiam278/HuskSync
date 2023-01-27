@@ -109,7 +109,7 @@ public class Settings {
     public boolean compressData = true;
 
     @YamlKey("synchronization.notification_display_slot")
-    public NotificationDisplaySlot notificationDisplaySlot = NotificationDisplaySlot.TOAST;
+    public NotificationDisplaySlot notificationDisplaySlot = NotificationDisplaySlot.ACTION_BAR;
 
     @YamlKey("synchronization.save_dead_player_inventories")
     public boolean saveDeadPlayerInventories = true;
@@ -202,7 +202,7 @@ public class Settings {
         GAME_MODE(true),
         STATISTICS(true),
         PERSISTENT_DATA_CONTAINER(false),
-        LOCKED_MAPS(true),
+        LOCKED_MAPS(false),
         LOCATION(false);
 
         private final boolean enabledByDefault;
