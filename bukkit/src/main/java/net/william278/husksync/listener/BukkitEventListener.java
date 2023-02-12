@@ -161,7 +161,7 @@ public class BukkitEventListener extends EventListener implements BukkitJoinEven
     }
 
     @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
-    public void onPermissionCommand(PlayerCommandPreprocessEvent event) {
+    public void onPermissionCommand(@NotNull PlayerCommandPreprocessEvent event) {
         String[] commandArgs = event.getMessage().substring(1).split(" ");
         String commandLabel = commandArgs[0].toLowerCase();
 
