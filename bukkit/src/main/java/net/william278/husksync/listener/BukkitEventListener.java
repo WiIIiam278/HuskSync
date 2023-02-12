@@ -22,20 +22,25 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.entity.ProjectileLaunchEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
+import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.world.WorldSaveEvent;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 public class BukkitEventListener extends EventListener implements BukkitJoinEventListener, BukkitQuitEventListener,
         BukkitDeathEventListener, Listener {
+    protected final List<String> blacklistedCommands;
 
     public BukkitEventListener(@NotNull BukkitHuskSync huskSync) {
         super(huskSync);
+        this.blacklistedCommands = huskSync.getSettings().blacklistedCommandsWhileLocked;
         Bukkit.getServer().getPluginManager().registerEvents(this, huskSync);
     }
 
@@ -122,6 +127,11 @@ public class BukkitEventListener extends EventListener implements BukkitJoinEven
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onPlayerInteractEntity(@NotNull PlayerInteractEntityEvent event) {
+        event.setCancelled(cancelPlayerEvent(event.getPlayer().getUniqueId()));
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBlockPlace(@NotNull BlockPlaceEvent event) {
         event.setCancelled(cancelPlayerEvent(event.getPlayer().getUniqueId()));
     }
@@ -147,6 +157,16 @@ public class BukkitEventListener extends EventListener implements BukkitJoinEven
     public void onPlayerTakeDamage(@NotNull EntityDamageEvent event) {
         if (event.getEntity() instanceof Player player) {
             event.setCancelled(cancelPlayerEvent(player.getUniqueId()));
+        }
+    }
+
+    @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
+    public void onPermissionCommand(@NotNull PlayerCommandPreprocessEvent event) {
+        String[] commandArgs = event.getMessage().substring(1).split(" ");
+        String commandLabel = commandArgs[0].toLowerCase();
+
+        if (blacklistedCommands.contains(commandLabel)) {
+            event.setCancelled(cancelPlayerEvent(event.getPlayer().getUniqueId()));
         }
     }
 
