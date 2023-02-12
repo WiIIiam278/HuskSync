@@ -34,9 +34,9 @@ public class PersistentDataContainerData {
         return Optional.empty();
     }
 
-    public Optional<BukkitPersistentDataTagType> getTagType(@NotNull final String tagType) {
+    public Optional<PersistentDataTagType> getTagType(@NotNull final String tagType) {
         if (persistentDataMap.containsKey(tagType)) {
-            return BukkitPersistentDataTagType.getDataType(persistentDataMap.get(tagType).type);
+            return PersistentDataTagType.getDataType(persistentDataMap.get(tagType).type);
         }
         return Optional.empty();
     }

@@ -7,7 +7,7 @@ import java.util.Optional;
 /**
  * Represents the type of a {@link PersistentDataTag}
  */
-public enum BukkitPersistentDataTagType {
+public enum PersistentDataTagType {
 
     BYTE,
     SHORT,
@@ -23,8 +23,8 @@ public enum BukkitPersistentDataTagType {
     TAG_CONTAINER;
 
 
-    public static Optional<BukkitPersistentDataTagType> getDataType(@NotNull String typeName) {
-        for (BukkitPersistentDataTagType type : values()) {
+    public static Optional<PersistentDataTagType> getDataType(@NotNull String typeName) {
+        for (PersistentDataTagType type : values()) {
             if (type.name().equalsIgnoreCase(typeName)) {
                 return Optional.of(type);
             }

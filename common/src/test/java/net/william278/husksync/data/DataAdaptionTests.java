@@ -62,13 +62,13 @@ public class DataAdaptionTests {
 
     private String getTestSerializedPersistentDataContainer() {
         final HashMap<String, PersistentDataTag<?>> persistentDataTest = new HashMap<>();
-        persistentDataTest.put("husksync:byte_test", new PersistentDataTag<>(BukkitPersistentDataTagType.BYTE, 0x01));
-        persistentDataTest.put("husksync:double_test", new PersistentDataTag<>(BukkitPersistentDataTagType.DOUBLE, 2d));
-        persistentDataTest.put("husksync:string_test", new PersistentDataTag<>(BukkitPersistentDataTagType.STRING, "test"));
-        persistentDataTest.put("husksync:int_test", new PersistentDataTag<>(BukkitPersistentDataTagType.INTEGER, 3));
-        persistentDataTest.put("husksync:long_test", new PersistentDataTag<>(BukkitPersistentDataTagType.LONG, 4L));
-        persistentDataTest.put("husksync:float_test", new PersistentDataTag<>(BukkitPersistentDataTagType.FLOAT, 5f));
-        persistentDataTest.put("husksync:short_test", new PersistentDataTag<>(BukkitPersistentDataTagType.SHORT, 6));
+        persistentDataTest.put("husksync:byte_test", new PersistentDataTag<>(PersistentDataTagType.BYTE, 0x01));
+        persistentDataTest.put("husksync:double_test", new PersistentDataTag<>(PersistentDataTagType.DOUBLE, 2d));
+        persistentDataTest.put("husksync:string_test", new PersistentDataTag<>(PersistentDataTagType.STRING, "test"));
+        persistentDataTest.put("husksync:int_test", new PersistentDataTag<>(PersistentDataTagType.INTEGER, 3));
+        persistentDataTest.put("husksync:long_test", new PersistentDataTag<>(PersistentDataTagType.LONG, 4L));
+        persistentDataTest.put("husksync:float_test", new PersistentDataTag<>(PersistentDataTagType.FLOAT, 5f));
+        persistentDataTest.put("husksync:short_test", new PersistentDataTag<>(PersistentDataTagType.SHORT, 6));
         final PersistentDataContainerData persistentDataContainerData = new PersistentDataContainerData(persistentDataTest);
 
         final DataAdapter dataAdapter = new JsonDataAdapter();

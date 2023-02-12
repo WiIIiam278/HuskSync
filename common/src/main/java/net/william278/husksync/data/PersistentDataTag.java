@@ -19,16 +19,17 @@ public class PersistentDataTag<T> {
      */
     public T value;
 
-    public PersistentDataTag(@NotNull BukkitPersistentDataTagType type, @NotNull T value) {
+    public PersistentDataTag(@NotNull PersistentDataTagType type, @NotNull T value) {
         this.type = type.name();
         this.value = value;
     }
 
+    @SuppressWarnings("unused")
     private PersistentDataTag() {
     }
 
-    public Optional<BukkitPersistentDataTagType> getType() {
-        return BukkitPersistentDataTagType.getDataType(type);
+    public Optional<PersistentDataTagType> getType() {
+        return PersistentDataTagType.getDataType(type);
     }
 
 }

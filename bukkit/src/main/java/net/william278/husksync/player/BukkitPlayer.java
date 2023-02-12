@@ -21,7 +21,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
-import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.jetbrains.annotations.NotNull;
@@ -37,19 +36,6 @@ import java.util.logging.Level;
  */
 public class BukkitPlayer extends OnlineUser {
 
-    private static final PersistentDataType<?, ?>[] PRIMITIVE_PERSISTENT_DATA_TYPES = new PersistentDataType<?, ?>[]{
-            PersistentDataType.BYTE,
-            PersistentDataType.SHORT,
-            PersistentDataType.INTEGER,
-            PersistentDataType.LONG,
-            PersistentDataType.FLOAT,
-            PersistentDataType.DOUBLE,
-            PersistentDataType.STRING,
-            PersistentDataType.BYTE_ARRAY,
-            PersistentDataType.INTEGER_ARRAY,
-            PersistentDataType.LONG_ARRAY,
-            PersistentDataType.TAG_CONTAINER_ARRAY,
-            PersistentDataType.TAG_CONTAINER};
 
     private final Player player;
     private final Audience audience;
@@ -450,64 +436,27 @@ public class BukkitPlayer extends OnlineUser {
 
     @Override
     public CompletableFuture<PersistentDataContainerData> getPersistentDataContainer() {
-        return CompletableFuture.supplyAsync(() -> {
+        final CompletableFuture<PersistentDataContainerData> future = new CompletableFuture<>();
+        final Map<String, PersistentDataTag<?>> persistentDataMap = new HashMap<>();
+
+        Bukkit.getScheduler().runTask(BukkitHuskSync.getInstance(), () -> {
             final PersistentDataContainer container = player.getPersistentDataContainer();
-            if (container.isEmpty()) {
-                return new PersistentDataContainerData(new HashMap<>());
-            }
-            final HashMap<String, PersistentDataTag<?>> persistentDataMap = new HashMap<>();
-            for (final NamespacedKey key : container.getKeys()) {
-                PersistentDataType<?, ?> type = null;
-                for (PersistentDataType<?, ?> dataType : PRIMITIVE_PERSISTENT_DATA_TYPES) {
-                    if (container.has(key, dataType)) {
+            container.getKeys().forEach(key -> {
+                BukkitPersistentTypeMapping<?, ?> type = null;
+                for (BukkitPersistentTypeMapping<?, ?> dataType : BukkitPersistentTypeMapping.PRIMITIVE_TYPE_MAPPINGS) {
+                    if (container.has(key, dataType.bukkitType())) {
                         type = dataType;
                         break;
                     }
                 }
                 if (type != null) {
-                    // This is absolutely disgusting code and needs to be swiftly put out of its misery with a refactor
-                    final Class<?> primitiveType = type.getPrimitiveType();
-                    if (String.class.equals(primitiveType)) {
-                        persistentDataMap.put(key.toString(), new PersistentDataTag<>(BukkitPersistentDataTagType.STRING,
-                                Objects.requireNonNull(container.get(key, PersistentDataType.STRING))));
-                    } else if (int.class.equals(primitiveType)) {
-                        persistentDataMap.put(key.toString(), new PersistentDataTag<>(BukkitPersistentDataTagType.INTEGER,
-                                Objects.requireNonNull(container.get(key, PersistentDataType.INTEGER))));
-                    } else if (double.class.equals(primitiveType)) {
-                        persistentDataMap.put(key.toString(), new PersistentDataTag<>(BukkitPersistentDataTagType.DOUBLE,
-                                Objects.requireNonNull(container.get(key, PersistentDataType.DOUBLE))));
-                    } else if (float.class.equals(primitiveType)) {
-                        persistentDataMap.put(key.toString(), new PersistentDataTag<>(BukkitPersistentDataTagType.FLOAT,
-                                Objects.requireNonNull(container.get(key, PersistentDataType.FLOAT))));
-                    } else if (long.class.equals(primitiveType)) {
-                        persistentDataMap.put(key.toString(), new PersistentDataTag<>(BukkitPersistentDataTagType.LONG,
-                                Objects.requireNonNull(container.get(key, PersistentDataType.LONG))));
-                    } else if (short.class.equals(primitiveType)) {
-                        persistentDataMap.put(key.toString(), new PersistentDataTag<>(BukkitPersistentDataTagType.SHORT,
-                                Objects.requireNonNull(container.get(key, PersistentDataType.SHORT))));
-                    } else if (byte.class.equals(primitiveType)) {
-                        persistentDataMap.put(key.toString(), new PersistentDataTag<>(BukkitPersistentDataTagType.BYTE,
-                                Objects.requireNonNull(container.get(key, PersistentDataType.BYTE))));
-                    } else if (byte[].class.equals(primitiveType)) {
-                        persistentDataMap.put(key.toString(), new PersistentDataTag<>(BukkitPersistentDataTagType.BYTE_ARRAY,
-                                Objects.requireNonNull(container.get(key, PersistentDataType.BYTE_ARRAY))));
-                    } else if (int[].class.equals(primitiveType)) {
-                        persistentDataMap.put(key.toString(), new PersistentDataTag<>(BukkitPersistentDataTagType.INTEGER_ARRAY,
-                                Objects.requireNonNull(container.get(key, PersistentDataType.INTEGER_ARRAY))));
-                    } else if (long[].class.equals(primitiveType)) {
-                        persistentDataMap.put(key.toString(), new PersistentDataTag<>(BukkitPersistentDataTagType.LONG_ARRAY,
-                                Objects.requireNonNull(container.get(key, PersistentDataType.LONG_ARRAY))));
-                    } else if (PersistentDataContainer.class.equals(primitiveType)) {
-                        persistentDataMap.put(key.toString(), new PersistentDataTag<>(BukkitPersistentDataTagType.TAG_CONTAINER,
-                                Objects.requireNonNull(container.get(key, PersistentDataType.TAG_CONTAINER))));
-                    } else if (PersistentDataContainer[].class.equals(primitiveType)) {
-                        persistentDataMap.put(key.toString(), new PersistentDataTag<>(BukkitPersistentDataTagType.TAG_CONTAINER_ARRAY,
-                                Objects.requireNonNull(container.get(key, PersistentDataType.TAG_CONTAINER_ARRAY))));
-                    }
+                    persistentDataMap.put(key.toString(), type.getContainerValue(container, key));
                 }
-            }
-            return new PersistentDataContainerData(persistentDataMap);
-        }).exceptionally(throwable -> {
+            });
+            future.complete(new PersistentDataContainerData(persistentDataMap));
+        });
+
+        return future.exceptionally(throwable -> {
             BukkitHuskSync.getInstance().log(Level.WARNING,
                     "Could not read " + player.getName() + "'s persistent data map, skipping!");
             throwable.printStackTrace();
@@ -523,51 +472,12 @@ public class BukkitPlayer extends OnlineUser {
             container.getTags().forEach(keyString -> {
                 final NamespacedKey key = NamespacedKey.fromString(keyString);
                 if (key != null) {
-                    // Set a tag with the given key and value. This is crying out for a refactor.
-                    container.getTagType(keyString).ifPresentOrElse(dataType -> {
-                        switch (dataType) {
-                            case BYTE -> container.getTagValue(keyString, byte.class).ifPresent(
-                                    value -> player.getPersistentDataContainer().set(key,
-                                            PersistentDataType.BYTE, value));
-                            case SHORT -> container.getTagValue(keyString, short.class).ifPresent(
-                                    value -> player.getPersistentDataContainer().set(key,
-                                            PersistentDataType.SHORT, value));
-                            case INTEGER -> container.getTagValue(keyString, int.class).ifPresent(
-                                    value -> player.getPersistentDataContainer().set(key,
-                                            PersistentDataType.INTEGER, value));
-                            case LONG -> container.getTagValue(keyString, long.class).ifPresent(
-                                    value -> player.getPersistentDataContainer().set(key,
-                                            PersistentDataType.LONG, value));
-                            case FLOAT -> container.getTagValue(keyString, float.class).ifPresent(
-                                    value -> player.getPersistentDataContainer().set(key,
-                                            PersistentDataType.FLOAT, value));
-                            case DOUBLE -> container.getTagValue(keyString, double.class).ifPresent(
-                                    value -> player.getPersistentDataContainer().set(key,
-                                            PersistentDataType.DOUBLE, value));
-                            case STRING -> container.getTagValue(keyString, String.class).ifPresent(
-                                    value -> player.getPersistentDataContainer().set(key,
-                                            PersistentDataType.STRING, value));
-                            case BYTE_ARRAY -> container.getTagValue(keyString, byte[].class).ifPresent(
-                                    value -> player.getPersistentDataContainer().set(key,
-                                            PersistentDataType.BYTE_ARRAY, value));
-                            case INTEGER_ARRAY -> container.getTagValue(keyString, int[].class).ifPresent(
-                                    value -> player.getPersistentDataContainer().set(key,
-                                            PersistentDataType.INTEGER_ARRAY, value));
-                            case LONG_ARRAY -> container.getTagValue(keyString, long[].class).ifPresent(
-                                    value -> player.getPersistentDataContainer().set(key,
-                                            PersistentDataType.LONG_ARRAY, value));
-                            case TAG_CONTAINER ->
-                                    container.getTagValue(keyString, PersistentDataContainer.class).ifPresent(
-                                            value -> player.getPersistentDataContainer().set(key,
-                                                    PersistentDataType.TAG_CONTAINER, value));
-                            case TAG_CONTAINER_ARRAY ->
-                                    container.getTagValue(keyString, PersistentDataContainer[].class).ifPresent(
-                                            value -> player.getPersistentDataContainer().set(key,
-                                                    PersistentDataType.TAG_CONTAINER_ARRAY, value));
-                        }
-                    }, () -> BukkitHuskSync.getInstance().log(Level.WARNING,
-                            "Could not set " + player.getName() + "'s persistent data key " + keyString +
-                            " as it has an invalid type. Skipping!"));
+                    container.getTagType(keyString)
+                            .flatMap(BukkitPersistentTypeMapping::getMapping)
+                            .ifPresentOrElse(mapping -> mapping.setContainerValue(container, player, key),
+                                    () -> BukkitHuskSync.getInstance().log(Level.WARNING,
+                                            "Could not set " + player.getName() + "'s persistent data key " + keyString +
+                                            " as it has an invalid type. Skipping!"));
                 }
             });
         }).exceptionally(throwable -> {
