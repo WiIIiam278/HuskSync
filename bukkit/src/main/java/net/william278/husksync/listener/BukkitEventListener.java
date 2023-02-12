@@ -1,7 +1,6 @@
 package net.william278.husksync.listener;
 
 import net.william278.husksync.BukkitHuskSync;
-import net.william278.husksync.api.HuskSyncAPI;
 import net.william278.husksync.config.Settings;
 import net.william278.husksync.data.BukkitInventoryMap;
 import net.william278.husksync.data.BukkitSerializer;
