@@ -5,7 +5,9 @@ import net.william278.annotaml.YamlFile;
 import net.william278.annotaml.YamlKey;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -119,6 +121,9 @@ public class Settings {
 
     @YamlKey("synchronization.features")
     public Map<String, Boolean> synchronizationFeatures = SynchronizationFeature.getDefaults();
+
+    @YamlKey("synchronization.blacklisted_commands_while_locked")
+    public List<String> blacklistedCommandsWhileLocked = new ArrayList<>();
 
     public boolean getSynchronizationFeature(@NotNull SynchronizationFeature feature) {
         return synchronizationFeatures.getOrDefault(feature.name().toLowerCase(), feature.enabledByDefault);
