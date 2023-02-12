@@ -163,8 +163,8 @@ public class BukkitEventListener extends EventListener implements BukkitJoinEven
 
     @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
     public void onPermissionCommand(PlayerCommandPreprocessEvent event) {
-        var commandArgs = event.getMessage().substring(1).split(" ");
-        var commandLabel = commandArgs[0].toLowerCase();
+        String[] commandArgs = event.getMessage().substring(1).split(" ");
+        String commandLabel = commandArgs[0].toLowerCase();
 
         if (blacklistedCommands.contains(commandLabel)) {
             event.setCancelled(cancelPlayerEvent(event.getPlayer().getUniqueId()));
