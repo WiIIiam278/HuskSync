@@ -17,7 +17,7 @@ dependencies {
     compileOnly 'org.xerial.snappy:snappy-java:' + snappy_version
     compileOnly 'org.apache.commons:commons-text:' + commons_text_version
 
-    testImplementation 'org.xerial.snappy:snappy-java:1.1.8.4'
+    testImplementation 'org.xerial.snappy:snappy-java:1.1.9.1'
     testImplementation 'com.github.plan-player-analytics:Plan:5.4.1690'
     testImplementation 'redis.clients:jedis:' + jedis_version
     testImplementation 'org.xerial.snappy:snappy-java:' + snappy_version
