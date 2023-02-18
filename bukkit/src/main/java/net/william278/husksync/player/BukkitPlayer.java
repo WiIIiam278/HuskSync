@@ -436,11 +436,9 @@ public class BukkitPlayer extends OnlineUser {
 
     @Override
     public CompletableFuture<PersistentDataContainerData> getPersistentDataContainer() {
-        final CompletableFuture<PersistentDataContainerData> future = new CompletableFuture<>();
         final Map<String, PersistentDataTag<?>> persistentDataMap = new HashMap<>();
-
-        Bukkit.getScheduler().runTask(BukkitHuskSync.getInstance(), () -> {
-            final PersistentDataContainer container = player.getPersistentDataContainer();
+        final PersistentDataContainer container = player.getPersistentDataContainer();
+        return CompletableFuture.supplyAsync(() -> {
             container.getKeys().forEach(key -> {
                 BukkitPersistentTypeMapping<?, ?> type = null;
                 for (BukkitPersistentTypeMapping<?, ?> dataType : BukkitPersistentTypeMapping.PRIMITIVE_TYPE_MAPPINGS) {
@@ -453,10 +451,8 @@ public class BukkitPlayer extends OnlineUser {
                     persistentDataMap.put(key.toString(), type.getContainerValue(container, key));
                 }
             });
-            future.complete(new PersistentDataContainerData(persistentDataMap));
-        });
-
-        return future.exceptionally(throwable -> {
+            return new PersistentDataContainerData(persistentDataMap);
+        }).exceptionally(throwable -> {
             BukkitHuskSync.getInstance().log(Level.WARNING,
                     "Could not read " + player.getName() + "'s persistent data map, skipping!");
             throwable.printStackTrace();
@@ -477,7 +473,7 @@ public class BukkitPlayer extends OnlineUser {
                             .ifPresentOrElse(mapping -> mapping.setContainerValue(container, player, key),
                                     () -> BukkitHuskSync.getInstance().log(Level.WARNING,
                                             "Could not set " + player.getName() + "'s persistent data key " + keyString +
-                                            " as it has an invalid type. Skipping!"));
+                                                    " as it has an invalid type. Skipping!"));
                 }
             });
         }).exceptionally(throwable -> {
