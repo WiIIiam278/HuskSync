@@ -3,7 +3,7 @@ dependencies {
     implementation 'de.themoep:minedown-adventure:1.7.2-SNAPSHOT'
     implementation 'net.kyori:adventure-api:4.12.0'
     implementation 'com.google.code.gson:gson:2.10.1'
-    implementation 'dev.dejvokep:boosted-yaml:1.3'
+    implementation 'dev.dejvokep:boosted-yaml:1.3.1'
     implementation 'net.william278:Annotaml:2.0.1'
     implementation 'net.william278:DesertWell:1.1'
     implementation 'net.william278:PagineDown:1.1'
@@ -21,7 +21,7 @@ dependencies {
     testImplementation 'redis.clients:jedis:' + jedis_version
     testImplementation 'org.xerial.snappy:snappy-java:' + snappy_version
     testImplementation 'org.apache.commons:commons-text:' + commons_text_version
-    testCompileOnly 'dev.dejvokep:boosted-yaml:1.3'
+    testCompileOnly 'dev.dejvokep:boosted-yaml:1.3.1'
     testCompileOnly 'org.jetbrains:annotations:24.0.0'
 }
 
