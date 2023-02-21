@@ -297,8 +297,7 @@ public class MySqlDatabase extends Database {
     }
 
     @Override
-    protected CompletableFuture<Void> rotateUserData(@NotNull User user) {
-        return CompletableFuture.runAsync(() -> {
+    protected void rotateUserData(@NotNull User user) {
             final List<UserDataSnapshot> unpinnedUserData = getUserData(user).join().stream()
                     .filter(dataSnapshot -> !dataSnapshot.pinned()).toList();
             if (unpinnedUserData.size() > plugin.getSettings().maxUserDataSnapshots) {
@@ -317,7 +316,6 @@ public class MySqlDatabase extends Database {
                     plugin.log(Level.SEVERE, "Failed to prune user data from the database", e);
                 }
             }
-        });
     }
 
     @Override
@@ -362,7 +360,7 @@ public class MySqlDatabase extends Database {
                     plugin.log(Level.SEVERE, "Failed to set user data in the database", e);
                 }
             }
-        }).thenRun(() -> rotateUserData(user).join());
+        }).thenRun(() -> rotateUserData(user));
     }
 
     @Override
