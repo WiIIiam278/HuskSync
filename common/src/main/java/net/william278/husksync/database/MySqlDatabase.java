@@ -297,27 +297,25 @@ public class MySqlDatabase extends Database {
     }
 
     @Override
-    protected CompletableFuture<Void> rotateUserData(@NotNull User user) {
-        return CompletableFuture.runAsync(() -> {
-            final List<UserDataSnapshot> unpinnedUserData = getUserData(user).join().stream()
-                    .filter(dataSnapshot -> !dataSnapshot.pinned()).toList();
-            if (unpinnedUserData.size() > plugin.getSettings().maxUserDataSnapshots) {
-                try (Connection connection = getConnection()) {
-                    try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
-                            DELETE FROM `%user_data_table%`
-                            WHERE `player_uuid`=?
-                            AND `pinned` IS FALSE
-                            ORDER BY `timestamp` ASC
-                            LIMIT %entry_count%;""".replace("%entry_count%",
-                            Integer.toString(unpinnedUserData.size() - plugin.getSettings().maxUserDataSnapshots))))) {
-                        statement.setString(1, user.uuid.toString());
-                        statement.executeUpdate();
-                    }
-                } catch (SQLException e) {
-                    plugin.log(Level.SEVERE, "Failed to prune user data from the database", e);
+    protected void rotateUserData(@NotNull User user) {
+        final List<UserDataSnapshot> unpinnedUserData = getUserData(user).join().stream()
+                .filter(dataSnapshot -> !dataSnapshot.pinned()).toList();
+        if (unpinnedUserData.size() > plugin.getSettings().maxUserDataSnapshots) {
+            try (Connection connection = getConnection()) {
+                try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
+                        DELETE FROM `%user_data_table%`
+                        WHERE `player_uuid`=?
+                        AND `pinned` IS FALSE
+                        ORDER BY `timestamp` ASC
+                        LIMIT %entry_count%;""".replace("%entry_count%",
+                        Integer.toString(unpinnedUserData.size() - plugin.getSettings().maxUserDataSnapshots))))) {
+                    statement.setString(1, user.uuid.toString());
+                    statement.executeUpdate();
                 }
+            } catch (SQLException e) {
+                plugin.log(Level.SEVERE, "Failed to prune user data from the database", e);
             }
-        });
+        }
     }
 
     @Override
@@ -362,7 +360,8 @@ public class MySqlDatabase extends Database {
                     plugin.log(Level.SEVERE, "Failed to set user data in the database", e);
                 }
             }
-        }).thenRun(() -> rotateUserData(user).join());
+            this.rotateUserData(user);
+        });
     }
 
     @Override

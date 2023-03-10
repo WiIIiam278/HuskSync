@@ -114,10 +114,9 @@ public abstract class Database {
      * <b>(Internal)</b> Prune user data for a given user to the maximum value as configured.
      *
      * @param user The user to prune data for
-     * @return A future returning void when complete
      * @implNote Data snapshots marked as {@code pinned} are exempt from rotation
      */
-    protected abstract CompletableFuture<Void> rotateUserData(@NotNull User user);
+    protected abstract void rotateUserData(@NotNull User user);
 
     /**
      * Deletes a specific {@link UserDataSnapshot} entry for a user from the database, by its UUID.
