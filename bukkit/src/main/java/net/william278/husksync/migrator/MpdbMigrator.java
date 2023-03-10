@@ -42,11 +42,11 @@ public class MpdbMigrator extends Migrator {
     public MpdbMigrator(@NotNull BukkitHuskSync plugin, @NotNull Plugin mySqlPlayerDataBridge) {
         super(plugin);
         this.mpdbConverter = MPDBConverter.getInstance(mySqlPlayerDataBridge);
-        this.sourceHost = plugin.getSettings().mySqlHost;
-        this.sourcePort = plugin.getSettings().mySqlPort;
-        this.sourceUsername = plugin.getSettings().mySqlUsername;
-        this.sourcePassword = plugin.getSettings().mySqlPassword;
-        this.sourceDatabase = plugin.getSettings().mySqlDatabase;
+        this.sourceHost = plugin.getSettings().getMySqlHost();
+        this.sourcePort = plugin.getSettings().getMySqlPort();
+        this.sourceUsername = plugin.getSettings().getMySqlUsername();
+        this.sourcePassword = plugin.getSettings().getMySqlPassword();
+        this.sourceDatabase = plugin.getSettings().getMySqlDatabase();
         this.sourceInventoryTable = "mpdb_inventory";
         this.sourceEnderChestTable = "mpdb_enderchest";
         this.sourceExperienceTable = "mpdb_experience";

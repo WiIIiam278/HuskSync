@@ -20,117 +20,255 @@ import java.util.Map;
         ┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
         ┣╸ Information: https://william278.net/project/husksync
         ┗╸ Documentation: https://william278.net/docs/husksync""",
-        versionField = "config_version", versionNumber = 3)
+        versionField = "config_version", versionNumber = 4)
 public class Settings {
 
     // Top-level settings
-    public String language = "en-gb";
+    @YamlKey("language")
+    private String language = "en-gb";
 
     @YamlKey("check_for_updates")
-    public boolean checkForUpdates = true;
+    private boolean checkForUpdates = true;
 
     @YamlKey("cluster_id")
-    public String clusterId = "";
+    private String clusterId = "";
 
     @YamlKey("debug_logging")
-    public boolean debugLogging = false;
+    private boolean debugLogging = false;
 
 
     // Database settings
     @YamlComment("Database connection settings")
     @YamlKey("database.credentials.host")
-    public String mySqlHost = "localhost";
+    private String mySqlHost = "localhost";
 
     @YamlKey("database.credentials.port")
-    public int mySqlPort = 3306;
+    private int mySqlPort = 3306;
 
     @YamlKey("database.credentials.database")
-    public String mySqlDatabase = "HuskSync";
+    private String mySqlDatabase = "HuskSync";
 
     @YamlKey("database.credentials.username")
-    public String mySqlUsername = "root";
+    private String mySqlUsername = "root";
 
     @YamlKey("database.credentials.password")
-    public String mySqlPassword = "pa55w0rd";
+    private String mySqlPassword = "pa55w0rd";
 
     @YamlKey("database.credentials.parameters")
-    public String mySqlConnectionParameters = "?autoReconnect=true&useSSL=false";
+    private String mySqlConnectionParameters = "?autoReconnect=true&useSSL=false";
 
     @YamlComment("MySQL connection pool properties")
     @YamlKey("database.connection_pool.maximum_pool_size")
-    public int mySqlConnectionPoolSize = 10;
+    private int mySqlConnectionPoolSize = 10;
 
     @YamlKey("database.connection_pool.minimum_idle")
-    public int mySqlConnectionPoolIdle = 10;
+    private int mySqlConnectionPoolIdle = 10;
 
     @YamlKey("database.connection_pool.maximum_lifetime")
-    public long mySqlConnectionPoolLifetime = 1800000;
+    private long mySqlConnectionPoolLifetime = 1800000;
 
     @YamlKey("database.connection_pool.keepalive_time")
-    public long mySqlConnectionPoolKeepAlive = 0;
+    private long mySqlConnectionPoolKeepAlive = 0;
 
     @YamlKey("database.connection_pool.connection_timeout")
-    public long mySqlConnectionPoolTimeout = 5000;
+    private long mySqlConnectionPoolTimeout = 5000;
 
     @YamlKey("database.table_names")
-    public Map<String, String> tableNames = TableName.getDefaults();
+    private Map<String, String> tableNames = TableName.getDefaults();
+
+
+    // Redis settings
+    @YamlComment("Redis connection settings")
+    @YamlKey("redis.credentials.host")
+    private String redisHost = "localhost";
+
+    @YamlKey("redis.credentials.port")
+    private int redisPort = 6379;
+
+    @YamlKey("redis.credentials.password")
+    private String redisPassword = "";
+
+    @YamlKey("redis.use_ssl")
+    private boolean redisUseSsl = false;
+
+
+    // Synchronization settings
+    @YamlComment("Synchronization settings")
+    @YamlKey("synchronization.max_user_data_snapshots")
+    private int maxUserDataSnapshots = 5;
+
+    @YamlKey("synchronization.save_on_world_save")
+    private boolean saveOnWorldSave = true;
+
+    @YamlKey("synchronization.save_on_death")
+    private boolean saveOnDeath = false;
+
+    @YamlKey("synchronization.save_empty_drops_on_death")
+    private boolean saveEmptyDropsOnDeath = true;
+
+    @YamlKey("synchronization.compress_data")
+    private boolean compressData = true;
+
+    @YamlKey("synchronization.notification_display_slot")
+    private NotificationDisplaySlot notificationDisplaySlot = NotificationDisplaySlot.ACTION_BAR;
+
+    @YamlKey("synchronization.synchronise_dead_players_changing_server")
+    private boolean synchroniseDeadPlayersChangingServer = true;
+
+    @YamlKey("synchronization.network_latency_milliseconds")
+    private int networkLatencyMilliseconds = 500;
+
+    @YamlKey("synchronization.features")
+    private Map<String, Boolean> synchronizationFeatures = SynchronizationFeature.getDefaults();
+
+    @YamlKey("synchronization.blacklisted_commands_while_locked")
+    private List<String> blacklistedCommandsWhileLocked = new ArrayList<>();
+
+    @YamlKey("synchronization.event_priorities")
+    private Map<String, String> synchronizationEventPriorities = EventType.getDefaults();
+
+
+    // Zero-args constructor for instantiation via Annotaml
+    public Settings() {
+    }
+
+
+    @NotNull
+    public String getLanguage() {
+        return language;
+    }
+
+    public boolean doCheckForUpdates() {
+        return checkForUpdates;
+    }
+
+    @NotNull
+    public String getClusterId() {
+        return clusterId;
+    }
+
+    public boolean doDebugLogging() {
+        return debugLogging;
+    }
+
+    @NotNull
+    public String getMySqlHost() {
+        return mySqlHost;
+    }
+
+    public int getMySqlPort() {
+        return mySqlPort;
+    }
+
+    @NotNull
+    public String getMySqlDatabase() {
+        return mySqlDatabase;
+    }
+
+    @NotNull
+    public String getMySqlUsername() {
+        return mySqlUsername;
+    }
+
+    @NotNull
+    public String getMySqlPassword() {
+        return mySqlPassword;
+    }
+
+    @NotNull
+    public String getMySqlConnectionParameters() {
+        return mySqlConnectionParameters;
+    }
 
     @NotNull
     public String getTableName(@NotNull TableName tableName) {
         return tableNames.getOrDefault(tableName.name().toLowerCase(), tableName.defaultName);
     }
 
-
-    // Redis settings
-    @YamlComment("Redis connection settings")
-    @YamlKey("redis.credentials.host")
-    public String redisHost = "localhost";
-
-    @YamlKey("redis.credentials.port")
-    public int redisPort = 6379;
-
-    @YamlKey("redis.credentials.password")
-    public String redisPassword = "";
-
-    @YamlKey("redis.use_ssl")
-    public boolean redisUseSsl = false;
-
-
-    // Synchronization settings
-    @YamlComment("Synchronization settings")
-    @YamlKey("synchronization.max_user_data_snapshots")
-    public int maxUserDataSnapshots = 5;
-
-    @YamlKey("synchronization.save_on_world_save")
-    public boolean saveOnWorldSave = true;
-
-    @YamlKey("synchronization.save_on_death")
-    public boolean saveOnDeath = false;
-
-    @YamlKey("synchronization.compress_data")
-    public boolean compressData = true;
-
-    @YamlKey("synchronization.notification_display_slot")
-    public NotificationDisplaySlot notificationDisplaySlot = NotificationDisplaySlot.ACTION_BAR;
-
-    @YamlKey("synchronization.save_dead_player_inventories")
-    public boolean saveDeadPlayerInventories = true;
-
-    @YamlKey("synchronization.network_latency_milliseconds")
-    public int networkLatencyMilliseconds = 500;
-
-    @YamlKey("synchronization.features")
-    public Map<String, Boolean> synchronizationFeatures = SynchronizationFeature.getDefaults();
-
-    @YamlKey("synchronization.blacklisted_commands_while_locked")
-    public List<String> blacklistedCommandsWhileLocked = new ArrayList<>();
-
-    public boolean getSynchronizationFeature(@NotNull SynchronizationFeature feature) {
-        return synchronizationFeatures.getOrDefault(feature.name().toLowerCase(), feature.enabledByDefault);
+    public int getMySqlConnectionPoolSize() {
+        return mySqlConnectionPoolSize;
     }
 
-    @YamlKey("synchronization.event_priorities")
-    public Map<String, String> synchronizationEventPriorities = EventType.getDefaults();
+    public int getMySqlConnectionPoolIdle() {
+        return mySqlConnectionPoolIdle;
+    }
+
+    public long getMySqlConnectionPoolLifetime() {
+        return mySqlConnectionPoolLifetime;
+    }
+
+    public long getMySqlConnectionPoolKeepAlive() {
+        return mySqlConnectionPoolKeepAlive;
+    }
+
+    public long getMySqlConnectionPoolTimeout() {
+        return mySqlConnectionPoolTimeout;
+    }
+
+    @NotNull
+    public String getRedisHost() {
+        return redisHost;
+    }
+
+    public int getRedisPort() {
+        return redisPort;
+    }
+
+    @NotNull
+    public String getRedisPassword() {
+        return redisPassword;
+    }
+
+    public boolean isRedisUseSsl() {
+        return redisUseSsl;
+    }
+
+    public int getMaxUserDataSnapshots() {
+        return maxUserDataSnapshots;
+    }
+
+    public boolean doSaveOnWorldSave() {
+        return saveOnWorldSave;
+    }
+
+    public boolean doSaveOnDeath() {
+        return saveOnDeath;
+    }
+
+    public boolean doSaveEmptyDropsOnDeath() {
+        return saveEmptyDropsOnDeath;
+    }
+
+    public boolean doCompressData() {
+        return compressData;
+    }
+
+    @NotNull
+    public NotificationDisplaySlot getNotificationDisplaySlot() {
+        return notificationDisplaySlot;
+    }
+
+    public boolean isSynchroniseDeadPlayersChangingServer() {
+        return synchroniseDeadPlayersChangingServer;
+    }
+
+    public int getNetworkLatencyMilliseconds() {
+        return networkLatencyMilliseconds;
+    }
+
+    @NotNull
+    public Map<String, Boolean> getSynchronizationFeatures() {
+        return synchronizationFeatures;
+    }
+
+    public boolean getSynchronizationFeature(@NotNull SynchronizationFeature feature) {
+        return getSynchronizationFeatures().getOrDefault(feature.name().toLowerCase(), feature.enabledByDefault);
+    }
+
+    @NotNull
+    public List<String> getBlacklistedCommandsWhileLocked() {
+        return blacklistedCommandsWhileLocked;
+    }
 
     @NotNull
     public EventPriority getEventPriority(@NotNull Settings.EventType eventType) {
@@ -141,7 +279,6 @@ public class Settings {
             return EventPriority.NORMAL;
         }
     }
-
 
     /**
      * Represents the names of tables in the database

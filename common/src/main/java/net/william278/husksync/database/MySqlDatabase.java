@@ -52,17 +52,17 @@ public class MySqlDatabase extends Database {
     public MySqlDatabase(@NotNull HuskSync plugin) {
         super(plugin);
         final Settings settings = plugin.getSettings();
-        this.mySqlHost = settings.mySqlHost;
-        this.mySqlPort = settings.mySqlPort;
-        this.mySqlDatabaseName = settings.mySqlDatabase;
-        this.mySqlUsername = settings.mySqlUsername;
-        this.mySqlPassword = settings.mySqlPassword;
-        this.mySqlConnectionParameters = settings.mySqlConnectionParameters;
-        this.hikariMaximumPoolSize = settings.mySqlConnectionPoolSize;
-        this.hikariMinimumIdle = settings.mySqlConnectionPoolIdle;
-        this.hikariMaximumLifetime = settings.mySqlConnectionPoolLifetime;
-        this.hikariKeepAliveTime = settings.mySqlConnectionPoolKeepAlive;
-        this.hikariConnectionTimeOut = settings.mySqlConnectionPoolTimeout;
+        this.mySqlHost = settings.getMySqlHost();
+        this.mySqlPort = settings.getMySqlPort();
+        this.mySqlDatabaseName = settings.getMySqlDatabase();
+        this.mySqlUsername = settings.getMySqlUsername();
+        this.mySqlPassword = settings.getMySqlPassword();
+        this.mySqlConnectionParameters = settings.getMySqlConnectionParameters();
+        this.hikariMaximumPoolSize = settings.getMySqlConnectionPoolSize();
+        this.hikariMinimumIdle = settings.getMySqlConnectionPoolIdle();
+        this.hikariMaximumLifetime = settings.getMySqlConnectionPoolLifetime();
+        this.hikariKeepAliveTime = settings.getMySqlConnectionPoolKeepAlive();
+        this.hikariConnectionTimeOut = settings.getMySqlConnectionPoolTimeout();
     }
 
     /**
@@ -300,7 +300,7 @@ public class MySqlDatabase extends Database {
     protected void rotateUserData(@NotNull User user) {
         final List<UserDataSnapshot> unpinnedUserData = getUserData(user).join().stream()
                 .filter(dataSnapshot -> !dataSnapshot.pinned()).toList();
-        if (unpinnedUserData.size() > plugin.getSettings().maxUserDataSnapshots) {
+        if (unpinnedUserData.size() > plugin.getSettings().getMaxUserDataSnapshots()) {
             try (Connection connection = getConnection()) {
                 try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
                         DELETE FROM `%user_data_table%`
@@ -308,7 +308,7 @@ public class MySqlDatabase extends Database {
                         AND `pinned` IS FALSE
                         ORDER BY `timestamp` ASC
                         LIMIT %entry_count%;""".replace("%entry_count%",
-                        Integer.toString(unpinnedUserData.size() - plugin.getSettings().maxUserDataSnapshots))))) {
+                        Integer.toString(unpinnedUserData.size() - plugin.getSettings().getMaxUserDataSnapshots()))))) {
                     statement.setString(1, user.uuid.toString());
                     statement.executeUpdate();
                 }

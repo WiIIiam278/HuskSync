@@ -33,13 +33,13 @@ public class RedisManager extends JedisPubSub {
 
     public RedisManager(@NotNull HuskSync plugin) {
         this.plugin = plugin;
-        clusterId = plugin.getSettings().clusterId;
+        clusterId = plugin.getSettings().getClusterId();
 
         // Set redis credentials
-        this.redisHost = plugin.getSettings().redisHost;
-        this.redisPort = plugin.getSettings().redisPort;
-        this.redisPassword = plugin.getSettings().redisPassword;
-        this.redisUseSsl = plugin.getSettings().redisUseSsl;
+        this.redisHost = plugin.getSettings().getRedisHost();
+        this.redisPort = plugin.getSettings().getRedisPort();
+        this.redisPassword = plugin.getSettings().getRedisPassword();
+        this.redisUseSsl = plugin.getSettings().isRedisUseSsl();
 
         // Configure the jedis pool
         this.jedisPoolConfig = new JedisPoolConfig();
@@ -91,7 +91,7 @@ public class RedisManager extends JedisPubSub {
             final UserData userData = plugin.getDataAdapter().fromBytes(redisMessage.data);
             user.setData(userData, plugin).thenAccept(succeeded -> {
                 if (succeeded) {
-                    switch (plugin.getSettings().notificationDisplaySlot) {
+                    switch (plugin.getSettings().getNotificationDisplaySlot()) {
                         case CHAT -> plugin.getLocales().getLocale("data_update_complete")
                                 .ifPresent(user::sendMessage);
                         case ACTION_BAR -> plugin.getLocales().getLocale("data_update_complete")

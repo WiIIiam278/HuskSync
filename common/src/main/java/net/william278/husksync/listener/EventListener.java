@@ -60,7 +60,7 @@ public abstract class EventListener {
         CompletableFuture.runAsync(() -> {
             try {
                 // Hold reading data for the network latency threshold, to ensure the source server has set the redis key
-                Thread.sleep(Math.max(0, plugin.getSettings().networkLatencyMilliseconds));
+                Thread.sleep(Math.max(0, plugin.getSettings().getNetworkLatencyMilliseconds()));
             } catch (InterruptedException e) {
                 plugin.log(Level.SEVERE, "An exception occurred handling a player join", e);
             } finally {
@@ -124,7 +124,7 @@ public abstract class EventListener {
      */
     private void handleSynchronisationCompletion(@NotNull OnlineUser user, boolean succeeded) {
         if (succeeded) {
-            switch (plugin.getSettings().notificationDisplaySlot) {
+            switch (plugin.getSettings().getNotificationDisplaySlot()) {
                 case CHAT -> plugin.getLocales().getLocale("synchronisation_complete")
                         .ifPresent(user::sendMessage);
                 case ACTION_BAR -> plugin.getLocales().getLocale("synchronisation_complete")
@@ -179,7 +179,7 @@ public abstract class EventListener {
      * @param usersInWorld a list of users in the world that is being saved
      */
     protected final void saveOnWorldSave(@NotNull List<OnlineUser> usersInWorld) {
-        if (disabling || !plugin.getSettings().saveOnWorldSave) {
+        if (disabling || !plugin.getSettings().doSaveOnWorldSave()) {
             return;
         }
         usersInWorld.stream()
@@ -196,7 +196,8 @@ public abstract class EventListener {
      * @param drops The items that this user would have dropped
      */
     protected void saveOnPlayerDeath(@NotNull OnlineUser user, @NotNull ItemData drops) {
-        if (disabling || !plugin.getSettings().saveOnDeath || lockedPlayers.contains(user.uuid) || user.isNpc()) {
+        if (disabling || !plugin.getSettings().doSaveOnDeath() || lockedPlayers.contains(user.uuid) || user.isNpc()
+            || (!plugin.getSettings().doSaveEmptyDropsOnDeath() && drops.isEmpty())) {
             return;
         }
 

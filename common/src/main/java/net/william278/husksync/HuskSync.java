@@ -126,7 +126,7 @@ public interface HuskSync {
      * @param throwable a throwable to log
      */
     default void debug(@NotNull String message, @NotNull Throwable... throwable) {
-        if (getSettings().debugLogging) {
+        if (getSettings().doDebugLogging()) {
             log(Level.INFO, "[DEBUG] " + message, throwable);
         }
     }

@@ -37,11 +37,11 @@ public class LegacyMigrator extends Migrator {
     public LegacyMigrator(@NotNull HuskSync plugin) {
         super(plugin);
         this.hslConverter = HSLConverter.getInstance();
-        this.sourceHost = plugin.getSettings().mySqlHost;
-        this.sourcePort = plugin.getSettings().mySqlPort;
-        this.sourceUsername = plugin.getSettings().mySqlUsername;
-        this.sourcePassword = plugin.getSettings().mySqlPassword;
-        this.sourceDatabase = plugin.getSettings().mySqlDatabase;
+        this.sourceHost = plugin.getSettings().getMySqlHost();
+        this.sourcePort = plugin.getSettings().getMySqlPort();
+        this.sourceUsername = plugin.getSettings().getMySqlUsername();
+        this.sourcePassword = plugin.getSettings().getMySqlPassword();
+        this.sourceDatabase = plugin.getSettings().getMySqlDatabase();
         this.sourcePlayersTable = "husksync_players";
         this.sourceDataTable = "husksync_data";
         this.minecraftVersion = plugin.getMinecraftVersion().toString();

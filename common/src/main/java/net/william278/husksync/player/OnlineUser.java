@@ -43,12 +43,12 @@ public abstract class OnlineUser extends User {
     public final CompletableFuture<Void> setStatus(@NotNull StatusData statusData,
                                                    @NotNull List<StatusDataFlag> statusDataFlags) {
         final Settings settings = new Settings();
-        settings.synchronizationFeatures.put(Settings.SynchronizationFeature.HEALTH.name().toLowerCase(), statusDataFlags.contains(StatusDataFlag.SET_HEALTH));
-        settings.synchronizationFeatures.put(Settings.SynchronizationFeature.MAX_HEALTH.name().toLowerCase(), statusDataFlags.contains(StatusDataFlag.SET_MAX_HEALTH));
-        settings.synchronizationFeatures.put(Settings.SynchronizationFeature.HUNGER.name().toLowerCase(), statusDataFlags.contains(StatusDataFlag.SET_HUNGER));
-        settings.synchronizationFeatures.put(Settings.SynchronizationFeature.EXPERIENCE.name().toLowerCase(), statusDataFlags.contains(StatusDataFlag.SET_EXPERIENCE));
-        settings.synchronizationFeatures.put(Settings.SynchronizationFeature.INVENTORIES.name().toLowerCase(), statusDataFlags.contains(StatusDataFlag.SET_SELECTED_ITEM_SLOT));
-        settings.synchronizationFeatures.put(Settings.SynchronizationFeature.LOCATION.name().toLowerCase(), statusDataFlags.contains(StatusDataFlag.SET_GAME_MODE) || statusDataFlags.contains(StatusDataFlag.SET_FLYING));
+        settings.getSynchronizationFeatures().put(Settings.SynchronizationFeature.HEALTH.name().toLowerCase(), statusDataFlags.contains(StatusDataFlag.SET_HEALTH));
+        settings.getSynchronizationFeatures().put(Settings.SynchronizationFeature.MAX_HEALTH.name().toLowerCase(), statusDataFlags.contains(StatusDataFlag.SET_MAX_HEALTH));
+        settings.getSynchronizationFeatures().put(Settings.SynchronizationFeature.HUNGER.name().toLowerCase(), statusDataFlags.contains(StatusDataFlag.SET_HUNGER));
+        settings.getSynchronizationFeatures().put(Settings.SynchronizationFeature.EXPERIENCE.name().toLowerCase(), statusDataFlags.contains(StatusDataFlag.SET_EXPERIENCE));
+        settings.getSynchronizationFeatures().put(Settings.SynchronizationFeature.INVENTORIES.name().toLowerCase(), statusDataFlags.contains(StatusDataFlag.SET_SELECTED_ITEM_SLOT));
+        settings.getSynchronizationFeatures().put(Settings.SynchronizationFeature.LOCATION.name().toLowerCase(), statusDataFlags.contains(StatusDataFlag.SET_GAME_MODE) || statusDataFlags.contains(StatusDataFlag.SET_FLYING));
         return setStatus(statusData, settings);
     }
 
@@ -325,7 +325,7 @@ public abstract class OnlineUser extends User {
                 if (!isOffline()) {
                     final Settings settings = plugin.getSettings();
                     if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.INVENTORIES)) {
-                        if (isDead() && settings.saveDeadPlayerInventories) {
+                        if (isDead() && settings.isSynchroniseDeadPlayersChangingServer()) {
                             plugin.debug("Player " + username + " is dead, so their inventory will be set to empty.");
                             add(CompletableFuture.runAsync(() -> builder.setInventory(ItemData.empty())));
                         } else {

@@ -19,7 +19,9 @@ import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -146,7 +148,11 @@ public class BukkitPlayer extends OnlineUser {
 
     @Override
     public CompletableFuture<ItemData> getInventory() {
-        return BukkitSerializer.serializeItemStackArray(player.getInventory().getContents())
+        final PlayerInventory inventory = player.getInventory();
+        if (inventory.isEmpty()) {
+            return CompletableFuture.completedFuture(ItemData.empty());
+        }
+        return BukkitSerializer.serializeItemStackArray(inventory.getContents())
                 .thenApply(ItemData::new);
     }
 
@@ -166,7 +172,11 @@ public class BukkitPlayer extends OnlineUser {
 
     @Override
     public CompletableFuture<ItemData> getEnderChest() {
-        return BukkitSerializer.serializeItemStackArray(player.getEnderChest().getContents())
+        final Inventory enderChest = player.getEnderChest();
+        if (enderChest.isEmpty()) {
+            return CompletableFuture.completedFuture(ItemData.empty());
+        }
+        return BukkitSerializer.serializeItemStackArray(enderChest.getContents())
                 .thenApply(ItemData::new);
     }
 
@@ -473,7 +483,7 @@ public class BukkitPlayer extends OnlineUser {
                             .ifPresentOrElse(mapping -> mapping.setContainerValue(container, player, key),
                                     () -> BukkitHuskSync.getInstance().log(Level.WARNING,
                                             "Could not set " + player.getName() + "'s persistent data key " + keyString +
-                                                    " as it has an invalid type. Skipping!"));
+                                            " as it has an invalid type. Skipping!"));
                 }
             });
         }).exceptionally(throwable -> {

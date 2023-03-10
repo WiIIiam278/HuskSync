@@ -32,4 +32,13 @@ public class ItemData {
     protected ItemData() {
     }
 
+    /**
+     * Check if the item data is empty
+     *
+     * @return {@code true} if the item data is empty; {@code false} otherwise
+     */
+    public boolean isEmpty() {
+        return serializedItems.isEmpty();
+    }
+
 }
