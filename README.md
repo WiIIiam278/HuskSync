@@ -40,7 +40,7 @@
 
 **⭐ Extensible API & open-source** &mdash; Need more? Extend the plugin with the Developer API. Or, submit a pull request through our code bounty system!
 
-**Ready?** [Let's head down town!](https://william278.net/docs/husksync/setup)
+**Ready?** [It's syncing time!](https://william278.net/docs/husksync/setup)
 
 ## Setup
 Requires a MySQL (v8.0+) database, a Redis (v5.0+) server and any number of Spigot-based 1.16.5+ Minecraft servers, running Java 16+.
