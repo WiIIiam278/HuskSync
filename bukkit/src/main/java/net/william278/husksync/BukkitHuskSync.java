@@ -117,7 +117,7 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync {
                 log(Level.INFO, "Successfully established a connection to the database");
             } else {
                 throw new HuskSyncInitializationException("Failed to establish a connection to the database. " +
-                                                          "Please check the supplied database credentials in the config file");
+                        "Please check the supplied database credentials in the config file");
             }
 
             // Prepare redis connection
@@ -128,7 +128,7 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync {
                 log(Level.INFO, "Successfully established a connection to the Redis server");
             } else {
                 throw new HuskSyncInitializationException("Failed to establish a connection to the Redis server. " +
-                                                          "Please check the supplied Redis credentials in the config file");
+                        "Please check the supplied Redis credentials in the config file");
             }
 
             // Register events
@@ -174,7 +174,7 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync {
                 getLatestVersionIfOutdated().thenAccept(newestVersion ->
                         newestVersion.ifPresent(newVersion -> log(Level.WARNING,
                                 "An update is available for HuskSync, v" + newVersion
-                                + " (Currently running v" + getPluginVersion() + ")")));
+                                        + " (Currently running v" + getPluginVersion() + ")")));
             }
         } catch (HuskSyncInitializationException exception) {
             log(Level.SEVERE, """
@@ -265,7 +265,11 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync {
 
     @Override
     public void log(@NotNull Level level, @NotNull String message, @NotNull Throwable... throwable) {
-        getLogger().log(level, message, throwable);
+        if (throwable.length > 0) {
+            getLogger().log(level, message, throwable[0]);
+        } else {
+            getLogger().log(level, message);
+        }
     }
 
     @NotNull
