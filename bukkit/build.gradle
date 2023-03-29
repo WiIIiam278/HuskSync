@@ -1,6 +1,6 @@
 dependencies {
     implementation project(path: ':common')
-    implementation 'org.bstats:bstats-bukkit:3.0.1'
+    implementation 'org.bstats:bstats-bukkit:3.0.2'
     implementation 'net.william278:mpdbdataconverter:1.0.1'
     implementation 'net.william278:hsldataconverter:1.0'
     implementation 'net.william278:MapDataAPI:1.0.2'
