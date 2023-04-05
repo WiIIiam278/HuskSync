@@ -18,7 +18,7 @@ public class PersistentDataContainerData {
     @SerializedName("persistent_data_map")
     protected Map<String, PersistentDataTag<?>> persistentDataMap;
 
-    public PersistentDataContainerData(@NotNull final Map<String, PersistentDataTag<?>> persistentDataMap) {
+    public PersistentDataContainerData(@NotNull Map<String, PersistentDataTag<?>> persistentDataMap) {
         this.persistentDataMap = persistentDataMap;
     }
 
@@ -26,15 +26,21 @@ public class PersistentDataContainerData {
     protected PersistentDataContainerData() {
     }
 
-
-    public <T> Optional<T> getTagValue(@NotNull final String tagName, @NotNull Class<T> tagClass) {
-        if (persistentDataMap.containsKey(tagName)) {
-            return Optional.of(tagClass.cast(persistentDataMap.get(tagName).value));
+    public <T> Optional<T> getTagValue(@NotNull String tagName, @NotNull Class<T> tagClass) {
+        if (!persistentDataMap.containsKey(tagName)) {
+            return Optional.empty();
         }
-        return Optional.empty();
+
+        // If the tag cannot be cast to the specified class, return an empty optional
+        final boolean canCast = tagClass.isAssignableFrom(persistentDataMap.get(tagName).value.getClass());
+        if (!canCast) {
+            return Optional.empty();
+        }
+
+        return Optional.of(tagClass.cast(persistentDataMap.get(tagName).value));
     }
 
-    public Optional<PersistentDataTagType> getTagType(@NotNull final String tagType) {
+    public Optional<PersistentDataTagType> getTagType(@NotNull String tagType) {
         if (persistentDataMap.containsKey(tagType)) {
             return PersistentDataTagType.getDataType(persistentDataMap.get(tagType).type);
         }
