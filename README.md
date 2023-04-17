@@ -1,3 +1,5 @@
+<!--suppress ALL -->
+<h4>
 <p align="center">
     <img src="images/banner.png" alt="HuskSync" />
     <a href="https://github.com/WiIIiam278/HuskSync/actions/workflows/java_ci.yml">
@@ -24,6 +26,7 @@
     </b>
 </p>
 <br/>
+</h4>
 
 **HuskSync** is a modern, cross-server player data synchronisation system that enables the comprehensive synchronisation of your user's data across multiple proxied servers. It does this by making use of Redis and MySQL to optimally cache data while players change servers.
 
