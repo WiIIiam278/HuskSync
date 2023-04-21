@@ -5,7 +5,7 @@ dependencies {
     implementation 'com.google.code.gson:gson:2.10.1'
     implementation 'dev.dejvokep:boosted-yaml:1.3.1'
     implementation 'net.william278:Annotaml:2.0.1'
-    implementation 'net.william278:DesertWell:1.1.1'
+    implementation 'net.william278:DesertWell:2.0.2'
     implementation 'net.william278:PagineDown:1.1'
     implementation('com.zaxxer:HikariCP:5.0.1') {
         exclude module: 'slf4j-api'
