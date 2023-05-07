@@ -17,6 +17,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -73,7 +74,7 @@ public class MpdbMigrator extends Migrator {
                 connectionPool.setJdbcUrl(jdbcUrl);
                 connectionPool.setUsername(sourceUsername);
                 connectionPool.setPassword(sourcePassword);
-                connectionPool.setPoolName((getIdentifier() + "_migrator_pool").toUpperCase());
+                connectionPool.setPoolName((getIdentifier() + "_migrator_pool").toUpperCase(Locale.ENGLISH));
 
                 plugin.log(Level.INFO, "Downloading raw data from the MySQLPlayerDataBridge database (this might take a while)...");
                 final List<MpdbData> dataToMigrate = new ArrayList<>();
@@ -137,7 +138,7 @@ public class MpdbMigrator extends Migrator {
     @Override
     public void handleConfigurationCommand(@NotNull String[] args) {
         if (args.length == 2) {
-            if (switch (args[0].toLowerCase()) {
+            if (switch (args[0].toLowerCase(Locale.ENGLISH)) {
                 case "host" -> {
                     this.sourceHost = args[1];
                     yield true;

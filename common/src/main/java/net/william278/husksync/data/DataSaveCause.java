@@ -1,10 +1,12 @@
 package net.william278.husksync.data;
 
+import net.william278.husksync.api.BaseHuskSyncAPI;
 import net.william278.husksync.config.Locales;
 import net.william278.husksync.player.OnlineUser;
-import net.william278.husksync.api.BaseHuskSyncAPI;
 import net.william278.husksync.player.User;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Locale;
 
 /**
  * Identifies the cause of a player data save.
@@ -103,7 +105,7 @@ public enum DataSaveCause {
 
     @NotNull
     public String getDisplayName() {
-        return Locales.truncate(name().toLowerCase(), 10);
+        return Locales.truncate(name().toLowerCase(Locale.ENGLISH), 10);
     }
 
 }

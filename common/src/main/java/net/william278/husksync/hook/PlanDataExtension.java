@@ -16,6 +16,7 @@ import net.william278.husksync.player.User;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Date;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -212,7 +213,7 @@ public class PlanDataExtension implements DataExtension {
                 plugin.getDatabase().getUserData(user).join().forEach(versionedUserData -> dataSnapshotsTable.addRow(
                         versionedUserData.versionTimestamp().getTime(),
                         versionedUserData.versionUUID().toString().split("-")[0],
-                        versionedUserData.cause().name().toLowerCase().replaceAll("_", " "),
+                        versionedUserData.cause().name().toLowerCase(Locale.ENGLISH).replaceAll("_", " "),
                         versionedUserData.pinned() ? PINNED_HTML_STRING + "Pinned" : "Unpinned"
                 )));
         return dataSnapshotsTable.build();

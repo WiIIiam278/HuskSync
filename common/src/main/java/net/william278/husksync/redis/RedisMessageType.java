@@ -3,6 +3,7 @@ package net.william278.husksync.redis;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
+import java.util.Locale;
 import java.util.Optional;
 
 public enum RedisMessageType {
@@ -11,8 +12,8 @@ public enum RedisMessageType {
 
     @NotNull
     public String getMessageChannel() {
-        return RedisManager.KEY_NAMESPACE.toLowerCase() + ":" + RedisManager.clusterId.toLowerCase()
-               + ":" + name().toLowerCase();
+        return RedisManager.KEY_NAMESPACE.toLowerCase(Locale.ENGLISH) + ":" + RedisManager.clusterId.toLowerCase(Locale.ENGLISH)
+               + ":" + name().toLowerCase(Locale.ENGLISH);
     }
 
     public static Optional<RedisMessageType> getTypeFromChannel(@NotNull String messageChannel) {

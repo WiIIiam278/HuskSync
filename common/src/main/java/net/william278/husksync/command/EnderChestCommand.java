@@ -12,6 +12,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.text.SimpleDateFormat;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -31,7 +32,7 @@ public class EnderChestCommand extends CommandBase implements TabCompletable {
                     .ifPresent(player::sendMessage);
             return;
         }
-        plugin.getDatabase().getUserByName(args[0].toLowerCase()).thenAccept(optionalUser ->
+        plugin.getDatabase().getUserByName(args[0].toLowerCase(Locale.ENGLISH)).thenAccept(optionalUser ->
                 optionalUser.ifPresentOrElse(user -> {
                     if (args.length == 2) {
                         // View user data by specified UUID

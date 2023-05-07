@@ -13,6 +13,7 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
+import java.util.Locale;
 import java.util.StringJoiner;
 import java.util.logging.Level;
 
@@ -164,7 +165,7 @@ public class DataDumper {
         return new StringJoiner("_")
                        .add(user.username)
                        .add(new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss").format(dataSnapshot.versionTimestamp()))
-                       .add(dataSnapshot.cause().name().toLowerCase())
+                       .add(dataSnapshot.cause().name().toLowerCase(Locale.ENGLISH))
                        .add(dataSnapshot.versionUUID().toString().split("-")[0])
                + ".json";
     }

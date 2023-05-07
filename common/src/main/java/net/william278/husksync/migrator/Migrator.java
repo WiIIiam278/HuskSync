@@ -1,8 +1,8 @@
 package net.william278.husksync.migrator;
 
 import net.william278.husksync.HuskSync;
-import org.jetbrains.annotations.NotNull;
 import net.william278.husksync.data.UserData;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.CompletableFuture;
 

@@ -1,9 +1,9 @@
 package net.william278.husksync.player;
 
 import de.themoep.minedown.adventure.MineDown;
+import net.william278.desertwell.Version;
 import net.william278.husksync.config.Settings;
 import net.william278.husksync.data.*;
-import net.william278.desertwell.Version;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;

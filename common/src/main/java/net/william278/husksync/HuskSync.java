@@ -1,6 +1,7 @@
 package net.william278.husksync;
 
 import net.william278.desertwell.UpdateChecker;
+import net.william278.desertwell.Version;
 import net.william278.husksync.config.Locales;
 import net.william278.husksync.config.Settings;
 import net.william278.husksync.data.DataAdapter;
@@ -9,7 +10,6 @@ import net.william278.husksync.event.EventCannon;
 import net.william278.husksync.migrator.Migrator;
 import net.william278.husksync.player.OnlineUser;
 import net.william278.husksync.redis.RedisManager;
-import net.william278.desertwell.Version;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;

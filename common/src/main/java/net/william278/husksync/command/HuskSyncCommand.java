@@ -7,10 +7,7 @@ import net.william278.husksync.migrator.Migrator;
 import net.william278.husksync.player.OnlineUser;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
@@ -53,7 +50,7 @@ public class HuskSyncCommand extends CommandBase implements TabCompletable, Cons
             sendAboutMenu(player);
             return;
         }
-        switch (args[0].toLowerCase()) {
+        switch (args[0].toLowerCase(Locale.ENGLISH)) {
             case "update", "version" -> {
                 if (!player.hasPermission(Permission.COMMAND_HUSKSYNC_UPDATE.node)) {
                     plugin.getLocales().getLocale("error_no_permission").ifPresent(player::sendMessage);
@@ -91,7 +88,7 @@ public class HuskSyncCommand extends CommandBase implements TabCompletable, Cons
             plugin.log(Level.INFO, "Console usage: \"husksync <update/about/reload/migrate>\"");
             return;
         }
-        switch (args[0].toLowerCase()) {
+        switch (args[0].toLowerCase(Locale.ENGLISH)) {
             case "update", "version" -> plugin.getLatestVersionIfOutdated().thenAccept(newestVersion ->
                     newestVersion.ifPresentOrElse(newVersion -> plugin.log(Level.WARNING,
                                     "An update is available for HuskSync, v" + newVersion

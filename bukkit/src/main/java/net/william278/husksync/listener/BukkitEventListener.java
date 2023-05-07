@@ -31,6 +31,7 @@ import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
@@ -163,7 +164,7 @@ public class BukkitEventListener extends EventListener implements BukkitJoinEven
     @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
     public void onPermissionCommand(@NotNull PlayerCommandPreprocessEvent event) {
         String[] commandArgs = event.getMessage().substring(1).split(" ");
-        String commandLabel = commandArgs[0].toLowerCase();
+        String commandLabel = commandArgs[0].toLowerCase(Locale.ENGLISH);
 
         if (blacklistedCommands.contains(commandLabel)) {
             event.setCancelled(cancelPlayerEvent(event.getPlayer().getUniqueId()));

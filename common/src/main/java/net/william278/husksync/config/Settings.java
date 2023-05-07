@@ -5,10 +5,7 @@ import net.william278.annotaml.YamlFile;
 import net.william278.annotaml.YamlKey;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Plugin settings, read from config.yml
@@ -182,7 +179,7 @@ public class Settings {
 
     @NotNull
     public String getTableName(@NotNull TableName tableName) {
-        return tableNames.getOrDefault(tableName.name().toLowerCase(), tableName.defaultName);
+        return tableNames.getOrDefault(tableName.name().toLowerCase(Locale.ENGLISH), tableName.defaultName);
     }
 
     public int getMySqlConnectionPoolSize() {
@@ -262,7 +259,7 @@ public class Settings {
     }
 
     public boolean getSynchronizationFeature(@NotNull SynchronizationFeature feature) {
-        return getSynchronizationFeatures().getOrDefault(feature.name().toLowerCase(), feature.enabledByDefault);
+        return getSynchronizationFeatures().getOrDefault(feature.name().toLowerCase(Locale.ENGLISH), feature.enabledByDefault);
     }
 
     @NotNull
@@ -273,7 +270,7 @@ public class Settings {
     @NotNull
     public EventPriority getEventPriority(@NotNull Settings.EventType eventType) {
         try {
-            return EventPriority.valueOf(synchronizationEventPriorities.get(eventType.name().toLowerCase()));
+            return EventPriority.valueOf(synchronizationEventPriorities.get(eventType.name().toLowerCase(Locale.ENGLISH)));
         } catch (IllegalArgumentException e) {
             e.printStackTrace();
             return EventPriority.NORMAL;
@@ -295,7 +292,7 @@ public class Settings {
 
         @NotNull
         private Map.Entry<String, String> toEntry() {
-            return Map.entry(name().toLowerCase(), defaultName);
+            return Map.entry(name().toLowerCase(Locale.ENGLISH), defaultName);
         }
 
         @SuppressWarnings("unchecked")
@@ -355,7 +352,7 @@ public class Settings {
 
         @NotNull
         private Map.Entry<String, Boolean> toEntry() {
-            return Map.entry(name().toLowerCase(), enabledByDefault);
+            return Map.entry(name().toLowerCase(Locale.ENGLISH), enabledByDefault);
         }
 
         @SuppressWarnings("unchecked")
@@ -383,7 +380,7 @@ public class Settings {
 
         @NotNull
         private Map.Entry<String, String> toEntry() {
-            return Map.entry(name().toLowerCase(), defaultPriority.name());
+            return Map.entry(name().toLowerCase(Locale.ENGLISH), defaultPriority.name());
         }
 
 

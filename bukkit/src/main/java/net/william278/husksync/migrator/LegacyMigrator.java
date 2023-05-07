@@ -66,7 +66,7 @@ public class LegacyMigrator extends Migrator {
                 connectionPool.setJdbcUrl(jdbcUrl);
                 connectionPool.setUsername(sourceUsername);
                 connectionPool.setPassword(sourcePassword);
-                connectionPool.setPoolName((getIdentifier() + "_migrator_pool").toUpperCase());
+                connectionPool.setPoolName((getIdentifier() + "_migrator_pool").toUpperCase(Locale.ENGLISH));
 
                 plugin.log(Level.INFO, "Downloading raw data from the legacy database (this might take a while)...");
                 final List<LegacyData> dataToMigrate = new ArrayList<>();
@@ -141,7 +141,7 @@ public class LegacyMigrator extends Migrator {
     @Override
     public void handleConfigurationCommand(@NotNull String[] args) {
         if (args.length == 2) {
-            if (switch (args[0].toLowerCase()) {
+            if (switch (args[0].toLowerCase(Locale.ENGLISH)) {
                 case "host" -> {
                     this.sourceHost = args[1];
                     yield true;
