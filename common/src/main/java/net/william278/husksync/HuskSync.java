@@ -13,8 +13,8 @@
 
 package net.william278.husksync;
 
-import net.william278.desertwell.UpdateChecker;
-import net.william278.desertwell.Version;
+import net.william278.desertwell.util.UpdateChecker;
+import net.william278.desertwell.util.Version;
 import net.william278.husksync.config.Locales;
 import net.william278.husksync.config.Settings;
 import net.william278.husksync.data.DataAdapter;
@@ -166,14 +166,14 @@ public interface HuskSync {
      * @return a {@link CompletableFuture} returning the latest {@link Version} if the current one is out-of-date
      */
     default CompletableFuture<Optional<Version>> getLatestVersionIfOutdated() {
-        final UpdateChecker updateChecker = UpdateChecker.create(getPluginVersion(), SPIGOT_RESOURCE_ID);
-        return updateChecker.isUpToDate().thenApply(upToDate -> {
-            if (upToDate) {
-                return Optional.empty();
-            } else {
-                return Optional.of(updateChecker.getLatestVersion().join());
-            }
-        });
+        return UpdateChecker.builder()
+                .currentVersion(getPluginVersion())
+                .endpoint(UpdateChecker.Endpoint.SPIGOT)
+                .resource(Integer.toString(SPIGOT_RESOURCE_ID)).build()
+                .check()
+                .thenApply(checked -> checked.isUpToDate()
+                        ? Optional.empty()
+                        : Optional.of(checked.getLatestVersion()));
     }
 
     /**

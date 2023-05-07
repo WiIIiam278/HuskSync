@@ -15,7 +15,7 @@ package net.william278.husksync;
 
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import net.william278.annotaml.Annotaml;
-import net.william278.desertwell.Version;
+import net.william278.desertwell.util.Version;
 import net.william278.husksync.command.BukkitCommand;
 import net.william278.husksync.command.BukkitCommandType;
 import net.william278.husksync.command.Permission;
@@ -294,7 +294,7 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync {
     @NotNull
     @Override
     public Version getMinecraftVersion() {
-        return Version.fromMinecraftVersionString(Bukkit.getBukkitVersion());
+        return Version.fromString(Bukkit.getBukkitVersion());
     }
 
     /**

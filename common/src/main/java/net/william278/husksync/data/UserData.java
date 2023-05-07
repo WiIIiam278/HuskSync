@@ -14,7 +14,7 @@
 package net.william278.husksync.data;
 
 import com.google.gson.annotations.SerializedName;
-import net.william278.desertwell.Version;
+import net.william278.desertwell.util.Version;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

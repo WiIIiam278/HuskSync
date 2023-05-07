@@ -13,7 +13,7 @@
 
 package net.william278.husksync;
 
-import net.william278.desertwell.Version;
+import net.william278.desertwell.util.Version;
 import net.william278.husksync.config.Locales;
 import net.william278.husksync.config.Settings;
 import net.william278.husksync.data.DataAdapter;
