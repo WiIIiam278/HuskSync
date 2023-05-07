@@ -118,7 +118,7 @@ public class BukkitEventListener extends EventListener implements BukkitJoinEven
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onProjectileLaunch(@NotNull ProjectileLaunchEvent event) {
         final Projectile projectile = event.getEntity();
-        if (projectile.getShooter() instanceof Player player && projectile.getType() == EntityType.TRIDENT) {
+        if (projectile.getShooter() instanceof Player player) {
             event.setCancelled(cancelPlayerEvent(player.getUniqueId()));
         }
     }
