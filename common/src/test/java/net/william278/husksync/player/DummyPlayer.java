@@ -14,6 +14,7 @@
 package net.william278.husksync.player;
 
 import de.themoep.minedown.adventure.MineDown;
+import net.kyori.adventure.audience.Audience;
 import net.william278.desertwell.util.Version;
 import net.william278.husksync.config.Settings;
 import net.william278.husksync.data.*;
@@ -143,6 +144,12 @@ public class DummyPlayer extends OnlineUser {
     @Override
     public Version getMinecraftVersion() {
         return Version.fromString("1.19-beta123456");
+    }
+
+    @Override
+    @NotNull
+    public Audience getAudience() {
+        return Audience.empty();
     }
 
     @Override
