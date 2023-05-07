@@ -1,13 +1,13 @@
-name: HuskSync
-version: ${version}
-main: net.william278.husksync.BukkitHuskSync
+name: 'HuskSync'
+version: '${version}'
+main: 'net.william278.husksync.BukkitHuskSync'
 api-version: 1.16
-author: William278
-description: 'A modern, cross-server player data synchronization system'
+author: 'William278'
+description: '${description}'
 website: 'https://william278.net'
 softdepend:
-  - MysqlPlayerDataBridge
-  - Plan
+  - 'MysqlPlayerDataBridge'
+  - 'Plan'
 libraries:
   - 'redis.clients:jedis:${jedis_version}'
   - 'com.mysql:mysql-connector-j:${mysql_driver_version}'
@@ -16,14 +16,14 @@ libraries:
 
 commands:
   husksync:
-    usage: '/husksync <update/info/reload/migrate>'
+    usage: '/<command> <update/info/reload/migrate>'
     description: 'Manage the HuskSync plugin'
   userdata:
-    usage: '/userdata <view/list/delete/restore/pin/dump> <username> [version_uuid]'
+    usage: '/<command> <view/list/delete/restore/pin/dump> <username> [version_uuid]'
     description: 'View, manage & restore player userdata'
   inventory:
-    usage: '/inventory <username> [version_uuid]'
+    usage: '/<command> <username> [version_uuid]'
     description: 'View & edit a player''s inventory'
   enderchest:
-    usage: '/enderchest <username> [version_uuid]'
+    usage: '/<command> <username> [version_uuid]'
     description: 'View & edit a player''s Ender Chest'

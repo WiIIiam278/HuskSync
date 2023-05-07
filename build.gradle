@@ -1,15 +1,19 @@
 plugins {
     id 'com.github.johnrengelman.shadow' version '8.1.1'
-    id 'org.ajoberstar.grgit' version '5.0.0'
-    id 'java'
+    id 'org.cadixdev.licenser' version '0.6.1' apply false
+    id 'org.ajoberstar.grgit' version '5.2.0'
     id 'maven-publish'
+    id 'java'
 }
 
 group 'net.william278'
 version "$ext.plugin_version-${versionMetadata()}"
+description "$ext.plugin_description"
+defaultTasks 'licenseFormat', 'build'
 
 ext {
     set 'version', version.toString()
+    set 'description', description.toString()
     set 'jedis_version', jedis_version.toString()
     set 'mysql_driver_version', mysql_driver_version.toString()
     set 'snappy_version', snappy_version.toString()
@@ -20,6 +24,7 @@ import org.apache.tools.ant.filters.ReplaceTokens
 
 allprojects {
     apply plugin: 'com.github.johnrengelman.shadow'
+    apply plugin: 'org.cadixdev.licenser'
     apply plugin: 'java'
 
     compileJava.options.encoding = 'UTF-8'
@@ -48,6 +53,12 @@ allprojects {
         useJUnitPlatform()
     }
 
+    license {
+        header = rootProject.file('HEADER')
+        include '**/*.java'
+        newLine = true
+    }
+
     processResources {
         filter ReplaceTokens as Class, beginToken: '${', endToken: '}',
                 tokens: rootProject.ext.properties
@@ -57,6 +68,10 @@ allprojects {
 subprojects {
     version rootProject.version
     archivesBaseName = "${rootProject.name}-${project.name.capitalize()}"
+
+    jar {
+        from '../LICENSE'
+    }
 
     if (['bukkit', 'plugin'].contains(project.name)) {
         shadowJar {
@@ -79,6 +94,35 @@ subprojects {
             shadowJar.dependsOn(sourcesJar, javadocJar)
 
             publishing {
+                repositories {
+                    if (System.getenv("RELEASES_MAVEN_USERNAME") != null) {
+                        maven {
+                            name = "william278-releases"
+                            url = "https://repo.william278.net/releases"
+                            credentials {
+                                username = System.getenv("RELEASES_MAVEN_USERNAME")
+                                password = System.getenv("RELEASES_MAVEN_PASSWORD")
+                            }
+                            authentication {
+                                basic(BasicAuthentication)
+                            }
+                        }
+                    }
+                    if (System.getenv("SNAPSHOTS_MAVEN_USERNAME") != null) {
+                        maven {
+                            name = "william278-snapshots"
+                            url = "https://repo.william278.net/snapshots"
+                            credentials {
+                                username = System.getenv("SNAPSHOTS_MAVEN_USERNAME")
+                                password = System.getenv("SNAPSHOTS_MAVEN_PASSWORD")
+                            }
+                            authentication {
+                                basic(BasicAuthentication)
+                            }
+                        }
+                    }
+                }
+
                 publications {
                     mavenJava(MavenPublication) {
                         groupId = 'net.william278'
