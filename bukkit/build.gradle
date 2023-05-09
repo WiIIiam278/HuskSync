@@ -4,7 +4,7 @@ dependencies {
     implementation 'net.william278:mpdbdataconverter:1.0.1'
     implementation 'net.william278:hsldataconverter:1.0'
     implementation 'net.william278:MapDataAPI:1.0.2'
-    implementation 'net.william278:AndJam:1.0.2'
+    implementation 'net.william278:AndJam:1.0.3'
     implementation 'me.lucko:commodore:2.2'
     implementation 'net.kyori:adventure-platform-bukkit:4.3.0'
     implementation 'dev.triumphteam:triumph-gui:3.1.5'
