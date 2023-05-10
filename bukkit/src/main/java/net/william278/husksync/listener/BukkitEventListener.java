@@ -1,14 +1,12 @@
 package net.william278.husksync.listener;
 
 import net.william278.husksync.BukkitHuskSync;
-import net.william278.husksync.config.Settings;
 import net.william278.husksync.data.BukkitInventoryMap;
 import net.william278.husksync.data.BukkitSerializer;
 import net.william278.husksync.data.ItemData;
 import net.william278.husksync.player.BukkitPlayer;
 import net.william278.husksync.player.OnlineUser;
 import org.bukkit.Bukkit;
-import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
@@ -45,7 +43,7 @@ public class BukkitEventListener extends EventListener implements BukkitJoinEven
     }
 
     @Override
-    public boolean handleEvent(@NotNull Settings.EventType type, @NotNull Settings.EventPriority priority) {
+    public boolean handleEvent(@NotNull ListenerType type, @NotNull Priority priority) {
         return plugin.getSettings().getEventPriority(type).equals(priority);
     }
 

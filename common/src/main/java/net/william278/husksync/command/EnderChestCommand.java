@@ -31,30 +31,29 @@ public class EnderChestCommand extends CommandBase implements TabCompletable {
                     .ifPresent(player::sendMessage);
             return;
         }
-        plugin.getDatabase().getUserByName(args[0].toLowerCase()).thenAccept(optionalUser ->
-                optionalUser.ifPresentOrElse(user -> {
-                    if (args.length == 2) {
-                        // View user data by specified UUID
-                        try {
-                            final UUID versionUuid = UUID.fromString(args[1]);
-                            plugin.getDatabase().getUserData(user, versionUuid).thenAccept(data -> data.ifPresentOrElse(
-                                    userData -> showEnderChestMenu(player, userData, user, false),
-                                    () -> plugin.getLocales().getLocale("error_invalid_version_uuid")
-                                            .ifPresent(player::sendMessage)));
-                        } catch (IllegalArgumentException e) {
-                            plugin.getLocales().getLocale("error_invalid_syntax",
-                                    "/enderchest <player> [version_uuid]").ifPresent(player::sendMessage);
-                        }
-                    } else {
-                        // View (and edit) the latest user data
-                        plugin.getDatabase().getCurrentUserData(user).thenAccept(optionalData -> optionalData.ifPresentOrElse(
-                                versionedUserData -> showEnderChestMenu(player, versionedUserData, user,
-                                        player.hasPermission(Permission.COMMAND_ENDER_CHEST_EDIT.node)),
-                                () -> plugin.getLocales().getLocale("error_no_data_to_display")
-                                        .ifPresent(player::sendMessage)));
-                    }
-                }, () -> plugin.getLocales().getLocale("error_invalid_player")
-                        .ifPresent(player::sendMessage)));
+        plugin.getDatabase().getUserByName(args[0].toLowerCase()).ifPresentOrElse(user -> {
+            if (args.length == 2) {
+                // View user data by specified UUID
+                try {
+                    final UUID versionUuid = UUID.fromString(args[1]);
+                    plugin.getDatabase().getUserData(user, versionUuid).ifPresentOrElse(
+                            userData -> showEnderChestMenu(player, userData, user, false),
+                            () -> plugin.getLocales().getLocale("error_invalid_version_uuid")
+                                    .ifPresent(player::sendMessage));
+                } catch (IllegalArgumentException e) {
+                    plugin.getLocales().getLocale("error_invalid_syntax",
+                            "/enderchest <player> [version_uuid]").ifPresent(player::sendMessage);
+                }
+            } else {
+                // View (and edit) the latest user data
+                plugin.getDatabase().getCurrentUserData(user).ifPresentOrElse(
+                        versionedUserData -> showEnderChestMenu(player, versionedUserData, user,
+                                player.hasPermission(Permission.COMMAND_ENDER_CHEST_EDIT.node)),
+                        () -> plugin.getLocales().getLocale("error_no_data_to_display")
+                                .ifPresent(player::sendMessage));
+            }
+        }, () -> plugin.getLocales().getLocale("error_invalid_player")
+                .ifPresent(player::sendMessage));
     }
 
     private void showEnderChestMenu(@NotNull OnlineUser player, @NotNull UserDataSnapshot userDataSnapshot,
@@ -94,9 +93,8 @@ public class EnderChestCommand extends CommandBase implements TabCompletable {
 
                             // Set the updated data
                             final UserData updatedUserData = builder.build();
-                            plugin.getDatabase()
-                                    .setUserData(dataOwner, updatedUserData, DataSaveCause.INVENTORY_COMMAND)
-                                    .thenRun(() -> plugin.getRedisManager().sendUserDataUpdate(dataOwner, updatedUserData));
+                            plugin.getDatabase().setUserData(dataOwner, updatedUserData, DataSaveCause.INVENTORY_COMMAND);
+                            plugin.getRedisManager().sendUserDataUpdate(dataOwner, updatedUserData);
                         });
             });
         });

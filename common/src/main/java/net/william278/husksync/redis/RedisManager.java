@@ -88,24 +88,21 @@ public class RedisManager extends JedisPubSub {
 
         final RedisMessage redisMessage = RedisMessage.fromJson(message);
         plugin.getOnlineUser(redisMessage.targetUserUuid).ifPresent(user -> {
-            final UserData userData = plugin.getDataAdapter().fromBytes(redisMessage.data);
-            user.setData(userData, plugin).thenAccept(succeeded -> {
-                if (succeeded) {
-                    switch (plugin.getSettings().getNotificationDisplaySlot()) {
-                        case CHAT -> plugin.getLocales().getLocale("data_update_complete")
-                                .ifPresent(user::sendMessage);
-                        case ACTION_BAR -> plugin.getLocales().getLocale("data_update_complete")
-                                .ifPresent(user::sendActionBar);
-                        case TOAST -> plugin.getLocales().getLocale("data_update_complete")
-                                .ifPresent(locale -> user.sendToast(locale, new MineDown(""),
-                                        "minecraft:bell", "TASK"));
-                    }
-                    plugin.getEventCannon().fireSyncCompleteEvent(user);
-                } else {
-                    plugin.getLocales().getLocale("data_update_failed")
+            if (user.setData(plugin.getDataAdapter().fromBytes(redisMessage.data), plugin)) {
+                switch (plugin.getSettings().getNotificationDisplaySlot()) {
+                    case CHAT -> plugin.getLocales().getLocale("data_update_complete")
                             .ifPresent(user::sendMessage);
+                    case ACTION_BAR -> plugin.getLocales().getLocale("data_update_complete")
+                            .ifPresent(user::sendActionBar);
+                    case TOAST -> plugin.getLocales().getLocale("data_update_complete")
+                            .ifPresent(locale -> user.sendToast(locale, new MineDown(""),
+                                    "minecraft:bell", "TASK"));
                 }
-            });
+                plugin.getEventCannon().fireSyncCompleteEvent(user);
+            } else {
+                plugin.getLocales().getLocale("data_update_failed")
+                        .ifPresent(user::sendMessage);
+            }
         });
     }
 
@@ -140,8 +137,8 @@ public class RedisManager extends JedisPubSub {
 
                     // Debug logging
                     plugin.debug("[" + user.username + "] Set " + RedisKeyType.DATA_UPDATE.name()
-                                                     + " key to redis at: " +
-                                                     new SimpleDateFormat("mm:ss.SSS").format(new Date()));
+                            + " key to redis at: " +
+                            new SimpleDateFormat("mm:ss.SSS").format(new Date()));
                 }
             });
         } catch (Exception e) {
@@ -156,8 +153,8 @@ public class RedisManager extends JedisPubSub {
                 jedis.setex(getKey(RedisKeyType.SERVER_SWITCH, user.uuid),
                         RedisKeyType.SERVER_SWITCH.timeToLive, new byte[0]);
                 plugin.debug("[" + user.username + "] Set " + RedisKeyType.SERVER_SWITCH.name()
-                                                 + " key to redis at: " +
-                                                 new SimpleDateFormat("mm:ss.SSS").format(new Date()));
+                        + " key to redis at: " +
+                        new SimpleDateFormat("mm:ss.SSS").format(new Date()));
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -170,59 +167,55 @@ public class RedisManager extends JedisPubSub {
      * @param user The user to fetch data for
      * @return The user's data, if it's present on the database. Otherwise, an empty optional.
      */
-    public CompletableFuture<Optional<UserData>> getUserData(@NotNull User user) {
-        return CompletableFuture.supplyAsync(() -> {
-            try (Jedis jedis = jedisPool.getResource()) {
-                final byte[] key = getKey(RedisKeyType.DATA_UPDATE, user.uuid);
-                final byte[] dataByteArray = jedis.get(key);
-                if (dataByteArray == null) {
-                    plugin.debug("[" + user.username + "] Could not read " +
-                                                     RedisKeyType.DATA_UPDATE.name() + " key from redis at: " +
-                                                     new SimpleDateFormat("mm:ss.SSS").format(new Date()));
-                    return Optional.empty();
-                }
-                plugin.debug("[" + user.username + "] Successfully read "
-                                                 + RedisKeyType.DATA_UPDATE.name() + " key from redis at: " +
-                                                 new SimpleDateFormat("mm:ss.SSS").format(new Date()));
-
-                // Consume the key (delete from redis)
-                jedis.del(key);
-
-                // Use Snappy to decompress the json
-                return Optional.of(plugin.getDataAdapter().fromBytes(dataByteArray));
-            } catch (Exception e) {
-                e.printStackTrace();
+    public Optional<UserData> getUserData(@NotNull User user) {
+        try (Jedis jedis = jedisPool.getResource()) {
+            final byte[] key = getKey(RedisKeyType.DATA_UPDATE, user.uuid);
+            final byte[] dataByteArray = jedis.get(key);
+            if (dataByteArray == null) {
+                plugin.debug("[" + user.username + "] Could not read " +
+                        RedisKeyType.DATA_UPDATE.name() + " key from redis at: " +
+                        new SimpleDateFormat("mm:ss.SSS").format(new Date()));
                 return Optional.empty();
             }
-        });
+            plugin.debug("[" + user.username + "] Successfully read "
+                    + RedisKeyType.DATA_UPDATE.name() + " key from redis at: " +
+                    new SimpleDateFormat("mm:ss.SSS").format(new Date()));
+
+            // Consume the key (delete from redis)
+            jedis.del(key);
+
+            // Use Snappy to decompress the json
+            return Optional.of(plugin.getDataAdapter().fromBytes(dataByteArray));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Optional.empty();
+        }
     }
 
-    public CompletableFuture<Boolean> getUserServerSwitch(@NotNull User user) {
-        return CompletableFuture.supplyAsync(() -> {
-            try (Jedis jedis = jedisPool.getResource()) {
-                final byte[] key = getKey(RedisKeyType.SERVER_SWITCH, user.uuid);
-                final byte[] readData = jedis.get(key);
-                if (readData == null) {
-                    plugin.debug("[" + user.username + "] Could not read " +
-                                                     RedisKeyType.SERVER_SWITCH.name() + " key from redis at: " +
-                                                     new SimpleDateFormat("mm:ss.SSS").format(new Date()));
-                    return false;
-                }
-                plugin.debug("[" + user.username + "] Successfully read "
-                                                 + RedisKeyType.SERVER_SWITCH.name() + " key from redis at: " +
-                                                 new SimpleDateFormat("mm:ss.SSS").format(new Date()));
-
-                // Consume the key (delete from redis)
-                jedis.del(key);
-                return true;
-            } catch (Exception e) {
-                e.printStackTrace();
+    public boolean getUserServerSwitch(@NotNull User user) {
+        try (Jedis jedis = jedisPool.getResource()) {
+            final byte[] key = getKey(RedisKeyType.SERVER_SWITCH, user.uuid);
+            final byte[] readData = jedis.get(key);
+            if (readData == null) {
+                plugin.debug("[" + user.username + "] Could not read " +
+                        RedisKeyType.SERVER_SWITCH.name() + " key from redis at: " +
+                        new SimpleDateFormat("mm:ss.SSS").format(new Date()));
                 return false;
             }
-        });
+            plugin.debug("[" + user.username + "] Successfully read "
+                    + RedisKeyType.SERVER_SWITCH.name() + " key from redis at: " +
+                    new SimpleDateFormat("mm:ss.SSS").format(new Date()));
+
+            // Consume the key (delete from redis)
+            jedis.del(key);
+            return true;
+        } catch (Throwable e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
-    public void close() {
+    public void terminate() {
         if (jedisPool != null) {
             if (!jedisPool.isClosed()) {
                 jedisPool.close();

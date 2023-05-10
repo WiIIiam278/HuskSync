@@ -1,16 +1,12 @@
 package net.william278.husksync.listener;
 
-import de.themoep.minedown.adventure.MineDown;
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.data.DataSaveCause;
 import net.william278.husksync.data.ItemData;
 import net.william278.husksync.player.OnlineUser;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -64,39 +60,35 @@ public abstract class EventListener {
             } catch (InterruptedException e) {
                 plugin.log(Level.SEVERE, "An exception occurred handling a player join", e);
             } finally {
-                plugin.getRedisManager().getUserServerSwitch(user).thenAccept(changingServers -> {
-                    if (!changingServers) {
-                        // Fetch from the database if the user isn't changing servers
-                        setUserFromDatabase(user).thenAccept(succeeded -> handleSynchronisationCompletion(user, succeeded));
-                    } else {
-                        final int TIME_OUT_MILLISECONDS = 3200;
-                        CompletableFuture.runAsync(() -> {
-                            final AtomicInteger currentMilliseconds = new AtomicInteger(0);
-                            final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
 
-                            // Set the user as soon as the source server has set the data to redis
-                            executor.scheduleAtFixedRate(() -> {
-                                if (user.isOffline()) {
-                                    executor.shutdown();
-                                    return;
-                                }
-                                if (disabling || currentMilliseconds.get() > TIME_OUT_MILLISECONDS) {
-                                    executor.shutdown();
-                                    setUserFromDatabase(user).thenAccept(
-                                            succeeded -> handleSynchronisationCompletion(user, succeeded));
-                                    return;
-                                }
-                                plugin.getRedisManager().getUserData(user).thenAccept(redisUserData ->
-                                        redisUserData.ifPresent(redisData -> {
-                                            user.setData(redisData, plugin)
-                                                    .thenAccept(succeeded -> handleSynchronisationCompletion(user, succeeded)).join();
-                                            executor.shutdown();
-                                        })).join();
-                                currentMilliseconds.addAndGet(200);
-                            }, 0, 200L, TimeUnit.MILLISECONDS);
-                        });
-                    }
-                });
+                if (!plugin.getRedisManager().getUserServerSwitch(user)) {
+                    // Fetch from the database if the user isn't changing servers
+                    setUserFromDatabase(user);
+                } else {
+                    final int TIME_OUT_MILLISECONDS = 3200;
+                    CompletableFuture.runAsync(() -> {
+                        final AtomicInteger currentMilliseconds = new AtomicInteger(0);
+                        final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
+
+                        // Set the user as soon as the source server has set the data to redis
+                        executor.scheduleAtFixedRate(() -> {
+                            if (user.isOffline()) {
+                                executor.shutdown();
+                                return;
+                            }
+                            if (disabling || currentMilliseconds.get() > TIME_OUT_MILLISECONDS) {
+                                executor.shutdown();
+                                setUserFromDatabase(user);
+                                return;
+                            }
+                            plugin.getRedisManager().getUserData(user).ifPresent(redisData -> {
+                                user.setData(redisData, plugin);
+                                executor.shutdown();
+                            });
+                            currentMilliseconds.addAndGet(200);
+                        }, 0, 200L, TimeUnit.MILLISECONDS);
+                    });
+                }
             }
         });
     }
@@ -107,40 +99,13 @@ public abstract class EventListener {
      * @param user The user to set the data for
      * @return Whether the data was successfully set
      */
-    private CompletableFuture<Boolean> setUserFromDatabase(@NotNull OnlineUser user) {
-        return plugin.getDatabase().getCurrentUserData(user).thenApply(databaseUserData -> {
-            if (databaseUserData.isPresent()) {
-                return user.setData(databaseUserData.get().userData(), plugin).join();
-            }
-            return true;
-        });
-    }
-
-    /**
-     * Handle a player's synchronization completion
-     *
-     * @param user      The {@link OnlineUser} to handle
-     * @param succeeded Whether the synchronization succeeded
-     */
-    private void handleSynchronisationCompletion(@NotNull OnlineUser user, boolean succeeded) {
-        if (succeeded) {
-            switch (plugin.getSettings().getNotificationDisplaySlot()) {
-                case CHAT -> plugin.getLocales().getLocale("synchronisation_complete")
-                        .ifPresent(user::sendMessage);
-                case ACTION_BAR -> plugin.getLocales().getLocale("synchronisation_complete")
-                        .ifPresent(user::sendActionBar);
-                case TOAST -> plugin.getLocales().getLocale("synchronisation_complete")
-                        .ifPresent(locale -> user.sendToast(locale, new MineDown(""),
-                                "minecraft:bell", "TASK"));
-            }
-            plugin.getDatabase().ensureUser(user).join();
-            lockedPlayers.remove(user.uuid);
-            plugin.getEventCannon().fireSyncCompleteEvent(user);
-        } else {
-            plugin.getLocales().getLocale("synchronisation_failed")
-                    .ifPresent(user::sendMessage);
-            plugin.getDatabase().ensureUser(user).join();
-        }
+    private boolean setUserFromDatabase(@NotNull OnlineUser user) {
+        return plugin.getDatabase().getCurrentUserData(user)
+                .map(userDataSnapshot -> {
+                    user.setData(userDataSnapshot.userData(), plugin);
+                    return true;
+                })
+                .orElse(false);
     }
 
     /**
@@ -158,19 +123,16 @@ public abstract class EventListener {
             return;
         }
 
-        // Handle asynchronous disconnection
-        lockedPlayers.add(user.uuid);
-        CompletableFuture.runAsync(() -> plugin.getRedisManager().setUserServerSwitch(user)
-                .thenRun(() -> user.getUserData(plugin).thenAccept(
-                        optionalUserData -> optionalUserData.ifPresent(userData -> plugin.getRedisManager()
-                                .setUserData(user, userData).thenRun(() -> plugin.getDatabase()
-                                        .setUserData(user, userData, DataSaveCause.DISCONNECT)))))
-                .exceptionally(throwable -> {
-                    plugin.log(Level.SEVERE,
-                            "An exception occurred handling a player disconnection");
-                    throwable.printStackTrace();
-                    return null;
-                }).join());
+        // Handle disconnection
+        try {
+            lockedPlayers.add(user.uuid);
+            plugin.getRedisManager().setUserServerSwitch(user)
+                    .thenRun(() -> user.getUserData(plugin).ifPresent(userData -> plugin.getRedisManager()
+                            .setUserData(user, userData).thenRun(() -> plugin.getDatabase()
+                                    .setUserData(user, userData, DataSaveCause.DISCONNECT))));
+        } catch (Throwable e) {
+            plugin.log(Level.SEVERE, "An exception occurred handling a player disconnection", e);
+        }
     }
 
     /**
@@ -185,8 +147,8 @@ public abstract class EventListener {
         usersInWorld.stream()
                 .filter(user -> !lockedPlayers.contains(user.uuid) && !user.isNpc())
                 .forEach(user -> user.getUserData(plugin)
-                        .thenAccept(data -> data.ifPresent(userData -> plugin.getDatabase()
-                                .setUserData(user, userData, DataSaveCause.WORLD_SAVE))));
+                        .ifPresent(userData -> plugin.getDatabase()
+                                .setUserData(user, userData, DataSaveCause.WORLD_SAVE)));
     }
 
     /**
@@ -197,15 +159,15 @@ public abstract class EventListener {
      */
     protected void saveOnPlayerDeath(@NotNull OnlineUser user, @NotNull ItemData drops) {
         if (disabling || !plugin.getSettings().doSaveOnDeath() || lockedPlayers.contains(user.uuid) || user.isNpc()
-            || (!plugin.getSettings().doSaveEmptyDropsOnDeath() && drops.isEmpty())) {
+                || (!plugin.getSettings().doSaveEmptyDropsOnDeath() && drops.isEmpty())) {
             return;
         }
 
         user.getUserData(plugin)
-                .thenAccept(data -> data.ifPresent(userData -> {
+                .ifPresent(userData -> {
                     userData.getInventory().orElse(ItemData.empty()).serializedItems = drops.serializedItems;
                     plugin.getDatabase().setUserData(user, userData, DataSaveCause.DEATH);
-                }));
+                });
     }
 
     /**
@@ -229,18 +191,64 @@ public abstract class EventListener {
                 .filter(user -> !lockedPlayers.contains(user.uuid) && !user.isNpc())
                 .forEach(user -> {
                     lockedPlayers.add(user.uuid);
-                    user.getUserData(plugin).join()
+                    user.getUserData(plugin)
                             .ifPresent(userData -> plugin.getDatabase()
-                                    .setUserData(user, userData, DataSaveCause.SERVER_SHUTDOWN).join());
+                                    .setUserData(user, userData, DataSaveCause.SERVER_SHUTDOWN));
                 });
 
         // Close outstanding connections
-        plugin.getDatabase().close();
-        plugin.getRedisManager().close();
+        plugin.getDatabase().terminate();
+        plugin.getRedisManager().terminate();
     }
 
     public final Set<UUID> getLockedPlayers() {
         return this.lockedPlayers;
     }
 
+    /**
+     * Represents priorities for events that HuskSync listens to
+     */
+    public enum Priority {
+        /**
+         * Listens and processes the event execution last
+         */
+        HIGHEST,
+        /**
+         * Listens in between {@link #HIGHEST} and {@link #LOWEST} priority marked
+         */
+        NORMAL,
+        /**
+         * Listens and processes the event execution first
+         */
+        LOWEST
+    }
+
+    /**
+     * Represents events that HuskSync listens to, with a configurable priority listener
+     */
+    public enum ListenerType {
+        JOIN_LISTENER(Priority.LOWEST),
+        QUIT_LISTENER(Priority.LOWEST),
+        DEATH_LISTENER(Priority.NORMAL);
+
+        private final Priority defaultPriority;
+
+        ListenerType(@NotNull EventListener.Priority defaultPriority) {
+            this.defaultPriority = defaultPriority;
+        }
+
+        @NotNull
+        private Map.Entry<String, String> toEntry() {
+            return Map.entry(name().toLowerCase(), defaultPriority.name());
+        }
+
+
+        @SuppressWarnings("unchecked")
+        @NotNull
+        public static Map<String, String> getDefaults() {
+            return Map.ofEntries(Arrays.stream(values())
+                    .map(ListenerType::toEntry)
+                    .toArray(Map.Entry[]::new));
+        }
+    }
 }

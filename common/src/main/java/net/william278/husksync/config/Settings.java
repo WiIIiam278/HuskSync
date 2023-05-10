@@ -3,6 +3,8 @@ package net.william278.husksync.config;
 import net.william278.annotaml.YamlComment;
 import net.william278.annotaml.YamlFile;
 import net.william278.annotaml.YamlKey;
+import net.william278.husksync.data.SynchronizationFeature;
+import net.william278.husksync.listener.EventListener;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -110,7 +112,7 @@ public class Settings {
     private boolean compressData = true;
 
     @YamlKey("synchronization.notification_display_slot")
-    private NotificationDisplaySlot notificationDisplaySlot = NotificationDisplaySlot.ACTION_BAR;
+    private Locales.NotificationSlot notificationSlot = Locales.NotificationSlot.ACTION_BAR;
 
     @YamlKey("synchronization.synchronise_dead_players_changing_server")
     private boolean synchroniseDeadPlayersChangingServer = true;
@@ -125,7 +127,7 @@ public class Settings {
     private List<String> blacklistedCommandsWhileLocked = new ArrayList<>();
 
     @YamlKey("synchronization.event_priorities")
-    private Map<String, String> synchronizationEventPriorities = EventType.getDefaults();
+    private Map<String, String> synchronizationEventPriorities = EventListener.ListenerType.getDefaults();
 
 
     // Zero-args constructor for instantiation via Annotaml
@@ -227,10 +229,12 @@ public class Settings {
         return maxUserDataSnapshots;
     }
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public boolean doSaveOnWorldSave() {
         return saveOnWorldSave;
     }
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public boolean doSaveOnDeath() {
         return saveOnDeath;
     }
@@ -244,8 +248,8 @@ public class Settings {
     }
 
     @NotNull
-    public NotificationDisplaySlot getNotificationDisplaySlot() {
-        return notificationDisplaySlot;
+    public Locales.NotificationSlot getNotificationDisplaySlot() {
+        return notificationSlot;
     }
 
     public boolean isSynchroniseDeadPlayersChangingServer() {
@@ -262,7 +266,7 @@ public class Settings {
     }
 
     public boolean getSynchronizationFeature(@NotNull SynchronizationFeature feature) {
-        return getSynchronizationFeatures().getOrDefault(feature.name().toLowerCase(), feature.enabledByDefault);
+        return getSynchronizationFeatures().getOrDefault(feature.name().toLowerCase(), feature.isEnabledByDefault());
     }
 
     @NotNull
@@ -271,12 +275,12 @@ public class Settings {
     }
 
     @NotNull
-    public EventPriority getEventPriority(@NotNull Settings.EventType eventType) {
+    public EventListener.Priority getEventPriority(@NotNull EventListener.ListenerType listenerType) {
         try {
-            return EventPriority.valueOf(synchronizationEventPriorities.get(eventType.name().toLowerCase()));
+            return EventListener.Priority.valueOf(synchronizationEventPriorities.get(listenerType.name().toLowerCase()));
         } catch (IllegalArgumentException e) {
             e.printStackTrace();
-            return EventPriority.NORMAL;
+            return EventListener.Priority.NORMAL;
         }
     }
 
@@ -305,113 +309,6 @@ public class Settings {
                     .map(TableName::toEntry)
                     .toArray(Map.Entry[]::new));
         }
-    }
-
-    /**
-     * Determines the slot a system notification should be displayed in
-     */
-    public enum NotificationDisplaySlot {
-        /**
-         * Displays the notification in the action bar
-         */
-        ACTION_BAR,
-        /**
-         * Displays the notification in the chat
-         */
-        CHAT,
-        /**
-         * Displays the notification in an advancement toast
-         */
-        TOAST,
-        /**
-         * Does not display the notification
-         */
-        NONE
-    }
-
-    /**
-     * Represents enabled synchronisation features
-     */
-    public enum SynchronizationFeature {
-        INVENTORIES(true),
-        ENDER_CHESTS(true),
-        HEALTH(true),
-        MAX_HEALTH(true),
-        HUNGER(true),
-        EXPERIENCE(true),
-        POTION_EFFECTS(true),
-        ADVANCEMENTS(true),
-        GAME_MODE(true),
-        STATISTICS(true),
-        PERSISTENT_DATA_CONTAINER(false),
-        LOCKED_MAPS(false),
-        LOCATION(false);
-
-        private final boolean enabledByDefault;
-
-        SynchronizationFeature(boolean enabledByDefault) {
-            this.enabledByDefault = enabledByDefault;
-        }
-
-        @NotNull
-        private Map.Entry<String, Boolean> toEntry() {
-            return Map.entry(name().toLowerCase(), enabledByDefault);
-        }
-
-        @SuppressWarnings("unchecked")
-        @NotNull
-        private static Map<String, Boolean> getDefaults() {
-            return Map.ofEntries(Arrays.stream(values())
-                    .map(SynchronizationFeature::toEntry)
-                    .toArray(Map.Entry[]::new));
-        }
-    }
-
-    /**
-     * Represents events that HuskSync listens to, with a configurable priority listener
-     */
-    public enum EventType {
-        JOIN_LISTENER(EventPriority.LOWEST),
-        QUIT_LISTENER(EventPriority.LOWEST),
-        DEATH_LISTENER(EventPriority.NORMAL);
-
-        private final EventPriority defaultPriority;
-
-        EventType(@NotNull EventPriority defaultPriority) {
-            this.defaultPriority = defaultPriority;
-        }
-
-        @NotNull
-        private Map.Entry<String, String> toEntry() {
-            return Map.entry(name().toLowerCase(), defaultPriority.name());
-        }
-
-
-        @SuppressWarnings("unchecked")
-        @NotNull
-        private static Map<String, String> getDefaults() {
-            return Map.ofEntries(Arrays.stream(values())
-                    .map(EventType::toEntry)
-                    .toArray(Map.Entry[]::new));
-        }
-    }
-
-    /**
-     * Represents priorities for events that HuskSync listens to
-     */
-    public enum EventPriority {
-        /**
-         * Listens and processes the event execution last
-         */
-        HIGHEST,
-        /**
-         * Listens in between {@link #HIGHEST} and {@link #LOWEST} priority marked
-         */
-        NORMAL,
-        /**
-         * Listens and processes the event execution first
-         */
-        LOWEST
     }
 
 }

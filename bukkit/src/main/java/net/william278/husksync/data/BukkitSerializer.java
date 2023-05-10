@@ -1,7 +1,6 @@
 package net.william278.husksync.data;
 
 import net.william278.husksync.BukkitHuskSync;
-import net.william278.husksync.config.Settings;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.util.io.BukkitObjectInputStream;
@@ -41,7 +40,7 @@ public class BukkitSerializer {
                 bukkitOutputStream.writeInt(inventoryContents.length);
 
                 // Write each serialize each ItemStack to the output stream
-                final boolean persistLockedMaps = BukkitHuskSync.getInstance().getSettings().getSynchronizationFeature(Settings.SynchronizationFeature.LOCKED_MAPS);
+                final boolean persistLockedMaps = BukkitHuskSync.getInstance().getSettings().getSynchronizationFeature(SynchronizationFeature.LOCKED_MAPS);
                 for (ItemStack inventoryItem : inventoryContents) {
                     if (persistLockedMaps) {
                         BukkitMapHandler.persistMapData(inventoryItem);
@@ -94,7 +93,7 @@ public class BukkitSerializer {
 
                     // Set the ItemStacks in the array from deserialized ItemStack data
                     int slotIndex = 0;
-                    final boolean persistLockedMaps = BukkitHuskSync.getInstance().getSettings().getSynchronizationFeature(Settings.SynchronizationFeature.LOCKED_MAPS);
+                    final boolean persistLockedMaps = BukkitHuskSync.getInstance().getSettings().getSynchronizationFeature(SynchronizationFeature.LOCKED_MAPS);
                     for (ItemStack ignored : inventoryContents) {
                         final ItemStack deserialized = deserializeItemStack(bukkitInputStream.readObject());
                         if (persistLockedMaps) {

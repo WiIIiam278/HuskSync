@@ -66,9 +66,9 @@ public class PlanDataExtension implements DataExtension {
 
     private CompletableFuture<Optional<UserDataSnapshot>> getCurrentUserData(@NotNull UUID uuid) {
         return CompletableFuture.supplyAsync(() -> {
-            final Optional<User> optionalUser = plugin.getDatabase().getUser(uuid).join();
+            final Optional<User> optionalUser = plugin.getDatabase().getUser(uuid);
             if (optionalUser.isPresent()) {
-                return plugin.getDatabase().getCurrentUserData(optionalUser.get()).join();
+                return plugin.getDatabase().getCurrentUserData(optionalUser.get());
             }
             return Optional.empty();
         });
@@ -208,8 +208,8 @@ public class PlanDataExtension implements DataExtension {
                 .columnTwo("ID", new Icon(Family.SOLID, "bolt", Color.NONE))
                 .columnThree("Cause", new Icon(Family.SOLID, "flag", Color.NONE))
                 .columnFour("Pinned", new Icon(Family.SOLID, "thumbtack", Color.NONE));
-        plugin.getDatabase().getUser(playerUUID).join().ifPresent(user ->
-                plugin.getDatabase().getUserData(user).join().forEach(versionedUserData -> dataSnapshotsTable.addRow(
+        plugin.getDatabase().getUser(playerUUID).ifPresent(user ->
+                plugin.getDatabase().getUserData(user).forEach(versionedUserData -> dataSnapshotsTable.addRow(
                         versionedUserData.versionTimestamp().getTime(),
                         versionedUserData.versionUUID().toString().split("-")[0],
                         versionedUserData.cause().name().toLowerCase().replaceAll("_", " "),

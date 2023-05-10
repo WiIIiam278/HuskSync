@@ -21,7 +21,7 @@ public class DummyPlayer extends OnlineUser {
     }
 
     @Override
-    public CompletableFuture<StatusData> getStatus() {
+    public @NotNull StatusData getStatus() {
         return CompletableFuture.supplyAsync(() -> new StatusData(20, 20, 0,
                 20, 5, 5, 1,
                 100, 1, 1f, "SURVIVAL", false));
@@ -34,6 +34,7 @@ public class DummyPlayer extends OnlineUser {
         });
     }
 
+    @NotNull
     @Override
     public CompletableFuture<ItemData> getInventory() {
         return CompletableFuture.supplyAsync(() -> new ItemData(""));
@@ -46,6 +47,7 @@ public class DummyPlayer extends OnlineUser {
         });
     }
 
+    @NotNull
     @Override
     public CompletableFuture<ItemData> getEnderChest() {
         return CompletableFuture.supplyAsync(() -> new ItemData(""));
@@ -58,6 +60,7 @@ public class DummyPlayer extends OnlineUser {
         });
     }
 
+    @NotNull
     @Override
     public CompletableFuture<PotionEffectData> getPotionEffects() {
         return CompletableFuture.supplyAsync(() -> new PotionEffectData(""));
@@ -70,6 +73,7 @@ public class DummyPlayer extends OnlineUser {
         });
     }
 
+    @NotNull
     @Override
     public CompletableFuture<List<AdvancementData>> getAdvancements() {
         return CompletableFuture.supplyAsync(ArrayList::new);
@@ -82,6 +86,7 @@ public class DummyPlayer extends OnlineUser {
         });
     }
 
+    @NotNull
     @Override
     public CompletableFuture<StatisticsData> getStatistics() {
         return CompletableFuture.supplyAsync(() -> new StatisticsData(new HashMap<>(),

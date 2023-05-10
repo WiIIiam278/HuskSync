@@ -17,7 +17,8 @@ public class CompressedDataAdapter extends JsonDataAdapter {
     }
 
     @Override
-    public @NotNull UserData fromBytes(byte[] data) throws DataAdaptionException {
+    @NotNull
+    public UserData fromBytes(byte[] data) throws DataAdaptionException {
         try {
             return super.fromBytes(Snappy.uncompress(data));
         } catch (IOException e) {

@@ -3,17 +3,14 @@ package net.william278.husksync.command;
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.data.DataSaveCause;
 import net.william278.husksync.data.UserData;
-import net.william278.husksync.util.DataSnapshotList;
+import net.william278.husksync.data.UserDataSnapshot;
 import net.william278.husksync.player.OnlineUser;
 import net.william278.husksync.util.DataDumper;
+import net.william278.husksync.util.DataSnapshotList;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
@@ -46,32 +43,28 @@ public class UserDataCommand extends CommandBase implements TabCompletable {
                 if (args.length >= 3) {
                     try {
                         final UUID versionUuid = UUID.fromString(args[2]);
-                        CompletableFuture.runAsync(() -> plugin.getDatabase()
+                        plugin.getDatabase()
                                 .getUserByName(username.toLowerCase())
-                                .thenAccept(optionalUser -> optionalUser
-                                        .ifPresentOrElse(user -> plugin.getDatabase().getUserData(user, versionUuid)
-                                                        .thenAccept(data -> data.ifPresentOrElse(
-                                                                userData -> userData.displayDataOverview(player, user, plugin.getLocales()),
-                                                                () -> plugin.getLocales().getLocale("error_invalid_version_uuid")
-                                                                        .ifPresent(player::sendMessage))),
-                                                () -> plugin.getLocales().getLocale("error_invalid_player")
-                                                        .ifPresent(player::sendMessage))));
+                                .ifPresentOrElse(user -> plugin.getDatabase().getUserData(user, versionUuid).ifPresentOrElse(
+                                                userData -> userData.displayDataOverview(player, user, plugin.getLocales()),
+                                                () -> plugin.getLocales().getLocale("error_invalid_version_uuid")
+                                                        .ifPresent(player::sendMessage)),
+                                        () -> plugin.getLocales().getLocale("error_invalid_player")
+                                                .ifPresent(player::sendMessage));
                     } catch (IllegalArgumentException e) {
                         plugin.getLocales().getLocale("error_invalid_syntax",
                                         "/userdata view <username> [version_uuid]")
                                 .ifPresent(player::sendMessage);
                     }
                 } else {
-                    CompletableFuture.runAsync(() -> plugin.getDatabase()
+                    plugin.getDatabase()
                             .getUserByName(username.toLowerCase())
-                            .thenAccept(optionalUser -> optionalUser
-                                    .ifPresentOrElse(user -> plugin.getDatabase().getCurrentUserData(user)
-                                                    .thenAccept(latestData -> latestData.ifPresentOrElse(
-                                                            userData -> userData.displayDataOverview(player, user, plugin.getLocales()),
-                                                            () -> plugin.getLocales().getLocale("error_no_data_to_display")
-                                                                    .ifPresent(player::sendMessage))),
-                                            () -> plugin.getLocales().getLocale("error_invalid_player")
-                                                    .ifPresent(player::sendMessage))));
+                            .ifPresentOrElse(user -> plugin.getDatabase().getCurrentUserData(user).ifPresentOrElse(
+                                            userData -> userData.displayDataOverview(player, user, plugin.getLocales()),
+                                            () -> plugin.getLocales().getLocale("error_no_data_to_display")
+                                                    .ifPresent(player::sendMessage)),
+                                    () -> plugin.getLocales().getLocale("error_invalid_player")
+                                            .ifPresent(player::sendMessage));
                 }
             }
             case "list" -> {
@@ -86,36 +79,35 @@ public class UserDataCommand extends CommandBase implements TabCompletable {
                     return;
                 }
                 final String username = args[1];
-                CompletableFuture.runAsync(() -> plugin.getDatabase()
-                        .getUserByName(username.toLowerCase())
-                        .thenAccept(optionalUser -> optionalUser.ifPresentOrElse(
-                                user -> plugin.getDatabase().getUserData(user).thenAccept(dataList -> {
-                                    // Check if there is data to display
-                                    if (dataList.isEmpty()) {
-                                        plugin.getLocales().getLocale("error_no_data_to_display")
-                                                .ifPresent(player::sendMessage);
-                                        return;
-                                    }
+                plugin.getDatabase().getUserByName(username.toLowerCase()).ifPresentOrElse(user -> {
+                            final List<UserDataSnapshot> dataList = plugin.getDatabase().getUserData(user);
 
-                                    // Determine page to display
-                                    int page = 1;
-                                    if (args.length >= 3) {
-                                        try {
-                                            page = Integer.parseInt(args[2]);
-                                        } catch (NumberFormatException e) {
-                                            plugin.getLocales().getLocale("error_invalid_syntax",
-                                                            "/userdata list <username> [page]")
-                                                    .ifPresent(player::sendMessage);
-                                            return;
-                                        }
-                                    }
+                            // Check if there is data to display
+                            if (dataList.isEmpty()) {
+                                plugin.getLocales().getLocale("error_no_data_to_display")
+                                        .ifPresent(player::sendMessage);
+                                return;
+                            }
 
-                                    // Show the list to the player
-                                    DataSnapshotList.create(dataList, user, plugin.getLocales())
-                                            .displayPage(player, page);
-                                }),
-                                () -> plugin.getLocales().getLocale("error_invalid_player")
-                                        .ifPresent(player::sendMessage))));
+                            // Determine page to display
+                            int page = 1;
+                            if (args.length >= 3) {
+                                try {
+                                    page = Integer.parseInt(args[2]);
+                                } catch (NumberFormatException e) {
+                                    plugin.getLocales().getLocale("error_invalid_syntax",
+                                                    "/userdata list <username> [page]")
+                                            .ifPresent(player::sendMessage);
+                                    return;
+                                }
+                            }
+
+                            // Show the list to the player
+                            DataSnapshotList.create(dataList, user, plugin.getLocales())
+                                    .displayPage(player, page);
+                        },
+                        () -> plugin.getLocales().getLocale("error_invalid_player")
+                                .ifPresent(player::sendMessage));
             }
             case "delete" -> {
                 if (!player.hasPermission(Permission.COMMAND_USER_DATA_MANAGE.node)) {
@@ -132,24 +124,21 @@ public class UserDataCommand extends CommandBase implements TabCompletable {
                 final String username = args[1];
                 try {
                     final UUID versionUuid = UUID.fromString(args[2]);
-                    CompletableFuture.runAsync(() -> plugin.getDatabase()
-                            .getUserByName(username.toLowerCase())
-                            .thenAccept(optionalUser -> optionalUser.ifPresentOrElse(
-                                    user -> plugin.getDatabase().deleteUserData(user, versionUuid).thenAccept(deleted -> {
-                                        if (deleted) {
-                                            plugin.getLocales().getLocale("data_deleted",
-                                                            versionUuid.toString().split("-")[0],
-                                                            versionUuid.toString(),
-                                                            user.username,
-                                                            user.uuid.toString())
-                                                    .ifPresent(player::sendMessage);
-                                        } else {
-                                            plugin.getLocales().getLocale("error_invalid_version_uuid")
-                                                    .ifPresent(player::sendMessage);
-                                        }
-                                    }),
-                                    () -> plugin.getLocales().getLocale("error_invalid_player")
-                                            .ifPresent(player::sendMessage))));
+                    plugin.getDatabase().getUserByName(username.toLowerCase()).ifPresentOrElse(user -> {
+                                if (plugin.getDatabase().deleteUserData(user, versionUuid)) {
+                                    plugin.getLocales().getLocale("data_deleted",
+                                                    versionUuid.toString().split("-")[0],
+                                                    versionUuid.toString(),
+                                                    user.username,
+                                                    user.uuid.toString())
+                                            .ifPresent(player::sendMessage);
+                                } else {
+                                    plugin.getLocales().getLocale("error_invalid_version_uuid")
+                                            .ifPresent(player::sendMessage);
+                                }
+                            },
+                            () -> plugin.getLocales().getLocale("error_invalid_player")
+                                    .ifPresent(player::sendMessage));
                 } catch (IllegalArgumentException e) {
                     plugin.getLocales().getLocale("error_invalid_syntax",
                                     "/userdata delete <username> <version_uuid>")
@@ -171,32 +160,31 @@ public class UserDataCommand extends CommandBase implements TabCompletable {
                 final String username = args[1];
                 try {
                     final UUID versionUuid = UUID.fromString(args[2]);
-                    CompletableFuture.runAsync(() -> plugin.getDatabase()
-                            .getUserByName(username.toLowerCase())
-                            .thenAccept(optionalUser -> optionalUser.ifPresentOrElse(
-                                    user -> plugin.getDatabase().getUserData(user, versionUuid).thenAccept(data -> {
-                                        if (data.isEmpty()) {
-                                            plugin.getLocales().getLocale("error_invalid_version_uuid")
-                                                    .ifPresent(player::sendMessage);
-                                            return;
-                                        }
+                    plugin.getDatabase().getUserByName(username.toLowerCase()).ifPresentOrElse(
+                            user -> {
+                                final Optional<UserDataSnapshot> data = plugin.getDatabase().getUserData(user, versionUuid);
+                                if (data.isEmpty()) {
+                                    plugin.getLocales().getLocale("error_invalid_version_uuid")
+                                            .ifPresent(player::sendMessage);
+                                    return;
+                                }
 
-                                        // Restore users with a minimum of one health (prevent restoring players with <=0 health)
-                                        final UserData userData = data.get().userData();
-                                        userData.getStatus().ifPresent(status -> status.health = Math.max(1, status.health));
+                                // Restore users with a minimum of one health (prevent restoring players with <=0 health)
+                                final UserData userData = data.get().userData();
+                                userData.getStatus().ifPresent(status -> status.health = Math.max(1, status.health));
 
-                                        // Set the users data and send a message
-                                        plugin.getDatabase().setUserData(user, userData, DataSaveCause.BACKUP_RESTORE);
-                                        plugin.getRedisManager().sendUserDataUpdate(user, data.get().userData()).join();
-                                        plugin.getLocales().getLocale("data_restored",
-                                                        user.username,
-                                                        user.uuid.toString(),
-                                                        versionUuid.toString().split("-")[0],
-                                                        versionUuid.toString())
-                                                .ifPresent(player::sendMessage);
-                                    }),
-                                    () -> plugin.getLocales().getLocale("error_invalid_player")
-                                            .ifPresent(player::sendMessage))));
+                                // Set the users data and send a message
+                                plugin.getDatabase().setUserData(user, userData, DataSaveCause.BACKUP_RESTORE);
+                                plugin.getRedisManager().sendUserDataUpdate(user, data.get().userData()).join();
+                                plugin.getLocales().getLocale("data_restored",
+                                                user.username,
+                                                user.uuid.toString(),
+                                                versionUuid.toString().split("-")[0],
+                                                versionUuid.toString())
+                                        .ifPresent(player::sendMessage);
+                            },
+                            () -> plugin.getLocales().getLocale("error_invalid_player")
+                                    .ifPresent(player::sendMessage));
                 } catch (IllegalArgumentException e) {
                     plugin.getLocales().getLocale("error_invalid_syntax",
                                     "/userdata restore <username> <version_uuid>")
@@ -218,32 +206,30 @@ public class UserDataCommand extends CommandBase implements TabCompletable {
                 final String username = args[1];
                 try {
                     final UUID versionUuid = UUID.fromString(args[2]);
-                    CompletableFuture.runAsync(() -> plugin.getDatabase()
-                            .getUserByName(username.toLowerCase())
-                            .thenAccept(optionalUser -> optionalUser.ifPresentOrElse(
-                                    user -> plugin.getDatabase().getUserData(user, versionUuid).thenAccept(
-                                            optionalUserData -> optionalUserData.ifPresentOrElse(userData -> {
-                                                if (userData.pinned()) {
-                                                    plugin.getDatabase().unpinUserData(user, versionUuid).join();
-                                                    plugin.getLocales().getLocale("data_unpinned",
-                                                                    versionUuid.toString().split("-")[0],
-                                                                    versionUuid.toString(),
-                                                                    user.username,
-                                                                    user.uuid.toString())
-                                                            .ifPresent(player::sendMessage);
-                                                } else {
-                                                    plugin.getDatabase().pinUserData(user, versionUuid).join();
-                                                    plugin.getLocales().getLocale("data_pinned",
-                                                                    versionUuid.toString().split("-")[0],
-                                                                    versionUuid.toString(),
-                                                                    user.username,
-                                                                    user.uuid.toString())
-                                                            .ifPresent(player::sendMessage);
-                                                }
-                                            }, () -> plugin.getLocales().getLocale("error_invalid_version_uuid")
-                                                    .ifPresent(player::sendMessage))),
+                    plugin.getDatabase()
+                            .getUserByName(username.toLowerCase()).ifPresentOrElse(
+                                    user -> plugin.getDatabase().getUserData(user, versionUuid).ifPresentOrElse(userData -> {
+                                        if (userData.pinned()) {
+                                            plugin.getDatabase().unpinUserData(user, versionUuid);
+                                            plugin.getLocales().getLocale("data_unpinned",
+                                                            versionUuid.toString().split("-")[0],
+                                                            versionUuid.toString(),
+                                                            user.username,
+                                                            user.uuid.toString())
+                                                    .ifPresent(player::sendMessage);
+                                        } else {
+                                            plugin.getDatabase().pinUserData(user, versionUuid);
+                                            plugin.getLocales().getLocale("data_pinned",
+                                                            versionUuid.toString().split("-")[0],
+                                                            versionUuid.toString(),
+                                                            user.username,
+                                                            user.uuid.toString())
+                                                    .ifPresent(player::sendMessage);
+                                        }
+                                    }, () -> plugin.getLocales().getLocale("error_invalid_version_uuid")
+                                            .ifPresent(player::sendMessage)),
                                     () -> plugin.getLocales().getLocale("error_invalid_player")
-                                            .ifPresent(player::sendMessage))));
+                                            .ifPresent(player::sendMessage));
                 } catch (IllegalArgumentException e) {
                     plugin.getLocales().getLocale("error_invalid_syntax",
                                     "/userdata pin <username> <version_uuid>")
@@ -266,24 +252,23 @@ public class UserDataCommand extends CommandBase implements TabCompletable {
                 final String username = args[1];
                 try {
                     final UUID versionUuid = UUID.fromString(args[2]);
-                    CompletableFuture.runAsync(() -> plugin.getDatabase()
+                    plugin.getDatabase()
                             .getUserByName(username.toLowerCase())
-                            .thenAccept(optionalUser -> optionalUser.ifPresentOrElse(
-                                    user -> plugin.getDatabase().getUserData(user, versionUuid).thenAccept(
-                                            optionalUserData -> optionalUserData.ifPresentOrElse(userData -> {
-                                                try {
-                                                    final DataDumper dumper = DataDumper.create(userData, user, plugin);
-                                                    final String result = toWeb ? dumper.toWeb() : dumper.toFile();
-                                                    plugin.getLocales().getLocale("data_dumped", versionUuid.toString()
-                                                                    .split("-")[0], user.username, result)
-                                                            .ifPresent(player::sendMessage);
-                                                } catch (IOException e) {
-                                                    plugin.log(Level.SEVERE, "Failed to dump user data", e);
-                                                }
-                                            }, () -> plugin.getLocales().getLocale("error_invalid_version_uuid")
-                                                    .ifPresent(player::sendMessage))),
+                            .ifPresentOrElse(
+                                    user -> plugin.getDatabase().getUserData(user, versionUuid).ifPresentOrElse(userData -> {
+                                        try {
+                                            final DataDumper dumper = DataDumper.create(userData, user, plugin);
+                                            final String result = toWeb ? dumper.toWeb() : dumper.toFile();
+                                            plugin.getLocales().getLocale("data_dumped", versionUuid.toString()
+                                                            .split("-")[0], user.username, result)
+                                                    .ifPresent(player::sendMessage);
+                                        } catch (IOException e) {
+                                            plugin.log(Level.SEVERE, "Failed to dump user data", e);
+                                        }
+                                    }, () -> plugin.getLocales().getLocale("error_invalid_version_uuid")
+                                            .ifPresent(player::sendMessage)),
                                     () -> plugin.getLocales().getLocale("error_invalid_player")
-                                            .ifPresent(player::sendMessage))));
+                                            .ifPresent(player::sendMessage));
                 } catch (IllegalArgumentException e) {
                     plugin.getLocales().getLocale("error_invalid_syntax",
                                     "/userdata dump <username> <version_uuid>")

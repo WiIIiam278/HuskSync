@@ -170,4 +170,25 @@ public class Locales {
     public Locales() {
     }
 
+    /**
+     * Determines the slot a system notification should be displayed in
+     */
+    public enum NotificationSlot {
+        /**
+         * Displays the notification in the action bar
+         */
+        ACTION_BAR,
+        /**
+         * Displays the notification in the chat
+         */
+        CHAT,
+        /**
+         * Displays the notification in an advancement toast
+         */
+        TOAST,
+        /**
+         * Does not display the notification
+         */
+        NONE
+    }
 }

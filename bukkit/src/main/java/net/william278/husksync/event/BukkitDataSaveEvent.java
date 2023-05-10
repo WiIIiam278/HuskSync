@@ -15,8 +15,7 @@ public class BukkitDataSaveEvent extends BukkitEvent implements DataSaveEvent, C
     private final User user;
     private final DataSaveCause saveCause;
 
-    protected BukkitDataSaveEvent(@NotNull User user, @NotNull UserData userData,
-                                  @NotNull DataSaveCause saveCause) {
+    protected BukkitDataSaveEvent(@NotNull User user, @NotNull UserData userData, @NotNull DataSaveCause saveCause) {
         this.user = user;
         this.userData = userData;
         this.saveCause = saveCause;

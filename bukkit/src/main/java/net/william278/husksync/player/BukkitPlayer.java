@@ -58,7 +58,7 @@ public class BukkitPlayer extends OnlineUser {
     }
 
     @Override
-    public CompletableFuture<StatusData> getStatus() {
+    public @NotNull StatusData getStatus() {
         return CompletableFuture.supplyAsync(() -> {
             final double maxHealth = getMaxHealth(player);
             return new StatusData(Math.min(player.getHealth(), maxHealth),
@@ -81,14 +81,14 @@ public class BukkitPlayer extends OnlineUser {
         return CompletableFuture.runAsync(() -> {
             // Set max health
             double currentMaxHealth = Objects.requireNonNull(player.getAttribute(Attribute.GENERIC_MAX_HEALTH)).getBaseValue();
-            if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.MAX_HEALTH)) {
+            if (settings.getSynchronizationFeature(SynchronizationFeature.MAX_HEALTH)) {
                 if (statusData.maxHealth != 0d) {
                     Objects.requireNonNull(player.getAttribute(Attribute.GENERIC_MAX_HEALTH))
                             .setBaseValue(statusData.maxHealth);
                     currentMaxHealth = statusData.maxHealth;
                 }
             }
-            if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.HEALTH)) {
+            if (settings.getSynchronizationFeature(SynchronizationFeature.HEALTH)) {
                 // Set health
                 final double currentHealth = player.getHealth();
                 if (statusData.health != currentHealth) {
@@ -117,24 +117,24 @@ public class BukkitPlayer extends OnlineUser {
                             "Failed to set health scale of player " + player.getName() + " to " + statusData.healthScale);
                 }
             }
-            if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.HUNGER)) {
+            if (settings.getSynchronizationFeature(SynchronizationFeature.HUNGER)) {
                 player.setFoodLevel(statusData.hunger);
                 player.setSaturation(statusData.saturation);
                 player.setExhaustion(statusData.saturationExhaustion);
             }
-            if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.INVENTORIES)) {
+            if (settings.getSynchronizationFeature(SynchronizationFeature.INVENTORIES)) {
                 player.getInventory().setHeldItemSlot(statusData.selectedItemSlot);
             }
-            if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.EXPERIENCE)) {
+            if (settings.getSynchronizationFeature(SynchronizationFeature.EXPERIENCE)) {
                 player.setTotalExperience(statusData.totalExperience);
                 player.setLevel(statusData.expLevel);
                 player.setExp(statusData.expProgress);
             }
-            if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.GAME_MODE)) {
+            if (settings.getSynchronizationFeature(SynchronizationFeature.GAME_MODE)) {
                 Bukkit.getScheduler().runTask(BukkitHuskSync.getInstance(), () ->
                         player.setGameMode(GameMode.valueOf(statusData.gameMode)));
             }
-            if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.LOCATION)) {
+            if (settings.getSynchronizationFeature(SynchronizationFeature.LOCATION)) {
                 Bukkit.getScheduler().runTask(BukkitHuskSync.getInstance(), () -> {
                     if (statusData.isFlying) {
                         player.setAllowFlight(true);
@@ -146,6 +146,7 @@ public class BukkitPlayer extends OnlineUser {
         });
     }
 
+    @NotNull
     @Override
     public CompletableFuture<ItemData> getInventory() {
         final PlayerInventory inventory = player.getInventory();
@@ -170,6 +171,7 @@ public class BukkitPlayer extends OnlineUser {
         });
     }
 
+    @NotNull
     @Override
     public CompletableFuture<ItemData> getEnderChest() {
         final Inventory enderChest = player.getEnderChest();
@@ -192,6 +194,7 @@ public class BukkitPlayer extends OnlineUser {
         });
     }
 
+    @NotNull
     @Override
     public CompletableFuture<PotionEffectData> getPotionEffects() {
         return BukkitSerializer.serializePotionEffectArray(player.getActivePotionEffects()
@@ -216,6 +219,7 @@ public class BukkitPlayer extends OnlineUser {
                 });
     }
 
+    @NotNull
     @Override
     public CompletableFuture<List<AdvancementData>> getAdvancements() {
         return CompletableFuture.supplyAsync(() -> {
@@ -307,6 +311,7 @@ public class BukkitPlayer extends OnlineUser {
         }));
     }
 
+    @NotNull
     @Override
     public CompletableFuture<StatisticsData> getStatistics() {
         return CompletableFuture.supplyAsync(() -> {

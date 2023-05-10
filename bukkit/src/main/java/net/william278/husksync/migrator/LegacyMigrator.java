@@ -54,7 +54,7 @@ public class LegacyMigrator extends Migrator {
         return CompletableFuture.supplyAsync(() -> {
             // Wipe the existing database, preparing it for data import
             plugin.log(Level.INFO, "Preparing existing database (wiping)...");
-            plugin.getDatabase().wipeDatabase().join();
+            plugin.getDatabase().wipeDatabase();
             plugin.log(Level.INFO, "Successfully wiped user data database (took " + (System.currentTimeMillis() - startTime) + "ms)");
 
             // Create jdbc driver connection url
@@ -117,12 +117,13 @@ public class LegacyMigrator extends Migrator {
 
                 final AtomicInteger playersConverted = new AtomicInteger();
                 dataToMigrate.forEach(data -> data.toUserData(hslConverter, minecraftVersion).thenAccept(convertedData -> {
-                    plugin.getDatabase().ensureUser(data.user()).thenRun(() ->
-                            plugin.getDatabase().setUserData(data.user(), convertedData, DataSaveCause.LEGACY_MIGRATION)
-                                    .exceptionally(exception -> {
-                                        plugin.log(Level.SEVERE, "Failed to migrate legacy data for " + data.user().username + ": " + exception.getMessage());
-                                        return null;
-                                    })).join();
+                    plugin.getDatabase().ensureUser(data.user());
+                    try {
+                        plugin.getDatabase().setUserData(data.user(), convertedData, DataSaveCause.LEGACY_MIGRATION);
+                    } catch (Throwable e) {
+                        plugin.log(Level.SEVERE, "Failed to migrate legacy data for " + data.user().username + ": " + e.getMessage());
+                        return;
+                    }
 
                     playersConverted.getAndIncrement();
                     if (playersConverted.get() % 50 == 0) {
@@ -178,10 +179,10 @@ public class LegacyMigrator extends Migrator {
             }) {
                 plugin.log(Level.INFO, getHelpMenu());
                 plugin.log(Level.INFO, "Successfully set " + args[0] + " to " +
-                                                           obfuscateDataString(args[1]));
+                        obfuscateDataString(args[1]));
             } else {
                 plugin.log(Level.INFO, "Invalid operation, could not set " + args[0] + " to " +
-                                                           obfuscateDataString(args[1]) + " (is it a valid option?)");
+                        obfuscateDataString(args[1]) + " (is it a valid option?)");
             }
         } else {
             plugin.log(Level.INFO, getHelpMenu());

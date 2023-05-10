@@ -39,7 +39,7 @@ public abstract class BaseHuskSyncAPI {
      * @since 2.0
      */
     public final CompletableFuture<Optional<User>> getUser(@NotNull UUID uuid) {
-        return plugin.getDatabase().getUser(uuid);
+        return plugin.supplyAsync(() -> plugin.getDatabase().getUser(uuid));
     }
 
     /**
@@ -53,7 +53,7 @@ public abstract class BaseHuskSyncAPI {
      * @since 2.0
      */
     public final CompletableFuture<Optional<User>> getUser(@NotNull String username) {
-        return plugin.getDatabase().getUserByName(username);
+        return plugin.supplyAsync(() -> plugin.getDatabase().getUserByName(username));
     }
 
     /**
@@ -70,11 +70,11 @@ public abstract class BaseHuskSyncAPI {
      * @since 2.0
      */
     public final CompletableFuture<Optional<UserData>> getUserData(@NotNull User user) {
-        return CompletableFuture.supplyAsync(() -> {
+        return plugin.supplyAsync(() -> {
             if (user instanceof OnlineUser) {
                 return ((OnlineUser) user).getUserData(plugin).join();
             } else {
-                return plugin.getDatabase().getCurrentUserData(user).join().map(UserDataSnapshot::userData);
+                return plugin.getDatabase().getCurrentUserData(user).map(UserDataSnapshot::userData);
             }
         });
     }
@@ -90,9 +90,13 @@ public abstract class BaseHuskSyncAPI {
      * @since 2.0
      */
     public final CompletableFuture<Void> setUserData(@NotNull User user, @NotNull UserData userData) {
-        return CompletableFuture.runAsync(() ->
-                plugin.getDatabase().setUserData(user, userData, DataSaveCause.API)
-                        .thenRun(() -> plugin.getRedisManager().sendUserDataUpdate(user, userData).join()));
+        final CompletableFuture<Void> future = new CompletableFuture<>();
+        plugin.runAsync(() -> {
+            plugin.getDatabase().setUserData(user, userData, DataSaveCause.API);
+            plugin.getRedisManager().sendUserDataUpdate(user, userData);
+            future.complete(null);
+        });
+        return future;
     }
 
     /**
@@ -103,9 +107,13 @@ public abstract class BaseHuskSyncAPI {
      * @since 2.0
      */
     public final CompletableFuture<Void> saveUserData(@NotNull OnlineUser user) {
-        return CompletableFuture.runAsync(() -> user.getUserData(plugin)
-                .thenAccept(optionalUserData -> optionalUserData.ifPresent(
-                        userData -> plugin.getDatabase().setUserData(user, userData, DataSaveCause.API).join())));
+        final CompletableFuture<Void> future = new CompletableFuture<>();
+        plugin.supplyAsync(() -> user.getUserData(plugin)
+                .thenAccept(optionalUserData -> optionalUserData.ifPresent(userData -> {
+                    plugin.getDatabase().setUserData(user, userData, DataSaveCause.API);
+                    future.complete(null);
+                })));
+        return future;
     }
 
     /**
@@ -119,7 +127,7 @@ public abstract class BaseHuskSyncAPI {
      * @since 2.0
      */
     public final CompletableFuture<List<UserDataSnapshot>> getSavedUserData(@NotNull User user) {
-        return CompletableFuture.supplyAsync(() -> plugin.getDatabase().getUserData(user).join());
+        return plugin.supplyAsync(() -> plugin.getDatabase().getUserData(user));
     }
 
     /**

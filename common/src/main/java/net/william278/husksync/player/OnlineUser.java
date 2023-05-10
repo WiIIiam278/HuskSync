@@ -8,7 +8,6 @@ import net.william278.husksync.data.*;
 import net.william278.husksync.event.PreSyncEvent;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -29,28 +28,8 @@ public abstract class OnlineUser extends User {
      *
      * @return the player's {@link StatusData}
      */
-    public abstract CompletableFuture<StatusData> getStatus();
-
-    /**
-     * Set the player's {@link StatusData}
-     *
-     * @param statusData      the player's {@link StatusData}
-     * @param statusDataFlags the flags to use for setting the status data
-     * @return a future returning void when complete
-     * @deprecated Use {@link #setStatus(StatusData, Settings)} instead
-     */
-    @Deprecated(since = "2.1")
-    public final CompletableFuture<Void> setStatus(@NotNull StatusData statusData,
-                                                   @NotNull List<StatusDataFlag> statusDataFlags) {
-        final Settings settings = new Settings();
-        settings.getSynchronizationFeatures().put(Settings.SynchronizationFeature.HEALTH.name().toLowerCase(), statusDataFlags.contains(StatusDataFlag.SET_HEALTH));
-        settings.getSynchronizationFeatures().put(Settings.SynchronizationFeature.MAX_HEALTH.name().toLowerCase(), statusDataFlags.contains(StatusDataFlag.SET_MAX_HEALTH));
-        settings.getSynchronizationFeatures().put(Settings.SynchronizationFeature.HUNGER.name().toLowerCase(), statusDataFlags.contains(StatusDataFlag.SET_HUNGER));
-        settings.getSynchronizationFeatures().put(Settings.SynchronizationFeature.EXPERIENCE.name().toLowerCase(), statusDataFlags.contains(StatusDataFlag.SET_EXPERIENCE));
-        settings.getSynchronizationFeatures().put(Settings.SynchronizationFeature.INVENTORIES.name().toLowerCase(), statusDataFlags.contains(StatusDataFlag.SET_SELECTED_ITEM_SLOT));
-        settings.getSynchronizationFeatures().put(Settings.SynchronizationFeature.LOCATION.name().toLowerCase(), statusDataFlags.contains(StatusDataFlag.SET_GAME_MODE) || statusDataFlags.contains(StatusDataFlag.SET_FLYING));
-        return setStatus(statusData, settings);
-    }
+    @NotNull
+    public abstract StatusData getStatus();
 
     /**
      * Set the player's {@link StatusData}
@@ -59,15 +38,15 @@ public abstract class OnlineUser extends User {
      * @param settings   settings, containing information about which features should be synced
      * @return a future returning void when complete
      */
-    public abstract CompletableFuture<Void> setStatus(@NotNull StatusData statusData,
-                                                      @NotNull Settings settings);
+    public abstract void setStatus(@NotNull StatusData statusData, @NotNull Settings settings);
 
     /**
      * Get the player's inventory {@link ItemData} contents
      *
      * @return The player's inventory {@link ItemData} contents
      */
-    public abstract CompletableFuture<ItemData> getInventory();
+    @NotNull
+    public abstract ItemData getInventory();
 
     /**
      * Set the player's {@link ItemData}
@@ -75,14 +54,15 @@ public abstract class OnlineUser extends User {
      * @param itemData The player's {@link ItemData}
      * @return a future returning void when complete
      */
-    public abstract CompletableFuture<Void> setInventory(@NotNull ItemData itemData);
+    public abstract void setInventory(@NotNull ItemData itemData);
 
     /**
      * Get the player's ender chest {@link ItemData} contents
      *
      * @return The player's ender chest {@link ItemData} contents
      */
-    public abstract CompletableFuture<ItemData> getEnderChest();
+    @NotNull
+    public abstract ItemData getEnderChest();
 
     /**
      * Set the player's {@link ItemData}
@@ -90,7 +70,7 @@ public abstract class OnlineUser extends User {
      * @param enderChestData The player's {@link ItemData}
      * @return a future returning void when complete
      */
-    public abstract CompletableFuture<Void> setEnderChest(@NotNull ItemData enderChestData);
+    public abstract void setEnderChest(@NotNull ItemData enderChestData);
 
 
     /**
@@ -98,22 +78,23 @@ public abstract class OnlineUser extends User {
      *
      * @return The player's {@link PotionEffectData}
      */
-    public abstract CompletableFuture<PotionEffectData> getPotionEffects();
+    @NotNull
+    public abstract PotionEffectData getPotionEffects();
 
     /**
      * Set the player's {@link PotionEffectData}
      *
      * @param potionEffectData The player's {@link PotionEffectData}
-     * @return a future returning void when complete
      */
-    public abstract CompletableFuture<Void> setPotionEffects(@NotNull PotionEffectData potionEffectData);
+    public abstract void setPotionEffects(@NotNull PotionEffectData potionEffectData);
 
     /**
      * Get the player's set of {@link AdvancementData}
      *
      * @return the player's set of {@link AdvancementData}
      */
-    public abstract CompletableFuture<List<AdvancementData>> getAdvancements();
+    @NotNull
+    public abstract List<AdvancementData> getAdvancements();
 
     /**
      * Set the player's {@link AdvancementData}
@@ -121,14 +102,15 @@ public abstract class OnlineUser extends User {
      * @param advancementData List of the player's {@link AdvancementData}
      * @return a future returning void when complete
      */
-    public abstract CompletableFuture<Void> setAdvancements(@NotNull List<AdvancementData> advancementData);
+    public abstract void setAdvancements(@NotNull List<AdvancementData> advancementData);
 
     /**
      * Get the player's {@link StatisticsData}
      *
      * @return The player's {@link StatisticsData}
      */
-    public abstract CompletableFuture<StatisticsData> getStatistics();
+    @NotNull
+    public abstract StatisticsData getStatistics();
 
     /**
      * Set the player's {@link StatisticsData}
@@ -136,29 +118,29 @@ public abstract class OnlineUser extends User {
      * @param statisticsData The player's {@link StatisticsData}
      * @return a future returning void when complete
      */
-    public abstract CompletableFuture<Void> setStatistics(@NotNull StatisticsData statisticsData);
+    public abstract void setStatistics(@NotNull StatisticsData statisticsData);
 
     /**
      * Get the player's {@link LocationData}
      *
      * @return the player's {@link LocationData}
      */
-    public abstract CompletableFuture<LocationData> getLocation();
+    public abstract LocationData getLocation();
 
     /**
      * Set the player's {@link LocationData}
      *
      * @param locationData the player's {@link LocationData}
-     * @return a future returning void when complete
      */
-    public abstract CompletableFuture<Void> setLocation(@NotNull LocationData locationData);
+    public abstract void setLocation(@NotNull LocationData locationData);
 
     /**
      * Get the player's {@link PersistentDataContainerData}
      *
      * @return The player's {@link PersistentDataContainerData} when fetched
      */
-    public abstract CompletableFuture<PersistentDataContainerData> getPersistentDataContainer();
+    @NotNull
+    public abstract PersistentDataContainerData getPersistentDataContainer();
 
     /**
      * Set the player's {@link PersistentDataContainerData}
@@ -166,7 +148,7 @@ public abstract class OnlineUser extends User {
      * @param persistentDataContainerData The player's {@link PersistentDataContainerData} to set
      * @return A future returning void when complete
      */
-    public abstract CompletableFuture<Void> setPersistentDataContainer(@NotNull PersistentDataContainerData persistentDataContainerData);
+    public abstract void setPersistentDataContainer(@NotNull PersistentDataContainerData persistentDataContainerData);
 
     /**
      * Indicates if the player has gone offline
@@ -245,64 +227,59 @@ public abstract class OnlineUser extends User {
      * @param plugin The plugin instance
      * @return a future returning a boolean when complete; if the sync was successful, the future will return {@code true}.
      */
-    public final CompletableFuture<Boolean> setData(@NotNull UserData data, @NotNull HuskSync plugin) {
-        return CompletableFuture.supplyAsync(() -> {
-            // Prevent synchronising user data from newer versions of Minecraft
-            if (Version.fromMinecraftVersionString(data.getMinecraftVersion()).compareTo(plugin.getMinecraftVersion()) > 0) {
-                plugin.log(Level.SEVERE, "Cannot set data for " + username +
-                                         " because the Minecraft version of their user data (" + data.getMinecraftVersion() +
-                                         ") is newer than the server's Minecraft version (" + plugin.getMinecraftVersion() + ").");
-                return false;
-            }
-            // Prevent synchronising user data from newer versions of the plugin
-            if (data.getFormatVersion() > UserData.CURRENT_FORMAT_VERSION) {
-                plugin.log(Level.SEVERE, "Cannot set data for " + username +
-                                         " because the format version of their user data (v" + data.getFormatVersion() +
-                                         ") is newer than the current format version (v" + UserData.CURRENT_FORMAT_VERSION + ").");
-                return false;
-            }
+    public final void setData(@NotNull UserData data, @NotNull HuskSync plugin) {
+        // Prevent synchronising user data from newer versions of Minecraft
+        if (Version.fromMinecraftVersionString(data.getMinecraftVersion()).compareTo(plugin.getMinecraftVersion()) > 0) {
+            plugin.log(Level.SEVERE, "Cannot set data for " + username +
+                    " because the Minecraft version of their user data (" + data.getMinecraftVersion() +
+                    ") is newer than the server's Minecraft version (" + plugin.getMinecraftVersion() + ").");
+            return; //todo error msg
+        }
+        // Prevent synchronising user data from newer versions of the plugin
+        if (data.getFormatVersion() > UserData.CURRENT_FORMAT_VERSION) {
+            plugin.log(Level.SEVERE, "Cannot set data for " + username +
+                    " because the format version of their user data (v" + data.getFormatVersion() +
+                    ") is newer than the current format version (v" + UserData.CURRENT_FORMAT_VERSION + ").");
+            return; //todo error msg
+        }
 
-            // Fire the PreSyncEvent
-            final PreSyncEvent preSyncEvent = (PreSyncEvent) plugin.getEventCannon().firePreSyncEvent(this, data).join();
-            final UserData finalData = preSyncEvent.getUserData();
-            final List<CompletableFuture<Void>> dataSetOperations = new ArrayList<>() {{
-                if (!isOffline() && !preSyncEvent.isCancelled()) {
-                    final Settings settings = plugin.getSettings();
-                    if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.INVENTORIES)) {
-                        finalData.getInventory().ifPresent(itemData -> add(setInventory(itemData)));
+        // Fire the PreSyncEvent
+        plugin.getEventCannon().firePreSyncEvent(this, data)
+                .thenAccept(event -> {
+                    final PreSyncEvent preSyncEvent = (PreSyncEvent) event;
+                    final UserData finalData = preSyncEvent.getUserData();
+                    try {
+                        if (!isOffline() && !preSyncEvent.isCancelled()) {
+                            final Settings settings = plugin.getSettings();
+                            if (settings.getSynchronizationFeature(SynchronizationFeature.INVENTORIES)) {
+                                finalData.getInventory().ifPresent(this::setInventory);
+                            }
+                            if (settings.getSynchronizationFeature(SynchronizationFeature.ENDER_CHESTS)) {
+                                finalData.getEnderChest().ifPresent(this::setEnderChest);
+                            }
+                            finalData.getStatus().ifPresent(statusData -> setStatus(statusData, settings));
+                            if (settings.getSynchronizationFeature(SynchronizationFeature.POTION_EFFECTS)) {
+                                finalData.getPotionEffects().ifPresent(this::setPotionEffects);
+                            }
+                            if (settings.getSynchronizationFeature(SynchronizationFeature.ADVANCEMENTS)) {
+                                finalData.getAdvancements().ifPresent(this::setAdvancements);
+                            }
+                            if (settings.getSynchronizationFeature(SynchronizationFeature.STATISTICS)) {
+                                finalData.getStatistics().ifPresent(this::setStatistics);
+                            }
+                            if (settings.getSynchronizationFeature(SynchronizationFeature.LOCATION)) {
+                                finalData.getLocation().ifPresent(this::setLocation);
+                            }
+                            if (settings.getSynchronizationFeature(SynchronizationFeature.PERSISTENT_DATA_CONTAINER)) {
+                                finalData.getPersistentDataContainer().ifPresent(this::setPersistentDataContainer);
+                            }
+                        }
+                        sendSynchronisationCompletion(true, plugin);
+                    } catch (Throwable e) {
+                        plugin.log(Level.SEVERE, "An error occurred while setting data for " + username + ": " + e.getMessage(), e);
+                        sendSynchronisationCompletion(false, plugin);
                     }
-                    if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.ENDER_CHESTS)) {
-                        finalData.getEnderChest().ifPresent(itemData -> add(setEnderChest(itemData)));
-                    }
-                    finalData.getStatus().ifPresent(statusData -> add(setStatus(statusData, settings)));
-                    if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.POTION_EFFECTS)) {
-                        finalData.getPotionEffects().ifPresent(potionEffectData -> add(setPotionEffects(potionEffectData)));
-                    }
-                    if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.ADVANCEMENTS)) {
-                        finalData.getAdvancements().ifPresent(advancementData -> add(setAdvancements(advancementData)));
-                    }
-                    if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.STATISTICS)) {
-                        finalData.getStatistics().ifPresent(statisticData -> add(setStatistics(statisticData)));
-                    }
-                    if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.LOCATION)) {
-                        finalData.getLocation().ifPresent(locationData -> add(setLocation(locationData)));
-                    }
-                    if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.PERSISTENT_DATA_CONTAINER)) {
-                        finalData.getPersistentDataContainer().ifPresent(persistentDataContainerData ->
-                                add(setPersistentDataContainer(persistentDataContainerData)));
-                    }
-                }
-            }};
-            // Apply operations in parallel, join when complete
-            return CompletableFuture.allOf(dataSetOperations.toArray(new CompletableFuture[0])).thenApply(unused -> true)
-                    .exceptionally(exception -> {
-                        // Handle synchronisation exceptions
-                        plugin.log(Level.SEVERE, "Failed to set data for player " + username + " (" + exception.getMessage() + ")");
-                        exception.printStackTrace();
-                        return false;
-                    }).join();
-        });
-
+                });
     }
 
     /**
@@ -318,50 +295,72 @@ public abstract class OnlineUser extends User {
      *
      * @param plugin The plugin instance
      */
-    public final CompletableFuture<Optional<UserData>> getUserData(@NotNull HuskSync plugin) {
-        return CompletableFuture.supplyAsync(() -> {
-            final UserDataBuilder builder = UserData.builder(getMinecraftVersion());
-            final List<CompletableFuture<Void>> dataGetOperations = new ArrayList<>() {{
-                if (!isOffline()) {
-                    final Settings settings = plugin.getSettings();
-                    if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.INVENTORIES)) {
-                        if (isDead() && settings.isSynchroniseDeadPlayersChangingServer()) {
-                            plugin.debug("Player " + username + " is dead, so their inventory will be set to empty.");
-                            add(CompletableFuture.runAsync(() -> builder.setInventory(ItemData.empty())));
-                        } else {
-                            add(getInventory().thenAccept(builder::setInventory));
-                        }
-                    }
-                    if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.ENDER_CHESTS)) {
-                        add(getEnderChest().thenAccept(builder::setEnderChest));
-                    }
-                    add(getStatus().thenAccept(builder::setStatus));
-                    if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.POTION_EFFECTS)) {
-                        add(getPotionEffects().thenAccept(builder::setPotionEffects));
-                    }
-                    if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.ADVANCEMENTS)) {
-                        add(getAdvancements().thenAccept(builder::setAdvancements));
-                    }
-                    if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.STATISTICS)) {
-                        add(getStatistics().thenAccept(builder::setStatistics));
-                    }
-                    if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.LOCATION)) {
-                        add(getLocation().thenAccept(builder::setLocation));
-                    }
-                    if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.PERSISTENT_DATA_CONTAINER)) {
-                        add(getPersistentDataContainer().thenAccept(builder::setPersistentDataContainer));
-                    }
-                }
-            }};
-
-            // Apply operations in parallel, join when complete
-            CompletableFuture.allOf(dataGetOperations.toArray(new CompletableFuture[0])).join();
-            return Optional.of(builder.build());
-        }).exceptionally(exception -> {
-            plugin.log(Level.SEVERE, "Failed to get user data from online player " + username + " (" + exception.getMessage() + ")");
-            exception.printStackTrace();
+    public final Optional<UserData> getUserData(@NotNull HuskSync plugin) {
+        final UserDataBuilder builder = UserData.builder(getMinecraftVersion());
+        if (isOffline()) {
             return Optional.empty();
-        });
+        }
+
+        try {
+            final Settings settings = plugin.getSettings();
+            if (settings.getSynchronizationFeature(SynchronizationFeature.INVENTORIES)) {
+                if (isDead() && settings.isSynchroniseDeadPlayersChangingServer()) {
+                    plugin.debug("Player " + username + " is dead, so their inventory will be set to empty.");
+                    builder.setInventory(ItemData.empty());
+                } else {
+                    builder.setInventory(getInventory());
+                }
+            }
+            if (settings.getSynchronizationFeature(SynchronizationFeature.ENDER_CHESTS)) {
+                builder.setEnderChest(getEnderChest());
+            }
+            builder.setStatus(getStatus());
+            if (settings.getSynchronizationFeature(SynchronizationFeature.POTION_EFFECTS)) {
+                builder.setPotionEffects(getPotionEffects());
+            }
+            if (settings.getSynchronizationFeature(SynchronizationFeature.ADVANCEMENTS)) {
+                builder.setAdvancements(getAdvancements());
+            }
+            if (settings.getSynchronizationFeature(SynchronizationFeature.STATISTICS)) {
+                builder.setStatistics(getStatistics());
+            }
+            if (settings.getSynchronizationFeature(SynchronizationFeature.LOCATION)) {
+                builder.setLocation(getLocation());
+            }
+            if (settings.getSynchronizationFeature(SynchronizationFeature.PERSISTENT_DATA_CONTAINER)) {
+                builder.setPersistentDataContainer(getPersistentDataContainer());
+            }
+            return Optional.of(builder.build());
+        } catch (Throwable e) {
+            plugin.log(Level.SEVERE, "An error occurred while getting data for " + username + ": " + e.getMessage(), e);
+            return Optional.empty();
+        }
+    }
+
+    /**
+     * Handle a player's synchronization completion
+     *
+     * @param succeeded Whether the synchronization succeeded
+     * @param plugin    The plugin instance
+     */
+    private void sendSynchronisationCompletion(boolean succeeded, @NotNull HuskSync plugin) {
+        if (succeeded) {
+            switch (plugin.getSettings().getNotificationDisplaySlot()) {
+                case CHAT -> plugin.getLocales().getLocale("synchronisation_complete")
+                        .ifPresent(this::sendMessage);
+                case ACTION_BAR -> plugin.getLocales().getLocale("synchronisation_complete")
+                        .ifPresent(this::sendActionBar);
+                case TOAST -> plugin.getLocales().getLocale("synchronisation_complete")
+                        .ifPresent(locale -> this.sendToast(locale, new MineDown(""),
+                                "minecraft:bell", "TASK"));
+            }
+            plugin.getDatabase().ensureUser(this);
+            plugin.getEventCannon().fireSyncCompleteEvent(this);
+        } else {
+            plugin.getLocales().getLocale("synchronisation_failed")
+                    .ifPresent(this::sendMessage);
+            plugin.getDatabase().ensureUser(this);
+        }
     }
 
     /**
