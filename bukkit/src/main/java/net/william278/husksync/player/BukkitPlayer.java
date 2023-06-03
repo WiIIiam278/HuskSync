@@ -1,14 +1,26 @@
+/*
+ * This file is part of HuskSync by William278. Do not redistribute!
+ *
+ *  Copyright (c) William278 <will27528@gmail.com>
+ *  All rights reserved.
+ *
+ *  This source code is provided as reference to licensed individuals that have purchased the HuskSync
+ *  plugin once from any of the official sources it is provided. The availability of this code does
+ *  not grant you the rights to modify, re-distribute, compile or redistribute this source code or
+ *  "plugin" outside this intended purpose. This license does not cover libraries developed by third
+ *  parties that are utilised in the plugin.
+ */
+
 package net.william278.husksync.player;
 
 import de.themoep.minedown.adventure.MineDown;
-import de.themoep.minedown.adventure.MineDownParser;
 import dev.triumphteam.gui.builder.gui.StorageBuilder;
 import dev.triumphteam.gui.guis.Gui;
 import dev.triumphteam.gui.guis.StorageGui;
 import net.kyori.adventure.audience.Audience;
 import net.roxeez.advancement.display.FrameType;
 import net.william278.andjam.Toast;
-import net.william278.desertwell.Version;
+import net.william278.desertwell.util.Version;
 import net.william278.husksync.BukkitHuskSync;
 import net.william278.husksync.config.Settings;
 import net.william278.husksync.data.*;
@@ -38,14 +50,13 @@ import java.util.logging.Level;
  */
 public class BukkitPlayer extends OnlineUser {
 
-
+    private final BukkitHuskSync plugin;
     private final Player player;
-    private final Audience audience;
 
     private BukkitPlayer(@NotNull Player player) {
         super(player.getUniqueId(), player.getName());
+        this.plugin = BukkitHuskSync.getInstance();
         this.player = player;
-        this.audience = BukkitHuskSync.getInstance().getAudiences().player(player);
     }
 
     @NotNull
@@ -94,11 +105,11 @@ public class BukkitPlayer extends OnlineUser {
                 if (statusData.health != currentHealth) {
                     final double healthToSet = currentHealth > currentMaxHealth ? currentMaxHealth : statusData.health;
                     final double maxHealth = currentMaxHealth;
-                    Bukkit.getScheduler().runTask(BukkitHuskSync.getInstance(), () -> {
+                    plugin.runSync(() -> {
                         try {
                             player.setHealth(Math.min(healthToSet, maxHealth));
                         } catch (IllegalArgumentException e) {
-                            BukkitHuskSync.getInstance().getLogger().log(Level.WARNING,
+                            plugin.getLogger().log(Level.WARNING,
                                     "Failed to set health of player " + player.getName() + " to " + healthToSet);
                         }
                     });
@@ -113,7 +124,7 @@ public class BukkitPlayer extends OnlineUser {
                     }
                     player.setHealthScaled(statusData.healthScale != 0D);
                 } catch (IllegalArgumentException e) {
-                    BukkitHuskSync.getInstance().getLogger().log(Level.WARNING,
+                    plugin.getLogger().log(Level.WARNING,
                             "Failed to set health scale of player " + player.getName() + " to " + statusData.healthScale);
                 }
             }
@@ -131,11 +142,11 @@ public class BukkitPlayer extends OnlineUser {
                 player.setExp(statusData.expProgress);
             }
             if (settings.getSynchronizationFeature(SynchronizationFeature.GAME_MODE)) {
-                Bukkit.getScheduler().runTask(BukkitHuskSync.getInstance(), () ->
+                Bukkit.getScheduler().runTask(plugin, () ->
                         player.setGameMode(GameMode.valueOf(statusData.gameMode)));
             }
             if (settings.getSynchronizationFeature(SynchronizationFeature.LOCATION)) {
-                Bukkit.getScheduler().runTask(BukkitHuskSync.getInstance(), () -> {
+                Bukkit.getScheduler().runTask(plugin, () -> {
                     if (statusData.isFlying) {
                         player.setAllowFlight(true);
                         player.setFlying(true);
@@ -161,7 +172,7 @@ public class BukkitPlayer extends OnlineUser {
     public CompletableFuture<Void> setInventory(@NotNull ItemData itemData) {
         return BukkitSerializer.deserializeInventory(itemData.serializedItems).thenApplyAsync(contents -> {
             final CompletableFuture<Void> inventorySetFuture = new CompletableFuture<>();
-            Bukkit.getScheduler().runTask(BukkitHuskSync.getInstance(), () -> {
+            plugin.runSync(() -> {
                 player.setItemOnCursor(null);
                 player.getInventory().setContents(contents.getContents());
                 player.updateInventory();
@@ -186,7 +197,7 @@ public class BukkitPlayer extends OnlineUser {
     public CompletableFuture<Void> setEnderChest(@NotNull ItemData enderChestData) {
         return BukkitSerializer.deserializeItemStackArray(enderChestData.serializedItems).thenApplyAsync(contents -> {
             final CompletableFuture<Void> enderChestSetFuture = new CompletableFuture<>();
-            Bukkit.getScheduler().runTask(BukkitHuskSync.getInstance(), () -> {
+            plugin.runSync(() -> {
                 player.getEnderChest().setContents(contents);
                 enderChestSetFuture.complete(null);
             });
@@ -206,7 +217,7 @@ public class BukkitPlayer extends OnlineUser {
         return BukkitSerializer.deserializePotionEffectArray(potionEffectData.serializedPotionEffects)
                 .thenApplyAsync(effects -> {
                     final CompletableFuture<Void> potionEffectsSetFuture = new CompletableFuture<>();
-                    Bukkit.getScheduler().runTask(BukkitHuskSync.getInstance(), () -> {
+                    plugin.runSync(() -> {
                         for (PotionEffect effect : player.getActivePotionEffects()) {
                             player.removePotionEffect(effect.getType());
                         }
@@ -245,8 +256,7 @@ public class BukkitPlayer extends OnlineUser {
 
     @Override
     public CompletableFuture<Void> setAdvancements(@NotNull List<AdvancementData> advancementData) {
-        return CompletableFuture.runAsync(() -> Bukkit.getScheduler().runTask(BukkitHuskSync.getInstance(), () -> {
-
+        return CompletableFuture.runAsync(() -> plugin.runSync(() -> {
             // Temporarily disable advancement announcing if needed
             boolean announceAdvancementUpdate = false;
             if (Boolean.TRUE.equals(player.getWorld().getGameRuleValue(GameRule.ANNOUNCE_ADVANCEMENTS))) {
@@ -277,20 +287,20 @@ public class BukkitPlayer extends OnlineUser {
                                 record.completedCriteria.keySet().stream()
                                         .filter(criterion -> !playerProgress.getAwardedCriteria().contains(criterion))
                                         .forEach(criterion -> {
-                                            Bukkit.getScheduler().runTask(BukkitHuskSync.getInstance(),
+                                            plugin.runSync(
                                                     () -> player.getAdvancementProgress(advancement).awardCriteria(criterion));
                                             correctExperience.set(true);
                                         });
 
                                 // Revoke all criteria that the player does have but should not
                                 new ArrayList<>(playerProgress.getAwardedCriteria()).stream().filter(criterion -> !record.completedCriteria.containsKey(criterion))
-                                        .forEach(criterion -> Bukkit.getScheduler().runTask(BukkitHuskSync.getInstance(),
+                                        .forEach(criterion -> plugin.runSync(
                                                 () -> player.getAdvancementProgress(advancement).revokeCriteria(criterion)));
 
                             },
                             // Revoke the criteria as the player shouldn't have any
                             () -> new ArrayList<>(playerProgress.getAwardedCriteria()).forEach(criterion ->
-                                    Bukkit.getScheduler().runTask(BukkitHuskSync.getInstance(),
+                                    plugin.runSync(
                                             () -> player.getAdvancementProgress(advancement).revokeCriteria(criterion))));
 
                     // Update the player's experience in case the advancement changed that
@@ -302,7 +312,7 @@ public class BukkitPlayer extends OnlineUser {
                 }
 
                 // Re-enable announcing advancements (back on main thread again)
-                Bukkit.getScheduler().runTask(BukkitHuskSync.getInstance(), () -> {
+                plugin.runSync(() -> {
                     if (finalAnnounceAdvancementUpdate) {
                         player.getWorld().setGameRule(GameRule.ANNOUNCE_ADVANCEMENTS, true);
                     }
@@ -373,7 +383,7 @@ public class BukkitPlayer extends OnlineUser {
                 try {
                     player.setStatistic(Statistic.valueOf(statistic), statisticsData.untypedStatistics.get(statistic));
                 } catch (IllegalArgumentException e) {
-                    BukkitHuskSync.getInstance().getLogger().log(Level.WARNING,
+                    plugin.getLogger().log(Level.WARNING,
                             "Failed to set generic statistic " + statistic + " for " + username);
                 }
             }
@@ -385,7 +395,7 @@ public class BukkitPlayer extends OnlineUser {
                         player.setStatistic(Statistic.valueOf(statistic), Material.valueOf(blockMaterial),
                                 statisticsData.blockStatistics.get(statistic).get(blockMaterial));
                     } catch (IllegalArgumentException e) {
-                        BukkitHuskSync.getInstance().getLogger().log(Level.WARNING,
+                        plugin.getLogger().log(Level.WARNING,
                                 "Failed to set " + blockMaterial + " statistic " + statistic + " for " + username);
                     }
                 }
@@ -398,7 +408,7 @@ public class BukkitPlayer extends OnlineUser {
                         player.setStatistic(Statistic.valueOf(statistic), Material.valueOf(itemMaterial),
                                 statisticsData.itemStatistics.get(statistic).get(itemMaterial));
                     } catch (IllegalArgumentException e) {
-                        BukkitHuskSync.getInstance().getLogger().log(Level.WARNING,
+                        plugin.getLogger().log(Level.WARNING,
                                 "Failed to set " + itemMaterial + " statistic " + statistic + " for " + username);
                     }
                 }
@@ -411,7 +421,7 @@ public class BukkitPlayer extends OnlineUser {
                         player.setStatistic(Statistic.valueOf(statistic), EntityType.valueOf(entityType),
                                 statisticsData.entityStatistics.get(statistic).get(entityType));
                     } catch (IllegalArgumentException e) {
-                        BukkitHuskSync.getInstance().getLogger().log(Level.WARNING,
+                        plugin.getLogger().log(Level.WARNING,
                                 "Failed to set " + entityType + " statistic " + statistic + " for " + username);
                     }
                 }
@@ -439,7 +449,7 @@ public class BukkitPlayer extends OnlineUser {
                     .valueOf(locationData.worldEnvironment)).findFirst().ifPresent(bukkitWorld::set);
         }
         if (bukkitWorld.get() != null) {
-            Bukkit.getScheduler().runTask(BukkitHuskSync.getInstance(), () -> {
+            plugin.runSync(() -> {
                 player.teleport(new Location(bukkitWorld.get(),
                         locationData.x, locationData.y, locationData.z,
                         locationData.yaw, locationData.pitch), PlayerTeleportEvent.TeleportCause.PLUGIN);
@@ -468,7 +478,7 @@ public class BukkitPlayer extends OnlineUser {
             });
             return new PersistentDataContainerData(persistentDataMap);
         }).exceptionally(throwable -> {
-            BukkitHuskSync.getInstance().log(Level.WARNING,
+            plugin.log(Level.WARNING,
                     "Could not read " + player.getName() + "'s persistent data map, skipping!");
             throwable.printStackTrace();
             return new PersistentDataContainerData(new HashMap<>());
@@ -486,17 +496,24 @@ public class BukkitPlayer extends OnlineUser {
                     container.getTagType(keyString)
                             .flatMap(BukkitPersistentTypeMapping::getMapping)
                             .ifPresentOrElse(mapping -> mapping.setContainerValue(container, player, key),
-                                    () -> BukkitHuskSync.getInstance().log(Level.WARNING,
+                                    () -> plugin.log(Level.WARNING,
                                             "Could not set " + player.getName() + "'s persistent data key " + keyString +
                                             " as it has an invalid type. Skipping!"));
                 }
             });
         }).exceptionally(throwable -> {
-            BukkitHuskSync.getInstance().log(Level.WARNING,
+            plugin.log(Level.WARNING,
                     "Could not write " + player.getName() + "'s persistent data map, skipping!");
             throwable.printStackTrace();
             return null;
         });
+    }
+
+
+    @Override
+    @NotNull
+    public Audience getAudience() {
+        return plugin.getAudiences().player(player);
     }
 
     @Override
@@ -512,7 +529,7 @@ public class BukkitPlayer extends OnlineUser {
     @NotNull
     @Override
     public Version getMinecraftVersion() {
-        return Version.fromMinecraftVersionString(Bukkit.getBukkitVersion());
+        return Version.fromString(Bukkit.getBukkitVersion());
     }
 
     @Override
@@ -561,7 +578,7 @@ public class BukkitPlayer extends OnlineUser {
             });
 
             // Display the GUI (synchronously; on the main server thread)
-            Bukkit.getScheduler().runTask(BukkitHuskSync.getInstance(), () -> gui.open(player));
+            Bukkit.getScheduler().runTask(plugin, () -> gui.open(player));
         }).exceptionally(throwable -> {
             // Handle exceptions
             updatedData.completeExceptionally(throwable);
@@ -576,18 +593,11 @@ public class BukkitPlayer extends OnlineUser {
     }
 
     @Override
-    public void sendActionBar(@NotNull MineDown mineDown) {
-        audience.sendActionBar(mineDown
-                .disable(MineDownParser.Option.SIMPLE_FORMATTING)
-                .replace().toComponent());
-    }
-
-    @Override
     public void sendToast(@NotNull MineDown title, @NotNull MineDown description,
                           @NotNull String iconMaterial, @NotNull String backgroundType) {
         try {
             final Material material = Material.matchMaterial(iconMaterial);
-            Toast.builder(BukkitHuskSync.getInstance())
+            Toast.builder(plugin)
                     .setTitle(title.toComponent())
                     .setDescription(description.toComponent())
                     .setIcon(material != null ? material : Material.BARRIER)
@@ -597,13 +607,6 @@ public class BukkitPlayer extends OnlineUser {
         } catch (Exception e) {
             e.printStackTrace();
         }
-    }
-
-    @Override
-    public void sendMessage(@NotNull MineDown mineDown) {
-        audience.sendMessage(mineDown
-                .disable(MineDownParser.Option.SIMPLE_FORMATTING)
-                .replace().toComponent());
     }
 
     /**
@@ -627,7 +630,7 @@ public class BukkitPlayer extends OnlineUser {
 
     @Override
     public boolean isLocked() {
-        return BukkitHuskSync.getInstance().getLockedPlayers().contains(player.getUniqueId());
+        return plugin.getLockedPlayers().contains(player.getUniqueId());
     }
 
     @Override

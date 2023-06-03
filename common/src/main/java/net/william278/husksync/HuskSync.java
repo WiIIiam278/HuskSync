@@ -1,6 +1,20 @@
+/*
+ * This file is part of HuskSync by William278. Do not redistribute!
+ *
+ *  Copyright (c) William278 <will27528@gmail.com>
+ *  All rights reserved.
+ *
+ *  This source code is provided as reference to licensed individuals that have purchased the HuskSync
+ *  plugin once from any of the official sources it is provided. The availability of this code does
+ *  not grant you the rights to modify, re-distribute, compile or redistribute this source code or
+ *  "plugin" outside this intended purpose. This license does not cover libraries developed by third
+ *  parties that are utilised in the plugin.
+ */
+
 package net.william278.husksync;
 
-import net.william278.desertwell.UpdateChecker;
+import net.william278.desertwell.util.UpdateChecker;
+import net.william278.desertwell.util.Version;
 import net.william278.husksync.config.Locales;
 import net.william278.husksync.config.Settings;
 import net.william278.husksync.data.DataAdapter;
@@ -10,7 +24,6 @@ import net.william278.husksync.migrator.Migrator;
 import net.william278.husksync.player.OnlineUser;
 import net.william278.husksync.redis.RedisManager;
 import net.william278.husksync.util.TaskRunner;
-import net.william278.desertwell.Version;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -154,14 +167,14 @@ public interface HuskSync extends TaskRunner {
      * @return a {@link CompletableFuture} returning the latest {@link Version} if the current one is out-of-date
      */
     default CompletableFuture<Optional<Version>> getLatestVersionIfOutdated() {
-        final UpdateChecker updateChecker = UpdateChecker.create(getPluginVersion(), SPIGOT_RESOURCE_ID);
-        return updateChecker.isUpToDate().thenApply(upToDate -> {
-            if (upToDate) {
-                return Optional.empty();
-            } else {
-                return Optional.of(updateChecker.getLatestVersion().join());
-            }
-        });
+        return UpdateChecker.builder()
+                .currentVersion(getPluginVersion())
+                .endpoint(UpdateChecker.Endpoint.SPIGOT)
+                .resource(Integer.toString(SPIGOT_RESOURCE_ID)).build()
+                .check()
+                .thenApply(checked -> checked.isUpToDate()
+                        ? Optional.empty()
+                        : Optional.of(checked.getLatestVersion()));
     }
 
     /**

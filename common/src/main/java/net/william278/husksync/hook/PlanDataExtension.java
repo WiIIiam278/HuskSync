@@ -1,3 +1,16 @@
+/*
+ * This file is part of HuskSync by William278. Do not redistribute!
+ *
+ *  Copyright (c) William278 <will27528@gmail.com>
+ *  All rights reserved.
+ *
+ *  This source code is provided as reference to licensed individuals that have purchased the HuskSync
+ *  plugin once from any of the official sources it is provided. The availability of this code does
+ *  not grant you the rights to modify, re-distribute, compile or redistribute this source code or
+ *  "plugin" outside this intended purpose. This license does not cover libraries developed by third
+ *  parties that are utilised in the plugin.
+ */
+
 package net.william278.husksync.hook;
 
 import com.djrapitops.plan.extension.CallEvents;
@@ -16,6 +29,7 @@ import net.william278.husksync.player.User;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Date;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -212,7 +226,7 @@ public class PlanDataExtension implements DataExtension {
                 plugin.getDatabase().getUserData(user).forEach(versionedUserData -> dataSnapshotsTable.addRow(
                         versionedUserData.versionTimestamp().getTime(),
                         versionedUserData.versionUUID().toString().split("-")[0],
-                        versionedUserData.cause().name().toLowerCase().replaceAll("_", " "),
+                        versionedUserData.cause().name().toLowerCase(Locale.ENGLISH).replaceAll("_", " "),
                         versionedUserData.pinned() ? PINNED_HTML_STRING + "Pinned" : "Unpinned"
                 )));
         return dataSnapshotsTable.build();

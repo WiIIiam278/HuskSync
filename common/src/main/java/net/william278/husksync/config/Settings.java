@@ -1,3 +1,16 @@
+/*
+ * This file is part of HuskSync by William278. Do not redistribute!
+ *
+ *  Copyright (c) William278 <will27528@gmail.com>
+ *  All rights reserved.
+ *
+ *  This source code is provided as reference to licensed individuals that have purchased the HuskSync
+ *  plugin once from any of the official sources it is provided. The availability of this code does
+ *  not grant you the rights to modify, re-distribute, compile or redistribute this source code or
+ *  "plugin" outside this intended purpose. This license does not cover libraries developed by third
+ *  parties that are utilised in the plugin.
+ */
+
 package net.william278.husksync.config;
 
 import net.william278.annotaml.YamlComment;
@@ -184,7 +197,7 @@ public class Settings {
 
     @NotNull
     public String getTableName(@NotNull TableName tableName) {
-        return tableNames.getOrDefault(tableName.name().toLowerCase(), tableName.defaultName);
+        return tableNames.getOrDefault(tableName.name().toLowerCase(Locale.ENGLISH), tableName.defaultName);
     }
 
     public int getMySqlConnectionPoolSize() {
@@ -266,7 +279,7 @@ public class Settings {
     }
 
     public boolean getSynchronizationFeature(@NotNull SynchronizationFeature feature) {
-        return getSynchronizationFeatures().getOrDefault(feature.name().toLowerCase(), feature.isEnabledByDefault());
+        return getSynchronizationFeatures().getOrDefault(feature.name().toLowerCase(Locale.ENGLISH), feature.isEnabledByDefault());
     }
 
     @NotNull
@@ -277,7 +290,7 @@ public class Settings {
     @NotNull
     public EventListener.Priority getEventPriority(@NotNull EventListener.ListenerType listenerType) {
         try {
-            return EventListener.Priority.valueOf(synchronizationEventPriorities.get(listenerType.name().toLowerCase()));
+            return EventListener.Priority.valueOf(synchronizationEventPriorities.get(listenerType.name().toLowerCase(Locale.ENGLISH)));
         } catch (IllegalArgumentException e) {
             e.printStackTrace();
             return EventListener.Priority.NORMAL;
@@ -299,7 +312,7 @@ public class Settings {
 
         @NotNull
         private Map.Entry<String, String> toEntry() {
-            return Map.entry(name().toLowerCase(), defaultName);
+            return Map.entry(name().toLowerCase(Locale.ENGLISH), defaultName);
         }
 
         @SuppressWarnings("unchecked")
@@ -309,6 +322,113 @@ public class Settings {
                     .map(TableName::toEntry)
                     .toArray(Map.Entry[]::new));
         }
+    }
+
+    /**
+     * Determines the slot a system notification should be displayed in
+     */
+    public enum NotificationDisplaySlot {
+        /**
+         * Displays the notification in the action bar
+         */
+        ACTION_BAR,
+        /**
+         * Displays the notification in the chat
+         */
+        CHAT,
+        /**
+         * Displays the notification in an advancement toast
+         */
+        TOAST,
+        /**
+         * Does not display the notification
+         */
+        NONE
+    }
+
+    /**
+     * Represents enabled synchronisation features
+     */
+    public enum SynchronizationFeature {
+        INVENTORIES(true),
+        ENDER_CHESTS(true),
+        HEALTH(true),
+        MAX_HEALTH(true),
+        HUNGER(true),
+        EXPERIENCE(true),
+        POTION_EFFECTS(true),
+        ADVANCEMENTS(true),
+        GAME_MODE(true),
+        STATISTICS(true),
+        PERSISTENT_DATA_CONTAINER(false),
+        LOCKED_MAPS(false),
+        LOCATION(false);
+
+        private final boolean enabledByDefault;
+
+        SynchronizationFeature(boolean enabledByDefault) {
+            this.enabledByDefault = enabledByDefault;
+        }
+
+        @NotNull
+        private Map.Entry<String, Boolean> toEntry() {
+            return Map.entry(name().toLowerCase(Locale.ENGLISH), enabledByDefault);
+        }
+
+        @SuppressWarnings("unchecked")
+        @NotNull
+        private static Map<String, Boolean> getDefaults() {
+            return Map.ofEntries(Arrays.stream(values())
+                    .map(SynchronizationFeature::toEntry)
+                    .toArray(Map.Entry[]::new));
+        }
+    }
+
+    /**
+     * Represents events that HuskSync listens to, with a configurable priority listener
+     */
+    public enum EventType {
+        JOIN_LISTENER(EventPriority.LOWEST),
+        QUIT_LISTENER(EventPriority.LOWEST),
+        DEATH_LISTENER(EventPriority.NORMAL);
+
+        private final EventPriority defaultPriority;
+
+        EventType(@NotNull EventPriority defaultPriority) {
+            this.defaultPriority = defaultPriority;
+        }
+
+        @NotNull
+        private Map.Entry<String, String> toEntry() {
+            return Map.entry(name().toLowerCase(Locale.ENGLISH), defaultPriority.name());
+        }
+
+
+        @SuppressWarnings("unchecked")
+        @NotNull
+        private static Map<String, String> getDefaults() {
+            return Map.ofEntries(Arrays.stream(values())
+                    .map(EventType::toEntry)
+                    .toArray(Map.Entry[]::new));
+        }
+    }
+
+    /**
+     * Represents priorities for events that HuskSync listens to
+     */
+    public enum EventPriority {
+        /**
+         * Listens and processes the event execution last
+         */
+        HIGHEST,
+        /**
+         * Listens in between {@link #HIGHEST} and {@link #LOWEST} priority marked
+         */
+        NORMAL,
+        /**
+         * Listens and processes the event execution first
+         */
+        LOWEST
     }
 
 }

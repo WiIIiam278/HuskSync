@@ -1,3 +1,16 @@
+/*
+ * This file is part of HuskSync by William278. Do not redistribute!
+ *
+ *  Copyright (c) William278 <will27528@gmail.com>
+ *  All rights reserved.
+ *
+ *  This source code is provided as reference to licensed individuals that have purchased the HuskSync
+ *  plugin once from any of the official sources it is provided. The availability of this code does
+ *  not grant you the rights to modify, re-distribute, compile or redistribute this source code or
+ *  "plugin" outside this intended purpose. This license does not cover libraries developed by third
+ *  parties that are utilised in the plugin.
+ */
+
 package net.william278.husksync.listener;
 
 import net.william278.husksync.BukkitHuskSync;
@@ -29,6 +42,7 @@ import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
@@ -161,7 +175,7 @@ public class BukkitEventListener extends EventListener implements BukkitJoinEven
     @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
     public void onPermissionCommand(@NotNull PlayerCommandPreprocessEvent event) {
         String[] commandArgs = event.getMessage().substring(1).split(" ");
-        String commandLabel = commandArgs[0].toLowerCase();
+        String commandLabel = commandArgs[0].toLowerCase(Locale.ENGLISH);
 
         if (blacklistedCommands.contains(commandLabel)) {
             event.setCancelled(cancelPlayerEvent(event.getPlayer().getUniqueId()));

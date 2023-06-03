@@ -1,16 +1,28 @@
+/*
+ * This file is part of HuskSync by William278. Do not redistribute!
+ *
+ *  Copyright (c) William278 <will27528@gmail.com>
+ *  All rights reserved.
+ *
+ *  This source code is provided as reference to licensed individuals that have purchased the HuskSync
+ *  plugin once from any of the official sources it is provided. The availability of this code does
+ *  not grant you the rights to modify, re-distribute, compile or redistribute this source code or
+ *  "plugin" outside this intended purpose. This license does not cover libraries developed by third
+ *  parties that are utilised in the plugin.
+ */
+
 package net.william278.husksync.command;
 
 import de.themoep.minedown.adventure.MineDown;
-import net.william278.desertwell.AboutMenu;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.TextColor;
+import net.william278.desertwell.about.AboutMenu;
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.migrator.Migrator;
 import net.william278.husksync.player.OnlineUser;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
@@ -21,30 +33,32 @@ public class HuskSyncCommand extends CommandBase implements TabCompletable, Cons
 
     public HuskSyncCommand(@NotNull HuskSync implementor) {
         super("husksync", Permission.COMMAND_HUSKSYNC, implementor);
-        this.aboutMenu = AboutMenu.create("HuskSync")
-                .withDescription("A modern, cross-server player data synchronization system")
-                .withVersion(implementor.getPluginVersion())
-                .addAttribution("Author",
-                        AboutMenu.Credit.of("William278").withDescription("Click to visit website").withUrl("https://william278.net"))
-                .addAttribution("Contributors",
-                        AboutMenu.Credit.of("HarvelsX").withDescription("Code"),
-                        AboutMenu.Credit.of("HookWoods").withDescription("Code"))
-                .addAttribution("Translators",
-                        AboutMenu.Credit.of("Namiu").withDescription("Japanese (ja-jp)"),
-                        AboutMenu.Credit.of("anchelthe").withDescription("Spanish (es-es)"),
-                        AboutMenu.Credit.of("Melonzio").withDescription("Spanish (es-es)"),
-                        AboutMenu.Credit.of("Ceddix").withDescription("German (de-de)"),
-                        AboutMenu.Credit.of("Pukejoy_1").withDescription("Bulgarian (bg-bg)"),
-                        AboutMenu.Credit.of("mateusneresrb").withDescription("Brazilian Portuguese (pt-br)"),
-                        AboutMenu.Credit.of("小蔡").withDescription("Traditional Chinese (zh-tw)"),
-                        AboutMenu.Credit.of("Ghost-chu").withDescription("Simplified Chinese (zh-cn)"),
-                        AboutMenu.Credit.of("DJelly4K").withDescription("Simplified Chinese (zh-cn)"),
-                        AboutMenu.Credit.of("Thourgard").withDescription("Ukrainian (uk-ua)"),
-                        AboutMenu.Credit.of("xF3d3").withDescription("Italian (it-it)"))
-                .addButtons(
-                        AboutMenu.Link.of("https://william278.net/docs/husksync").withText("Documentation").withIcon("⛏"),
-                        AboutMenu.Link.of("https://github.com/WiIIiam278/HuskSync/issues").withText("Issues").withIcon("❌").withColor("#ff9f0f"),
-                        AboutMenu.Link.of("https://discord.gg/tVYhJfyDWG").withText("Discord").withIcon("⭐").withColor("#6773f5"));
+        this.aboutMenu = AboutMenu.builder()
+                .title(Component.text("HuskSync"))
+                .description(Component.text("A modern, cross-server player data synchronization system"))
+                .version(implementor.getPluginVersion())
+                .credits("Author",
+                        AboutMenu.Credit.of("William278").description("Click to visit website").url("https://william278.net"))
+                .credits("Contributors",
+                        AboutMenu.Credit.of("HarvelsX").description("Code"),
+                        AboutMenu.Credit.of("HookWoods").description("Code"))
+                .credits("Translators",
+                        AboutMenu.Credit.of("Namiu").description("Japanese (ja-jp)"),
+                        AboutMenu.Credit.of("anchelthe").description("Spanish (es-es)"),
+                        AboutMenu.Credit.of("Melonzio").description("Spanish (es-es)"),
+                        AboutMenu.Credit.of("Ceddix").description("German (de-de)"),
+                        AboutMenu.Credit.of("Pukejoy_1").description("Bulgarian (bg-bg)"),
+                        AboutMenu.Credit.of("mateusneresrb").description("Brazilian Portuguese (pt-br)"),
+                        AboutMenu.Credit.of("小蔡").description("Traditional Chinese (zh-tw)"),
+                        AboutMenu.Credit.of("Ghost-chu").description("Simplified Chinese (zh-cn)"),
+                        AboutMenu.Credit.of("DJelly4K").description("Simplified Chinese (zh-cn)"),
+                        AboutMenu.Credit.of("Thourgard").description("Ukrainian (uk-ua)"),
+                        AboutMenu.Credit.of("xF3d3").description("Italian (it-it)"))
+                .buttons(
+                        AboutMenu.Link.of("https://william278.net/docs/husksync").text("Documentation").icon("⛏"),
+                        AboutMenu.Link.of("https://github.com/WiIIiam278/HuskSync/issues").text("Issues").icon("❌").color(TextColor.color(0xff9f0f)),
+                        AboutMenu.Link.of("https://discord.gg/tVYhJfyDWG").text("Discord").icon("⭐").color(TextColor.color(0x6773f5)))
+                .build();
     }
 
     @Override
@@ -53,7 +67,7 @@ public class HuskSyncCommand extends CommandBase implements TabCompletable, Cons
             sendAboutMenu(player);
             return;
         }
-        switch (args[0].toLowerCase()) {
+        switch (args[0].toLowerCase(Locale.ENGLISH)) {
             case "update", "version" -> {
                 if (!player.hasPermission(Permission.COMMAND_HUSKSYNC_UPDATE.node)) {
                     plugin.getLocales().getLocale("error_no_permission").ifPresent(player::sendMessage);
@@ -91,7 +105,7 @@ public class HuskSyncCommand extends CommandBase implements TabCompletable, Cons
             plugin.log(Level.INFO, "Console usage: \"husksync <update/about/reload/migrate>\"");
             return;
         }
-        switch (args[0].toLowerCase()) {
+        switch (args[0].toLowerCase(Locale.ENGLISH)) {
             case "update", "version" -> plugin.getLatestVersionIfOutdated().thenAccept(newestVersion ->
                     newestVersion.ifPresentOrElse(newVersion -> plugin.log(Level.WARNING,
                                     "An update is available for HuskSync, v" + newVersion
@@ -165,6 +179,6 @@ public class HuskSyncCommand extends CommandBase implements TabCompletable, Cons
             plugin.getLocales().getLocale("error_no_permission").ifPresent(player::sendMessage);
             return;
         }
-        player.sendMessage(aboutMenu.toMineDown());
+        player.sendMessage(aboutMenu.toComponent());
     }
 }

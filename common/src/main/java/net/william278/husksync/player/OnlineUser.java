@@ -1,7 +1,23 @@
+/*
+ * This file is part of HuskSync by William278. Do not redistribute!
+ *
+ *  Copyright (c) William278 <will27528@gmail.com>
+ *  All rights reserved.
+ *
+ *  This source code is provided as reference to licensed individuals that have purchased the HuskSync
+ *  plugin once from any of the official sources it is provided. The availability of this code does
+ *  not grant you the rights to modify, re-distribute, compile or redistribute this source code or
+ *  "plugin" outside this intended purpose. This license does not cover libraries developed by third
+ *  parties that are utilised in the plugin.
+ */
+
 package net.william278.husksync.player;
 
 import de.themoep.minedown.adventure.MineDown;
-import net.william278.desertwell.Version;
+import de.themoep.minedown.adventure.MineDownParser;
+import net.kyori.adventure.audience.Audience;
+import net.kyori.adventure.text.Component;
+import net.william278.desertwell.util.Version;
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.config.Settings;
 import net.william278.husksync.data.*;
@@ -11,6 +27,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 
@@ -166,18 +183,43 @@ public abstract class OnlineUser extends User {
     public abstract Version getMinecraftVersion();
 
     /**
+     * Get the player's adventure {@link Audience}
+     *
+     * @return the player's {@link Audience}
+     */
+    @NotNull
+    public abstract Audience getAudience();
+
+    /**
+     * Send a message to this player
+     *
+     * @param component the {@link Component} message to send
+     */
+    public void sendMessage(@NotNull Component component) {
+        getAudience().sendMessage(component);
+    }
+
+    /**
      * Dispatch a MineDown-formatted message to this player
      *
      * @param mineDown the parsed {@link MineDown} to send
      */
-    public abstract void sendMessage(@NotNull MineDown mineDown);
+    public void sendMessage(@NotNull MineDown mineDown) {
+        sendMessage(mineDown
+                .disable(MineDownParser.Option.SIMPLE_FORMATTING)
+                .replace().toComponent());
+    }
 
     /**
      * Dispatch a MineDown-formatted action bar message to this player
      *
      * @param mineDown the parsed {@link MineDown} to send
      */
-    public abstract void sendActionBar(@NotNull MineDown mineDown);
+    public void sendActionBar(@NotNull MineDown mineDown) {
+        getAudience().sendActionBar(mineDown
+                .disable(MineDownParser.Option.SIMPLE_FORMATTING)
+                .replace().toComponent());
+    }
 
     /**
      * Dispatch a toast message to this player
@@ -229,7 +271,7 @@ public abstract class OnlineUser extends User {
      */
     public final void setData(@NotNull UserData data, @NotNull HuskSync plugin) {
         // Prevent synchronising user data from newer versions of Minecraft
-        if (Version.fromMinecraftVersionString(data.getMinecraftVersion()).compareTo(plugin.getMinecraftVersion()) > 0) {
+        if (Version.fromString(data.getMinecraftVersion()).compareTo(plugin.getMinecraftVersion()) > 0) {
             plugin.log(Level.SEVERE, "Cannot set data for " + username +
                     " because the Minecraft version of their user data (" + data.getMinecraftVersion() +
                     ") is newer than the server's Minecraft version (" + plugin.getMinecraftVersion() + ").");

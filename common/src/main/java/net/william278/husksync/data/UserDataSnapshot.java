@@ -1,3 +1,16 @@
+/*
+ * This file is part of HuskSync by William278. Do not redistribute!
+ *
+ *  Copyright (c) William278 <will27528@gmail.com>
+ *  All rights reserved.
+ *
+ *  This source code is provided as reference to licensed individuals that have purchased the HuskSync
+ *  plugin once from any of the official sources it is provided. The availability of this code does
+ *  not grant you the rights to modify, re-distribute, compile or redistribute this source code or
+ *  "plugin" outside this intended purpose. This license does not cover libraries developed by third
+ *  parties that are utilised in the plugin.
+ */
+
 package net.william278.husksync.data;
 
 import net.william278.husksync.command.Permission;
@@ -7,10 +20,7 @@ import net.william278.husksync.player.User;
 import org.jetbrains.annotations.NotNull;
 
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
-import java.util.StringJoiner;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * Represents a uniquely versioned and timestamped snapshot of a user's data, including why it was saved.
@@ -57,7 +67,7 @@ public record UserDataSnapshot(@NotNull UUID versionUUID, @NotNull Date versionT
         if (pinned()) {
             locales.getLocale("data_manager_pinned").ifPresent(user::sendMessage);
         }
-        locales.getLocale("data_manager_cause", cause().name().toLowerCase().replaceAll("_", " "))
+        locales.getLocale("data_manager_cause", cause().name().toLowerCase(Locale.ENGLISH).replaceAll("_", " "))
                 .ifPresent(user::sendMessage);
 
         // User status data, if present in the snapshot
@@ -67,7 +77,7 @@ public record UserDataSnapshot(@NotNull UUID versionUUID, @NotNull Date versionT
                         Integer.toString((int) statusData.maxHealth),
                         Integer.toString(statusData.hunger),
                         Integer.toString(statusData.expLevel),
-                        statusData.gameMode.toLowerCase()))
+                        statusData.gameMode.toLowerCase(Locale.ENGLISH)))
                 .ifPresent(user::sendMessage);
 
         // Advancement and statistic data, if both are present in the snapshot

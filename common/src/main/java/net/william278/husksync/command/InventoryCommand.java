@@ -1,3 +1,16 @@
+/*
+ * This file is part of HuskSync by William278. Do not redistribute!
+ *
+ *  Copyright (c) William278 <will27528@gmail.com>
+ *  All rights reserved.
+ *
+ *  This source code is provided as reference to licensed individuals that have purchased the HuskSync
+ *  plugin once from any of the official sources it is provided. The availability of this code does
+ *  not grant you the rights to modify, re-distribute, compile or redistribute this source code or
+ *  "plugin" outside this intended purpose. This license does not cover libraries developed by third
+ *  parties that are utilised in the plugin.
+ */
+
 package net.william278.husksync.command;
 
 import de.themoep.minedown.adventure.MineDown;
@@ -12,6 +25,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.text.SimpleDateFormat;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.logging.Level;
@@ -30,7 +44,7 @@ public class InventoryCommand extends CommandBase implements TabCompletable {
                     .ifPresent(player::sendMessage);
             return;
         }
-        plugin.getDatabase().getUserByName(args[0].toLowerCase()).ifPresentOrElse(user -> {
+        plugin.getDatabase().getUserByName(args[0].toLowerCase(Locale.ENGLISH)).ifPresentOrElse(user -> {
             if (args.length == 2) {
                 // View user data by specified UUID
                 try {
