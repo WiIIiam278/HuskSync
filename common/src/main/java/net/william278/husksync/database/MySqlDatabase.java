@@ -15,7 +15,6 @@ package net.william278.husksync.database;
 
 import com.zaxxer.hikari.HikariDataSource;
 import net.william278.husksync.HuskSync;
-import net.william278.husksync.config.Settings;
 import net.william278.husksync.data.DataAdaptionException;
 import net.william278.husksync.data.DataSaveCause;
 import net.william278.husksync.data.UserData;
@@ -34,7 +33,7 @@ import java.util.logging.Level;
 public class MySqlDatabase extends Database {
 
     private static final String DATA_POOL_NAME = "HuskSyncHikariPool";
-   private HikariDataSource dataSource;
+    private HikariDataSource dataSource;
 
     public MySqlDatabase(@NotNull HuskSync plugin) {
         super(plugin);
@@ -47,7 +46,7 @@ public class MySqlDatabase extends Database {
      * @throws SQLException if the connection fails for some reason
      */
     private Connection getConnection() throws SQLException {
-        return connectionPool.getConnection();
+        return dataSource.getConnection();
     }
 
     @Override
@@ -55,12 +54,12 @@ public class MySqlDatabase extends Database {
         // Initialize the Hikari pooled connection
         dataSource = new HikariDataSource();
         dataSource.setJdbcUrl("jdbc:mysql://" +
-                plugin.getSettings().getMySqlHost() +
-                ":" +
-                plugin.getSettings().getMySqlPort() +
-                "/" +
-                plugin.getSettings().getMySqlDatabase() +
-                plugin.getSettings().getMySqlConnectionParameters());
+                              plugin.getSettings().getMySqlHost() +
+                              ":" +
+                              plugin.getSettings().getMySqlPort() +
+                              "/" +
+                              plugin.getSettings().getMySqlDatabase() +
+                              plugin.getSettings().getMySqlConnectionParameters());
 
         // Authenticate with the database
         dataSource.setUsername(plugin.getSettings().getMySqlUsername());
@@ -98,11 +97,11 @@ public class MySqlDatabase extends Database {
                 }
             } catch (SQLException e) {
                 throw new IllegalStateException("Failed to create database tables. Please ensure you are running MySQL v8.0+ " +
-                        "and that your connecting user account has privileges to create tables.", e);
+                                                "and that your connecting user account has privileges to create tables.", e);
             }
         } catch (SQLException | IOException e) {
             throw new IllegalStateException("Failed to establish a connection to the MySQL database. " +
-                    "Please check the supplied database credentials in the config file", e);
+                                            "Please check the supplied database credentials in the config file", e);
         }
     }
 

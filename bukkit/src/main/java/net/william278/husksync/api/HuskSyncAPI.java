@@ -155,8 +155,7 @@ public class HuskSyncAPI extends BaseHuskSyncAPI {
      */
     public CompletableFuture<ItemStack[]> deserializeItemStackArray(@NotNull String serializedItemStackArray)
             throws DataSerializationException {
-        return CompletableFuture.supplyAsync(() -> BukkitSerializer
-                .deserializeItemStackArray(serializedItemStackArray).join());
+        return CompletableFuture.supplyAsync(() -> BukkitSerializer.deserializeItemStackArray(serializedItemStackArray));
     }
 
     /**
@@ -170,7 +169,7 @@ public class HuskSyncAPI extends BaseHuskSyncAPI {
     public CompletableFuture<BukkitInventoryMap> deserializeInventory(@NotNull String serializedInventory)
             throws DataSerializationException {
         return CompletableFuture.supplyAsync(() -> BukkitSerializer
-                .deserializeInventory(serializedInventory).join());
+                .deserializeInventory(serializedInventory));
     }
 
     /**
@@ -185,7 +184,7 @@ public class HuskSyncAPI extends BaseHuskSyncAPI {
      */
     public CompletableFuture<String> serializeItemStackArray(@NotNull ItemStack[] itemStacks)
             throws DataSerializationException {
-        return CompletableFuture.supplyAsync(() -> BukkitSerializer.serializeItemStackArray(itemStacks).join());
+        return CompletableFuture.supplyAsync(() -> BukkitSerializer.serializeItemStackArray(itemStacks));
     }
 
     /**
@@ -198,8 +197,8 @@ public class HuskSyncAPI extends BaseHuskSyncAPI {
      */
     public CompletableFuture<PotionEffect[]> deserializePotionEffectArray(@NotNull String serializedPotionEffectArray)
             throws DataSerializationException {
-        return CompletableFuture.supplyAsync(() -> BukkitSerializer
-                .deserializePotionEffectArray(serializedPotionEffectArray).join());
+        return plugin.supplyAsync(() -> BukkitSerializer
+                .deserializePotionEffectArray(serializedPotionEffectArray));
     }
 
     /**
@@ -212,9 +211,8 @@ public class HuskSyncAPI extends BaseHuskSyncAPI {
      * @see PotionEffectData
      * @since 2.0
      */
-    public CompletableFuture<String> serializePotionEffectArray(@NotNull PotionEffect[] potionEffects)
-            throws DataSerializationException {
-        return CompletableFuture.supplyAsync(() -> BukkitSerializer.serializePotionEffectArray(potionEffects).join());
+    public CompletableFuture<String> serializePotionEffectArray(@NotNull PotionEffect[] potionEffects) throws DataSerializationException {
+        return plugin.supplyAsync(() -> BukkitSerializer.serializePotionEffectArray(potionEffects));
     }
 
 }

@@ -16,14 +16,10 @@ package net.william278.husksync.config;
 import net.william278.annotaml.YamlComment;
 import net.william278.annotaml.YamlFile;
 import net.william278.annotaml.YamlKey;
-import net.william278.husksync.data.SynchronizationFeature;
 import net.william278.husksync.listener.EventListener;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Plugin settings, read from config.yml
@@ -382,6 +378,11 @@ public class Settings {
                     .map(SynchronizationFeature::toEntry)
                     .toArray(Map.Entry[]::new));
         }
+
+        public boolean isEnabledByDefault() {
+            return enabledByDefault;
+        }
+
     }
 
     /**

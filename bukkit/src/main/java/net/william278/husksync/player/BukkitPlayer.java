@@ -14,9 +14,6 @@
 package net.william278.husksync.player;
 
 import de.themoep.minedown.adventure.MineDown;
-import dev.triumphteam.gui.builder.gui.StorageBuilder;
-import dev.triumphteam.gui.guis.Gui;
-import dev.triumphteam.gui.guis.StorageGui;
 import net.kyori.adventure.audience.Audience;
 import net.roxeez.advancement.display.FrameType;
 import net.william278.andjam.Toast;
@@ -70,193 +67,176 @@ public class BukkitPlayer extends OnlineUser {
 
     @Override
     public @NotNull StatusData getStatus() {
-        return CompletableFuture.supplyAsync(() -> {
-            final double maxHealth = getMaxHealth(player);
-            return new StatusData(Math.min(player.getHealth(), maxHealth),
-                    maxHealth,
-                    player.isHealthScaled() ? player.getHealthScale() : 0d,
-                    player.getFoodLevel(),
-                    player.getSaturation(),
-                    player.getExhaustion(),
-                    player.getInventory().getHeldItemSlot(),
-                    player.getTotalExperience(),
-                    player.getLevel(),
-                    player.getExp(),
-                    player.getGameMode().name(),
-                    player.getAllowFlight() && player.isFlying());
-        });
+        final double maxHealth = getMaxHealth(player);
+        return new StatusData(
+                Math.min(player.getHealth(), maxHealth),
+                maxHealth,
+                player.isHealthScaled() ? player.getHealthScale() : 0d,
+                player.getFoodLevel(),
+                player.getSaturation(),
+                player.getExhaustion(),
+                player.getInventory().getHeldItemSlot(),
+                player.getTotalExperience(),
+                player.getLevel(),
+                player.getExp(),
+                player.getGameMode().name(),
+                player.getAllowFlight() && player.isFlying()
+        );
     }
 
     @Override
-    public CompletableFuture<Void> setStatus(@NotNull StatusData statusData, @NotNull Settings settings) {
-        return CompletableFuture.runAsync(() -> {
-            // Set max health
-            double currentMaxHealth = Objects.requireNonNull(player.getAttribute(Attribute.GENERIC_MAX_HEALTH)).getBaseValue();
-            if (settings.getSynchronizationFeature(SynchronizationFeature.MAX_HEALTH)) {
-                if (statusData.maxHealth != 0d) {
-                    Objects.requireNonNull(player.getAttribute(Attribute.GENERIC_MAX_HEALTH))
-                            .setBaseValue(statusData.maxHealth);
-                    currentMaxHealth = statusData.maxHealth;
-                }
+    public void setStatus(@NotNull StatusData statusData, @NotNull Settings settings) {
+        // Set max health
+        double currentMaxHealth = Objects.requireNonNull(player.getAttribute(Attribute.GENERIC_MAX_HEALTH)).getBaseValue();
+        if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.MAX_HEALTH)) {
+            if (statusData.maxHealth != 0d) {
+                Objects.requireNonNull(player.getAttribute(Attribute.GENERIC_MAX_HEALTH))
+                        .setBaseValue(statusData.maxHealth);
+                currentMaxHealth = statusData.maxHealth;
             }
-            if (settings.getSynchronizationFeature(SynchronizationFeature.HEALTH)) {
-                // Set health
-                final double currentHealth = player.getHealth();
-                if (statusData.health != currentHealth) {
-                    final double healthToSet = currentHealth > currentMaxHealth ? currentMaxHealth : statusData.health;
-                    final double maxHealth = currentMaxHealth;
-                    plugin.runSync(() -> {
-                        try {
-                            player.setHealth(Math.min(healthToSet, maxHealth));
-                        } catch (IllegalArgumentException e) {
-                            plugin.getLogger().log(Level.WARNING,
-                                    "Failed to set health of player " + player.getName() + " to " + healthToSet);
-                        }
-                    });
-                }
-
-                // Set health scale
-                try {
-                    if (statusData.healthScale != 0d) {
-                        player.setHealthScale(statusData.healthScale);
-                    } else {
-                        player.setHealthScale(statusData.maxHealth);
+        }
+        if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.HEALTH)) {
+            // Set health
+            final double currentHealth = player.getHealth();
+            if (statusData.health != currentHealth) {
+                final double healthToSet = currentHealth > currentMaxHealth ? currentMaxHealth : statusData.health;
+                final double maxHealth = currentMaxHealth;
+                plugin.runSync(() -> {
+                    try {
+                        player.setHealth(Math.min(healthToSet, maxHealth));
+                    } catch (IllegalArgumentException e) {
+                        plugin.getLogger().log(Level.WARNING,
+                                "Failed to set health of player " + player.getName() + " to " + healthToSet);
                     }
-                    player.setHealthScaled(statusData.healthScale != 0D);
-                } catch (IllegalArgumentException e) {
-                    plugin.getLogger().log(Level.WARNING,
-                            "Failed to set health scale of player " + player.getName() + " to " + statusData.healthScale);
-                }
-            }
-            if (settings.getSynchronizationFeature(SynchronizationFeature.HUNGER)) {
-                player.setFoodLevel(statusData.hunger);
-                player.setSaturation(statusData.saturation);
-                player.setExhaustion(statusData.saturationExhaustion);
-            }
-            if (settings.getSynchronizationFeature(SynchronizationFeature.INVENTORIES)) {
-                player.getInventory().setHeldItemSlot(statusData.selectedItemSlot);
-            }
-            if (settings.getSynchronizationFeature(SynchronizationFeature.EXPERIENCE)) {
-                player.setTotalExperience(statusData.totalExperience);
-                player.setLevel(statusData.expLevel);
-                player.setExp(statusData.expProgress);
-            }
-            if (settings.getSynchronizationFeature(SynchronizationFeature.GAME_MODE)) {
-                Bukkit.getScheduler().runTask(plugin, () ->
-                        player.setGameMode(GameMode.valueOf(statusData.gameMode)));
-            }
-            if (settings.getSynchronizationFeature(SynchronizationFeature.LOCATION)) {
-                Bukkit.getScheduler().runTask(plugin, () -> {
-                    if (statusData.isFlying) {
-                        player.setAllowFlight(true);
-                        player.setFlying(true);
-                    }
-                    player.setFlying(false);
                 });
             }
-        });
+
+            // Set health scale
+            try {
+                if (statusData.healthScale != 0d) {
+                    player.setHealthScale(statusData.healthScale);
+                } else {
+                    player.setHealthScale(statusData.maxHealth);
+                }
+                player.setHealthScaled(statusData.healthScale != 0D);
+            } catch (IllegalArgumentException e) {
+                plugin.getLogger().log(Level.WARNING,
+                        "Failed to set health scale of player " + player.getName() + " to " + statusData.healthScale);
+            }
+        }
+        if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.HUNGER)) {
+            player.setFoodLevel(statusData.hunger);
+            player.setSaturation(statusData.saturation);
+            player.setExhaustion(statusData.saturationExhaustion);
+        }
+        if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.INVENTORIES)) {
+            player.getInventory().setHeldItemSlot(statusData.selectedItemSlot);
+        }
+        if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.EXPERIENCE)) {
+            player.setTotalExperience(statusData.totalExperience);
+            player.setLevel(statusData.expLevel);
+            player.setExp(statusData.expProgress);
+        }
+        if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.GAME_MODE)) {
+            BukkitHuskSync.getInstance().runSync(() ->
+                    player.setGameMode(GameMode.valueOf(statusData.gameMode)));
+        }
+        if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.LOCATION)) {
+            BukkitHuskSync.getInstance().runSync(() -> {
+                if (statusData.isFlying) {
+                    player.setAllowFlight(true);
+                    player.setFlying(true);
+                }
+                player.setFlying(false);
+            });
+        }
     }
 
     @NotNull
     @Override
-    public CompletableFuture<ItemData> getInventory() {
+    public ItemData getInventory() {
         final PlayerInventory inventory = player.getInventory();
         if (inventory.isEmpty()) {
-            return CompletableFuture.completedFuture(ItemData.empty());
+            return ItemData.empty();
         }
-        return BukkitSerializer.serializeItemStackArray(inventory.getContents())
-                .thenApply(ItemData::new);
+        return new ItemData(BukkitSerializer.serializeItemStackArray(inventory.getContents()));
     }
 
     @Override
-    public CompletableFuture<Void> setInventory(@NotNull ItemData itemData) {
-        return BukkitSerializer.deserializeInventory(itemData.serializedItems).thenApplyAsync(contents -> {
-            final CompletableFuture<Void> inventorySetFuture = new CompletableFuture<>();
-            plugin.runSync(() -> {
-                player.setItemOnCursor(null);
-                player.getInventory().setContents(contents.getContents());
-                player.updateInventory();
-                inventorySetFuture.complete(null);
-            });
-            return inventorySetFuture.join();
+    public void setInventory(@NotNull ItemData itemData) {
+        final ItemStack[] contents = BukkitSerializer.deserializeInventory(itemData.serializedItems).getContents();
+        final CompletableFuture<Void> inventorySetFuture = new CompletableFuture<>();
+        plugin.runSync(() -> {
+            player.setItemOnCursor(null);
+            player.getInventory().setContents(contents);
+            player.updateInventory();
+            inventorySetFuture.complete(null);
         });
     }
 
     @NotNull
     @Override
-    public CompletableFuture<ItemData> getEnderChest() {
+    public ItemData getEnderChest() {
         final Inventory enderChest = player.getEnderChest();
         if (enderChest.isEmpty()) {
-            return CompletableFuture.completedFuture(ItemData.empty());
+            return ItemData.empty();
         }
-        return BukkitSerializer.serializeItemStackArray(enderChest.getContents())
-                .thenApply(ItemData::new);
+        return new ItemData(BukkitSerializer.serializeItemStackArray(enderChest.getContents()));
     }
 
     @Override
-    public CompletableFuture<Void> setEnderChest(@NotNull ItemData enderChestData) {
-        return BukkitSerializer.deserializeItemStackArray(enderChestData.serializedItems).thenApplyAsync(contents -> {
-            final CompletableFuture<Void> enderChestSetFuture = new CompletableFuture<>();
-            plugin.runSync(() -> {
-                player.getEnderChest().setContents(contents);
-                enderChestSetFuture.complete(null);
-            });
-            return enderChestSetFuture.join();
+    public void setEnderChest(@NotNull ItemData enderChestData) {
+        plugin.runSync(() -> {
+            player.getEnderChest().setContents(BukkitSerializer.deserializeItemStackArray(enderChestData.serializedItems));
         });
     }
 
     @NotNull
     @Override
-    public CompletableFuture<PotionEffectData> getPotionEffects() {
-        return BukkitSerializer.serializePotionEffectArray(player.getActivePotionEffects()
-                .toArray(new PotionEffect[0])).thenApply(PotionEffectData::new);
+    public PotionEffectData getPotionEffects() {
+        return new PotionEffectData(BukkitSerializer.serializePotionEffectArray(
+                player.getActivePotionEffects().toArray(new PotionEffect[0]))
+        );
     }
 
     @Override
-    public CompletableFuture<Void> setPotionEffects(@NotNull PotionEffectData potionEffectData) {
-        return BukkitSerializer.deserializePotionEffectArray(potionEffectData.serializedPotionEffects)
-                .thenApplyAsync(effects -> {
-                    final CompletableFuture<Void> potionEffectsSetFuture = new CompletableFuture<>();
-                    plugin.runSync(() -> {
-                        for (PotionEffect effect : player.getActivePotionEffects()) {
-                            player.removePotionEffect(effect.getType());
-                        }
-                        for (PotionEffect effect : effects) {
-                            player.addPotionEffect(effect);
-                        }
-                        potionEffectsSetFuture.complete(null);
-                    });
-                    return potionEffectsSetFuture.join();
-                });
+    public void setPotionEffects(@NotNull PotionEffectData potionEffectData) {
+        final PotionEffect[] effects = BukkitSerializer.deserializePotionEffectArray(potionEffectData.serializedPotionEffects);
+        plugin.runSync(() -> {
+            for (PotionEffect effect : player.getActivePotionEffects()) {
+                player.removePotionEffect(effect.getType());
+            }
+            for (PotionEffect effect : effects) {
+                player.addPotionEffect(effect);
+            }
+        });
     }
 
     @NotNull
     @Override
-    public CompletableFuture<List<AdvancementData>> getAdvancements() {
-        return CompletableFuture.supplyAsync(() -> {
-            final Iterator<Advancement> serverAdvancements = Bukkit.getServer().advancementIterator();
-            final ArrayList<AdvancementData> advancementData = new ArrayList<>();
+    public List<AdvancementData> getAdvancements() {
+        final Iterator<Advancement> serverAdvancements = Bukkit.getServer().advancementIterator();
+        final ArrayList<AdvancementData> advancementData = new ArrayList<>();
 
-            // Iterate through the server advancement set and add all advancements to the list
-            serverAdvancements.forEachRemaining(advancement -> {
-                final AdvancementProgress advancementProgress = player.getAdvancementProgress(advancement);
-                final Map<String, Date> awardedCriteria = new HashMap<>();
+        // Iterate through the server advancement set and add all advancements to the list
+        serverAdvancements.forEachRemaining(advancement -> {
+            final AdvancementProgress advancementProgress = player.getAdvancementProgress(advancement);
+            final Map<String, Date> awardedCriteria = new HashMap<>();
 
-                advancementProgress.getAwardedCriteria().forEach(criteriaKey -> awardedCriteria.put(criteriaKey,
-                        advancementProgress.getDateAwarded(criteriaKey)));
+            advancementProgress.getAwardedCriteria().forEach(criteriaKey -> awardedCriteria.put(criteriaKey,
+                    advancementProgress.getDateAwarded(criteriaKey)));
 
-                // Only save the advancement if criteria has been completed
-                if (!awardedCriteria.isEmpty()) {
-                    advancementData.add(new AdvancementData(advancement.getKey().toString(), awardedCriteria));
-                }
-            });
-            return advancementData;
+            // Only save the advancement if criteria has been completed
+            if (!awardedCriteria.isEmpty()) {
+                advancementData.add(new AdvancementData(advancement.getKey().toString(), awardedCriteria));
+            }
         });
+        return advancementData;
     }
 
     @Override
-    public CompletableFuture<Void> setAdvancements(@NotNull List<AdvancementData> advancementData) {
-        return CompletableFuture.runAsync(() -> plugin.runSync(() -> {
+    public void setAdvancements(@NotNull List<AdvancementData> advancementData) {
+        plugin.runSync(() -> {
             // Temporarily disable advancement announcing if needed
             boolean announceAdvancementUpdate = false;
             if (Boolean.TRUE.equals(player.getWorld().getGameRuleValue(GameRule.ANNOUNCE_ADVANCEMENTS))) {
@@ -318,128 +298,122 @@ public class BukkitPlayer extends OnlineUser {
                     }
                 });
             });
-        }));
+        });
     }
 
     @NotNull
     @Override
-    public CompletableFuture<StatisticsData> getStatistics() {
-        return CompletableFuture.supplyAsync(() -> {
-            final Map<String, Integer> untypedStatisticValues = new HashMap<>();
-            final Map<String, Map<String, Integer>> blockStatisticValues = new HashMap<>();
-            final Map<String, Map<String, Integer>> itemStatisticValues = new HashMap<>();
-            final Map<String, Map<String, Integer>> entityStatisticValues = new HashMap<>();
+    public StatisticsData getStatistics() {
+        final Map<String, Integer> untypedStatisticValues = new HashMap<>();
+        final Map<String, Map<String, Integer>> blockStatisticValues = new HashMap<>();
+        final Map<String, Map<String, Integer>> itemStatisticValues = new HashMap<>();
+        final Map<String, Map<String, Integer>> entityStatisticValues = new HashMap<>();
 
-            for (Statistic statistic : Statistic.values()) {
-                switch (statistic.getType()) {
-                    case ITEM -> {
-                        final Map<String, Integer> itemValues = new HashMap<>();
-                        Arrays.stream(Material.values()).filter(Material::isItem)
-                                .filter(itemMaterial -> (player.getStatistic(statistic, itemMaterial)) != 0)
-                                .forEach(itemMaterial -> itemValues.put(itemMaterial.name(),
-                                        player.getStatistic(statistic, itemMaterial)));
-                        if (!itemValues.isEmpty()) {
-                            itemStatisticValues.put(statistic.name(), itemValues);
-                        }
+        for (Statistic statistic : Statistic.values()) {
+            switch (statistic.getType()) {
+                case ITEM -> {
+                    final Map<String, Integer> itemValues = new HashMap<>();
+                    Arrays.stream(Material.values()).filter(Material::isItem)
+                            .filter(itemMaterial -> (player.getStatistic(statistic, itemMaterial)) != 0)
+                            .forEach(itemMaterial -> itemValues.put(itemMaterial.name(),
+                                    player.getStatistic(statistic, itemMaterial)));
+                    if (!itemValues.isEmpty()) {
+                        itemStatisticValues.put(statistic.name(), itemValues);
                     }
-                    case BLOCK -> {
-                        final Map<String, Integer> blockValues = new HashMap<>();
-                        Arrays.stream(Material.values()).filter(Material::isBlock)
-                                .filter(blockMaterial -> (player.getStatistic(statistic, blockMaterial)) != 0)
-                                .forEach(blockMaterial -> blockValues.put(blockMaterial.name(),
-                                        player.getStatistic(statistic, blockMaterial)));
-                        if (!blockValues.isEmpty()) {
-                            blockStatisticValues.put(statistic.name(), blockValues);
-                        }
+                }
+                case BLOCK -> {
+                    final Map<String, Integer> blockValues = new HashMap<>();
+                    Arrays.stream(Material.values()).filter(Material::isBlock)
+                            .filter(blockMaterial -> (player.getStatistic(statistic, blockMaterial)) != 0)
+                            .forEach(blockMaterial -> blockValues.put(blockMaterial.name(),
+                                    player.getStatistic(statistic, blockMaterial)));
+                    if (!blockValues.isEmpty()) {
+                        blockStatisticValues.put(statistic.name(), blockValues);
                     }
-                    case ENTITY -> {
-                        final Map<String, Integer> entityValues = new HashMap<>();
-                        Arrays.stream(EntityType.values()).filter(EntityType::isAlive)
-                                .filter(entityType -> (player.getStatistic(statistic, entityType)) != 0)
-                                .forEach(entityType -> entityValues.put(entityType.name(),
-                                        player.getStatistic(statistic, entityType)));
-                        if (!entityValues.isEmpty()) {
-                            entityStatisticValues.put(statistic.name(), entityValues);
-                        }
+                }
+                case ENTITY -> {
+                    final Map<String, Integer> entityValues = new HashMap<>();
+                    Arrays.stream(EntityType.values()).filter(EntityType::isAlive)
+                            .filter(entityType -> (player.getStatistic(statistic, entityType)) != 0)
+                            .forEach(entityType -> entityValues.put(entityType.name(),
+                                    player.getStatistic(statistic, entityType)));
+                    if (!entityValues.isEmpty()) {
+                        entityStatisticValues.put(statistic.name(), entityValues);
                     }
-                    case UNTYPED -> {
-                        if (player.getStatistic(statistic) != 0) {
-                            untypedStatisticValues.put(statistic.name(), player.getStatistic(statistic));
-                        }
+                }
+                case UNTYPED -> {
+                    if (player.getStatistic(statistic) != 0) {
+                        untypedStatisticValues.put(statistic.name(), player.getStatistic(statistic));
                     }
                 }
             }
+        }
 
-            return new StatisticsData(untypedStatisticValues, blockStatisticValues,
-                    itemStatisticValues, entityStatisticValues);
-        });
+        return new StatisticsData(untypedStatisticValues, blockStatisticValues,
+                itemStatisticValues, entityStatisticValues);
     }
 
     @Override
-    public CompletableFuture<Void> setStatistics(@NotNull StatisticsData statisticsData) {
-        return CompletableFuture.runAsync(() -> {
-            // Set generic statistics
-            for (String statistic : statisticsData.untypedStatistics.keySet()) {
+    public void setStatistics(@NotNull StatisticsData statisticsData) {
+        // Set generic statistics
+        for (String statistic : statisticsData.untypedStatistics.keySet()) {
+            try {
+                player.setStatistic(Statistic.valueOf(statistic), statisticsData.untypedStatistics.get(statistic));
+            } catch (IllegalArgumentException e) {
+                plugin.getLogger().log(Level.WARNING,
+                        "Failed to set generic statistic " + statistic + " for " + username);
+            }
+        }
+
+        // Set block statistics
+        for (String statistic : statisticsData.blockStatistics.keySet()) {
+            for (String blockMaterial : statisticsData.blockStatistics.get(statistic).keySet()) {
                 try {
-                    player.setStatistic(Statistic.valueOf(statistic), statisticsData.untypedStatistics.get(statistic));
+                    player.setStatistic(Statistic.valueOf(statistic), Material.valueOf(blockMaterial),
+                            statisticsData.blockStatistics.get(statistic).get(blockMaterial));
                 } catch (IllegalArgumentException e) {
                     plugin.getLogger().log(Level.WARNING,
-                            "Failed to set generic statistic " + statistic + " for " + username);
+                            "Failed to set " + blockMaterial + " statistic " + statistic + " for " + username);
                 }
             }
+        }
 
-            // Set block statistics
-            for (String statistic : statisticsData.blockStatistics.keySet()) {
-                for (String blockMaterial : statisticsData.blockStatistics.get(statistic).keySet()) {
-                    try {
-                        player.setStatistic(Statistic.valueOf(statistic), Material.valueOf(blockMaterial),
-                                statisticsData.blockStatistics.get(statistic).get(blockMaterial));
-                    } catch (IllegalArgumentException e) {
-                        plugin.getLogger().log(Level.WARNING,
-                                "Failed to set " + blockMaterial + " statistic " + statistic + " for " + username);
-                    }
+        // Set item statistics
+        for (String statistic : statisticsData.itemStatistics.keySet()) {
+            for (String itemMaterial : statisticsData.itemStatistics.get(statistic).keySet()) {
+                try {
+                    player.setStatistic(Statistic.valueOf(statistic), Material.valueOf(itemMaterial),
+                            statisticsData.itemStatistics.get(statistic).get(itemMaterial));
+                } catch (IllegalArgumentException e) {
+                    plugin.getLogger().log(Level.WARNING,
+                            "Failed to set " + itemMaterial + " statistic " + statistic + " for " + username);
                 }
             }
+        }
 
-            // Set item statistics
-            for (String statistic : statisticsData.itemStatistics.keySet()) {
-                for (String itemMaterial : statisticsData.itemStatistics.get(statistic).keySet()) {
-                    try {
-                        player.setStatistic(Statistic.valueOf(statistic), Material.valueOf(itemMaterial),
-                                statisticsData.itemStatistics.get(statistic).get(itemMaterial));
-                    } catch (IllegalArgumentException e) {
-                        plugin.getLogger().log(Level.WARNING,
-                                "Failed to set " + itemMaterial + " statistic " + statistic + " for " + username);
-                    }
+        // Set entity statistics
+        for (String statistic : statisticsData.entityStatistics.keySet()) {
+            for (String entityType : statisticsData.entityStatistics.get(statistic).keySet()) {
+                try {
+                    player.setStatistic(Statistic.valueOf(statistic), EntityType.valueOf(entityType),
+                            statisticsData.entityStatistics.get(statistic).get(entityType));
+                } catch (IllegalArgumentException e) {
+                    plugin.getLogger().log(Level.WARNING,
+                            "Failed to set " + entityType + " statistic " + statistic + " for " + username);
                 }
             }
-
-            // Set entity statistics
-            for (String statistic : statisticsData.entityStatistics.keySet()) {
-                for (String entityType : statisticsData.entityStatistics.get(statistic).keySet()) {
-                    try {
-                        player.setStatistic(Statistic.valueOf(statistic), EntityType.valueOf(entityType),
-                                statisticsData.entityStatistics.get(statistic).get(entityType));
-                    } catch (IllegalArgumentException e) {
-                        plugin.getLogger().log(Level.WARNING,
-                                "Failed to set " + entityType + " statistic " + statistic + " for " + username);
-                    }
-                }
-            }
-        });
+        }
     }
 
     @Override
-    public CompletableFuture<LocationData> getLocation() {
-        return CompletableFuture.supplyAsync(() ->
-                new LocationData(player.getWorld().getName(), player.getWorld().getUID(), player.getWorld().getEnvironment().name(),
-                        player.getLocation().getX(), player.getLocation().getY(), player.getLocation().getZ(),
-                        player.getLocation().getYaw(), player.getLocation().getPitch()));
+    public LocationData getLocation() {
+        return new LocationData(player.getWorld().getName(), player.getWorld().getUID(), player.getWorld().getEnvironment().name(),
+                player.getLocation().getX(), player.getLocation().getY(), player.getLocation().getZ(),
+                player.getLocation().getYaw(), player.getLocation().getPitch());
     }
 
     @Override
-    public CompletableFuture<Void> setLocation(@NotNull LocationData locationData) {
-        final CompletableFuture<Void> teleportFuture = new CompletableFuture<>();
+    public void setLocation(@NotNull LocationData locationData) {
         AtomicReference<World> bukkitWorld = new AtomicReference<>(Bukkit.getWorld(locationData.worldName));
         if (bukkitWorld.get() == null) {
             bukkitWorld.set(Bukkit.getWorld(locationData.worldUuid));
@@ -453,62 +427,46 @@ public class BukkitPlayer extends OnlineUser {
                 player.teleport(new Location(bukkitWorld.get(),
                         locationData.x, locationData.y, locationData.z,
                         locationData.yaw, locationData.pitch), PlayerTeleportEvent.TeleportCause.PLUGIN);
-                teleportFuture.complete(null);
             });
         }
-        return teleportFuture;
     }
 
+    @NotNull
     @Override
-    public CompletableFuture<PersistentDataContainerData> getPersistentDataContainer() {
+    public PersistentDataContainerData getPersistentDataContainer() {
         final Map<String, PersistentDataTag<?>> persistentDataMap = new HashMap<>();
         final PersistentDataContainer container = player.getPersistentDataContainer();
-        return CompletableFuture.supplyAsync(() -> {
-            container.getKeys().forEach(key -> {
-                BukkitPersistentTypeMapping<?, ?> type = null;
-                for (BukkitPersistentTypeMapping<?, ?> dataType : BukkitPersistentTypeMapping.PRIMITIVE_TYPE_MAPPINGS) {
-                    if (container.has(key, dataType.bukkitType())) {
-                        type = dataType;
-                        break;
-                    }
+        container.getKeys().forEach(key -> {
+            BukkitPersistentTypeMapping<?, ?> type = null;
+            for (BukkitPersistentTypeMapping<?, ?> dataType : BukkitPersistentTypeMapping.PRIMITIVE_TYPE_MAPPINGS) {
+                if (container.has(key, dataType.bukkitType())) {
+                    type = dataType;
+                    break;
                 }
-                if (type != null) {
-                    persistentDataMap.put(key.toString(), type.getContainerValue(container, key));
-                }
-            });
-            return new PersistentDataContainerData(persistentDataMap);
-        }).exceptionally(throwable -> {
-            plugin.log(Level.WARNING,
-                    "Could not read " + player.getName() + "'s persistent data map, skipping!");
-            throwable.printStackTrace();
-            return new PersistentDataContainerData(new HashMap<>());
+            }
+            if (type != null) {
+                persistentDataMap.put(key.toString(), type.getContainerValue(container, key));
+            }
         });
+        return new PersistentDataContainerData(persistentDataMap);
     }
 
     @Override
-    public CompletableFuture<Void> setPersistentDataContainer(@NotNull PersistentDataContainerData container) {
-        return CompletableFuture.runAsync(() -> {
-            player.getPersistentDataContainer().getKeys().forEach(namespacedKey ->
-                    player.getPersistentDataContainer().remove(namespacedKey));
-            container.getTags().forEach(keyString -> {
-                final NamespacedKey key = NamespacedKey.fromString(keyString);
-                if (key != null) {
-                    container.getTagType(keyString)
-                            .flatMap(BukkitPersistentTypeMapping::getMapping)
-                            .ifPresentOrElse(mapping -> mapping.setContainerValue(container, player, key),
-                                    () -> plugin.log(Level.WARNING,
-                                            "Could not set " + player.getName() + "'s persistent data key " + keyString +
-                                            " as it has an invalid type. Skipping!"));
-                }
-            });
-        }).exceptionally(throwable -> {
-            plugin.log(Level.WARNING,
-                    "Could not write " + player.getName() + "'s persistent data map, skipping!");
-            throwable.printStackTrace();
-            return null;
+    public void setPersistentDataContainer(@NotNull PersistentDataContainerData container) {
+        player.getPersistentDataContainer().getKeys().forEach(namespacedKey ->
+                player.getPersistentDataContainer().remove(namespacedKey));
+        container.getTags().forEach(keyString -> {
+            final NamespacedKey key = NamespacedKey.fromString(keyString);
+            if (key != null) {
+                container.getTagType(keyString)
+                        .flatMap(BukkitPersistentTypeMapping::getMapping)
+                        .ifPresentOrElse(mapping -> mapping.setContainerValue(container, player, key),
+                                () -> plugin.log(Level.WARNING,
+                                        "Could not set " + player.getName() + "'s persistent data key " + keyString +
+                                        " as it has an invalid type. Skipping!"));
+            }
         });
     }
-
 
     @Override
     @NotNull
@@ -540,51 +498,49 @@ public class BukkitPlayer extends OnlineUser {
     @Override
     public CompletableFuture<Optional<ItemData>> showMenu(@NotNull ItemData itemData, boolean editable,
                                                           int minimumRows, @NotNull MineDown title) {
-        final CompletableFuture<Optional<ItemData>> updatedData = new CompletableFuture<>();
-
-        // Deserialize the item data to be shown and show it in a triumph GUI
-        BukkitSerializer.deserializeItemStackArray(itemData.serializedItems).thenAccept(items -> {
-            // Build the GUI and populate with items
-            final int itemCount = items.length;
-            final StorageBuilder guiBuilder = Gui.storage()
-                    .title(title.toComponent())
-                    .rows(Math.max(minimumRows, (int) Math.ceil(itemCount / 9.0)))
-                    .disableAllInteractions()
-                    .enableOtherActions();
-            final StorageGui gui = editable ? guiBuilder.enableAllInteractions().create() : guiBuilder.create();
-            for (int i = 0; i < itemCount; i++) {
-                if (items[i] != null) {
-                    gui.getInventory().setItem(i, items[i]);
-                }
-            }
-
-            // Complete the future with updated data (if editable) when the GUI is closed
-            gui.setCloseGuiAction(event -> {
-                if (!editable) {
-                    updatedData.complete(Optional.empty());
-                    return;
-                }
-
-                // Get and save the updated items
-                final ItemStack[] updatedItems = Arrays.copyOf(event.getPlayer().getOpenInventory()
-                        .getTopInventory().getContents().clone(), itemCount);
-                BukkitSerializer.serializeItemStackArray(updatedItems).thenAccept(serializedItems -> {
-                    if (serializedItems.equals(itemData.serializedItems)) {
-                        updatedData.complete(Optional.empty());
-                        return;
-                    }
-                    updatedData.complete(Optional.of(new ItemData(serializedItems)));
-                });
-            });
-
-            // Display the GUI (synchronously; on the main server thread)
-            Bukkit.getScheduler().runTask(plugin, () -> gui.open(player));
-        }).exceptionally(throwable -> {
-            // Handle exceptions
-            updatedData.completeExceptionally(throwable);
-            return null;
-        });
-        return updatedData;
+//        // Deserialize the item data to be shown and show it in a triumph GUI
+//        BukkitSerializer.deserializeItemStackArray(itemData.serializedItems).thenAccept(items -> {
+//            // Build the GUI and populate with items
+//            final int itemCount = items.length;
+//            final StorageBuilder guiBuilder = Gui.storage()
+//                    .title(title.toComponent())
+//                    .rows(Math.max(minimumRows, (int) Math.ceil(itemCount / 9.0)))
+//                    .disableAllInteractions()
+//                    .enableOtherActions();
+//            final StorageGui gui = editable ? guiBuilder.enableAllInteractions().create() : guiBuilder.create();
+//            for (int i = 0; i < itemCount; i++) {
+//                if (items[i] != null) {
+//                    gui.getInventory().setItem(i, items[i]);
+//                }
+//            }
+//
+//            // Complete the future with updated data (if editable) when the GUI is closed
+//            gui.setCloseGuiAction(event -> {
+//                if (!editable) {
+//                    updatedData.complete(Optional.empty());
+//                    return;
+//                }
+//
+//                // Get and save the updated items
+//                final ItemStack[] updatedItems = Arrays.copyOf(event.getPlayer().getOpenInventory()
+//                        .getTopInventory().getContents().clone(), itemCount);
+//                BukkitSerializer.serializeItemStackArray(updatedItems).thenAccept(serializedItems -> {
+//                    if (serializedItems.equals(itemData.serializedItems)) {
+//                        updatedData.complete(Optional.empty());
+//                        return;
+//                    }
+//                    updatedData.complete(Optional.of(new ItemData(serializedItems)));
+//                });
+//            });
+//
+//            // Display the GUI (synchronously; on the main server thread)
+//            plugin.runSync(() -> gui.open(player));
+//        }).exceptionally(throwable -> {
+//            // Handle exceptions
+//            updatedData.completeExceptionally(throwable);
+//            return null;
+//        });
+        return new CompletableFuture<>();
     }
 
     @Override

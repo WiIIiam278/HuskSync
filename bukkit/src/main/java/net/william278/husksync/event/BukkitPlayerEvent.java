@@ -42,7 +42,7 @@ public abstract class BukkitPlayerEvent extends BukkitEvent implements PlayerEve
     @Override
     public CompletableFuture<Event> fire() {
         final CompletableFuture<Event> eventFireFuture = new CompletableFuture<>();
-        Bukkit.getScheduler().runTask(BukkitHuskSync.getInstance(), () -> {
+        BukkitHuskSync.getInstance().runSync(() -> {
             Bukkit.getServer().getPluginManager().callEvent(this);
             eventFireFuture.complete(this);
         });

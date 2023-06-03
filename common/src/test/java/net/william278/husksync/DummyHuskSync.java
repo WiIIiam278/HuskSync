@@ -31,6 +31,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 
 public class DummyHuskSync implements HuskSync {
@@ -124,5 +126,54 @@ public class DummyHuskSync implements HuskSync {
     @Override
     public Set<UUID> getLockedPlayers() {
         return Set.of();
+    }
+
+    @Override
+    public void runAsync(@NotNull Runnable runnable) {
+
+    }
+
+    @Override
+    public <T> CompletableFuture<T> supplyAsync(@NotNull Supplier<T> supplier) {
+        return null;
+    }
+
+    @Override
+    public void runSync(@NotNull Runnable runnable) {
+        CompletableFuture.runAsync(runnable);
+    }
+
+    @NotNull
+    @Override
+    public UUID runAsyncRepeating(@NotNull Runnable runnable, long delay) {
+        CompletableFuture.runAsync(runnable);
+        return UUID.randomUUID();
+    }
+
+    @Override
+    public void runLater(@NotNull Runnable runnable, long delay) {
+
+    }
+
+    @Override
+    public void cancelTask(@NotNull UUID taskId) {
+
+    }
+
+    @Override
+    public void cancelAllTasks() {
+
+    }
+
+    @NotNull
+    @Override
+    public ConcurrentHashMap<UUID, ?> getTasks() {
+        return new ConcurrentHashMap<>();
+    }
+
+    @NotNull
+    @Override
+    public HuskSync getPlugin() {
+        return this;
     }
 }

@@ -37,6 +37,7 @@ import net.william278.husksync.migrator.MpdbMigrator;
 import net.william278.husksync.player.BukkitPlayer;
 import net.william278.husksync.player.OnlineUser;
 import net.william278.husksync.redis.RedisManager;
+import net.william278.husksync.util.BukkitTaskRunner;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
 import org.bukkit.command.PluginCommand;
@@ -45,22 +46,27 @@ import org.bukkit.permissions.PermissionDefault;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
+import space.arim.morepaperlib.MorePaperLib;
+import space.arim.morepaperlib.scheduling.GracefulScheduling;
+import space.arim.morepaperlib.scheduling.ScheduledTask;
 
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
-public class BukkitHuskSync extends JavaPlugin implements HuskSync {
+public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTaskRunner {
 
     /**
      * Metrics ID for <a href="https://bstats.org/plugin/bukkit/HuskSync%20-%20Bukkit/13140">HuskSync on Bukkit</a>.
      */
     private static final int METRICS_ID = 13140;
+    private ConcurrentHashMap<UUID, ScheduledTask> tasks;
     private Database database;
     private RedisManager redisManager;
     private EventListener eventListener;
@@ -71,6 +77,7 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync {
     private List<Migrator> availableMigrators;
 
     private BukkitAudiences audiences;
+    private MorePaperLib paperLib;
     private static BukkitHuskSync instance;
 
     /**
@@ -94,6 +101,8 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync {
         try {
             // Create adventure audience
             this.audiences = BukkitAudiences.create(this);
+            this.paperLib = new MorePaperLib(this);
+            this.tasks = new ConcurrentHashMap<>();
 
             // Load settings and locales
             log(Level.INFO, "Loading plugin configuration settings & locales...");
@@ -125,12 +134,12 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync {
             // Prepare database connection
             this.database = new MySqlDatabase(this);
             log(Level.INFO, "Attempting to establish connection to the database...");
-            initialized.set(this.database.initialize());
+            this.database.initialize();
             if (initialized.get()) {
                 log(Level.INFO, "Successfully established a connection to the database");
             } else {
                 throw new HuskSyncInitializationException("Failed to establish a connection to the database. " +
-                        "Please check the supplied database credentials in the config file");
+                                                          "Please check the supplied database credentials in the config file");
             }
 
             // Prepare redis connection
@@ -141,7 +150,7 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync {
                 log(Level.INFO, "Successfully established a connection to the Redis server");
             } else {
                 throw new HuskSyncInitializationException("Failed to establish a connection to the Redis server. " +
-                        "Please check the supplied Redis credentials in the config file");
+                                                          "Please check the supplied Redis credentials in the config file");
             }
 
             // Register events
@@ -187,7 +196,7 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync {
                 getLatestVersionIfOutdated().thenAccept(newestVersion ->
                         newestVersion.ifPresent(newVersion -> log(Level.WARNING,
                                 "An update is available for HuskSync, v" + newVersion
-                                        + " (Currently running v" + getPluginVersion() + ")")));
+                                + " (Currently running v" + getPluginVersion() + ")")));
             }
         } catch (HuskSyncInitializationException exception) {
             log(Level.SEVERE, """
@@ -331,5 +340,23 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync {
                 return false;
             }
         });
+    }
+
+    @NotNull
+    @Override
+    public GracefulScheduling getScheduler() {
+        return paperLib.scheduling();
+    }
+
+    @NotNull
+    @Override
+    public ConcurrentHashMap<UUID, ScheduledTask> getTasks() {
+        return tasks;
+    }
+
+    @Override
+    @NotNull
+    public HuskSync getPlugin() {
+        return this;
     }
 }

@@ -13,7 +13,6 @@
 
 package net.william278.husksync.redis;
 
-import de.themoep.minedown.adventure.MineDown;
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.data.UserData;
 import net.william278.husksync.player.User;
@@ -101,21 +100,7 @@ public class RedisManager extends JedisPubSub {
 
         final RedisMessage redisMessage = RedisMessage.fromJson(message);
         plugin.getOnlineUser(redisMessage.targetUserUuid).ifPresent(user -> {
-            if (user.setData(plugin.getDataAdapter().fromBytes(redisMessage.data), plugin)) {
-                switch (plugin.getSettings().getNotificationDisplaySlot()) {
-                    case CHAT -> plugin.getLocales().getLocale("data_update_complete")
-                            .ifPresent(user::sendMessage);
-                    case ACTION_BAR -> plugin.getLocales().getLocale("data_update_complete")
-                            .ifPresent(user::sendActionBar);
-                    case TOAST -> plugin.getLocales().getLocale("data_update_complete")
-                            .ifPresent(locale -> user.sendToast(locale, new MineDown(""),
-                                    "minecraft:bell", "TASK"));
-                }
-                plugin.getEventCannon().fireSyncCompleteEvent(user);
-            } else {
-                plugin.getLocales().getLocale("data_update_failed")
-                        .ifPresent(user::sendMessage);
-            }
+            user.setData(plugin.getDataAdapter().fromBytes(redisMessage.data), plugin);
         });
     }
 
@@ -150,8 +135,8 @@ public class RedisManager extends JedisPubSub {
 
                     // Debug logging
                     plugin.debug("[" + user.username + "] Set " + RedisKeyType.DATA_UPDATE.name()
-                            + " key to redis at: " +
-                            new SimpleDateFormat("mm:ss.SSS").format(new Date()));
+                                 + " key to redis at: " +
+                                 new SimpleDateFormat("mm:ss.SSS").format(new Date()));
                 }
             });
         } catch (Exception e) {
@@ -166,8 +151,8 @@ public class RedisManager extends JedisPubSub {
                 jedis.setex(getKey(RedisKeyType.SERVER_SWITCH, user.uuid),
                         RedisKeyType.SERVER_SWITCH.timeToLive, new byte[0]);
                 plugin.debug("[" + user.username + "] Set " + RedisKeyType.SERVER_SWITCH.name()
-                        + " key to redis at: " +
-                        new SimpleDateFormat("mm:ss.SSS").format(new Date()));
+                             + " key to redis at: " +
+                             new SimpleDateFormat("mm:ss.SSS").format(new Date()));
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -186,13 +171,13 @@ public class RedisManager extends JedisPubSub {
             final byte[] dataByteArray = jedis.get(key);
             if (dataByteArray == null) {
                 plugin.debug("[" + user.username + "] Could not read " +
-                        RedisKeyType.DATA_UPDATE.name() + " key from redis at: " +
-                        new SimpleDateFormat("mm:ss.SSS").format(new Date()));
+                             RedisKeyType.DATA_UPDATE.name() + " key from redis at: " +
+                             new SimpleDateFormat("mm:ss.SSS").format(new Date()));
                 return Optional.empty();
             }
             plugin.debug("[" + user.username + "] Successfully read "
-                    + RedisKeyType.DATA_UPDATE.name() + " key from redis at: " +
-                    new SimpleDateFormat("mm:ss.SSS").format(new Date()));
+                         + RedisKeyType.DATA_UPDATE.name() + " key from redis at: " +
+                         new SimpleDateFormat("mm:ss.SSS").format(new Date()));
 
             // Consume the key (delete from redis)
             jedis.del(key);
@@ -211,13 +196,13 @@ public class RedisManager extends JedisPubSub {
             final byte[] readData = jedis.get(key);
             if (readData == null) {
                 plugin.debug("[" + user.username + "] Could not read " +
-                        RedisKeyType.SERVER_SWITCH.name() + " key from redis at: " +
-                        new SimpleDateFormat("mm:ss.SSS").format(new Date()));
+                             RedisKeyType.SERVER_SWITCH.name() + " key from redis at: " +
+                             new SimpleDateFormat("mm:ss.SSS").format(new Date()));
                 return false;
             }
             plugin.debug("[" + user.username + "] Successfully read "
-                    + RedisKeyType.SERVER_SWITCH.name() + " key from redis at: " +
-                    new SimpleDateFormat("mm:ss.SSS").format(new Date()));
+                         + RedisKeyType.SERVER_SWITCH.name() + " key from redis at: " +
+                         new SimpleDateFormat("mm:ss.SSS").format(new Date()));
 
             // Consume the key (delete from redis)
             jedis.del(key);

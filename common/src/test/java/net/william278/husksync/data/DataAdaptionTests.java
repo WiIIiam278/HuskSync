@@ -31,7 +31,7 @@ public class DataAdaptionTests {
     @Test
     public void testJsonDataAdapter() {
         final OnlineUser dummyUser = DummyPlayer.create();
-        dummyUser.getUserData(new DummyHuskSync()).join().ifPresent(dummyUserData -> {
+        dummyUser.getUserData(new DummyHuskSync()).ifPresent(dummyUserData -> {
             final DataAdapter dataAdapter = new JsonDataAdapter();
             final byte[] data = dataAdapter.toBytes(dummyUserData);
             final UserData deserializedUserData = dataAdapter.fromBytes(data);
@@ -49,7 +49,7 @@ public class DataAdaptionTests {
         final OnlineUser dummyUser = DummyPlayer.create();
         final String expectedJson = "{\"status\":{\"health\":20.0,\"max_health\":20.0,\"health_scale\":0.0,\"hunger\":20,\"saturation\":5.0,\"saturation_exhaustion\":5.0,\"selected_item_slot\":1,\"total_experience\":100,\"experience_level\":1,\"experience_progress\":1.0,\"game_mode\":\"SURVIVAL\",\"is_flying\":false},\"inventory\":{\"serialized_items\":\"\"},\"ender_chest\":{\"serialized_items\":\"\"},\"potion_effects\":{\"serialized_potion_effects\":\"\"},\"advancements\":[],\"statistics\":{\"untyped_statistics\":{},\"block_statistics\":{},\"item_statistics\":{},\"entity_statistics\":{}},\"minecraft_version\":\"1.19\",\"format_version\":3}";
         AtomicReference<String> json = new AtomicReference<>();
-        dummyUser.getUserData(new DummyHuskSync()).join().ifPresent(dummyUserData -> {
+        dummyUser.getUserData(new DummyHuskSync()).ifPresent(dummyUserData -> {
             final DataAdapter dataAdapter = new JsonDataAdapter();
             final byte[] data = dataAdapter.toBytes(dummyUserData);
             json.set(new String(data, StandardCharsets.UTF_8));
@@ -60,7 +60,7 @@ public class DataAdaptionTests {
     @Test
     public void testCompressedDataAdapter() {
         final OnlineUser dummyUser = DummyPlayer.create();
-        dummyUser.getUserData(new DummyHuskSync()).join().ifPresent(dummyUserData -> {
+        dummyUser.getUserData(new DummyHuskSync()).ifPresent(dummyUserData -> {
             final DataAdapter dataAdapter = new CompressedDataAdapter();
             final byte[] data = dataAdapter.toBytes(dummyUserData);
             final UserData deserializedUserData = dataAdapter.fromBytes(data);

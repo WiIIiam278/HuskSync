@@ -163,7 +163,6 @@ public abstract class OnlineUser extends User {
      * Set the player's {@link PersistentDataContainerData}
      *
      * @param persistentDataContainerData The player's {@link PersistentDataContainerData} to set
-     * @return A future returning void when complete
      */
     public abstract void setPersistentDataContainer(@NotNull PersistentDataContainerData persistentDataContainerData);
 
@@ -267,7 +266,6 @@ public abstract class OnlineUser extends User {
      * Data present in the {@link UserData} object, but not enabled to be set in the config, will be ignored.
      *
      * @param plugin The plugin instance
-     * @return a future returning a boolean when complete; if the sync was successful, the future will return {@code true}.
      */
     public final void setData(@NotNull UserData data, @NotNull HuskSync plugin) {
         // Prevent synchronising user data from newer versions of Minecraft
@@ -275,14 +273,18 @@ public abstract class OnlineUser extends User {
             plugin.log(Level.SEVERE, "Cannot set data for " + username +
                     " because the Minecraft version of their user data (" + data.getMinecraftVersion() +
                     ") is newer than the server's Minecraft version (" + plugin.getMinecraftVersion() + ").");
-            return; //todo error msg
+            plugin.getLocales().getLocale("data_update_failed")
+                    .ifPresent(this::sendMessage);
+            return;
         }
         // Prevent synchronising user data from newer versions of the plugin
         if (data.getFormatVersion() > UserData.CURRENT_FORMAT_VERSION) {
             plugin.log(Level.SEVERE, "Cannot set data for " + username +
                     " because the format version of their user data (v" + data.getFormatVersion() +
                     ") is newer than the current format version (v" + UserData.CURRENT_FORMAT_VERSION + ").");
-            return; //todo error msg
+            plugin.getLocales().getLocale("data_update_failed")
+                    .ifPresent(this::sendMessage);
+            return;
         }
 
         // Fire the PreSyncEvent
@@ -293,26 +295,26 @@ public abstract class OnlineUser extends User {
                     try {
                         if (!isOffline() && !preSyncEvent.isCancelled()) {
                             final Settings settings = plugin.getSettings();
-                            if (settings.getSynchronizationFeature(SynchronizationFeature.INVENTORIES)) {
+                            if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.INVENTORIES)) {
                                 finalData.getInventory().ifPresent(this::setInventory);
                             }
-                            if (settings.getSynchronizationFeature(SynchronizationFeature.ENDER_CHESTS)) {
+                            if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.ENDER_CHESTS)) {
                                 finalData.getEnderChest().ifPresent(this::setEnderChest);
                             }
                             finalData.getStatus().ifPresent(statusData -> setStatus(statusData, settings));
-                            if (settings.getSynchronizationFeature(SynchronizationFeature.POTION_EFFECTS)) {
+                            if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.POTION_EFFECTS)) {
                                 finalData.getPotionEffects().ifPresent(this::setPotionEffects);
                             }
-                            if (settings.getSynchronizationFeature(SynchronizationFeature.ADVANCEMENTS)) {
+                            if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.ADVANCEMENTS)) {
                                 finalData.getAdvancements().ifPresent(this::setAdvancements);
                             }
-                            if (settings.getSynchronizationFeature(SynchronizationFeature.STATISTICS)) {
+                            if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.STATISTICS)) {
                                 finalData.getStatistics().ifPresent(this::setStatistics);
                             }
-                            if (settings.getSynchronizationFeature(SynchronizationFeature.LOCATION)) {
+                            if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.LOCATION)) {
                                 finalData.getLocation().ifPresent(this::setLocation);
                             }
-                            if (settings.getSynchronizationFeature(SynchronizationFeature.PERSISTENT_DATA_CONTAINER)) {
+                            if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.PERSISTENT_DATA_CONTAINER)) {
                                 finalData.getPersistentDataContainer().ifPresent(this::setPersistentDataContainer);
                             }
                         }
@@ -345,7 +347,7 @@ public abstract class OnlineUser extends User {
 
         try {
             final Settings settings = plugin.getSettings();
-            if (settings.getSynchronizationFeature(SynchronizationFeature.INVENTORIES)) {
+            if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.INVENTORIES)) {
                 if (isDead() && settings.isSynchroniseDeadPlayersChangingServer()) {
                     plugin.debug("Player " + username + " is dead, so their inventory will be set to empty.");
                     builder.setInventory(ItemData.empty());
@@ -353,23 +355,23 @@ public abstract class OnlineUser extends User {
                     builder.setInventory(getInventory());
                 }
             }
-            if (settings.getSynchronizationFeature(SynchronizationFeature.ENDER_CHESTS)) {
+            if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.ENDER_CHESTS)) {
                 builder.setEnderChest(getEnderChest());
             }
             builder.setStatus(getStatus());
-            if (settings.getSynchronizationFeature(SynchronizationFeature.POTION_EFFECTS)) {
+            if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.POTION_EFFECTS)) {
                 builder.setPotionEffects(getPotionEffects());
             }
-            if (settings.getSynchronizationFeature(SynchronizationFeature.ADVANCEMENTS)) {
+            if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.ADVANCEMENTS)) {
                 builder.setAdvancements(getAdvancements());
             }
-            if (settings.getSynchronizationFeature(SynchronizationFeature.STATISTICS)) {
+            if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.STATISTICS)) {
                 builder.setStatistics(getStatistics());
             }
-            if (settings.getSynchronizationFeature(SynchronizationFeature.LOCATION)) {
+            if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.LOCATION)) {
                 builder.setLocation(getLocation());
             }
-            if (settings.getSynchronizationFeature(SynchronizationFeature.PERSISTENT_DATA_CONTAINER)) {
+            if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.PERSISTENT_DATA_CONTAINER)) {
                 builder.setPersistentDataContainer(getPersistentDataContainer());
             }
             return Optional.of(builder.build());

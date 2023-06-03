@@ -36,7 +36,7 @@ public abstract class BukkitEvent<T> extends Event implements net.william278.hus
         if (!BukkitHuskSync.getInstance().isEnabled()) {
             eventFireFuture.complete(this);
         } else {
-            Bukkit.getScheduler().runTask(BukkitHuskSync.getInstance(), () -> {
+            BukkitHuskSync.getInstance().runSync(() -> {
                 Bukkit.getServer().getPluginManager().callEvent(this);
                 eventFireFuture.complete(this);
             });
