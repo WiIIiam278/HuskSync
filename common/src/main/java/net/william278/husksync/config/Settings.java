@@ -120,6 +120,7 @@ public class Settings {
     @YamlKey("synchronization.compress_data")
     private boolean compressData = true;
 
+    @YamlComment("Where to display sync notifications (ACTION_BAR, CHAT, TOAST or NONE)")
     @YamlKey("synchronization.notification_display_slot")
     private Locales.NotificationSlot notificationSlot = Locales.NotificationSlot.ACTION_BAR;
 
@@ -318,28 +319,6 @@ public class Settings {
                     .map(TableName::toEntry)
                     .toArray(Map.Entry[]::new));
         }
-    }
-
-    /**
-     * Determines the slot a system notification should be displayed in
-     */
-    public enum NotificationDisplaySlot {
-        /**
-         * Displays the notification in the action bar
-         */
-        ACTION_BAR,
-        /**
-         * Displays the notification in the chat
-         */
-        CHAT,
-        /**
-         * Displays the notification in an advancement toast
-         */
-        TOAST,
-        /**
-         * Does not display the notification
-         */
-        NONE
     }
 
     /**
