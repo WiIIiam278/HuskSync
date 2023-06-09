@@ -42,6 +42,7 @@ allprojects {
         maven { url 'https://repo.mattstudios.me/artifactory/public/' }
         maven { url 'https://jitpack.io' }
         maven { url 'https://libraries.minecraft.net/' }
+        maven { url 'https://william278.net/releases/' }
     }
 
     dependencies {
