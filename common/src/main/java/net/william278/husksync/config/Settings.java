@@ -132,7 +132,7 @@ public class Settings {
     private Map<String, Boolean> synchronizationFeatures = SynchronizationFeature.getDefaults();
 
     @YamlKey("synchronization.blacklisted_commands_while_locked")
-    private List<String> blacklistedCommandsWhileLocked = new ArrayList<>();
+    private List<String> blacklistedCommandsWhileLocked = new ArrayList<>(List.of("*"));
 
     @YamlKey("synchronization.event_priorities")
     private Map<String, String> synchronizationEventPriorities = EventType.getDefaults();
