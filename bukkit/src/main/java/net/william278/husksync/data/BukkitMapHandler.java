@@ -29,6 +29,7 @@ import org.jetbrains.annotations.Nullable;
 import java.awt.*;
 import java.io.IOException;
 import java.util.Objects;
+import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 
 /**
@@ -55,8 +56,14 @@ public class BukkitMapHandler {
         }
 
         // Get the map view from the map
-        final MapView mapView = mapMeta.getMapView();
-        if (mapView == null || !mapView.isLocked() || mapView.isVirtual()) {
+        final MapView mapView;
+        try {
+            mapView = Bukkit.getScheduler().callSyncMethod(plugin, mapMeta::getMapView).get();
+            if (mapView == null || !mapView.isLocked() || mapView.isVirtual()) {
+                return;
+            }
+        } catch (InterruptedException | ExecutionException e) {
+            plugin.getLogger().log(Level.WARNING, "Failed to save map data for a player", e);
             return;
         }
 

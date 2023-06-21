@@ -27,5 +27,5 @@ Welcome! This is the plugin documentation for HuskSync v2.x+. Please click throu
 * 📂 [Buy HuskSync](https://www.spigotmc.org/resources/husksync.97144/)
   * 🛒 [Spigot](https://www.spigotmc.org/resources/husksync.97144/)
   * 🛒 [Polymart](https://polymart.org/resource/husksync.1634)
-  * 🛒 [Songoda](https://songoda.com/marketplace/product/husksync-a-modern-cross-server-player-data-synchronization-system.758)
+  * 🛒 [Craftaro](https://craftaro.com/marketplace/product/husksync.758)
 * 💬 [Discord Support](https://discord.gg/tVYhJfyDWG)
