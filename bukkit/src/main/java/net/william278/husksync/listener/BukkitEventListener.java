@@ -178,7 +178,7 @@ public class BukkitEventListener extends EventListener implements BukkitJoinEven
         String[] commandArgs = event.getMessage().substring(1).split(" ");
         String commandLabel = commandArgs[0].toLowerCase(Locale.ENGLISH);
 
-        if (blacklistedCommands.contains(commandLabel)) {
+        if (blacklistedCommands.contains("*") || blacklistedCommands.contains(commandLabel)) {
             event.setCancelled(cancelPlayerEvent(event.getPlayer().getUniqueId()));
         }
     }
