@@ -1,2 +1,4 @@
-package net.william278.husksync.client;public class FabricClient {
+package net.william278.husksync.client;
+
+public class FabricClient {
 }

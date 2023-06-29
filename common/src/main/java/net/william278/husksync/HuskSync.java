@@ -26,6 +26,7 @@ import net.william278.husksync.redis.RedisManager;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Optional;
@@ -121,7 +122,7 @@ public interface HuskSync {
      * @param name the path to the resource
      * @return the {@link InputStream} of the resource
      */
-    InputStream getResource(@NotNull String name);
+    InputStream getResource(@NotNull String name) throws IOException;
 
     /**
      * Log a message to the console
@@ -158,7 +159,7 @@ public interface HuskSync {
      * @return the plugin data folder as a {@link File}
      */
     @NotNull
-    File getDataFolder();
+    File getDataFolder() throws IOException;
 
     /**
      * Returns a future returning the latest plugin {@link Version} if the plugin is out-of-date

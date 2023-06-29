@@ -14,13 +14,15 @@ dependencies {
     mappings "net.fabricmc:yarn:${fabric_yarn_mappings}:v2"
     modImplementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
     modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_api_version}"
-
     modImplementation include('net.kyori:adventure-platform-fabric:5.9.0-SNAPSHOT')
+    modImplementation include('de.themoep:minedown-adventure:1.7.1-SNAPSHOT')
 
     implementation include('redis.clients:jedis:' + jedis_version)
     implementation include('com.mysql:mysql-connector-j:' + mysql_driver_version)
 
     compileOnly 'org.jetbrains:annotations:24.0.1'
+    compileOnly 'net.william278:DesertWell:2.0.4'
+    compileOnly 'net.william278:Annotaml:2.0.1'
 
     shadow project(path: ":common")
 }
