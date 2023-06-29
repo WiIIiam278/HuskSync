@@ -1,0 +1,61 @@
+plugins {
+    id 'fabric-loom' version '1.2-SNAPSHOT'
+}
+
+apply plugin: 'fabric-loom'
+loom.serverOnlyMinecraftJar()
+
+repositories {
+    maven { url = "https://s01.oss.sonatype.org/content/repositories/snapshots/" }
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${fabric_minecraft_version}"
+    mappings "net.fabricmc:yarn:${fabric_yarn_mappings}:v2"
+    modImplementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_api_version}"
+
+    modImplementation include('net.kyori:adventure-platform-fabric:5.9.0-SNAPSHOT')
+
+    implementation include('redis.clients:jedis:' + jedis_version)
+    implementation include('com.mysql:mysql-connector-j:' + mysql_driver_version)
+
+    compileOnly 'org.jetbrains:annotations:24.0.1'
+
+    shadow project(path: ":common")
+}
+
+shadowJar {
+    configurations = [project.configurations.shadow]
+    destinationDirectory.set(file("$projectDir/build/libs"))
+
+    exclude('net.fabricmc:.*')
+    exclude('net.kyori:.*')
+    exclude '/mappings/*'
+
+    relocate 'org.apache.commons.io', 'net.william278.huskhomes.libraries.commons.io'
+    relocate 'org.apache.commons.text', 'net.william278.huskhomes.libraries.commons.text'
+    relocate 'org.apache.commons.lang3', 'net.william278.huskhomes.libraries.commons.lang3'
+    relocate 'de.themoep', 'net.william278.huskhomes.libraries'
+    relocate 'org.jetbrains', 'net.william278.huskhomes.libraries'
+    relocate 'org.intellij', 'net.william278.huskhomes.libraries'
+    relocate 'com.zaxxer', 'net.william278.huskhomes.libraries'
+    relocate 'net.william278.annotaml', 'net.william278.huskhomes.libraries.annotaml'
+    relocate 'net.william278.paginedown', 'net.william278.huskhomes.libraries.paginedown'
+    relocate 'net.william278.desertwell', 'net.william278.huskhomes.libraries.desertwell'
+    relocate 'dev.dejvokep.boostedyaml', 'net.william278.huskhomes.libraries.boostedyaml'
+    relocate 'org.yaml.snakeyaml', 'net.william278.huskhomes.libraries.snakeyaml'
+    relocate 'com.google.gson', 'net.william278.huskhomes.libraries.gson'
+}
+
+remapJar {
+    dependsOn tasks.shadowJar
+    mustRunAfter tasks.shadowJar
+    inputFile = shadowJar.archiveFile.get()
+    addNestedDependencies = true
+
+    destinationDirectory.set(file("$rootDir/target/"))
+    archiveClassifier.set('')
+}
+
+shadowJar.finalizedBy(remapJar)
