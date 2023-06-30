@@ -62,6 +62,7 @@ public class FabricHuskSync implements DedicatedServerModInitializer, HuskSync {
     }
 
     @Override
+    @SuppressWarnings("SpellCheckingInspection")
     public void onInitializeServer() {
         // static field
         FabricHuskSync.LOGGER = LoggerFactory.getLogger("HuskSync");

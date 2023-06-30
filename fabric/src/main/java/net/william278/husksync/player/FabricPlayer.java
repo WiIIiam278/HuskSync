@@ -32,7 +32,8 @@ public class FabricPlayer extends OnlineUser {
     private static double getMaxHealth(@NotNull ServerPlayerEntity player) {
         double maxHealth = player.getMaxHealth();
 
-        // TODO: If the player has additional health bonuses from synchronised potion effects, subtract these from this number as they are synchronised separately
+        // TODO: If the player has additional health bonuses from synchronised potion effects,
+        //  subtract these from this number as they are synchronised separately
 
         return maxHealth;
     }
@@ -51,7 +52,9 @@ public class FabricPlayer extends OnlineUser {
                     player.totalExperience,
                     player.experienceLevel,
                     player.experienceProgress,
-                    // FIXME: Warning, there is a behavioral difference here due to the lack of a suitable method to obtain the current player's game mode, which may result in incorrect transmission of the game mode.
+                    // Warning, there is a behavioral difference here due to the lack of a suitable method
+                    // to obtain the current player's game mode,
+                    // which may result in incorrect transmission of the game mode.
                     player.isCreative() ? "CREATIVE" : player.isSpectator() ? "SPECTATOR" : "SURVIVAL",
                     player.getAbilities().allowFlying && player.getAbilities().flying
             );
