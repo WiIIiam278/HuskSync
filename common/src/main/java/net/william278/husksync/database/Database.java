@@ -191,4 +191,30 @@ public abstract class Database {
      */
     public abstract void close();
 
+    /**
+     * Identifies types of databases
+     */
+    public enum Type {
+        MYSQL("MySQL", "mysql"),
+        MARIADB("MariaDB", "mariadb");
+
+        private final String displayName;
+        private final String protocol;
+
+        Type(@NotNull String displayName, @NotNull String protocol) {
+            this.displayName = displayName;
+            this.protocol = protocol;
+        }
+
+        @NotNull
+        public String getDisplayName() {
+            return displayName;
+        }
+
+        @NotNull
+        public String getProtocol() {
+            return protocol;
+        }
+    }
+
 }

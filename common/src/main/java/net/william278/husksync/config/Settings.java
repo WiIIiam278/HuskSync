@@ -22,6 +22,7 @@ package net.william278.husksync.config;
 import net.william278.annotaml.YamlComment;
 import net.william278.annotaml.YamlFile;
 import net.william278.annotaml.YamlKey;
+import net.william278.husksync.database.Database;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -54,6 +55,10 @@ public class Settings {
 
 
     // Database settings
+    @YamlComment("Type of database to use (MYSQL, SQLITE)")
+    @YamlKey("database.type")
+    private Database.Type databaseType = Database.Type.MYSQL;
+    
     @YamlComment("Database connection settings")
     @YamlKey("database.credentials.host")
     private String mySqlHost = "localhost";
@@ -165,6 +170,12 @@ public class Settings {
 
     public boolean doDebugLogging() {
         return debugLogging;
+    }
+
+
+    @NotNull
+    public Database.Type getSqlType() {
+        return databaseType;
     }
 
     @NotNull
