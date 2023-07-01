@@ -51,14 +51,14 @@ Requires a MySQL (v8.0+) database, a Redis (v5.0+) server and any number of Spig
 3. Navigate to the HuskSync config file on each server (~/plugins/HuskSync/config.yml) and fill in both the MySQL and Redis database credentials.
 4. Start every server again and synchronization will begin.
 
-## Building
+## Development
 To build HuskSync, simply run the following in the root of the repository:
 
 ```bash
 ./gradlew clean build
 ```
 
-## License
+### License
 HuskSync is licensed under the Apache 2.0 license.
 
 - [License](https://github.com/WiIIiam278/HuskSync/blob/master/LICENSE)
@@ -68,7 +68,7 @@ Contributions to the project are welcome&mdash;feel free to open a pull request 
 ### Support
 Due to its complexity, official support for HuskSync is provided through a paid model. This means that support is only available to users who have purchased a license to the plugin from Spigot, Polymart, or Craftaro and have provided proof of purchase. Please join our Discord server if you have done so and need help!
 
-## Translations
+### Translations
 Translations of the plugin locales are welcome to help make the plugin more accessible. Please submit a pull request with your translations as a `.yml` file.
 
 - [Locales Directory](https://github.com/WiIIiam278/HuskSync/tree/master/common/src/main/resources/languages)
