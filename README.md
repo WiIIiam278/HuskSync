@@ -82,4 +82,4 @@ Translations of the plugin locales are welcome to help make the plugin more acce
 - [bStats](https://bstats.org/plugin/bukkit/HuskSync%20-%20Bukkit/13140) &mdash; View plugin metrics
 
 ---
-&copy; [William278](https://william278.net/), 2023. All rights reserved.
+&copy; [William278](https://william278.net/), 2023. Licensed under the Apache-2.0 License.
