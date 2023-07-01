@@ -36,6 +36,7 @@ import net.william278.husksync.database.Database;
 import net.william278.husksync.database.MySqlDatabase;
 import net.william278.husksync.event.EventCannon;
 import net.william278.husksync.event.FabricEventCannon;
+import net.william278.husksync.hook.PlanHook;
 import net.william278.husksync.listener.EventListener;
 import net.william278.husksync.listener.FabricEventListener;
 import net.william278.husksync.migrator.Migrator;
@@ -164,7 +165,15 @@ public class FabricHuskSync implements DedicatedServerModInitializer, HuskSync {
             // Register commands handler
             log(Level.INFO, "Successfully registered permissions & commands");
 
-            // FIXME: The plan function is not supported.
+            // Register plan hook
+            if (FabricLoader.getInstance().isModLoaded("plan")) {
+                log(Level.INFO, "Enabling Plan integration...");
+                new PlanHook(this).hookIntoPlan();
+                log(Level.INFO, "Plan integration enabled!");
+            } else {
+                log(Level.INFO, "Plan integration not enabled as Plan is not installed");
+            }
+
             // FIXME: The bStats metrics function is not supported.
             // FIXME: The updates function is not supported.
         } catch (HuskSyncInitializationException exception) {

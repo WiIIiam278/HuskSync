@@ -20,5 +20,8 @@
     "fabricloader": ">=${fabric_loader_version}",
     "minecraft": ">=${fabric_minecraft_version}",
     "fabric-api": "*"
+  },
+  "suggests": {
+    "plan": "*"
   }
 }
