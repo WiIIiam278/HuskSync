@@ -35,6 +35,11 @@ import java.util.logging.Level;
 public class MySqlDatabase extends Database {
 
     /**
+     * MySQL protocol
+     */
+    private final Database.Type type;
+
+    /**
      * MySQL server hostname
      */
     private final String mySqlHost;
@@ -68,6 +73,7 @@ public class MySqlDatabase extends Database {
     public MySqlDatabase(@NotNull HuskSync plugin) {
         super(plugin);
         final Settings settings = plugin.getSettings();
+        this.type = settings.getSqlType();
         this.mySqlHost = settings.getMySqlHost();
         this.mySqlPort = settings.getMySqlPort();
         this.mySqlDatabaseName = settings.getMySqlDatabase();
@@ -95,7 +101,7 @@ public class MySqlDatabase extends Database {
     public boolean initialize() {
         try {
             // Create jdbc driver connection url
-            final String jdbcUrl = "jdbc:mysql://" + mySqlHost + ":" + mySqlPort + "/" + mySqlDatabaseName + mySqlConnectionParameters;
+            final String jdbcUrl = "jdbc:" + type.getProtocol() + "://" + mySqlHost + ":" + mySqlPort + "/" + mySqlDatabaseName + mySqlConnectionParameters;
             connectionPool = new HikariDataSource();
             connectionPool.setJdbcUrl(jdbcUrl);
 
