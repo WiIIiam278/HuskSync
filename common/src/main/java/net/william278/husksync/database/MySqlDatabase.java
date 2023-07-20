@@ -39,10 +39,12 @@ import java.util.logging.Level;
 public class MySqlDatabase extends Database {
 
     private static final String DATA_POOL_NAME = "HuskSyncHikariPool";
+    private final String protocol;
     private HikariDataSource dataSource;
 
     public MySqlDatabase(@NotNull HuskSync plugin) {
         super(plugin);
+        this.protocol = plugin.getSettings().getDatabaseType().getProtocol();
     }
 
     /**
@@ -59,13 +61,13 @@ public class MySqlDatabase extends Database {
     public void initialize() throws IllegalStateException {
         // Initialize the Hikari pooled connection
         dataSource = new HikariDataSource();
-        dataSource.setJdbcUrl("jdbc:mysql://" +
-                              plugin.getSettings().getMySqlHost() +
-                              ":" +
-                              plugin.getSettings().getMySqlPort() +
-                              "/" +
-                              plugin.getSettings().getMySqlDatabase() +
-                              plugin.getSettings().getMySqlConnectionParameters());
+        dataSource.setJdbcUrl(String.format("jdbc:%s://%s:%s/%s%s",
+                protocol,
+                plugin.getSettings().getMySqlHost(),
+                plugin.getSettings().getMySqlPort(),
+                plugin.getSettings().getMySqlDatabase(),
+                plugin.getSettings().getMySqlConnectionParameters()
+        ));
 
         // Authenticate with the database
         dataSource.setUsername(plugin.getSettings().getMySqlUsername());
@@ -80,34 +82,39 @@ public class MySqlDatabase extends Database {
         dataSource.setPoolName(DATA_POOL_NAME);
 
         // Set additional connection pool properties
-        dataSource.setDataSourceProperties(new Properties() {{
-            put("cachePrepStmts", "true");
-            put("prepStmtCacheSize", "250");
-            put("prepStmtCacheSqlLimit", "2048");
-            put("useServerPrepStmts", "true");
-            put("useLocalSessionState", "true");
-            put("useLocalTransactionState", "true");
-            put("rewriteBatchedStatements", "true");
-            put("cacheResultSetMetadata", "true");
-            put("cacheServerConfiguration", "true");
-            put("elideSetAutoCommits", "true");
-            put("maintainTimeStats", "false");
-        }});
+        final Properties properties = new Properties();
+        properties.putAll(
+                Map.of("cachePrepStmts", "true",
+                        "prepStmtCacheSize", "250",
+                        "prepStmtCacheSqlLimit", "2048",
+                        "useServerPrepStmts", "true",
+                        "useLocalSessionState", "true",
+                        "useLocalTransactionState", "true"
+                ));
+        properties.putAll(
+                Map.of(
+                        "rewriteBatchedStatements", "true",
+                        "cacheResultSetMetadata", "true",
+                        "cacheServerConfiguration", "true",
+                        "elideSetAutoCommits", "true",
+                        "maintainTimeStats", "false")
+        );
+        dataSource.setDataSourceProperties(properties);
 
         // Prepare database schema; make tables if they don't exist
         try (Connection connection = dataSource.getConnection()) {
-            final String[] databaseSchema = getSchemaStatements("database/mysql_schema.sql");
+            final String[] databaseSchema = getSchemaStatements(String.format("database/%s_schema.sql", protocol));
             try (Statement statement = connection.createStatement()) {
                 for (String tableCreationStatement : databaseSchema) {
                     statement.execute(tableCreationStatement);
                 }
             } catch (SQLException e) {
                 throw new IllegalStateException("Failed to create database tables. Please ensure you are running MySQL v8.0+ " +
-                                                "and that your connecting user account has privileges to create tables.", e);
+                        "and that your connecting user account has privileges to create tables.", e);
             }
         } catch (SQLException | IOException e) {
             throw new IllegalStateException("Failed to establish a connection to the MySQL database. " +
-                                            "Please check the supplied database credentials in the config file", e);
+                    "Please check the supplied database credentials in the config file", e);
         }
     }
 
@@ -147,7 +154,8 @@ public class MySqlDatabase extends Database {
                     } catch (SQLException e) {
                         plugin.log(Level.SEVERE, "Failed to insert a user into the database", e);
                     }
-                });
+                }
+        );
     }
 
     @Override

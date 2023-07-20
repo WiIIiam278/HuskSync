@@ -176,7 +176,7 @@ public class Settings {
 
 
     @NotNull
-    public Database.Type getSqlType() {
+    public Database.Type getDatabaseType() {
         return databaseType;
     }
 
