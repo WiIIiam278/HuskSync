@@ -217,7 +217,8 @@ public class MySqlDatabase extends Database {
     }
 
     @Override
-    public @NotNull List<UserDataSnapshot> getUserData(@NotNull User user) {
+    @NotNull
+    public List<UserDataSnapshot> getUserData(@NotNull User user) {
         final List<UserDataSnapshot> retrievedData = new ArrayList<>();
         try (Connection connection = getConnection()) {
             try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""

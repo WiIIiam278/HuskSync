@@ -72,7 +72,8 @@ public class BukkitPlayer extends OnlineUser {
     }
 
     @Override
-    public @NotNull StatusData getStatus() {
+    @NotNull
+    public StatusData getStatus() {
         final double maxHealth = getMaxHealth(player);
         return new StatusData(
                 Math.min(player.getHealth(), maxHealth),

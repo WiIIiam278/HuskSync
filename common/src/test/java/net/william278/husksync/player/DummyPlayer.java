@@ -41,7 +41,8 @@ public class DummyPlayer extends OnlineUser {
     }
 
     @Override
-    public @NotNull StatusData getStatus() {
+    @NotNull
+    public StatusData getStatus() {
         return new StatusData(20, 20, 0,
                 20, 5, 5, 1,
                 100, 1, 1f, "SURVIVAL", false);

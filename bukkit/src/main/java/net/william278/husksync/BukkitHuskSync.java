@@ -156,7 +156,7 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTaskRu
                 log(Level.INFO, "Successfully established a connection to the Redis server");
             } else {
                 throw new HuskSyncInitializationException("Failed to establish a connection to the Redis server. " +
-                                                          "Please check the supplied Redis credentials in the config file");
+                        "Please check the supplied Redis credentials in the config file");
             }
 
             // Register events
@@ -202,7 +202,7 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTaskRu
                 getLatestVersionIfOutdated().thenAccept(newestVersion ->
                         newestVersion.ifPresent(newVersion -> log(Level.WARNING,
                                 "An update is available for HuskSync, v" + newVersion
-                                + " (Currently running v" + getPluginVersion() + ")")));
+                                        + " (Currently running v" + getPluginVersion() + ")")));
             }
         } catch (HuskSyncInitializationException exception) {
             log(Level.SEVERE, """
@@ -242,12 +242,14 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTaskRu
     }
 
     @Override
-    public @NotNull Set<OnlineUser> getOnlineUsers() {
+    @NotNull
+    public Set<OnlineUser> getOnlineUsers() {
         return Bukkit.getOnlinePlayers().stream().map(BukkitPlayer::adapt).collect(Collectors.toSet());
     }
 
     @Override
-    public @NotNull Optional<OnlineUser> getOnlineUser(@NotNull UUID uuid) {
+    @NotNull
+    public Optional<OnlineUser> getOnlineUser(@NotNull UUID uuid) {
         final Player player = Bukkit.getPlayer(uuid);
         if (player == null) {
             return Optional.empty();
@@ -256,22 +258,26 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTaskRu
     }
 
     @Override
-    public @NotNull Database getDatabase() {
+    @NotNull
+    public Database getDatabase() {
         return database;
     }
 
     @Override
-    public @NotNull RedisManager getRedisManager() {
+    @NotNull
+    public RedisManager getRedisManager() {
         return redisManager;
     }
 
     @Override
-    public @NotNull DataAdapter getDataAdapter() {
+    @NotNull
+    public DataAdapter getDataAdapter() {
         return dataAdapter;
     }
 
     @Override
-    public @NotNull EventCannon getEventCannon() {
+    @NotNull
+    public EventCannon getEventCannon() {
         return eventCannon;
     }
 
@@ -282,12 +288,14 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTaskRu
     }
 
     @Override
-    public @NotNull Settings getSettings() {
+    @NotNull
+    public Settings getSettings() {
         return settings;
     }
 
     @Override
-    public @NotNull Locales getLocales() {
+    @NotNull
+    public Locales getLocales() {
         return locales;
     }
 
@@ -365,4 +373,5 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTaskRu
     public HuskSync getPlugin() {
         return this;
     }
+
 }

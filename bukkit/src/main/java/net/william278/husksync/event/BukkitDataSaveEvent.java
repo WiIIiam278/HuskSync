@@ -57,7 +57,8 @@ public class BukkitDataSaveEvent extends BukkitEvent implements DataSaveEvent, C
     }
 
     @Override
-    public @NotNull UserData getUserData() {
+    @NotNull
+    public UserData getUserData() {
         return userData;
     }
 
@@ -67,7 +68,8 @@ public class BukkitDataSaveEvent extends BukkitEvent implements DataSaveEvent, C
     }
 
     @Override
-    public @NotNull DataSaveCause getSaveCause() {
+    @NotNull
+    public DataSaveCause getSaveCause() {
         return saveCause;
     }
 

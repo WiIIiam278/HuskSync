@@ -33,12 +33,14 @@ public class JsonDataAdapter implements DataAdapter {
     }
 
     @Override
-    public @NotNull String toJson(@NotNull UserData data, boolean pretty) throws DataAdaptionException {
+    @NotNull
+    public String toJson(@NotNull UserData data, boolean pretty) throws DataAdaptionException {
         return (pretty ? new GsonBuilder().setPrettyPrinting() : new GsonBuilder()).create().toJson(data);
     }
 
     @Override
-    public @NotNull UserData fromBytes(byte[] data) throws DataAdaptionException {
+    @NotNull
+    public UserData fromBytes(byte[] data) throws DataAdaptionException {
         try {
             return new GsonBuilder().create().fromJson(new String(data, StandardCharsets.UTF_8), UserData.class);
         } catch (JsonSyntaxException e) {

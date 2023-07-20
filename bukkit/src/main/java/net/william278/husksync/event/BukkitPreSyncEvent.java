@@ -47,7 +47,8 @@ public class BukkitPreSyncEvent extends BukkitPlayerEvent implements PreSyncEven
     }
 
     @Override
-    public @NotNull UserData getUserData() {
+    @NotNull
+    public UserData getUserData() {
         return userData;
     }
 
