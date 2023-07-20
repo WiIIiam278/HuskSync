@@ -37,7 +37,7 @@ public class DataAdaptionTests {
     @Test
     public void testJsonDataAdapter() {
         final OnlineUser dummyUser = DummyPlayer.create();
-        dummyUser.getUserData(new DummyHuskSync()).ifPresent(dummyUserData -> {
+        dummyUser.getUserData(null).ifPresent(dummyUserData -> {
             final DataAdapter dataAdapter = new JsonDataAdapter();
             final byte[] data = dataAdapter.toBytes(dummyUserData);
             final UserData deserializedUserData = dataAdapter.fromBytes(data);
