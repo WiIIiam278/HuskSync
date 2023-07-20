@@ -51,22 +51,24 @@ Requires a MySQL (v8.0+) database, a Redis (v5.0+) server and any number of Spig
 3. Navigate to the HuskSync config file on each server (~/plugins/HuskSync/config.yml) and fill in both the MySQL and Redis database credentials.
 4. Start every server again and synchronization will begin.
 
-## Building
+## Development
 To build HuskSync, simply run the following in the root of the repository:
 
 ```bash
 ./gradlew clean build
 ```
 
-## License
-HuskSync is a premium resource. This source code is provided as reference only for those who have purchased the resource from an official source.
+### License
+HuskSync is licensed under the Apache 2.0 license.
 
 - [License](https://github.com/WiIIiam278/HuskSync/blob/master/LICENSE)
 
-## Contributing
-A code bounty program is in place for HuskSync, where developers making significant code contributions to HuskSync may be entitled to a license at my discretion to use HuskSync in commercial contexts without having to purchase the resource. Please read the information for contributors in the LICENSE file before submitting a pull request.
+Contributions to the project are welcome&mdash;feel free to open a pull request with new features, improvements and/or fixes!
 
-## Translations
+### Support
+Due to its complexity, official support for HuskSync is provided through a paid model. This means that support is only available to users who have purchased a license to the plugin from Spigot, Polymart, or Craftaro and have provided proof of purchase. Please join our Discord server if you have done so and need help!
+
+### Translations
 Translations of the plugin locales are welcome to help make the plugin more accessible. Please submit a pull request with your translations as a `.yml` file.
 
 - [Locales Directory](https://github.com/WiIIiam278/HuskSync/tree/master/common/src/main/resources/languages)
@@ -74,10 +76,10 @@ Translations of the plugin locales are welcome to help make the plugin more acce
 
 ## Links
 - [Docs](https://william278.net/docs/husksync/) &mdash; Read the plugin documentation!
-- [Spigot](https://www.spigotmc.org/resources/husksync.97144/) &mdash; View the Spigot resource page (Also: [Polymart](https://polymart.org/resource/husksync.1634), [Craftaro](https://craftaro.com/marketplace/product/husksync.406))
+- [Spigot](https://www.spigotmc.org/resources/husksync.97144/) &mdash; View the Spigot resource page (Also: [Polymart](https://polymart.org/resource/husksync.1634), [Craftaro](https://craftaro.com/marketplace/product/husksync.758))
 - [Issues](https://github.com/WiIIiam278/HuskSync/issues) &mdash; File a bug report or feature request
-- [Discord](https://discord.gg/tVYhJfyDWG) &mdash; Get help, ask questions (Proof of purchase required)
+- [Discord](https://discord.gg/tVYhJfyDWG) &mdash; Get help, ask questions (Purchase required)
 - [bStats](https://bstats.org/plugin/bukkit/HuskSync%20-%20Bukkit/13140) &mdash; View plugin metrics
 
 ---
-&copy; [William278](https://william278.net/), 2023. All rights reserved.
+&copy; [William278](https://william278.net/), 2023. Licensed under the Apache-2.0 License.

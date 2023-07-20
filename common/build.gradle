@@ -1,7 +1,7 @@
 dependencies {
-    implementation 'commons-io:commons-io:2.12.0'
+    implementation 'commons-io:commons-io:2.13.0'
     implementation 'de.themoep:minedown-adventure:1.7.2-SNAPSHOT'
-    implementation 'net.kyori:adventure-api:4.13.1'
+    implementation 'net.kyori:adventure-api:4.14.0'
     implementation 'com.google.code.gson:gson:2.10.1'
     implementation 'dev.dejvokep:boosted-yaml:1.3.1'
     implementation 'net.william278:Annotaml:2.0.1'

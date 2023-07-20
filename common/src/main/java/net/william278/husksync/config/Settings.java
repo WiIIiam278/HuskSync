@@ -1,14 +1,20 @@
 /*
- * This file is part of HuskSync by William278. Do not redistribute!
+ * This file is part of HuskSync, licensed under the Apache License 2.0.
  *
  *  Copyright (c) William278 <will27528@gmail.com>
- *  All rights reserved.
+ *  Copyright (c) contributors
  *
- *  This source code is provided as reference to licensed individuals that have purchased the HuskSync
- *  plugin once from any of the official sources it is provided. The availability of this code does
- *  not grant you the rights to modify, re-distribute, compile or redistribute this source code or
- *  "plugin" outside this intended purpose. This license does not cover libraries developed by third
- *  parties that are utilised in the plugin.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  */
 
 package net.william278.husksync.config;
@@ -16,6 +22,7 @@ package net.william278.husksync.config;
 import net.william278.annotaml.YamlComment;
 import net.william278.annotaml.YamlFile;
 import net.william278.annotaml.YamlKey;
+import net.william278.husksync.database.Database;
 import net.william278.husksync.listener.EventListener;
 import org.jetbrains.annotations.NotNull;
 
@@ -49,6 +56,10 @@ public class Settings {
 
 
     // Database settings
+    @YamlComment("Type of database to use (MYSQL, MARIADB)")
+    @YamlKey("database.type")
+    private Database.Type databaseType = Database.Type.MYSQL;
+
     @YamlComment("Database connection settings")
     @YamlKey("database.credentials.host")
     private String mySqlHost = "localhost";
@@ -134,7 +145,7 @@ public class Settings {
     private Map<String, Boolean> synchronizationFeatures = SynchronizationFeature.getDefaults();
 
     @YamlKey("synchronization.blacklisted_commands_while_locked")
-    private List<String> blacklistedCommandsWhileLocked = new ArrayList<>();
+    private List<String> blacklistedCommandsWhileLocked = new ArrayList<>(List.of("*"));
 
     @YamlKey("synchronization.event_priorities")
     private Map<String, String> synchronizationEventPriorities = EventListener.ListenerType.getDefaults();
@@ -161,6 +172,12 @@ public class Settings {
 
     public boolean doDebugLogging() {
         return debugLogging;
+    }
+
+
+    @NotNull
+    public Database.Type getSqlType() {
+        return databaseType;
     }
 
     @NotNull
