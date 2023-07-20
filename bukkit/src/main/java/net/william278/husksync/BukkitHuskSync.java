@@ -43,7 +43,7 @@ import net.william278.husksync.migrator.MpdbMigrator;
 import net.william278.husksync.player.BukkitPlayer;
 import net.william278.husksync.player.OnlineUser;
 import net.william278.husksync.redis.RedisManager;
-import net.william278.husksync.util.BukkitTaskRunner;
+import net.william278.husksync.util.BukkitTask;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
 import org.bukkit.command.PluginCommand;
@@ -66,13 +66,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
-public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTaskRunner {
+public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.Supplier {
 
     /**
      * Metrics ID for <a href="https://bstats.org/plugin/bukkit/HuskSync%20-%20Bukkit/13140">HuskSync on Bukkit</a>.
      */
     private static final int METRICS_ID = 13140;
-    private ConcurrentHashMap<UUID, ScheduledTask> tasks;
     private Database database;
     private RedisManager redisManager;
     private EventListener eventListener;
@@ -108,7 +107,6 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTaskRu
             // Create adventure audience
             this.audiences = BukkitAudiences.create(this);
             this.paperLib = new MorePaperLib(this);
-            this.tasks = new ConcurrentHashMap<>();
 
             // Load settings and locales
             log(Level.INFO, "Loading plugin configuration settings & locales...");
@@ -357,15 +355,8 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTaskRu
     }
 
     @NotNull
-    @Override
     public GracefulScheduling getScheduler() {
         return paperLib.scheduling();
-    }
-
-    @NotNull
-    @Override
-    public ConcurrentHashMap<UUID, ScheduledTask> getTasks() {
-        return tasks;
     }
 
     @Override

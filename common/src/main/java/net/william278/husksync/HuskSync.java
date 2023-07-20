@@ -29,7 +29,7 @@ import net.william278.husksync.event.EventCannon;
 import net.william278.husksync.migrator.Migrator;
 import net.william278.husksync.player.OnlineUser;
 import net.william278.husksync.redis.RedisManager;
-import net.william278.husksync.util.TaskRunner;
+import net.william278.husksync.util.Task;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -44,7 +44,7 @@ import java.util.logging.Level;
 /**
  * Abstract implementation of the HuskSync plugin.
  */
-public interface HuskSync extends TaskRunner {
+public interface HuskSync extends Task.Supplier {
 
     int SPIGOT_RESOURCE_ID = 97144;
 
