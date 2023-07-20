@@ -223,6 +223,7 @@ public class BukkitMapHandler {
 
         /**
          * Extract the map data from the canvas. Must be rendered first
+         *
          * @return the extracted map data
          */
         @NotNull

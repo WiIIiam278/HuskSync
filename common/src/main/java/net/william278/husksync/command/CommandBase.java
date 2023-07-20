@@ -46,10 +46,10 @@ public abstract class CommandBase {
     /**
      * Instance of the implementing plugin
      */
-    public final HuskSync plugin;
+    protected final HuskSync plugin;
 
 
-    public CommandBase(@NotNull String command, @NotNull Permission permission, @NotNull HuskSync implementor, String... aliases) {
+    public CommandBase(@NotNull String command, @NotNull Permission permission, @NotNull HuskSync implementor, @NotNull String... aliases) {
         this.command = command;
         this.permission = permission.node;
         this.plugin = implementor;

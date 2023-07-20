@@ -23,7 +23,7 @@ import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import net.william278.annotaml.Annotaml;
 import net.william278.desertwell.util.Version;
 import net.william278.husksync.command.BukkitCommand;
-import net.william278.husksync.command.BukkitCommandType;
+import net.william278.husksync.command.CommandBase;
 import net.william278.husksync.command.Permission;
 import net.william278.husksync.config.Locales;
 import net.william278.husksync.config.Settings;
@@ -170,10 +170,11 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
                     })));
 
             // Register commands
-            for (final BukkitCommandType bukkitCommandType : BukkitCommandType.values()) {
-                final PluginCommand pluginCommand = getCommand(bukkitCommandType.commandBase.command);
+            for (final BukkitCommand.Type type : BukkitCommand.Type.values()) {
+                final CommandBase command = type.getCommand(this);
+                final PluginCommand pluginCommand = getCommand(command.command);
                 if (pluginCommand != null) {
-                    new BukkitCommand(bukkitCommandType.commandBase, this).register(pluginCommand);
+                    new BukkitCommand(command, this).register(pluginCommand);
                 }
             }
             log(Level.INFO, "Successfully registered permissions & commands");

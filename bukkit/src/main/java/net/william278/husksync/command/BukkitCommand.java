@@ -29,6 +29,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Function;
 
 /**
  * Bukkit executor that implements and executes {@link CommandBase}s
@@ -92,4 +93,25 @@ public class BukkitCommand implements CommandExecutor, TabExecutor {
         return Collections.emptyList();
     }
 
+    /**
+     * Commands available on the Bukkit HuskSync implementation
+     */
+    public enum Type {
+
+        HUSKSYNC_COMMAND(HuskSyncCommand::new),
+        USERDATA_COMMAND(UserDataCommand::new),
+        INVENTORY_COMMAND(InventoryCommand::new),
+        ENDER_CHEST_COMMAND(EnderChestCommand::new);
+
+        public final Function<BukkitHuskSync, CommandBase> commandSupplier;
+
+        Type(@NotNull Function<BukkitHuskSync, CommandBase> supplier) {
+            this.commandSupplier = supplier;
+        }
+
+        @NotNull
+        public CommandBase getCommand(@NotNull BukkitHuskSync plugin) {
+            return commandSupplier.apply(plugin);
+        }
+    }
 }
