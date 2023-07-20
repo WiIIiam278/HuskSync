@@ -54,14 +54,12 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import space.arim.morepaperlib.MorePaperLib;
 import space.arim.morepaperlib.scheduling.GracefulScheduling;
-import space.arim.morepaperlib.scheduling.ScheduledTask;
 
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
@@ -114,7 +112,7 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
             if (initialized.get()) {
                 log(Level.INFO, "Successfully loaded plugin configuration settings & locales");
             } else {
-                throw new HuskSyncInitializationException("Failed to load plugin configuration settings and/or locales");
+                throw new IllegalStateException("Failed to load plugin configuration settings and/or locales");
             }
 
             // Prepare data adapter
@@ -142,7 +140,7 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
             if (initialized.get()) {
                 log(Level.INFO, "Successfully established a connection to the database");
             } else {
-                throw new HuskSyncInitializationException("Failed to establish a connection to the database. " +
+                throw new IllegalStateException("Failed to establish a connection to the database. " +
                         "Please check the supplied database credentials in the config file");
             }
 
@@ -153,7 +151,7 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
             if (initialized.get()) {
                 log(Level.INFO, "Successfully established a connection to the Redis server");
             } else {
-                throw new HuskSyncInitializationException("Failed to establish a connection to the Redis server. " +
+                throw new IllegalStateException("Failed to establish a connection to the Redis server. " +
                         "Please check the supplied Redis credentials in the config file");
             }
 
@@ -202,7 +200,7 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
                                 "An update is available for HuskSync, v" + newVersion
                                         + " (Currently running v" + getPluginVersion() + ")")));
             }
-        } catch (HuskSyncInitializationException exception) {
+        } catch (IllegalStateException exception) {
             log(Level.SEVERE, """
                     ***************************************************
                                
@@ -217,7 +215,7 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
                     """
                     .replaceAll("%error_message%", exception.getMessage()));
             initialized.set(false);
-        } catch (Exception exception) {
+        } catch (Throwable exception) {
             log(Level.SEVERE, "An unhandled exception occurred initializing HuskSync!", exception);
             initialized.set(false);
         } finally {
