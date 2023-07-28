@@ -11,6 +11,7 @@ softdepend:
 libraries:
   - 'redis.clients:jedis:${jedis_version}'
   - 'com.mysql:mysql-connector-j:${mysql_driver_version}'
+  - 'org.mariadb.jdbc:mariadb-java-client:${mariadb_driver_version}'
   - 'org.xerial.snappy:snappy-java:${snappy_version}'
   - 'org.apache.commons:commons-text:${commons_text_version}'
 

@@ -40,57 +40,13 @@ import java.util.logging.Level;
 
 public class MySqlDatabase extends Database {
 
-    /**
-     * MySQL protocol
-     */
-    private final Database.Type type;
-
-    /**
-     * MySQL server hostname
-     */
-    private final String mySqlHost;
-
-    /**
-     * MySQL server port
-     */
-    private final int mySqlPort;
-
-    /**
-     * Database to use on the MySQL server
-     */
-    private final String mySqlDatabaseName;
-    private final String mySqlUsername;
-    private final String mySqlPassword;
-    private final String mySqlConnectionParameters;
-
-    private final int hikariMaximumPoolSize;
-    private final int hikariMinimumIdle;
-    private final long hikariMaximumLifetime;
-    private final long hikariKeepAliveTime;
-    private final long hikariConnectionTimeOut;
-
     private static final String DATA_POOL_NAME = "HuskSyncHikariPool";
-
-    /**
-     * The Hikari data source - a pool of database connections that can be fetched on-demand
-     */
-    private HikariDataSource connectionPool;
+    private final String protocol;
+    private HikariDataSource dataSource;
 
     public MySqlDatabase(@NotNull HuskSync plugin) {
         super(plugin);
-        final Settings settings = plugin.getSettings();
-        this.type = settings.getSqlType();
-        this.mySqlHost = settings.getMySqlHost();
-        this.mySqlPort = settings.getMySqlPort();
-        this.mySqlDatabaseName = settings.getMySqlDatabase();
-        this.mySqlUsername = settings.getMySqlUsername();
-        this.mySqlPassword = settings.getMySqlPassword();
-        this.mySqlConnectionParameters = settings.getMySqlConnectionParameters();
-        this.hikariMaximumPoolSize = settings.getMySqlConnectionPoolSize();
-        this.hikariMinimumIdle = settings.getMySqlConnectionPoolIdle();
-        this.hikariMaximumLifetime = settings.getMySqlConnectionPoolLifetime();
-        this.hikariKeepAliveTime = settings.getMySqlConnectionPoolKeepAlive();
-        this.hikariConnectionTimeOut = settings.getMySqlConnectionPoolTimeout();
+        this.protocol = plugin.getSettings().getDatabaseType().getProtocol();
     }
 
     /**
@@ -100,46 +56,68 @@ public class MySqlDatabase extends Database {
      * @throws SQLException if the connection fails for some reason
      */
     private Connection getConnection() throws SQLException {
-        return connectionPool.getConnection();
+        return dataSource.getConnection();
     }
 
     @Override
-    public boolean initialize() {
-        try {
-            // Create jdbc driver connection url
-            final String jdbcUrl = "jdbc:" + type.getProtocol() + "://" + mySqlHost + ":" + mySqlPort + "/" + mySqlDatabaseName + mySqlConnectionParameters;
-            connectionPool = new HikariDataSource();
-            connectionPool.setJdbcUrl(jdbcUrl);
+    public void initialize() throws IllegalStateException {
+        // Initialize the Hikari pooled connection
+        dataSource = new HikariDataSource();
+        dataSource.setJdbcUrl(String.format("jdbc:%s://%s:%s/%s%s",
+                protocol,
+                plugin.getSettings().getMySqlHost(),
+                plugin.getSettings().getMySqlPort(),
+                plugin.getSettings().getMySqlDatabase(),
+                plugin.getSettings().getMySqlConnectionParameters()
+        ));
 
-            // Authenticate
-            connectionPool.setUsername(mySqlUsername);
-            connectionPool.setPassword(mySqlPassword);
+        // Authenticate with the database
+        dataSource.setUsername(plugin.getSettings().getMySqlUsername());
+        dataSource.setPassword(plugin.getSettings().getMySqlPassword());
 
-            // Set various additional parameters
-            connectionPool.setMaximumPoolSize(hikariMaximumPoolSize);
-            connectionPool.setMinimumIdle(hikariMinimumIdle);
-            connectionPool.setMaxLifetime(hikariMaximumLifetime);
-            connectionPool.setKeepaliveTime(hikariKeepAliveTime);
-            connectionPool.setConnectionTimeout(hikariConnectionTimeOut);
-            connectionPool.setPoolName(DATA_POOL_NAME);
+        // Set connection pool options
+        dataSource.setMaximumPoolSize(plugin.getSettings().getMySqlConnectionPoolSize());
+        dataSource.setMinimumIdle(plugin.getSettings().getMySqlConnectionPoolIdle());
+        dataSource.setMaxLifetime(plugin.getSettings().getMySqlConnectionPoolLifetime());
+        dataSource.setKeepaliveTime(plugin.getSettings().getMySqlConnectionPoolKeepAlive());
+        dataSource.setConnectionTimeout(plugin.getSettings().getMySqlConnectionPoolTimeout());
+        dataSource.setPoolName(DATA_POOL_NAME);
 
-            // Prepare database schema; make tables if they don't exist
-            try (Connection connection = connectionPool.getConnection()) {
-                // Load database schema CREATE statements from schema file
-                final String[] databaseSchema = getSchemaStatements("database/mysql_schema.sql");
-                try (Statement statement = connection.createStatement()) {
-                    for (String tableCreationStatement : databaseSchema) {
-                        statement.execute(tableCreationStatement);
-                    }
+        // Set additional connection pool properties
+        final Properties properties = new Properties();
+        properties.putAll(
+                Map.of("cachePrepStmts", "true",
+                        "prepStmtCacheSize", "250",
+                        "prepStmtCacheSqlLimit", "2048",
+                        "useServerPrepStmts", "true",
+                        "useLocalSessionState", "true",
+                        "useLocalTransactionState", "true"
+                ));
+        properties.putAll(
+                Map.of(
+                        "rewriteBatchedStatements", "true",
+                        "cacheResultSetMetadata", "true",
+                        "cacheServerConfiguration", "true",
+                        "elideSetAutoCommits", "true",
+                        "maintainTimeStats", "false")
+        );
+        dataSource.setDataSourceProperties(properties);
+
+        // Prepare database schema; make tables if they don't exist
+        try (Connection connection = dataSource.getConnection()) {
+            final String[] databaseSchema = getSchemaStatements(String.format("database/%s_schema.sql", protocol));
+            try (Statement statement = connection.createStatement()) {
+                for (String tableCreationStatement : databaseSchema) {
+                    statement.execute(tableCreationStatement);
                 }
-                return true;
-            } catch (SQLException | IOException e) {
-                plugin.log(Level.SEVERE, "Failed to perform database setup: " + e.getMessage());
+            } catch (SQLException e) {
+                throw new IllegalStateException("Failed to create database tables. Please ensure you are running MySQL v8.0+ " +
+                        "and that your connecting user account has privileges to create tables.", e);
             }
-        } catch (Exception e) {
-            plugin.log(Level.SEVERE, "An unhandled exception occurred during database setup!", e);
+        } catch (SQLException | IOException e) {
+            throw new IllegalStateException("Failed to establish a connection to the MySQL database. " +
+                    "Please check the supplied database credentials in the config file", e);
         }
-        return false;
     }
 
     @Override
@@ -445,9 +423,9 @@ public class MySqlDatabase extends Database {
 
     @Override
     public void close() {
-        if (connectionPool != null) {
-            if (!connectionPool.isClosed()) {
-                connectionPool.close();
+        if (dataSource != null) {
+            if (!dataSource.isClosed()) {
+                dataSource.close();
             }
         }
     }
