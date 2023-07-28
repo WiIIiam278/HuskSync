@@ -33,6 +33,7 @@ import org.bukkit.advancement.AdvancementProgress;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -174,6 +175,7 @@ public class BukkitPlayer extends OnlineUser {
         final ItemStack[] contents = BukkitSerializer.deserializeInventory(itemData.serializedItems).getContents();
         final CompletableFuture<Void> inventorySetFuture = new CompletableFuture<>();
         plugin.runSync(() -> {
+            this.clearInventoryCraftingSlots();
             player.setItemOnCursor(null);
             player.getInventory().setContents(contents);
             player.updateInventory();
@@ -182,6 +184,16 @@ public class BukkitPlayer extends OnlineUser {
     }
 
     @NotNull
+    // Clears any items the player may have in the crafting slots of their inventory
+    private void clearInventoryCraftingSlots() {
+        final Inventory inventory = player.getOpenInventory().getTopInventory();
+        if (inventory.getType() == InventoryType.CRAFTING) {
+            for (int slot = 0; slot < 5; slot++) {
+                inventory.setItem(slot, null);
+            }
+        }
+    }
+
     @Override
     public ItemData getEnderChest() {
         final Inventory enderChest = player.getEnderChest();
@@ -505,49 +517,51 @@ public class BukkitPlayer extends OnlineUser {
     @Override
     public CompletableFuture<Optional<ItemData>> showMenu(@NotNull ItemData itemData, boolean editable,
                                                           int minimumRows, @NotNull MineDown title) {
-//        // Deserialize the item data to be shown and show it in a triumph GUI
-//        BukkitSerializer.deserializeItemStackArray(itemData.serializedItems).thenAccept(items -> {
-//            // Build the GUI and populate with items
-//            final int itemCount = items.length;
-//            final StorageBuilder guiBuilder = Gui.storage()
-//                    .title(title.toComponent())
-//                    .rows(Math.max(minimumRows, (int) Math.ceil(itemCount / 9.0)))
-//                    .disableAllInteractions()
-//                    .enableOtherActions();
-//            final StorageGui gui = editable ? guiBuilder.enableAllInteractions().create() : guiBuilder.create();
-//            for (int i = 0; i < itemCount; i++) {
-//                if (items[i] != null) {
-//                    gui.getInventory().setItem(i, items[i]);
-//                }
-//            }
-//
-//            // Complete the future with updated data (if editable) when the GUI is closed
-//            gui.setCloseGuiAction(event -> {
-//                if (!editable) {
-//                    updatedData.complete(Optional.empty());
-//                    return;
-//                }
-//
-//                // Get and save the updated items
-//                final ItemStack[] updatedItems = Arrays.copyOf(event.getPlayer().getOpenInventory()
-//                        .getTopInventory().getContents().clone(), itemCount);
-//                BukkitSerializer.serializeItemStackArray(updatedItems).thenAccept(serializedItems -> {
-//                    if (serializedItems.equals(itemData.serializedItems)) {
-//                        updatedData.complete(Optional.empty());
-//                        return;
-//                    }
-//                    updatedData.complete(Optional.of(new ItemData(serializedItems)));
-//                });
-//            });
-//
-//            // Display the GUI (synchronously; on the main server thread)
-//            plugin.runSync(() -> gui.open(player));
-//        }).exceptionally(throwable -> {
-//            // Handle exceptions
-//            updatedData.completeExceptionally(throwable);
-//            return null;
-//        });
-        return new CompletableFuture<>();
+        final CompletableFuture<Optional<ItemData>> updatedData = new CompletableFuture<>();
+
+        // Deserialize the item data to be shown and show it in a triumph GUI
+        BukkitSerializer.deserializeItemStackArray(itemData.serializedItems).thenAccept(items -> {
+            // Build the GUI and populate with items
+            final int itemCount = items.length;
+            final StorageBuilder guiBuilder = Gui.storage()
+                    .title(title.toComponent())
+                    .rows(Math.max(minimumRows, (int) Math.ceil(itemCount / 9.0)))
+                    .disableAllInteractions()
+                    .enableOtherActions();
+            final StorageGui gui = editable ? guiBuilder.enableAllInteractions().create() : guiBuilder.create();
+            for (int i = 0; i < itemCount; i++) {
+                if (items[i] != null) {
+                    gui.getInventory().setItem(i, items[i]);
+                }
+            }
+
+            // Complete the future with updated data (if editable) when the GUI is closed
+            gui.setCloseGuiAction(event -> {
+                if (!editable) {
+                    updatedData.complete(Optional.empty());
+                    return;
+                }
+
+                // Get and save the updated items
+                final ItemStack[] updatedItems = Arrays.copyOf(event.getPlayer().getOpenInventory()
+                        .getTopInventory().getContents().clone(), itemCount);
+                BukkitSerializer.serializeItemStackArray(updatedItems).thenAccept(serializedItems -> {
+                    if (serializedItems.equals(itemData.serializedItems)) {
+                        updatedData.complete(Optional.empty());
+                        return;
+                    }
+                    updatedData.complete(Optional.of(new ItemData(serializedItems)));
+                });
+            });
+
+            // Display the GUI (synchronously; on the main server thread)
+            Bukkit.getScheduler().runTask(plugin, () -> gui.open(player));
+        }).exceptionally(throwable -> {
+            // Handle exceptions
+            updatedData.completeExceptionally(throwable);
+            return null;
+        });
+        return updatedData;
     }
 
     @Override

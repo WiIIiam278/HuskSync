@@ -7,28 +7,30 @@ You can customise how much data HuskSync saves about a player by [turning each s
 
 | Name                      | Description                                                 | Availability |
 |---------------------------|-------------------------------------------------------------|:------------:|
-| Inventories               | Items in player inventories & selected hotbar slot          |      ✅      |
-| Ender chests              | Items in ender chests&midast;                               |      ✅      |
-| Health                    | Player health points                                        |      ✅      |
-| Max health                | Player max health points and health scale                   |      ✅      |
-| Hunger                    | Player hunger, saturation & exhaustion                      |      ✅      |
-| Experience                | Player level, experience points & score                     |      ✅      |
-| Potion effects            | Active status effects on players                            |      ✅      |
-| Advancements              | Player advancements, recipes & progress                     |      ✅      |
-| Game modes                | Player's current game mode                                  |      ✅      |
-| Statistics                | Player's in-game stats (ESC -> Statistics)                  |      ✅      |
-| Location                  | Player's current coordinate positon and world&dagger;       |      ✅      |
+| Inventories               | Items in player inventories & selected hotbar slot          |      ✅       |
+| Ender chests              | Items in ender chests&midast;                               |      ✅       |
+| Health                    | Player health points                                        |      ✅       |
+| Max health                | Player max health points and health scale                   |      ✅       |
+| Hunger                    | Player hunger, saturation & exhaustion                      |      ✅       |
+| Experience                | Player level, experience points & score                     |      ✅       |
+| Potion effects            | Active status effects on players                            |      ✅       |
+| Advancements              | Player advancements, recipes & progress                     |      ✅       |
+| Game modes                | Player's current game mode                                  |      ✅       |
+| Statistics                | Player's in-game stats (ESC -> Statistics)                  |      ✅       |
+| Location                  | Player's current coordinate positon and world&dagger;       |      ✅       |
 | Persistent Data Container | Custom plugin persistent data key map                       |      ⚠️      |
 | Locked maps               | Maps/treasure maps locked in a cartography table            |      ⚠️      |
-| Unlocked maps             | Regular, unlocked maps/treasure maps ([why?](#map-syncing)) |      ❌      |
-| Economy balances          | Vault economy balance. ([why?](#economy-syncing))           |      ❌      |
+| Unlocked maps             | Regular, unlocked maps/treasure maps ([why?](#map-syncing)) |      ❌       |
+| Economy balances          | Vault economy balance. ([why?](#economy-syncing))           |      ❌       |
+
+What about modded items? Or custom item plugins such as MMOItems or SlimeFun? These items are **not compatible**&mdash;check the [[FAQs]] for more information.
 
 &midast;Purpur's custom ender chest resizing feature is also supported.
 
 &dagger;This is intended for servers that have mirrorred worlds across instances (such as RPG servers). With this option enabled, players will be placed at the same coordinates when changing servers.
 
 ### PersistentDataContainer tags
-The player [PersistentDataContainer](https://blog.jeff-media.com/persistent-data-container-the-better-alternative-to-nbt-tags/) is a part of the Spigot API that enables plugins to set custom data tags to players, entities & items and have them persist. HuskSync will synchronise this data cross-server. Plugins that use legacy or propietary forms of saving data, such as by modifying NBT directly, may not correctly synchronise.
+The player [PersistentDataContainer](https://blog.jeff-media.com/persistent-data-container-the-better-alternative-to-nbt-tags/) is a part of the Spigot API that enables plugins to set custom data tags to players, entities & items and have them persist. HuskSync will synchronise this data cross-server. Plugins that use legacy or proprietary forms of saving data, such as by modifying NBT directly, may not correctly synchronise.
 
 ### Custom enchantments
 Plugins that add custom enchantments by registering them to ItemStacks through setting them via the [EnchantmentStorageMeta](https://hub.spigotmc.org/javadocs/spigot/org/bukkit/inventory/meta/EnchantmentStorageMeta.html) will work, but note that the plugin _must_ be lower on the load order than HuskSync; in other words, HuskSync should be on the plugin's `loadbefore:`. This is because Spigot's item serialization API requires that the plugin that registered the enchantment be online to serialize it due to how it reads from the enchantment registry and so if the plugin does not load before (and thus does not shut down after) HuskSync, it won't be able to serialize the custom enchantments in the event of a server shutdown with players online.
@@ -41,10 +43,10 @@ However, experimental support for synchronising locked map items&mdash;that is, 
 ### Economy syncing
 Although it's a common request, HuskSync doesn't synchronise economy data for a number of reasons!
 
-I strongly reccommend making use of economy plugins that have cross-server economy balance synchronisation built-in, of which there are a multitude of options available. Please see our [[FAQs]] section for more details on this decision.
+I strongly recommend making use of economy plugins that have cross-server economy balance synchronisation built-in, of which there are a multitude of options available. Please see our [[FAQs]] section for more details on this decision.
 
 ## Toggling Sync Features
-All synchronisation features, except location and locked map synchronising, are enabled by default. To toggle a feature, navigate to the `features:` section in the `synchronisation:` part of your `config.yml` file, and change the option to `true`/`false` respectively.
+All synchronization features, except location and locked map synchronising, are enabled by default. To toggle a feature, navigate to the `features:` section in the `synchronisation:` part of your `config.yml` file, and change the option to `true`/`false` respectively.
 
 <details>
   <summary>Example in config.yml</summary>
