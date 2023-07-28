@@ -21,7 +21,6 @@ package net.william278.husksync.database;
 
 import com.zaxxer.hikari.HikariDataSource;
 import net.william278.husksync.HuskSync;
-import net.william278.husksync.config.Settings;
 import net.william278.husksync.data.DataAdaptionException;
 import net.william278.husksync.data.DataSaveCause;
 import net.william278.husksync.data.UserData;
@@ -41,12 +40,16 @@ import java.util.logging.Level;
 public class MySqlDatabase extends Database {
 
     private static final String DATA_POOL_NAME = "HuskSyncHikariPool";
-    private final String protocol;
+    private final String flavor;
+    private final String driverClass;
     private HikariDataSource dataSource;
 
     public MySqlDatabase(@NotNull HuskSync plugin) {
         super(plugin);
-        this.protocol = plugin.getSettings().getDatabaseType().getProtocol();
+        this.flavor = plugin.getSettings().getDatabaseType() == Type.MARIADB
+                ? "mariadb" : "mysql";
+        this.driverClass = plugin.getSettings().getDatabaseType() == Type.MARIADB
+                ? "org.mariadb.jdbc.Driver" : "com.mysql.cj.jdbc.Driver";
     }
 
     /**
@@ -63,8 +66,9 @@ public class MySqlDatabase extends Database {
     public void initialize() throws IllegalStateException {
         // Initialize the Hikari pooled connection
         dataSource = new HikariDataSource();
+        dataSource.setDriverClassName(driverClass);
         dataSource.setJdbcUrl(String.format("jdbc:%s://%s:%s/%s%s",
-                protocol,
+                flavor,
                 plugin.getSettings().getMySqlHost(),
                 plugin.getSettings().getMySqlPort(),
                 plugin.getSettings().getMySqlDatabase(),
@@ -105,7 +109,7 @@ public class MySqlDatabase extends Database {
 
         // Prepare database schema; make tables if they don't exist
         try (Connection connection = dataSource.getConnection()) {
-            final String[] databaseSchema = getSchemaStatements(String.format("database/%s_schema.sql", protocol));
+            final String[] databaseSchema = getSchemaStatements(String.format("database/%s_schema.sql", flavor));
             try (Statement statement = connection.createStatement()) {
                 for (String tableCreationStatement : databaseSchema) {
                     statement.execute(tableCreationStatement);
