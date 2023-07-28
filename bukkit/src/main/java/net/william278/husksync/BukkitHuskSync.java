@@ -130,8 +130,8 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync {
 
             // Prepare database connection
             this.database = new MySqlDatabase(this);
-            log(Level.INFO, "Attempting to establish connection to the " + settings.getSqlType().getDisplayName() + " database...");
-            initialized.set(this.database.initialize());
+            log(Level.INFO, "Attempting to establish connection to the " + settings.getDatabaseType().getDisplayName() + " database...");
+            this.database.initialize();
             if (initialized.get()) {
                 log(Level.INFO, "Successfully established a connection to the database");
             } else {
@@ -195,7 +195,7 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync {
                                 "An update is available for HuskSync, v" + newVersion
                                         + " (Currently running v" + getPluginVersion() + ")")));
             }
-        } catch (HuskSyncInitializationException exception) {
+        } catch (IllegalStateException exception) {
             log(Level.SEVERE, """
                     ***************************************************
                                
