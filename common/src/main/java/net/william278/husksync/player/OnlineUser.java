@@ -296,6 +296,7 @@ public abstract class OnlineUser extends User implements CommandUser {
             final UserData finalData = event.getUserData();
             plugin.runSync(() -> {
                 try {
+                    // TODO: Separate deserialization of data with setting of data
                     final Settings settings = plugin.getSettings();
                     if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.INVENTORIES)) {
                         finalData.getInventory().ifPresent(this::setInventory);
