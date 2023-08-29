@@ -20,6 +20,9 @@
 package net.william278.husksync.player;
 
 import de.themoep.minedown.adventure.MineDown;
+import dev.triumphteam.gui.builder.gui.StorageBuilder;
+import dev.triumphteam.gui.guis.Gui;
+import dev.triumphteam.gui.guis.StorageGui;
 import net.kyori.adventure.audience.Audience;
 import net.roxeez.advancement.display.FrameType;
 import net.william278.andjam.Toast;
@@ -183,7 +186,6 @@ public class BukkitPlayer extends OnlineUser {
         });
     }
 
-    @NotNull
     // Clears any items the player may have in the crafting slots of their inventory
     private void clearInventoryCraftingSlots() {
         final Inventory inventory = player.getOpenInventory().getTopInventory();
@@ -194,6 +196,7 @@ public class BukkitPlayer extends OnlineUser {
         }
     }
 
+    @NotNull
     @Override
     public ItemData getEnderChest() {
         final Inventory enderChest = player.getEnderChest();
@@ -205,9 +208,9 @@ public class BukkitPlayer extends OnlineUser {
 
     @Override
     public void setEnderChest(@NotNull ItemData enderChestData) {
-        plugin.runSync(() -> {
-            player.getEnderChest().setContents(BukkitSerializer.deserializeItemStackArray(enderChestData.serializedItems));
-        });
+        plugin.runSync(() -> player.getEnderChest().setContents(
+                BukkitSerializer.deserializeItemStackArray(enderChestData.serializedItems))
+        );
     }
 
     @NotNull
@@ -272,7 +275,7 @@ public class BukkitPlayer extends OnlineUser {
             final AtomicBoolean correctExperience = new AtomicBoolean(false);
 
             // Run asynchronously as advancement setting is expensive
-            CompletableFuture.runAsync(() -> {
+            plugin.runAsync(() -> {
                 // Apply the advancements to the player
                 final Iterator<Advancement> serverAdvancements = Bukkit.getServer().advancementIterator();
                 while (serverAdvancements.hasNext()) {
@@ -482,7 +485,7 @@ public class BukkitPlayer extends OnlineUser {
                         .ifPresentOrElse(mapping -> mapping.setContainerValue(container, player, key),
                                 () -> plugin.log(Level.WARNING,
                                         "Could not set " + player.getName() + "'s persistent data key " + keyString +
-                                        " as it has an invalid type. Skipping!"));
+                                                " as it has an invalid type. Skipping!"));
             }
         });
     }
@@ -520,47 +523,42 @@ public class BukkitPlayer extends OnlineUser {
         final CompletableFuture<Optional<ItemData>> updatedData = new CompletableFuture<>();
 
         // Deserialize the item data to be shown and show it in a triumph GUI
-        BukkitSerializer.deserializeItemStackArray(itemData.serializedItems).thenAccept(items -> {
-            // Build the GUI and populate with items
-            final int itemCount = items.length;
-            final StorageBuilder guiBuilder = Gui.storage()
-                    .title(title.toComponent())
-                    .rows(Math.max(minimumRows, (int) Math.ceil(itemCount / 9.0)))
-                    .disableAllInteractions()
-                    .enableOtherActions();
-            final StorageGui gui = editable ? guiBuilder.enableAllInteractions().create() : guiBuilder.create();
-            for (int i = 0; i < itemCount; i++) {
-                if (items[i] != null) {
-                    gui.getInventory().setItem(i, items[i]);
-                }
+        final ItemStack[] items = BukkitSerializer.deserializeItemStackArray(itemData.serializedItems);
+
+        // Build the GUI and populate with items
+        final int itemCount = items.length;
+        final StorageBuilder guiBuilder = Gui.storage()
+                .title(title.toComponent())
+                .rows(Math.max(minimumRows, (int) Math.ceil(itemCount / 9.0)))
+                .disableAllInteractions()
+                .enableOtherActions();
+        final StorageGui gui = editable ? guiBuilder.enableAllInteractions().create() : guiBuilder.create();
+        for (int i = 0; i < itemCount; i++) {
+            if (items[i] != null) {
+                gui.getInventory().setItem(i, items[i]);
+            }
+        }
+
+        // Complete the future with updated data (if editable) when the GUI is closed
+        gui.setCloseGuiAction(event -> {
+            if (!editable) {
+                updatedData.complete(Optional.empty());
+                return;
             }
 
-            // Complete the future with updated data (if editable) when the GUI is closed
-            gui.setCloseGuiAction(event -> {
-                if (!editable) {
-                    updatedData.complete(Optional.empty());
-                    return;
-                }
-
-                // Get and save the updated items
-                final ItemStack[] updatedItems = Arrays.copyOf(event.getPlayer().getOpenInventory()
-                        .getTopInventory().getContents().clone(), itemCount);
-                BukkitSerializer.serializeItemStackArray(updatedItems).thenAccept(serializedItems -> {
-                    if (serializedItems.equals(itemData.serializedItems)) {
-                        updatedData.complete(Optional.empty());
-                        return;
-                    }
-                    updatedData.complete(Optional.of(new ItemData(serializedItems)));
-                });
-            });
-
-            // Display the GUI (synchronously; on the main server thread)
-            Bukkit.getScheduler().runTask(plugin, () -> gui.open(player));
-        }).exceptionally(throwable -> {
-            // Handle exceptions
-            updatedData.completeExceptionally(throwable);
-            return null;
+            // Get and save the updated items
+            final ItemStack[] updatedItems = Arrays.copyOf(event.getPlayer().getOpenInventory()
+                    .getTopInventory().getContents().clone(), itemCount);
+            final String serializedItems = BukkitSerializer.serializeItemStackArray(updatedItems);
+            if (serializedItems.equals(itemData.serializedItems)) {
+                updatedData.complete(Optional.empty());
+                return;
+            }
+            updatedData.complete(Optional.of(new ItemData(serializedItems)));
         });
+
+        // Display the GUI (synchronously; on the main server thread)
+        Bukkit.getScheduler().runTask(plugin, () -> gui.open(player));
         return updatedData;
     }
 

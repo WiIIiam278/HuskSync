@@ -35,13 +35,15 @@ public class BukkitEventCannon extends EventCannon {
 
     @Override
     public CompletableFuture<Event> firePreSyncEvent(@NotNull OnlineUser user, @NotNull UserData userData) {
-        return new BukkitPreSyncEvent(((BukkitPlayer) user).getPlayer(), userData).fire();
+//        return new BukkitPreSyncEvent(((BukkitPlayer) user).getPlayer(), userData).fire();
+        return CompletableFuture.completedFuture(new BukkitPreSyncEvent(((BukkitPlayer) user).getPlayer(), userData));
     }
 
     @Override
     public CompletableFuture<Event> fireDataSaveEvent(@NotNull User user, @NotNull UserData userData,
                                                       @NotNull DataSaveCause saveCause) {
-        return new BukkitDataSaveEvent(user, userData, saveCause).fire();
+//        return new BukkitDataSaveEvent(user, userData, saveCause).fire();
+        return CompletableFuture.completedFuture(new BukkitDataSaveEvent(user, userData, saveCause));
     }
 
     @Override

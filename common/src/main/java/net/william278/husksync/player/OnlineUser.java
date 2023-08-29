@@ -33,7 +33,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 
@@ -274,7 +273,7 @@ public abstract class OnlineUser extends User {
      * @param plugin The plugin instance
      */
     public final void setData(@NotNull UserData data, @NotNull HuskSync plugin) {
-        // Prevent synchronising user data from newer versions of Minecraft
+        // Prevent synchronizing user data from newer versions of Minecraft
         if (Version.fromString(data.getMinecraftVersion()).compareTo(plugin.getMinecraftVersion()) > 0) {
             plugin.log(Level.SEVERE, "Cannot set data for " + username +
                     " because the Minecraft version of their user data (" + data.getMinecraftVersion() +
@@ -283,7 +282,7 @@ public abstract class OnlineUser extends User {
                     .ifPresent(this::sendMessage);
             return;
         }
-        // Prevent synchronising user data from newer versions of the plugin
+        // Prevent synchronizing user data from newer versions of the plugin
         if (data.getFormatVersion() > UserData.CURRENT_FORMAT_VERSION) {
             plugin.log(Level.SEVERE, "Cannot set data for " + username +
                     " because the format version of their user data (v" + data.getFormatVersion() +
@@ -324,10 +323,10 @@ public abstract class OnlineUser extends User {
                                 finalData.getPersistentDataContainer().ifPresent(this::setPersistentDataContainer);
                             }
                         }
-                        sendSynchronisationCompletion(true, plugin);
+                        completeSynchronization(true, plugin);
                     } catch (Throwable e) {
                         plugin.log(Level.SEVERE, "An error occurred while setting data for " + username + ": " + e.getMessage(), e);
-                        sendSynchronisationCompletion(false, plugin);
+                        completeSynchronization(false, plugin);
                     }
                 });
     }
@@ -335,8 +334,8 @@ public abstract class OnlineUser extends User {
     /**
      * Get the player's current {@link UserData} in an {@link Optional}.
      * <p>
-     * Since v2.1, this method will respect the data synchronisation settings; user data will only be as big as the
-     * enabled synchronisation values set in the config file
+     * Since v2.1, this method will respect the data synchronization settings; user data will only be as big as the
+     * enabled synchronization values set in the config file
      * <p>
      * Also note that if the {@code SYNCHRONIZATION_SAVE_DEAD_PLAYER_INVENTORIES} ConfigOption has been set,
      * the user's inventory will only be returned if the player is alive.
@@ -393,7 +392,7 @@ public abstract class OnlineUser extends User {
      * @param succeeded Whether the synchronization succeeded
      * @param plugin    The plugin instance
      */
-    private void sendSynchronisationCompletion(boolean succeeded, @NotNull HuskSync plugin) {
+    public void completeSynchronization(boolean succeeded, @NotNull HuskSync plugin) {
         if (succeeded) {
             switch (plugin.getSettings().getNotificationDisplaySlot()) {
                 case CHAT -> plugin.getLocales().getLocale("synchronisation_complete")
@@ -405,6 +404,7 @@ public abstract class OnlineUser extends User {
                                 "minecraft:bell", "TASK"));
             }
             plugin.getDatabase().ensureUser(this);
+            plugin.getLockedPlayers().remove(uuid);
             plugin.getEventCannon().fireSyncCompleteEvent(this);
         } else {
             plugin.getLocales().getLocale("synchronisation_failed")

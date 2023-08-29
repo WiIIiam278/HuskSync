@@ -52,6 +52,9 @@ public interface BukkitTask extends Task {
                 runnable.run();
                 return;
             }
+            if (cancelled) {
+                return;
+            }
 
             if (delayTicks > 0) {
                 this.task = getScheduler().globalRegionalScheduler().runDelayed(runnable, delayTicks);
@@ -65,8 +68,8 @@ public interface BukkitTask extends Task {
 
         private ScheduledTask task;
 
-        protected Async(@NotNull HuskSync plugin, @NotNull Runnable runnable) {
-            super(plugin, runnable);
+        protected Async(@NotNull HuskSync plugin, @NotNull Runnable runnable, long delayTicks) {
+            super(plugin, runnable, delayTicks);
         }
 
         @Override
@@ -83,8 +86,17 @@ public interface BukkitTask extends Task {
                 runnable.run();
                 return;
             }
+            if (cancelled) {
+                return;
+            }
 
-            if (!cancelled) {
+            if (delayTicks > 0) {
+                plugin.debug("Running async task with delay of " + delayTicks + " ticks");
+                this.task = getScheduler().asyncScheduler().runDelayed(
+                        runnable,
+                        Duration.of(delayTicks * 50L, ChronoUnit.MILLIS)
+                );
+            } else {
                 this.task = getScheduler().asyncScheduler().run(runnable);
             }
         }
@@ -113,8 +125,9 @@ public interface BukkitTask extends Task {
             }
 
             if (!cancelled) {
-                this.task = getScheduler().asyncScheduler().runAtFixedRate(runnable, Duration.ZERO, Duration
-                        .of(repeatingTicks * 50L, ChronoUnit.MILLIS)
+                this.task = getScheduler().asyncScheduler().runAtFixedRate(
+                        runnable, Duration.ZERO,
+                        Duration.of(repeatingTicks * 50L, ChronoUnit.MILLIS)
                 );
             }
         }
@@ -135,8 +148,8 @@ public interface BukkitTask extends Task {
 
         @NotNull
         @Override
-        default Task.Async getAsyncTask(@NotNull Runnable runnable) {
-            return new Async(getPlugin(), runnable);
+        default Task.Async getAsyncTask(@NotNull Runnable runnable, long delayTicks) {
+            return new Async(getPlugin(), runnable, delayTicks);
         }
 
         @NotNull

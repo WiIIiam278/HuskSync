@@ -82,7 +82,7 @@ public class RedisManager extends JedisPubSub {
         } catch (JedisException e) {
             return false;
         }
-        CompletableFuture.runAsync(this::subscribe);
+        plugin.runAsync(this::subscribe);
         return true;
     }
 
@@ -116,10 +116,10 @@ public class RedisManager extends JedisPubSub {
         }
     }
 
-    public CompletableFuture<Void> sendUserDataUpdate(@NotNull User user, @NotNull UserData userData) {
-        return CompletableFuture.runAsync(() -> {
+    public void sendUserDataUpdate(@NotNull User user, @NotNull UserData userData) {
+        plugin.runAsync(() -> {
             final RedisMessage redisMessage = new RedisMessage(user.uuid, plugin.getDataAdapter().toBytes(userData));
-            redisMessage.dispatch(this, RedisMessageType.UPDATE_USER_DATA);
+            redisMessage.dispatch(plugin, RedisMessageType.UPDATE_USER_DATA);
         });
     }
 
@@ -128,27 +128,21 @@ public class RedisManager extends JedisPubSub {
      *
      * @param user     the user to set data for
      * @param userData the user's data to set
-     * @return a future returning void when complete
      */
-    public CompletableFuture<Void> setUserData(@NotNull User user, @NotNull UserData userData) {
-        try {
-            return CompletableFuture.runAsync(() -> {
-                try (Jedis jedis = jedisPool.getResource()) {
-                    // Set the user's data as a compressed byte array of the json using Snappy
-                    jedis.setex(getKey(RedisKeyType.DATA_UPDATE, user.uuid),
-                            RedisKeyType.DATA_UPDATE.timeToLive,
-                            plugin.getDataAdapter().toBytes(userData));
-
-                    // Debug logging
-                    plugin.debug("[" + user.username + "] Set " + RedisKeyType.DATA_UPDATE.name()
-                                 + " key to redis at: " +
-                                 new SimpleDateFormat("mm:ss.SSS").format(new Date()));
-                }
-            });
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
+    public void setUserData(@NotNull User user, @NotNull UserData userData) {
+        plugin.runAsync(() -> {
+            try (Jedis jedis = jedisPool.getResource()) {
+                // Set the user's data as a compressed byte array of the json using Snappy
+                jedis.setex(
+                        getKey(RedisKeyType.DATA_UPDATE, user.uuid),
+                        RedisKeyType.DATA_UPDATE.timeToLive,
+                        plugin.getDataAdapter().toBytes(userData)
+                );
+                plugin.debug(String.format("[%s] Set %s key to redis at: %s",
+                        user.username, RedisKeyType.DATA_UPDATE.name(),
+                        new SimpleDateFormat("mm:ss.SSS").format(new Date())));
+            }
+        });
     }
 
     public CompletableFuture<Void> setUserServerSwitch(@NotNull User user) {
@@ -157,8 +151,8 @@ public class RedisManager extends JedisPubSub {
                 jedis.setex(getKey(RedisKeyType.SERVER_SWITCH, user.uuid),
                         RedisKeyType.SERVER_SWITCH.timeToLive, new byte[0]);
                 plugin.debug("[" + user.username + "] Set " + RedisKeyType.SERVER_SWITCH.name()
-                             + " key to redis at: " +
-                             new SimpleDateFormat("mm:ss.SSS").format(new Date()));
+                        + " key to redis at: " +
+                        new SimpleDateFormat("mm:ss.SSS").format(new Date()));
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -177,13 +171,13 @@ public class RedisManager extends JedisPubSub {
             final byte[] dataByteArray = jedis.get(key);
             if (dataByteArray == null) {
                 plugin.debug("[" + user.username + "] Could not read " +
-                             RedisKeyType.DATA_UPDATE.name() + " key from redis at: " +
-                             new SimpleDateFormat("mm:ss.SSS").format(new Date()));
+                        RedisKeyType.DATA_UPDATE.name() + " key from redis at: " +
+                        new SimpleDateFormat("mm:ss.SSS").format(new Date()));
                 return Optional.empty();
             }
             plugin.debug("[" + user.username + "] Successfully read "
-                         + RedisKeyType.DATA_UPDATE.name() + " key from redis at: " +
-                         new SimpleDateFormat("mm:ss.SSS").format(new Date()));
+                    + RedisKeyType.DATA_UPDATE.name() + " key from redis at: " +
+                    new SimpleDateFormat("mm:ss.SSS").format(new Date()));
 
             // Consume the key (delete from redis)
             jedis.del(key);
@@ -202,13 +196,13 @@ public class RedisManager extends JedisPubSub {
             final byte[] readData = jedis.get(key);
             if (readData == null) {
                 plugin.debug("[" + user.username + "] Could not read " +
-                             RedisKeyType.SERVER_SWITCH.name() + " key from redis at: " +
-                             new SimpleDateFormat("mm:ss.SSS").format(new Date()));
+                        RedisKeyType.SERVER_SWITCH.name() + " key from redis at: " +
+                        new SimpleDateFormat("mm:ss.SSS").format(new Date()));
                 return false;
             }
             plugin.debug("[" + user.username + "] Successfully read "
-                         + RedisKeyType.SERVER_SWITCH.name() + " key from redis at: " +
-                         new SimpleDateFormat("mm:ss.SSS").format(new Date()));
+                    + RedisKeyType.SERVER_SWITCH.name() + " key from redis at: " +
+                    new SimpleDateFormat("mm:ss.SSS").format(new Date()));
 
             // Consume the key (delete from redis)
             jedis.del(key);

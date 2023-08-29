@@ -51,8 +51,11 @@ public interface Task extends Runnable {
 
     abstract class Async extends Base {
 
-        protected Async(@NotNull HuskSync plugin, @NotNull Runnable runnable) {
+        protected long delayTicks;
+
+        protected Async(@NotNull HuskSync plugin, @NotNull Runnable runnable, long delayTicks) {
             super(plugin, runnable);
+            this.delayTicks = delayTicks;
         }
 
     }
@@ -86,7 +89,7 @@ public interface Task extends Runnable {
         Task.Sync getSyncTask(@NotNull Runnable runnable, long delayTicks);
 
         @NotNull
-        Task.Async getAsyncTask(@NotNull Runnable runnable);
+        Task.Async getAsyncTask(@NotNull Runnable runnable, long delayTicks);
 
         @NotNull
         Task.Repeating getRepeatingTask(@NotNull Runnable runnable, long repeatingTicks);
@@ -98,6 +101,12 @@ public interface Task extends Runnable {
             return task;
         }
 
+        default Task.Async runAsyncDelayed(@NotNull Runnable runnable, long delayTicks) {
+            final Task.Async task = getAsyncTask(runnable, delayTicks);
+            task.run();
+            return task;
+        }
+
         @NotNull
         default Task.Sync runSync(@NotNull Runnable runnable) {
             return runSyncDelayed(runnable, 0);
@@ -105,7 +114,7 @@ public interface Task extends Runnable {
 
         @NotNull
         default Task.Async runAsync(@NotNull Runnable runnable) {
-            final Task.Async task = getAsyncTask(runnable);
+            final Task.Async task = getAsyncTask(runnable, 0);
             task.run();
             return task;
         }

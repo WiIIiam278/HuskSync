@@ -23,14 +23,12 @@ import net.william278.husksync.HuskSync;
 import net.william278.husksync.data.DataSaveCause;
 import net.william278.husksync.data.ItemData;
 import net.william278.husksync.player.OnlineUser;
+import net.william278.husksync.util.Task;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 
 /**
@@ -38,13 +36,11 @@ import java.util.logging.Level;
  */
 public abstract class EventListener {
 
-    /**
-     * The plugin instance
-     */
+    // The plugin instance
     protected final HuskSync plugin;
 
     /**
-     * Set of UUIDs of "locked players", for which events will be cancelled.
+     * Set of UUIDs of "locked players", for which events will be canceled.
      * </p>
      * Players are locked while their items are being set (on join) or saved (on quit)
      */
@@ -62,7 +58,7 @@ public abstract class EventListener {
     }
 
     /**
-     * Handle a player joining the server (including players switching from another proxied server)
+     * Handle a player joining the server (including players switching from another server on the network)
      *
      * @param user The {@link OnlineUser} to handle
      */
@@ -70,61 +66,51 @@ public abstract class EventListener {
         if (user.isNpc()) {
             return;
         }
-
         lockedPlayers.add(user.uuid);
-        CompletableFuture.runAsync(() -> {
-            try {
-                // Hold reading data for the network latency threshold, to ensure the source server has set the redis key
-                Thread.sleep(Math.max(0, plugin.getSettings().getNetworkLatencyMilliseconds()));
-            } catch (InterruptedException e) {
-                plugin.log(Level.SEVERE, "An exception occurred handling a player join", e);
-            } finally {
 
-                if (!plugin.getRedisManager().getUserServerSwitch(user)) {
-                    // Fetch from the database if the user isn't changing servers
-                    setUserFromDatabase(user);
-                } else {
-                    final int TIME_OUT_MILLISECONDS = 3200;
-                    CompletableFuture.runAsync(() -> {
-                        final AtomicInteger currentMilliseconds = new AtomicInteger(0);
-                        final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
-
-                        // Set the user as soon as the source server has set the data to redis
-                        executor.scheduleAtFixedRate(() -> {
-                            if (user.isOffline()) {
-                                executor.shutdown();
-                                return;
-                            }
-                            if (disabling || currentMilliseconds.get() > TIME_OUT_MILLISECONDS) {
-                                executor.shutdown();
-                                setUserFromDatabase(user);
-                                return;
-                            }
-                            plugin.getRedisManager().getUserData(user).ifPresent(redisData -> {
-                                user.setData(redisData, plugin);
-                                executor.shutdown();
-                            });
-                            currentMilliseconds.addAndGet(200);
-                        }, 0, 200L, TimeUnit.MILLISECONDS);
-                    });
-                }
+        plugin.runAsyncDelayed(() -> {
+            // Fetch from the database if the user isn't changing servers
+            if (!plugin.getRedisManager().getUserServerSwitch(user)) {
+                this.setUserFromDatabase(user);
+                return;
             }
-        });
+
+            // Set the user as soon as the source server has set the data to redis
+            final long MAX_ATTEMPTS = 16L;
+            final AtomicLong timesRun = new AtomicLong(0L);
+            final AtomicReference<Task.Repeating> task = new AtomicReference<>();
+            final Runnable runnable = () -> {
+                if (user.isOffline()) {
+                    task.get().cancel();
+                    return;
+                }
+                if (disabling || timesRun.getAndIncrement() > MAX_ATTEMPTS) {
+                    task.get().cancel();
+                    this.setUserFromDatabase(user);
+                    return;
+                }
+
+                plugin.getRedisManager().getUserData(user).ifPresent(redisData -> {
+                    user.setData(redisData, plugin);
+                    task.get().cancel();
+                });
+            };
+            task.set(plugin.getRepeatingTask(runnable, 4));
+            task.get().run();
+
+        }, Math.max(0, plugin.getSettings().getNetworkLatencyMilliseconds() / 50L));
     }
 
     /**
      * Set a user's data from the database
      *
      * @param user The user to set the data for
-     * @return Whether the data was successfully set
      */
-    private boolean setUserFromDatabase(@NotNull OnlineUser user) {
-        return plugin.getDatabase().getCurrentUserData(user)
-                .map(userDataSnapshot -> {
-                    user.setData(userDataSnapshot.userData(), plugin);
-                    return true;
-                })
-                .orElse(false);
+    private void setUserFromDatabase(@NotNull OnlineUser user) {
+        plugin.getDatabase().getCurrentUserData(user).ifPresentOrElse(
+                snapshot -> user.setData(snapshot.userData(), plugin),
+                () -> user.completeSynchronization(true, plugin)
+        );
     }
 
     /**
@@ -133,10 +119,11 @@ public abstract class EventListener {
      * @param user The {@link OnlineUser} to handle
      */
     protected final void handlePlayerQuit(@NotNull OnlineUser user) {
-        // Players quitting have their data manually saved by the plugin disable hook
+        // Players quitting have their data manually saved when the plugin is disabled
         if (disabling) {
             return;
         }
+
         // Don't sync players awaiting synchronization
         if (lockedPlayers.contains(user.uuid) || user.isNpc()) {
             return;
@@ -145,10 +132,11 @@ public abstract class EventListener {
         // Handle disconnection
         try {
             lockedPlayers.add(user.uuid);
-            plugin.getRedisManager().setUserServerSwitch(user)
-                    .thenRun(() -> user.getUserData(plugin).ifPresent(userData -> plugin.getRedisManager()
-                            .setUserData(user, userData).thenRun(() -> plugin.getDatabase()
-                                    .setUserData(user, userData, DataSaveCause.DISCONNECT))));
+            plugin.getRedisManager().setUserServerSwitch(user).thenRun(() -> user.getUserData(plugin)
+                    .ifPresent(userData -> {
+                        plugin.getRedisManager().setUserData(user, userData);
+                        plugin.getDatabase().setUserData(user, userData, DataSaveCause.DISCONNECT);
+                    }));
         } catch (Throwable e) {
             plugin.log(Level.SEVERE, "An exception occurred handling a player disconnection", e);
         }
@@ -182,11 +170,10 @@ public abstract class EventListener {
             return;
         }
 
-        user.getUserData(plugin)
-                .ifPresent(userData -> {
-                    userData.getInventory().orElse(ItemData.empty()).serializedItems = drops.serializedItems;
-                    plugin.getDatabase().setUserData(user, userData, DataSaveCause.DEATH);
-                });
+        user.getUserData(plugin).ifPresent(data -> plugin.runAsync(() -> {
+            data.getInventory().orElse(ItemData.empty()).serializedItems = drops.serializedItems;
+            plugin.getDatabase().setUserData(user, data, DataSaveCause.DEATH);
+        }));
     }
 
     /**
@@ -210,9 +197,8 @@ public abstract class EventListener {
                 .filter(user -> !lockedPlayers.contains(user.uuid) && !user.isNpc())
                 .forEach(user -> {
                     lockedPlayers.add(user.uuid);
-                    user.getUserData(plugin)
-                            .ifPresent(userData -> plugin.getDatabase()
-                                    .setUserData(user, userData, DataSaveCause.SERVER_SHUTDOWN));
+                    user.getUserData(plugin).ifPresent(userData -> plugin.getDatabase()
+                            .setUserData(user, userData, DataSaveCause.SERVER_SHUTDOWN));
                 });
 
         // Close outstanding connections

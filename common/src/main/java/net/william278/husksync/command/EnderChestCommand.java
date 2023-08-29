@@ -78,7 +78,7 @@ public class EnderChestCommand extends CommandBase implements TabCompletable {
 
     private void showEnderChestMenu(@NotNull OnlineUser player, @NotNull UserDataSnapshot userDataSnapshot,
                                     @NotNull User dataOwner, boolean allowEdit) {
-        CompletableFuture.runAsync(() -> {
+        plugin.runAsync(() -> {
             final UserData data = userDataSnapshot.userData();
             data.getEnderChest().ifPresent(itemData -> {
                 // Show message

@@ -50,7 +50,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.Locale;
-import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 public class BukkitEventListener extends EventListener implements BukkitJoinEventListener, BukkitQuitEventListener,
@@ -94,9 +93,11 @@ public class BukkitEventListener extends EventListener implements BukkitJoinEven
         }
 
         // Handle saving player data snapshots on death
-        if (!plugin.getSettings().doSaveOnDeath()) return;
+        if (!plugin.getSettings().doSaveOnDeath()) {
+            return;
+        }
 
-        // Truncate the drops list to the inventory size and save the player's inventory
+        // Truncate the dropped items list to the inventory size and save the player's inventory
         final int maxInventorySize = BukkitInventoryMap.INVENTORY_SLOT_COUNT;
         if (event.getDrops().size() > maxInventorySize) {
             event.getDrops().subList(maxInventorySize, event.getDrops().size()).clear();
@@ -109,9 +110,11 @@ public class BukkitEventListener extends EventListener implements BukkitJoinEven
     @EventHandler(ignoreCancelled = true)
     public void onWorldSave(@NotNull WorldSaveEvent event) {
         // Handle saving player data snapshots when the world saves
-        if (!plugin.getSettings().doSaveOnWorldSave()) return;
+        if (!plugin.getSettings().doSaveOnWorldSave()) {
+            return;
+        }
 
-        CompletableFuture.runAsync(() -> super.saveOnWorldSave(event.getWorld().getPlayers()
+        plugin.runAsync(() -> super.saveOnWorldSave(event.getWorld().getPlayers()
                 .stream().map(BukkitPlayer::adapt)
                 .collect(Collectors.toList())));
     }

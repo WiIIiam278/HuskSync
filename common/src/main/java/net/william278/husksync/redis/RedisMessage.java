@@ -21,6 +21,7 @@ package net.william278.husksync.redis;
 
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
+import net.william278.husksync.HuskSync;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
@@ -39,9 +40,10 @@ public class RedisMessage {
     public RedisMessage() {
     }
 
-    public void dispatch(@NotNull RedisManager redisManager, @NotNull RedisMessageType type) {
-        CompletableFuture.runAsync(() -> redisManager.sendMessage(type.getMessageChannel(),
-                new GsonBuilder().create().toJson(this)));
+    public void dispatch(@NotNull HuskSync plugin, @NotNull RedisMessageType type) {
+        plugin.runAsync(() -> plugin.getRedisManager().sendMessage(
+                type.getMessageChannel(), new GsonBuilder().create().toJson(this)
+        ));
     }
 
     @NotNull

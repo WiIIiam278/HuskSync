@@ -82,12 +82,12 @@ public class HuskSyncAPI extends BaseHuskSyncAPI {
      * @since 2.0
      */
     public CompletableFuture<Void> setInventoryData(@NotNull User user, @NotNull ItemStack[] inventoryContents) {
-        return CompletableFuture.runAsync(() -> getUserData(user).thenAccept(userData ->
+        return getUserData(user).thenAccept(userData ->
                 userData.ifPresent(data -> serializeItemStackArray(inventoryContents)
                         .thenAccept(serializedInventory -> {
                             data.getInventory().orElse(ItemData.empty()).serializedItems = serializedInventory;
                             setUserData(user, data).join();
-                        }))));
+                        })));
     }
 
     /**
@@ -111,12 +111,12 @@ public class HuskSyncAPI extends BaseHuskSyncAPI {
      * @since 2.0
      */
     public CompletableFuture<Void> setEnderChestData(@NotNull User user, @NotNull ItemStack[] enderChestContents) {
-        return CompletableFuture.runAsync(() -> getUserData(user).thenAccept(userData ->
+        return getUserData(user).thenAccept(userData ->
                 userData.ifPresent(data -> serializeItemStackArray(enderChestContents)
                         .thenAccept(serializedInventory -> {
                             data.getEnderChest().orElse(ItemData.empty()).serializedItems = serializedInventory;
                             setUserData(user, data).join();
-                        }))));
+                        })));
     }
 
     /**

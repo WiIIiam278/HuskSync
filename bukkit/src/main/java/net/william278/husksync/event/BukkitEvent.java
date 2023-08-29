@@ -28,7 +28,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.concurrent.CompletableFuture;
 
 @SuppressWarnings("unused")
-public abstract class BukkitEvent<T> extends Event implements net.william278.husksync.event.Event {
+public abstract class BukkitEvent extends Event implements net.william278.husksync.event.Event {
 
     private static final HandlerList HANDLER_LIST = new HandlerList();
 
