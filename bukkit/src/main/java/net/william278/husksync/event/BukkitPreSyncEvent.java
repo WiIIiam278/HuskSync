@@ -20,7 +20,7 @@
 package net.william278.husksync.event;
 
 import net.william278.husksync.data.UserData;
-import org.bukkit.entity.Player;
+import net.william278.husksync.player.OnlineUser;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
@@ -31,7 +31,7 @@ public class BukkitPreSyncEvent extends BukkitPlayerEvent implements PreSyncEven
     private boolean cancelled = false;
     private UserData userData;
 
-    protected BukkitPreSyncEvent(@NotNull Player player, @NotNull UserData userData) {
+    protected BukkitPreSyncEvent(@NotNull OnlineUser player, @NotNull UserData userData) {
         super(player);
         this.userData = userData;
     }

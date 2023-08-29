@@ -21,7 +21,7 @@ package net.william278.husksync.util;
 
 import net.william278.husksync.config.Locales;
 import net.william278.husksync.data.UserDataSnapshot;
-import net.william278.husksync.player.OnlineUser;
+import net.william278.husksync.player.CommandUser;
 import net.william278.husksync.player.User;
 import net.william278.paginedown.PaginatedList;
 import org.jetbrains.annotations.NotNull;
@@ -69,7 +69,7 @@ public class DataSnapshotList {
      * @param snapshots The list of {@link UserDataSnapshot}s to display
      * @param user      The {@link User} who owns the {@link UserDataSnapshot}s
      * @param locales   The {@link Locales} instance
-     * @return A new {@link DataSnapshotList}, to be viewed with {@link #displayPage(OnlineUser, int)}
+     * @return A new {@link DataSnapshotList}, to be viewed with {@link #displayPage(CommandUser, int)}
      */
     public static DataSnapshotList create(@NotNull List<UserDataSnapshot> snapshots, @NotNull User user,
                                           @NotNull Locales locales) {
@@ -95,7 +95,7 @@ public class DataSnapshotList {
      * @param onlineUser The online user to display the message to
      * @param page       The page number to display
      */
-    public void displayPage(@NotNull OnlineUser onlineUser, int page) {
+    public void displayPage(@NotNull CommandUser onlineUser, int page) {
         onlineUser.sendMessage(paginatedList.getNearestValidPage(page));
     }
 

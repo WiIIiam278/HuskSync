@@ -22,8 +22,6 @@ package net.william278.husksync;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import net.william278.desertwell.util.Version;
 import net.william278.husksync.command.BukkitCommand;
-import net.william278.husksync.command.CommandBase;
-import net.william278.husksync.command.Permission;
 import net.william278.husksync.config.Locales;
 import net.william278.husksync.config.Settings;
 import net.william278.husksync.data.CompressedDataAdapter;
@@ -39,14 +37,13 @@ import net.william278.husksync.migrator.LegacyMigrator;
 import net.william278.husksync.migrator.Migrator;
 import net.william278.husksync.migrator.MpdbMigrator;
 import net.william278.husksync.player.BukkitPlayer;
+import net.william278.husksync.player.ConsoleUser;
 import net.william278.husksync.player.OnlineUser;
 import net.william278.husksync.redis.RedisManager;
 import net.william278.husksync.util.BukkitTask;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
-import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.Player;
-import org.bukkit.permissions.PermissionDefault;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import space.arim.morepaperlib.MorePaperLib;
@@ -63,6 +60,7 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
      * Metrics ID for <a href="https://bstats.org/plugin/bukkit/HuskSync%20-%20Bukkit/13140">HuskSync on Bukkit</a>.
      */
     private static final int METRICS_ID = 13140;
+    private static BukkitHuskSync instance;
     private Database database;
     private RedisManager redisManager;
     private EventListener eventListener;
@@ -73,6 +71,16 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
     private BukkitAudiences audiences;
     private MorePaperLib paperLib;
 
+    @NotNull
+    public static BukkitHuskSync getInstance() {
+        return instance;
+    }
+
+    @Override
+    public void onLoad() {
+        instance = this;
+    }
+
     @Override
     public void onEnable() {
         // Create adventure audience
@@ -82,9 +90,7 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
 
         // Load settings and locales
         initialize("plugin config & locale files", (plugin) -> {
-            if (!loadConfigs()) {
-                throw new IllegalStateException("Failed to load config files. Please check the console for errors");
-            }
+            this.loadConfigs();
         });
 
         // Prepare data adapter
@@ -119,23 +125,8 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
         // Register events
         initialize("events", (plugin) -> this.eventListener = new BukkitEventListener(this));
 
-        // Register commands / todo: Rewrite this
-        initialize("commands", (plugin) -> {
-            Arrays.stream(Permission.values()).forEach(permission -> getServer().getPluginManager()
-                    .addPermission(new org.bukkit.permissions.Permission(permission.node, switch (permission.defaultAccess) {
-                        case EVERYONE -> PermissionDefault.TRUE;
-                        case NOBODY -> PermissionDefault.FALSE;
-                        case OPERATORS -> PermissionDefault.OP;
-                    })));
-
-            for (final BukkitCommand.Type type : BukkitCommand.Type.values()) {
-                final CommandBase command = type.getCommand(this);
-                final PluginCommand pluginCommand = getCommand(command.command);
-                if (pluginCommand != null) {
-                    new BukkitCommand(command, this).register(pluginCommand);
-                }
-            }
-        });
+        // Register commands
+        initialize("commands", (plugin) -> BukkitCommand.Type.registerCommands(this));
 
         // Register plugin hooks
         initialize("hooks", (plugin) -> {
@@ -160,7 +151,9 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
     @Override
     @NotNull
     public Set<OnlineUser> getOnlineUsers() {
-        return Bukkit.getOnlinePlayers().stream().map(BukkitPlayer::adapt).collect(Collectors.toSet());
+        return Bukkit.getOnlinePlayers().stream()
+                .map(player -> BukkitPlayer.adapt(player, this))
+                .collect(Collectors.toSet());
     }
 
     @Override
@@ -170,7 +163,7 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
         if (player == null) {
             return Optional.empty();
         }
-        return Optional.of(BukkitPlayer.adapt(player));
+        return Optional.of(BukkitPlayer.adapt(player, this));
     }
 
     @Override
@@ -248,6 +241,12 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
 
     @NotNull
     @Override
+    public ConsoleUser getConsole() {
+        return new ConsoleUser(audiences.console());
+    }
+
+    @NotNull
+    @Override
     public Version getPluginVersion() {
         return Version.fromString(getDescription().getVersion(), "-");
     }
@@ -258,6 +257,7 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
         return Version.fromString(Bukkit.getBukkitVersion());
     }
 
+    @NotNull
     @Override
     public Set<UUID> getLockedPlayers() {
         return this.eventListener.getLockedPlayers();

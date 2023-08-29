@@ -61,7 +61,7 @@ public class MySqlDatabase extends Database {
     }
 
     @Override
-    public void initialize() throws IllegalStateException {
+    public void initialize() throws HuskSync.FailedToLoadException {
         // Initialize the Hikari pooled connection
         dataSource = new HikariDataSource();
         dataSource.setDriverClassName(driverClass);

@@ -39,7 +39,7 @@ import java.util.logging.Level;
 /**
  * Represents a logged-in {@link User}
  */
-public abstract class OnlineUser extends User {
+public abstract class OnlineUser extends User implements CommandUser {
 
     public OnlineUser(@NotNull UUID uuid, @NotNull String username) {
         super(uuid, username);

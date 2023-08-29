@@ -21,6 +21,7 @@ package net.william278.husksync.data;
 
 import net.william278.husksync.command.Permission;
 import net.william278.husksync.config.Locales;
+import net.william278.husksync.player.CommandUser;
 import net.william278.husksync.player.OnlineUser;
 import net.william278.husksync.player.User;
 import org.jetbrains.annotations.NotNull;
@@ -62,7 +63,7 @@ public record UserDataSnapshot(@NotNull UUID versionUUID, @NotNull Date versionT
      * @param dataOwner The {@link User} whose data this snapshot captures a state of
      * @param locales   The {@link Locales} to use for displaying the menu
      */
-    public void displayDataOverview(@NotNull OnlineUser user, @NotNull User dataOwner, @NotNull Locales locales) {
+    public void displayDataOverview(@NotNull CommandUser user, @NotNull User dataOwner, @NotNull Locales locales) {
         // Title message, timestamp, owner and cause.
         locales.getLocale("data_manager_title", versionUUID().toString().split("-")[0],
                         versionUUID().toString(), dataOwner.username, dataOwner.uuid.toString())
@@ -97,7 +98,7 @@ public record UserDataSnapshot(@NotNull UUID versionUUID, @NotNull Date versionT
                 .ifPresent(user::sendMessage);
 
         if (user.hasPermission(Permission.COMMAND_INVENTORY.node)
-            && user.hasPermission(Permission.COMMAND_ENDER_CHEST.node)) {
+                && user.hasPermission(Permission.COMMAND_ENDER_CHEST.node)) {
             locales.getLocale("data_manager_item_buttons", dataOwner.username, versionUUID().toString())
                     .ifPresent(user::sendMessage);
         }

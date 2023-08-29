@@ -20,6 +20,7 @@
 package net.william278.husksync.listener;
 
 import net.william278.husksync.BukkitHuskSync;
+import net.william278.husksync.HuskSync;
 import net.william278.husksync.data.BukkitInventoryMap;
 import net.william278.husksync.data.BukkitSerializer;
 import net.william278.husksync.data.ItemData;
@@ -84,7 +85,7 @@ public class BukkitEventListener extends EventListener implements BukkitJoinEven
 
     @Override
     public void handlePlayerDeath(@NotNull PlayerDeathEvent event) {
-        final OnlineUser user = BukkitPlayer.adapt(event.getEntity());
+        final OnlineUser user = BukkitPlayer.adapt(event.getEntity(), plugin);
 
         // If the player is locked or the plugin disabling, clear their drops
         if (cancelPlayerEvent(user.uuid)) {
@@ -115,7 +116,7 @@ public class BukkitEventListener extends EventListener implements BukkitJoinEven
         }
 
         plugin.runAsync(() -> super.saveOnWorldSave(event.getWorld().getPlayers()
-                .stream().map(BukkitPlayer::adapt)
+                .stream().map(player -> BukkitPlayer.adapt(player, plugin))
                 .collect(Collectors.toList())));
     }
 
@@ -195,6 +196,12 @@ public class BukkitEventListener extends EventListener implements BukkitJoinEven
         if (blacklistedCommands.contains("*") || blacklistedCommands.contains(commandLabel)) {
             event.setCancelled(cancelPlayerEvent(event.getPlayer().getUniqueId()));
         }
+    }
+
+    @NotNull
+    @Override
+    public HuskSync getPlugin() {
+        return plugin;
     }
 
 }

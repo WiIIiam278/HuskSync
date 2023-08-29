@@ -25,9 +25,11 @@ import net.william278.husksync.data.DataSaveCause;
 import net.william278.husksync.data.UserData;
 import net.william278.husksync.data.UserDataBuilder;
 import net.william278.husksync.data.UserDataSnapshot;
+import net.william278.husksync.player.CommandUser;
 import net.william278.husksync.player.OnlineUser;
 import net.william278.husksync.player.User;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.text.SimpleDateFormat;
 import java.util.List;
@@ -35,21 +37,27 @@ import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.logging.Level;
-import java.util.stream.Collectors;
 
-public class EnderChestCommand extends CommandBase implements TabCompletable {
+public class EnderChestCommand extends Command implements TabProvider {
 
-    public EnderChestCommand(@NotNull HuskSync implementor) {
-        super("enderchest", Permission.COMMAND_ENDER_CHEST, implementor, "echest", "openechest");
+    public EnderChestCommand(@NotNull HuskSync plugin) {
+        super("enderchest", List.of("echest", "openechest"), "<player> [version_uuid]", plugin);
     }
 
     @Override
-    public void onExecute(@NotNull OnlineUser player, @NotNull String[] args) {
+    public void execute(@NotNull CommandUser executor, @NotNull String[] args) {
+        if (!(executor instanceof OnlineUser player)) {
+            plugin.getLocales().getLocale("error_in_game_command_only")
+                    .ifPresent(executor::sendMessage);
+            return;
+        }
+
         if (args.length == 0 || args.length > 2) {
-            plugin.getLocales().getLocale("error_invalid_syntax", "/enderchest <player>")
+            plugin.getLocales().getLocale("error_invalid_syntax", getUsage())
                     .ifPresent(player::sendMessage);
             return;
         }
+
         plugin.getDatabase().getUserByName(args[0].toLowerCase(Locale.ENGLISH)).ifPresentOrElse(user -> {
             if (args.length == 2) {
                 // View user data by specified UUID
@@ -119,11 +127,13 @@ public class EnderChestCommand extends CommandBase implements TabCompletable {
         });
     }
 
+    @Nullable
     @Override
-    public List<String> onTabComplete(@NotNull String[] args) {
-        return plugin.getOnlineUsers().stream().map(user -> user.username)
-                .filter(argument -> argument.startsWith(args.length >= 1 ? args[0] : ""))
-                .sorted().collect(Collectors.toList());
+    public List<String> suggest(@NotNull CommandUser executor, @NotNull String[] args) {
+        return switch (args.length) {
+            case 0, 1 -> plugin.getOnlineUsers().stream().map(user -> user.username).toList();
+            default -> null;
+        };
     }
 
 }

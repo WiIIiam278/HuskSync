@@ -17,20 +17,28 @@
  *  limitations under the License.
  */
 
-package net.william278.husksync.command;
+package net.william278.husksync.player;
 
+import net.kyori.adventure.audience.Audience;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * Interface providing console execution of commands
- */
-public interface ConsoleExecutable {
+public final class ConsoleUser implements CommandUser {
 
-    /**
-     * What to do when console executes a command
-     *
-     * @param args command argument strings
-     */
-    void onConsoleExecute(@NotNull String[] args);
+    @NotNull
+    private final Audience audience;
 
+    public ConsoleUser(@NotNull Audience console) {
+        this.audience = console;
+    }
+
+    @Override
+    @NotNull
+    public Audience getAudience() {
+        return audience;
+    }
+
+    @Override
+    public boolean hasPermission(@NotNull String permission) {
+        return true;
+    }
 }

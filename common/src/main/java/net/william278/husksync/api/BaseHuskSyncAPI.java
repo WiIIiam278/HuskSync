@@ -25,6 +25,7 @@ import net.william278.husksync.data.UserData;
 import net.william278.husksync.data.UserDataSnapshot;
 import net.william278.husksync.player.OnlineUser;
 import net.william278.husksync.player.User;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -45,6 +46,10 @@ public abstract class BaseHuskSyncAPI {
      */
     protected final HuskSync plugin;
 
+    /**
+     * <b>(Internal use only)</b> - Constructor, instantiating the base API class.
+     */
+    @ApiStatus.Internal
     protected BaseHuskSyncAPI(@NotNull HuskSync plugin) {
         this.plugin = plugin;
     }
@@ -161,4 +166,24 @@ public abstract class BaseHuskSyncAPI {
         return plugin.getDataAdapter().toJson(userData, prettyPrint);
     }
 
+    /**
+     * An exception indicating the plugin has been accessed before it has been registered.
+     */
+    static final class NotRegisteredException extends IllegalStateException {
+
+        private static final String MESSAGE = """
+                Could not access the HuskSync API as it has not yet been registered. This could be because:
+                1) HuskSync has failed to enable successfully
+                2) Your plugin isn't set to load after HuskSync has
+                   (Check if it set as a (soft)depend in plugin.yml or to load: BEFORE in paper-plugin.yml?)
+                3) You are attempting to access HuskSync on plugin construction/before your plugin has enabled.
+                4) You have shaded HuskSync into your plugin jar and need to fix your maven/gradle/build script
+                   to only include HuskSync as a dependency and not as a shaded dependency.""";
+
+        NotRegisteredException() {
+            super(MESSAGE);
+        }
+
+    }
+    
 }

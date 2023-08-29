@@ -19,29 +19,43 @@
 
 package net.william278.husksync.command;
 
+import de.themoep.minedown.adventure.MineDown;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextColor;
 import net.william278.desertwell.about.AboutMenu;
+import net.william278.desertwell.util.UpdateChecker;
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.migrator.Migrator;
+import net.william278.husksync.player.CommandUser;
 import net.william278.husksync.player.OnlineUser;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
-public class HuskSyncCommand extends CommandBase implements TabCompletable, ConsoleExecutable {
+public class HuskSyncCommand extends Command implements TabProvider {
 
-    private final String[] SUB_COMMANDS = {"update", "about", "reload", "migrate"};
+    private static final Map<String, Boolean> SUB_COMMANDS = Map.of(
+            "about", false,
+            "reload", true,
+            "migrate", true,
+            "update", true
+    );
+
+    private final UpdateChecker updateChecker;
     private final AboutMenu aboutMenu;
 
-    public HuskSyncCommand(@NotNull HuskSync implementor) {
-        super("husksync", Permission.COMMAND_HUSKSYNC, implementor);
+    public HuskSyncCommand(@NotNull HuskSync plugin) {
+        super("husksync", List.of(), "[" + String.join("|", SUB_COMMANDS.keySet()) + "]", plugin);
+        addAdditionalPermissions(SUB_COMMANDS);
+
+        this.updateChecker = plugin.getUpdateChecker();
         this.aboutMenu = AboutMenu.builder()
                 .title(Component.text("HuskSync"))
                 .description(Component.text("A modern, cross-server player data synchronization system"))
-                .version(implementor.getPluginVersion())
+                .version(plugin.getPluginVersion())
                 .credits("Author",
                         AboutMenu.Credit.of("William278").description("Click to visit website").url("https://william278.net"))
                 .credits("Contributors",
@@ -67,123 +81,104 @@ public class HuskSyncCommand extends CommandBase implements TabCompletable, Cons
     }
 
     @Override
-    public void onExecute(@NotNull OnlineUser player, @NotNull String[] args) {
-        if (args.length < 1) {
-            sendAboutMenu(player);
+    public void execute(@NotNull CommandUser executor, @NotNull String[] args) {
+        final String action = parseStringArg(args, 0).orElse("about");
+        if (SUB_COMMANDS.containsKey(action) && !executor.hasPermission(getPermission(action))) {
+            plugin.getLocales().getLocale("error_no_permission")
+                    .ifPresent(executor::sendMessage);
             return;
         }
-        switch (args[0].toLowerCase(Locale.ENGLISH)) {
-            case "update", "version" -> {
-                if (!player.hasPermission(Permission.COMMAND_HUSKSYNC_UPDATE.node)) {
-                    plugin.getLocales().getLocale("error_no_permission").ifPresent(player::sendMessage);
-                    return;
-                }
-//                plugin.getLatestVersionIfOutdated().thenAccept(newestVersion ->
-//                        newestVersion.ifPresentOrElse(
-//                                newVersion -> player.sendMessage(
-//                                        new MineDown("[HuskSync](#00fb9a bold) [| A new version of HuskSync is available!"
-//                                                     + " (v" + newVersion + " (Running: v" + plugin.getPluginVersion() + ")](#00fb9a)")),
-//                                () -> player.sendMessage(
-//                                        new MineDown("[HuskSync](#00fb9a bold) [| HuskSync is up-to-date."
-//                                                     + " (Running: v" + plugin.getPluginVersion() + ")](#00fb9a)"))));
-            }
-            case "about", "info" -> sendAboutMenu(player);
-            case "reload" -> {
-                if (!player.hasPermission(Permission.COMMAND_HUSKSYNC_RELOAD.node)) {
-                    plugin.getLocales().getLocale("error_no_permission").ifPresent(player::sendMessage);
-                    return;
-                }
-                plugin.loadConfigs();
-                plugin.getLocales().getLocale("reload_complete").ifPresent(player::sendMessage);
-            }
-            case "migrate" ->
-                    plugin.getLocales().getLocale("error_console_command_only").ifPresent(player::sendMessage);
-            default -> plugin.getLocales().getLocale("error_invalid_syntax",
-                            "/husksync <update/about/reload>")
-                    .ifPresent(player::sendMessage);
-        }
-    }
 
-    @Override
-    public void onConsoleExecute(@NotNull String[] args) {
-        if (args.length < 1) {
-            plugin.log(Level.INFO, "Console usage: \"husksync <update/about/reload/migrate>\"");
-            return;
-        }
-        switch (args[0].toLowerCase(Locale.ENGLISH)) {
-//            case "update", "version" -> plugin.getLatestVersionIfOutdated().thenAccept(newestVersion ->
-//                    newestVersion.ifPresentOrElse(newVersion -> plugin.log(Level.WARNING,
-//                                    "An update is available for HuskSync, v" + newVersion
-//                                    + " (Running v" + plugin.getPluginVersion() + ")"),
-//                            () -> plugin.log(Level.INFO,
-//                                    "HuskSync is up to date" +
-//                                    " (Running v" + plugin.getPluginVersion() + ")")));
-            case "about", "info" -> aboutMenu.toString().lines().forEach(line -> plugin.log(Level.INFO, line));
+        switch (action.toLowerCase(Locale.ENGLISH)) {
+            case "about" -> executor.sendMessage(aboutMenu.toComponent());
             case "reload" -> {
-                plugin.loadConfigs();
-                plugin.log(Level.INFO, "Reloaded config & message files.");
+                try {
+                    plugin.loadConfigs();
+                    plugin.getLocales().getLocale("reload_complete").ifPresent(executor::sendMessage);
+                } catch (Throwable e) {
+                    executor.sendMessage(new MineDown(
+                            "[Error:](#ff3300) [Failed to reload the plugin. Check console for errors.](#ff7e5e)"
+                    ));
+                    plugin.log(Level.SEVERE, "Failed to reload the plugin", e);
+                }
             }
             case "migrate" -> {
-                if (args.length < 2) {
-                    plugin.log(Level.INFO,
-                            "Please choose a migrator, then run \"husksync migrate <migrator>\"");
-                    logMigratorsList();
+                if (executor instanceof OnlineUser) {
+                    plugin.getLocales().getLocale("error_console_command_only")
+                            .ifPresent(executor::sendMessage);
                     return;
                 }
-                final Optional<Migrator> selectedMigrator = plugin.getAvailableMigrators().stream().filter(availableMigrator ->
-                        availableMigrator.getIdentifier().equalsIgnoreCase(args[1])).findFirst();
-                selectedMigrator.ifPresentOrElse(migrator -> {
-                    if (args.length < 3) {
-                        plugin.log(Level.INFO, migrator.getHelpMenu());
-                        return;
-                    }
-                    switch (args[2]) {
-                        case "start" -> migrator.start().thenAccept(succeeded -> {
-                            if (succeeded) {
-                                plugin.log(Level.INFO, "Migration completed successfully!");
-                            } else {
-                                plugin.log(Level.WARNING, "Migration failed!");
-                            }
-                        });
-                        case "set" -> migrator.handleConfigurationCommand(Arrays.copyOfRange(args, 3, args.length));
-                        default -> plugin.log(Level.INFO,
-                                "Invalid syntax. Console usage: \"husksync migrate " + args[1] + " <start/set>");
-                    }
-                }, () -> {
-                    plugin.log(Level.INFO,
-                            "Please specify a valid migrator.\n" +
-                            "If a migrator is not available, please verify that you meet the prerequisites to use it.");
-                    logMigratorsList();
-                });
+                this.handleMigrationCommand(args);
             }
-            default -> plugin.log(Level.INFO,
-                    "Invalid syntax. Console usage: \"husksync <update/about/reload/migrate>\"");
+            case "update" -> updateChecker.check().thenAccept(checked -> {
+                if (checked.isUpToDate()) {
+                    plugin.getLocales().getLocale("up_to_date", plugin.getPluginVersion().toString())
+                            .ifPresent(executor::sendMessage);
+                    return;
+                }
+                plugin.getLocales().getLocale("update_available", checked.getLatestVersion().toString(),
+                        plugin.getPluginVersion().toString()).ifPresent(executor::sendMessage);
+            });
+            default -> plugin.getLocales().getLocale("error_invalid_syntax", getUsage())
+                    .ifPresent(executor::sendMessage);
         }
     }
 
-    private void logMigratorsList() {
-        plugin.log(Level.INFO,
-                "List of available migrators:\nMigrator ID / Migrator Name:\n" +
-                plugin.getAvailableMigrators().stream()
-                        .map(migrator -> migrator.getIdentifier() + " - " + migrator.getName())
-                        .collect(Collectors.joining("\n")));
-    }
-
-    @Override
-    public List<String> onTabComplete(@NotNull String[] args) {
-        if (args.length <= 1) {
-            return Arrays.stream(SUB_COMMANDS)
-                    .filter(argument -> argument.startsWith(args.length == 1 ? args[0] : ""))
-                    .sorted().collect(Collectors.toList());
-        }
-        return Collections.emptyList();
-    }
-
-    private void sendAboutMenu(@NotNull OnlineUser player) {
-        if (!player.hasPermission(Permission.COMMAND_HUSKSYNC_ABOUT.node)) {
-            plugin.getLocales().getLocale("error_no_permission").ifPresent(player::sendMessage);
+    // Handle a migration console command input
+    private void handleMigrationCommand(@NotNull String[] args) {
+        if (args.length < 2) {
+            plugin.log(Level.INFO,
+                    "Please choose a migrator, then run \"husksync migrate <migrator>\"");
+            this.logMigratorList();
             return;
         }
-        player.sendMessage(aboutMenu.toComponent());
+
+        final Optional<Migrator> selectedMigrator = plugin.getAvailableMigrators().stream()
+                .filter(available -> available.getIdentifier().equalsIgnoreCase(args[1]))
+                .findFirst();
+        selectedMigrator.ifPresentOrElse(migrator -> {
+            if (args.length < 3) {
+                plugin.log(Level.INFO, migrator.getHelpMenu());
+                return;
+            }
+            switch (args[2]) {
+                case "start" -> migrator.start().thenAccept(succeeded -> {
+                    if (succeeded) {
+                        plugin.log(Level.INFO, "Migration completed successfully!");
+                    } else {
+                        plugin.log(Level.WARNING, "Migration failed!");
+                    }
+                });
+                case "set" -> migrator.handleConfigurationCommand(Arrays.copyOfRange(args, 3, args.length));
+                default -> plugin.log(Level.INFO, String.format(
+                        "Invalid syntax. Console usage: \"husksync migrate %s <start/set>", args[1]
+                ));
+            }
+        }, () -> {
+            plugin.log(Level.INFO,
+                    "Please specify a valid migrator.\n" +
+                            "If a migrator is not available, please verify that you meet the prerequisites to use it.");
+            this.logMigratorList();
+        });
     }
+
+    // Log the list of available migrators
+    private void logMigratorList() {
+        plugin.log(Level.INFO, String.format(
+                "List of available migrators:\nMigrator ID / Migrator Name:\n%s",
+                plugin.getAvailableMigrators().stream()
+                        .map(migrator -> String.format("%s - %s", migrator.getIdentifier(), migrator.getName()))
+                        .collect(Collectors.joining("\n"))
+        ));
+    }
+
+    @Nullable
+    @Override
+    public List<String> suggest(@NotNull CommandUser user, @NotNull String[] args) {
+        return switch (args.length) {
+            case 0, 1 -> SUB_COMMANDS.keySet().stream().sorted().toList();
+            default -> null;
+        };
+    }
+
 }

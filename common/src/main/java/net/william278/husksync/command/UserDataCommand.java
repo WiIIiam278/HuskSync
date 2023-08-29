@@ -23,30 +23,38 @@ import net.william278.husksync.HuskSync;
 import net.william278.husksync.data.DataSaveCause;
 import net.william278.husksync.data.UserData;
 import net.william278.husksync.data.UserDataSnapshot;
-import net.william278.husksync.player.OnlineUser;
+import net.william278.husksync.player.CommandUser;
 import net.william278.husksync.util.DataDumper;
 import net.william278.husksync.util.DataSnapshotList;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.*;
 import java.util.logging.Level;
-import java.util.stream.Collectors;
 
-public class UserDataCommand extends CommandBase implements TabCompletable {
+public class UserDataCommand extends Command implements TabProvider {
 
-    private final String[] COMMAND_ARGUMENTS = {"view", "list", "delete", "restore", "pin", "dump"};
+    private static final Map<String, Boolean> SUB_COMMANDS = Map.of(
+            "view", true,
+            "list", true,
+            "delete", true,
+            "restore", true,
+            "pin", true,
+            "dump", true
+    );
 
-    public UserDataCommand(@NotNull HuskSync implementor) {
-        super("userdata", Permission.COMMAND_USER_DATA, implementor, "playerdata");
+    public UserDataCommand(@NotNull HuskSync plugin) {
+        super("userdata", List.of("playerdata"), String.format(
+                "<%s> <username> [version_uuid]", String.join("/", SUB_COMMANDS.keySet())
+        ), plugin);
     }
 
     @Override
-    public void onExecute(@NotNull OnlineUser player, @NotNull String[] args) {
+    public void execute(@NotNull CommandUser executor, @NotNull String[] args) {
         if (args.length < 1) {
-            plugin.getLocales().getLocale("error_invalid_syntax",
-                            "/userdata <view/list/delete/restore/pin/dump> <username> [version_uuid]")
-                    .ifPresent(player::sendMessage);
+            plugin.getLocales().getLocale("error_invalid_syntax", getUsage())
+                    .ifPresent(executor::sendMessage);
             return;
         }
 
@@ -55,7 +63,7 @@ public class UserDataCommand extends CommandBase implements TabCompletable {
                 if (args.length < 2) {
                     plugin.getLocales().getLocale("error_invalid_syntax",
                                     "/userdata view <username> [version_uuid]")
-                            .ifPresent(player::sendMessage);
+                            .ifPresent(executor::sendMessage);
                     return;
                 }
                 final String username = args[1];
@@ -65,36 +73,36 @@ public class UserDataCommand extends CommandBase implements TabCompletable {
                         plugin.getDatabase()
                                 .getUserByName(username.toLowerCase(Locale.ENGLISH))
                                 .ifPresentOrElse(user -> plugin.getDatabase().getUserData(user, versionUuid).ifPresentOrElse(
-                                                userData -> userData.displayDataOverview(player, user, plugin.getLocales()),
+                                                userData -> userData.displayDataOverview(executor, user, plugin.getLocales()),
                                                 () -> plugin.getLocales().getLocale("error_invalid_version_uuid")
-                                                        .ifPresent(player::sendMessage)),
+                                                        .ifPresent(executor::sendMessage)),
                                         () -> plugin.getLocales().getLocale("error_invalid_player")
-                                                .ifPresent(player::sendMessage));
+                                                .ifPresent(executor::sendMessage));
                     } catch (IllegalArgumentException e) {
                         plugin.getLocales().getLocale("error_invalid_syntax",
                                         "/userdata view <username> [version_uuid]")
-                                .ifPresent(player::sendMessage);
+                                .ifPresent(executor::sendMessage);
                     }
                 } else {
                     plugin.getDatabase()
                             .getUserByName(username.toLowerCase(Locale.ENGLISH))
                             .ifPresentOrElse(user -> plugin.getDatabase().getCurrentUserData(user).ifPresentOrElse(
-                                            userData -> userData.displayDataOverview(player, user, plugin.getLocales()),
+                                            userData -> userData.displayDataOverview(executor, user, plugin.getLocales()),
                                             () -> plugin.getLocales().getLocale("error_no_data_to_display")
-                                                    .ifPresent(player::sendMessage)),
+                                                    .ifPresent(executor::sendMessage)),
                                     () -> plugin.getLocales().getLocale("error_invalid_player")
-                                            .ifPresent(player::sendMessage));
+                                            .ifPresent(executor::sendMessage));
                 }
             }
             case "list" -> {
-                if (!player.hasPermission(Permission.COMMAND_USER_DATA_MANAGE.node)) {
-                    plugin.getLocales().getLocale("error_no_permission").ifPresent(player::sendMessage);
+                if (!executor.hasPermission(Permission.COMMAND_USER_DATA_MANAGE.node)) {
+                    plugin.getLocales().getLocale("error_no_permission").ifPresent(executor::sendMessage);
                     return;
                 }
                 if (args.length < 2) {
                     plugin.getLocales().getLocale("error_invalid_syntax",
                                     "/userdata list <username> [page]")
-                            .ifPresent(player::sendMessage);
+                            .ifPresent(executor::sendMessage);
                     return;
                 }
                 final String username = args[1];
@@ -104,7 +112,7 @@ public class UserDataCommand extends CommandBase implements TabCompletable {
                             // Check if there is data to display
                             if (dataList.isEmpty()) {
                                 plugin.getLocales().getLocale("error_no_data_to_display")
-                                        .ifPresent(player::sendMessage);
+                                        .ifPresent(executor::sendMessage);
                                 return;
                             }
 
@@ -116,28 +124,28 @@ public class UserDataCommand extends CommandBase implements TabCompletable {
                                 } catch (NumberFormatException e) {
                                     plugin.getLocales().getLocale("error_invalid_syntax",
                                                     "/userdata list <username> [page]")
-                                            .ifPresent(player::sendMessage);
+                                            .ifPresent(executor::sendMessage);
                                     return;
                                 }
                             }
 
                             // Show the list to the player
                             DataSnapshotList.create(dataList, user, plugin.getLocales())
-                                    .displayPage(player, page);
+                                    .displayPage(executor, page);
                         },
                         () -> plugin.getLocales().getLocale("error_invalid_player")
-                                .ifPresent(player::sendMessage));
+                                .ifPresent(executor::sendMessage));
             }
             case "delete" -> {
-                if (!player.hasPermission(Permission.COMMAND_USER_DATA_MANAGE.node)) {
-                    plugin.getLocales().getLocale("error_no_permission").ifPresent(player::sendMessage);
+                if (!executor.hasPermission(Permission.COMMAND_USER_DATA_MANAGE.node)) {
+                    plugin.getLocales().getLocale("error_no_permission").ifPresent(executor::sendMessage);
                     return;
                 }
                 // Delete user data by specified UUID
                 if (args.length < 3) {
                     plugin.getLocales().getLocale("error_invalid_syntax",
                                     "/userdata delete <username> <version_uuid>")
-                            .ifPresent(player::sendMessage);
+                            .ifPresent(executor::sendMessage);
                     return;
                 }
                 final String username = args[1];
@@ -150,30 +158,30 @@ public class UserDataCommand extends CommandBase implements TabCompletable {
                                                     versionUuid.toString(),
                                                     user.username,
                                                     user.uuid.toString())
-                                            .ifPresent(player::sendMessage);
+                                            .ifPresent(executor::sendMessage);
                                 } else {
                                     plugin.getLocales().getLocale("error_invalid_version_uuid")
-                                            .ifPresent(player::sendMessage);
+                                            .ifPresent(executor::sendMessage);
                                 }
                             },
                             () -> plugin.getLocales().getLocale("error_invalid_player")
-                                    .ifPresent(player::sendMessage));
+                                    .ifPresent(executor::sendMessage));
                 } catch (IllegalArgumentException e) {
                     plugin.getLocales().getLocale("error_invalid_syntax",
                                     "/userdata delete <username> <version_uuid>")
-                            .ifPresent(player::sendMessage);
+                            .ifPresent(executor::sendMessage);
                 }
             }
             case "restore" -> {
-                if (!player.hasPermission(Permission.COMMAND_USER_DATA_MANAGE.node)) {
-                    plugin.getLocales().getLocale("error_no_permission").ifPresent(player::sendMessage);
+                if (!executor.hasPermission(Permission.COMMAND_USER_DATA_MANAGE.node)) {
+                    plugin.getLocales().getLocale("error_no_permission").ifPresent(executor::sendMessage);
                     return;
                 }
                 // Get user data by specified uuid and username
                 if (args.length < 3) {
                     plugin.getLocales().getLocale("error_invalid_syntax",
                                     "/userdata restore <username> <version_uuid>")
-                            .ifPresent(player::sendMessage);
+                            .ifPresent(executor::sendMessage);
                     return;
                 }
                 final String username = args[1];
@@ -184,7 +192,7 @@ public class UserDataCommand extends CommandBase implements TabCompletable {
                                 final Optional<UserDataSnapshot> data = plugin.getDatabase().getUserData(user, versionUuid);
                                 if (data.isEmpty()) {
                                     plugin.getLocales().getLocale("error_invalid_version_uuid")
-                                            .ifPresent(player::sendMessage);
+                                            .ifPresent(executor::sendMessage);
                                     return;
                                 }
 
@@ -200,25 +208,25 @@ public class UserDataCommand extends CommandBase implements TabCompletable {
                                                 user.uuid.toString(),
                                                 versionUuid.toString().split("-")[0],
                                                 versionUuid.toString())
-                                        .ifPresent(player::sendMessage);
+                                        .ifPresent(executor::sendMessage);
                             },
                             () -> plugin.getLocales().getLocale("error_invalid_player")
-                                    .ifPresent(player::sendMessage));
+                                    .ifPresent(executor::sendMessage));
                 } catch (IllegalArgumentException e) {
                     plugin.getLocales().getLocale("error_invalid_syntax",
                                     "/userdata restore <username> <version_uuid>")
-                            .ifPresent(player::sendMessage);
+                            .ifPresent(executor::sendMessage);
                 }
             }
             case "pin" -> {
-                if (!player.hasPermission(Permission.COMMAND_USER_DATA_MANAGE.node)) {
-                    plugin.getLocales().getLocale("error_no_permission").ifPresent(player::sendMessage);
+                if (!executor.hasPermission(Permission.COMMAND_USER_DATA_MANAGE.node)) {
+                    plugin.getLocales().getLocale("error_no_permission").ifPresent(executor::sendMessage);
                     return;
                 }
                 if (args.length < 3) {
                     plugin.getLocales().getLocale("error_invalid_syntax",
                                     "/userdata pin <username> <version_uuid>")
-                            .ifPresent(player::sendMessage);
+                            .ifPresent(executor::sendMessage);
                     return;
                 }
 
@@ -235,7 +243,7 @@ public class UserDataCommand extends CommandBase implements TabCompletable {
                                                             versionUuid.toString(),
                                                             user.username,
                                                             user.uuid.toString())
-                                                    .ifPresent(player::sendMessage);
+                                                    .ifPresent(executor::sendMessage);
                                         } else {
                                             plugin.getDatabase().pinUserData(user, versionUuid);
                                             plugin.getLocales().getLocale("data_pinned",
@@ -243,27 +251,27 @@ public class UserDataCommand extends CommandBase implements TabCompletable {
                                                             versionUuid.toString(),
                                                             user.username,
                                                             user.uuid.toString())
-                                                    .ifPresent(player::sendMessage);
+                                                    .ifPresent(executor::sendMessage);
                                         }
                                     }, () -> plugin.getLocales().getLocale("error_invalid_version_uuid")
-                                            .ifPresent(player::sendMessage)),
+                                            .ifPresent(executor::sendMessage)),
                                     () -> plugin.getLocales().getLocale("error_invalid_player")
-                                            .ifPresent(player::sendMessage));
+                                            .ifPresent(executor::sendMessage));
                 } catch (IllegalArgumentException e) {
                     plugin.getLocales().getLocale("error_invalid_syntax",
                                     "/userdata pin <username> <version_uuid>")
-                            .ifPresent(player::sendMessage);
+                            .ifPresent(executor::sendMessage);
                 }
             }
             case "dump" -> {
-                if (!player.hasPermission(Permission.COMMAND_USER_DATA_DUMP.node)) {
-                    plugin.getLocales().getLocale("error_no_permission").ifPresent(player::sendMessage);
+                if (!executor.hasPermission(Permission.COMMAND_USER_DATA_DUMP.node)) {
+                    plugin.getLocales().getLocale("error_no_permission").ifPresent(executor::sendMessage);
                     return;
                 }
                 if (args.length < 3) {
                     plugin.getLocales().getLocale("error_invalid_syntax",
                                     "/userdata dump <username> <version_uuid>")
-                            .ifPresent(player::sendMessage);
+                            .ifPresent(executor::sendMessage);
                     return;
                 }
 
@@ -280,37 +288,32 @@ public class UserDataCommand extends CommandBase implements TabCompletable {
                                             final String result = toWeb ? dumper.toWeb() : dumper.toFile();
                                             plugin.getLocales().getLocale("data_dumped", versionUuid.toString()
                                                             .split("-")[0], user.username, result)
-                                                    .ifPresent(player::sendMessage);
+                                                    .ifPresent(executor::sendMessage);
                                         } catch (IOException e) {
                                             plugin.log(Level.SEVERE, "Failed to dump user data", e);
                                         }
                                     }, () -> plugin.getLocales().getLocale("error_invalid_version_uuid")
-                                            .ifPresent(player::sendMessage)),
+                                            .ifPresent(executor::sendMessage)),
                                     () -> plugin.getLocales().getLocale("error_invalid_player")
-                                            .ifPresent(player::sendMessage));
+                                            .ifPresent(executor::sendMessage));
                 } catch (IllegalArgumentException e) {
                     plugin.getLocales().getLocale("error_invalid_syntax",
                                     "/userdata dump <username> <version_uuid>")
-                            .ifPresent(player::sendMessage);
+                            .ifPresent(executor::sendMessage);
                 }
             }
+            default -> plugin.getLocales().getLocale("error_invalid_syntax", getUsage())
+                    .ifPresent(executor::sendMessage);
         }
     }
 
+    @Nullable
     @Override
-    public List<String> onTabComplete(@NotNull String[] args) {
-        switch (args.length) {
-            case 0, 1 -> {
-                return Arrays.stream(COMMAND_ARGUMENTS)
-                        .filter(argument -> argument.startsWith(args.length == 1 ? args[0] : ""))
-                        .sorted().collect(Collectors.toList());
-            }
-            case 2 -> {
-                return plugin.getOnlineUsers().stream().map(user -> user.username)
-                        .filter(argument -> argument.startsWith(args[1]))
-                        .sorted().collect(Collectors.toList());
-            }
-        }
-        return Collections.emptyList();
+    public List<String> suggest(@NotNull CommandUser executor, @NotNull String[] args) {
+        return switch (args.length) {
+            case 0, 1 -> SUB_COMMANDS.keySet().stream().sorted().toList();
+            case 2 -> plugin.getOnlineUsers().stream().map(user -> user.username).toList();
+            default -> null;
+        };
     }
 }

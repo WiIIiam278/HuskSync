@@ -29,6 +29,7 @@ import net.william278.husksync.data.DataAdapter;
 import net.william278.husksync.database.Database;
 import net.william278.husksync.event.EventDispatcher;
 import net.william278.husksync.migrator.Migrator;
+import net.william278.husksync.player.ConsoleUser;
 import net.william278.husksync.player.OnlineUser;
 import net.william278.husksync.redis.RedisManager;
 import net.william278.husksync.util.Task;
@@ -109,8 +110,8 @@ public interface HuskSync extends Task.Supplier, EventDispatcher {
         log(Level.INFO, "Initializing " + name + "...");
         try {
             runner.accept(this);
-        } catch (Exception e) {
-            throw new IllegalStateException("Failed to initialize " + name, e);
+        } catch (Throwable e) {
+            throw new FailedToLoadException("Failed to initialize " + name, e);
         }
         log(Level.INFO, "Successfully initialized " + name);
     }
@@ -181,6 +182,14 @@ public interface HuskSync extends Task.Supplier, EventDispatcher {
     }
 
     /**
+     * Get the console user
+     *
+     * @return the {@link ConsoleUser}
+     */
+    @NotNull
+    ConsoleUser getConsole();
+
+    /**
      * Returns the plugin version
      *
      * @return the plugin {@link Version}
@@ -198,11 +207,8 @@ public interface HuskSync extends Task.Supplier, EventDispatcher {
 
     /**
      * Reloads the {@link Settings} and {@link Locales} from their respective config files.
-     *
-     * @return {@code true} if the reload was successful, {@code false} otherwise
      */
-    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-    default boolean loadConfigs() {
+    default void loadConfigs() {
         try {
             // Load settings
             setSettings(Annotaml.create(new File(getDataFolder(), "config.yml"), Settings.class).get());
@@ -216,11 +222,9 @@ public interface HuskSync extends Task.Supplier, EventDispatcher {
                     getDataFolder(),
                     String.format("messages_%s.yml", getSettings().getLanguage())
             ), languagePresets).get());
-            return true;
         } catch (IOException | InvocationTargetException | InstantiationException | IllegalAccessException e) {
-            log(Level.SEVERE, "Failed to load HuskSync config or messages file", e);
+            throw new FailedToLoadException("Failed to load config or message files", e);
         }
-        return false;
     }
 
     @NotNull
@@ -237,7 +241,7 @@ public interface HuskSync extends Task.Supplier, EventDispatcher {
             getUpdateChecker().check().thenAccept(checked -> {
                 if (!checked.isUpToDate()) {
                     log(Level.WARNING, String.format(
-                            "A new version of HuskHomes is available: v%s (running v%s)",
+                            "A new version of HuskSync is available: v%s (running v%s)",
                             checked.getLatestVersion(), getPluginVersion())
                     );
                 }
@@ -245,6 +249,29 @@ public interface HuskSync extends Task.Supplier, EventDispatcher {
         }
     }
 
+    @NotNull
     Set<UUID> getLockedPlayers();
+
+    /**
+     * An exception indicating the plugin has been accessed before it has been registered.
+     */
+    static final class FailedToLoadException extends IllegalStateException {
+
+        private static final String FORMAT = """
+                HuskSync has failed to load! The plugin will not be enabled and no data will be synchronised.
+                Please make sure the plugin has been setup correctly (https://william278.net/docs/husksync/setup):
+                                
+                1) Make sure you've entered your MySQL or MariaDB database details correctly in config.yml
+                2) Make sure your Redis server details are also correct in config.yml
+                3) Make sure your config is up-to-date (https://william278.net/docs/husksync/config-files)
+                4) Check the error below for more details
+                                
+                Caused by: %s""";
+
+        FailedToLoadException(@NotNull String message, @NotNull Throwable cause) {
+            super(String.format(FORMAT, message), cause);
+        }
+
+    }
 
 }

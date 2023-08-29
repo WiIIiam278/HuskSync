@@ -28,6 +28,7 @@ import net.roxeez.advancement.display.FrameType;
 import net.william278.andjam.Toast;
 import net.william278.desertwell.util.Version;
 import net.william278.husksync.BukkitHuskSync;
+import net.william278.husksync.HuskSync;
 import net.william278.husksync.config.Settings;
 import net.william278.husksync.data.*;
 import org.bukkit.*;
@@ -53,22 +54,22 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 
 /**
- * Bukkit implementation of an {@link OnlineUser}
+ * Bukkit platform implementation of an {@link OnlineUser}
  */
 public class BukkitPlayer extends OnlineUser {
 
-    private final BukkitHuskSync plugin;
+    private final HuskSync plugin;
     private final Player player;
 
-    private BukkitPlayer(@NotNull Player player) {
+    private BukkitPlayer(@NotNull Player player, @NotNull HuskSync plugin) {
         super(player.getUniqueId(), player.getName());
-        this.plugin = BukkitHuskSync.getInstance();
+        this.plugin = plugin;
         this.player = player;
     }
 
     @NotNull
-    public static BukkitPlayer adapt(@NotNull Player player) {
-        return new BukkitPlayer(player);
+    public static BukkitPlayer adapt(@NotNull Player player, @NotNull HuskSync plugin) {
+        return new BukkitPlayer(player, plugin);
     }
 
     public Player getPlayer() {
@@ -116,7 +117,7 @@ public class BukkitPlayer extends OnlineUser {
                     try {
                         player.setHealth(Math.min(healthToSet, maxHealth));
                     } catch (IllegalArgumentException e) {
-                        plugin.getLogger().log(Level.WARNING,
+                        plugin.log(Level.WARNING,
                                 "Failed to set health of player " + player.getName() + " to " + healthToSet);
                     }
                 });
@@ -131,7 +132,7 @@ public class BukkitPlayer extends OnlineUser {
                 }
                 player.setHealthScaled(statusData.healthScale != 0D);
             } catch (IllegalArgumentException e) {
-                plugin.getLogger().log(Level.WARNING,
+                plugin.log(Level.WARNING,
                         "Failed to set health scale of player " + player.getName() + " to " + statusData.healthScale);
             }
         }
@@ -149,11 +150,10 @@ public class BukkitPlayer extends OnlineUser {
             player.setExp(statusData.expProgress);
         }
         if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.GAME_MODE)) {
-            BukkitHuskSync.getInstance().runSync(() ->
-                    player.setGameMode(GameMode.valueOf(statusData.gameMode)));
+            plugin.runSync(() -> player.setGameMode(GameMode.valueOf(statusData.gameMode)));
         }
         if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.LOCATION)) {
-            BukkitHuskSync.getInstance().runSync(() -> {
+            plugin.runSync(() -> {
                 if (statusData.isFlying) {
                     player.setAllowFlight(true);
                     player.setFlying(true);
@@ -382,7 +382,7 @@ public class BukkitPlayer extends OnlineUser {
             try {
                 player.setStatistic(Statistic.valueOf(statistic), statisticsData.untypedStatistics.get(statistic));
             } catch (IllegalArgumentException e) {
-                plugin.getLogger().log(Level.WARNING,
+                plugin.log(Level.WARNING,
                         "Failed to set generic statistic " + statistic + " for " + username);
             }
         }
@@ -394,7 +394,7 @@ public class BukkitPlayer extends OnlineUser {
                     player.setStatistic(Statistic.valueOf(statistic), Material.valueOf(blockMaterial),
                             statisticsData.blockStatistics.get(statistic).get(blockMaterial));
                 } catch (IllegalArgumentException e) {
-                    plugin.getLogger().log(Level.WARNING,
+                    plugin.log(Level.WARNING,
                             "Failed to set " + blockMaterial + " statistic " + statistic + " for " + username);
                 }
             }
@@ -407,7 +407,7 @@ public class BukkitPlayer extends OnlineUser {
                     player.setStatistic(Statistic.valueOf(statistic), Material.valueOf(itemMaterial),
                             statisticsData.itemStatistics.get(statistic).get(itemMaterial));
                 } catch (IllegalArgumentException e) {
-                    plugin.getLogger().log(Level.WARNING,
+                    plugin.log(Level.WARNING,
                             "Failed to set " + itemMaterial + " statistic " + statistic + " for " + username);
                 }
             }
@@ -420,7 +420,7 @@ public class BukkitPlayer extends OnlineUser {
                     player.setStatistic(Statistic.valueOf(statistic), EntityType.valueOf(entityType),
                             statisticsData.entityStatistics.get(statistic).get(entityType));
                 } catch (IllegalArgumentException e) {
-                    plugin.getLogger().log(Level.WARNING,
+                    plugin.log(Level.WARNING,
                             "Failed to set " + entityType + " statistic " + statistic + " for " + username);
                 }
             }
@@ -483,9 +483,8 @@ public class BukkitPlayer extends OnlineUser {
                 container.getTagType(keyString)
                         .flatMap(BukkitPersistentTypeMapping::getMapping)
                         .ifPresentOrElse(mapping -> mapping.setContainerValue(container, player, key),
-                                () -> plugin.log(Level.WARNING,
-                                        "Could not set " + player.getName() + "'s persistent data key " + keyString +
-                                                " as it has an invalid type. Skipping!"));
+                                () -> plugin.log(Level.WARNING, "Could not set " + player.getName()
+                                        + "'s persistent data key " + keyString + " as it has an invalid type. Skipping!"));
             }
         });
     }
@@ -493,7 +492,7 @@ public class BukkitPlayer extends OnlineUser {
     @Override
     @NotNull
     public Audience getAudience() {
-        return plugin.getAudiences().player(player);
+        return ((BukkitHuskSync) plugin).getAudiences().player(player);
     }
 
     @Override
@@ -558,7 +557,7 @@ public class BukkitPlayer extends OnlineUser {
         });
 
         // Display the GUI (synchronously; on the main server thread)
-        Bukkit.getScheduler().runTask(plugin, () -> gui.open(player));
+        plugin.runSync(() -> gui.open(player));
         return updatedData;
     }
 
@@ -572,7 +571,7 @@ public class BukkitPlayer extends OnlineUser {
                           @NotNull String iconMaterial, @NotNull String backgroundType) {
         try {
             final Material material = Material.matchMaterial(iconMaterial);
-            Toast.builder(plugin)
+            Toast.builder((BukkitHuskSync) plugin)
                     .setTitle(title.toComponent())
                     .setDescription(description.toComponent())
                     .setIcon(material != null ? material : Material.BARRIER)
@@ -593,7 +592,8 @@ public class BukkitPlayer extends OnlineUser {
     private static double getMaxHealth(@NotNull Player player) {
         double maxHealth = Objects.requireNonNull(player.getAttribute(Attribute.GENERIC_MAX_HEALTH)).getBaseValue();
 
-        // If the player has additional health bonuses from synchronised potion effects, subtract these from this number as they are synchronised separately
+        // If the player has additional health bonuses from synchronized potion effects,
+        // subtract these from this number as they are synchronized separately
         if (player.hasPotionEffect(PotionEffectType.HEALTH_BOOST) && maxHealth > 20D) {
             PotionEffect healthBoostEffect = player.getPotionEffect(PotionEffectType.HEALTH_BOOST);
             assert healthBoostEffect != null;

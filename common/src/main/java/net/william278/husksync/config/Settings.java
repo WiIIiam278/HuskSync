@@ -54,6 +54,9 @@ public class Settings {
     @YamlKey("debug_logging")
     private boolean debugLogging = false;
 
+    @YamlKey("brigadier_tab_completion")
+    private boolean brigadierTabCompletion = false;
+
 
     // Database settings
     @YamlComment("Type of database to use (MYSQL, MARIADB)")
@@ -174,6 +177,9 @@ public class Settings {
         return debugLogging;
     }
 
+    public boolean doBrigadierTabCompletion() {
+        return brigadierTabCompletion;
+    }
 
     @NotNull
     public Database.Type getDatabaseType() {

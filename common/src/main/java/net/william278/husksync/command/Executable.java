@@ -17,18 +17,13 @@
  *  limitations under the License.
  */
 
-package net.william278.husksync.data;
+package net.william278.husksync.command;
 
+import net.william278.husksync.player.CommandUser;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * Indicates an error occurred during Base-64 serialization and deserialization of data.
- * </p>
- * For example, an exception deserializing {@link ItemData} item stack or {@link PotionEffectData} potion effect arrays
- */
-public class DataSerializationException extends IllegalStateException {
-    protected DataSerializationException(@NotNull String message, @NotNull Throwable cause) {
-        super(message, cause);
-    }
+public interface Executable {
+
+    void onExecuted(@NotNull CommandUser executor, @NotNull String[] args);
 
 }

@@ -19,9 +19,7 @@
 
 package net.william278.husksync.event;
 
-import net.william278.husksync.player.BukkitPlayer;
 import net.william278.husksync.player.OnlineUser;
-import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
 
@@ -30,15 +28,16 @@ public abstract class BukkitPlayerEvent extends BukkitEvent implements PlayerEve
 
     private static final HandlerList HANDLER_LIST = new HandlerList();
 
-    protected final Player player;
+    protected final OnlineUser player;
 
-    protected BukkitPlayerEvent(@NotNull Player player) {
+    protected BukkitPlayerEvent(@NotNull OnlineUser player) {
         this.player = player;
     }
 
     @Override
+    @NotNull
     public OnlineUser getUser() {
-        return BukkitPlayer.adapt(player);
+        return player;
     }
 
     @NotNull

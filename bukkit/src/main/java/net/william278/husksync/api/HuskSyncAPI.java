@@ -20,6 +20,7 @@
 package net.william278.husksync.api;
 
 import net.william278.husksync.BukkitHuskSync;
+import net.william278.husksync.HuskSync;
 import net.william278.husksync.data.*;
 import net.william278.husksync.player.BukkitPlayer;
 import net.william278.husksync.player.OnlineUser;
@@ -27,6 +28,7 @@ import net.william278.husksync.player.User;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
@@ -40,16 +42,15 @@ import java.util.concurrent.CompletableFuture;
 @SuppressWarnings("unused")
 public class HuskSyncAPI extends BaseHuskSyncAPI {
 
-    /**
-     * <b>(Internal use only)</b> - Instance of the API class
-     */
-    private static final HuskSyncAPI INSTANCE = new HuskSyncAPI();
+    // Instance of the plugin
+    private static HuskSyncAPI instance;
 
     /**
-     * <b>(Internal use only)</b> - Constructor, instantiating the API
+     * <b>(Internal use only)</b> - Constructor, instantiating the API.
      */
-    private HuskSyncAPI() {
-        super(BukkitHuskSync.getInstance());
+    @ApiStatus.Internal
+    private HuskSyncAPI(@NotNull BukkitHuskSync plugin) {
+        super(plugin);
     }
 
     /**
@@ -57,8 +58,30 @@ public class HuskSyncAPI extends BaseHuskSyncAPI {
      *
      * @return instance of the HuskSync API
      */
-    public static @NotNull HuskSyncAPI getInstance() {
-        return INSTANCE;
+    @NotNull
+    public static HuskSyncAPI getInstance() {
+        if (instance == null) {
+            throw new NotRegisteredException();
+        }
+        return instance;
+    }
+
+    /**
+     * <b>(Internal use only)</b> - Register the API for this platform.
+     *
+     * @param plugin the plugin instance
+     */
+    @ApiStatus.Internal
+    public static void register(@NotNull BukkitHuskSync plugin) {
+        instance = new HuskSyncAPI(plugin);
+    }
+
+    /**
+     * <b>(Internal use only)</b> - Unregister the API for this platform.
+     */
+    @ApiStatus.Internal
+    public static void unregister() {
+        instance = null;
     }
 
     /**
@@ -70,7 +93,7 @@ public class HuskSyncAPI extends BaseHuskSyncAPI {
      */
     @NotNull
     public OnlineUser getUser(@NotNull Player player) {
-        return BukkitPlayer.adapt(player);
+        return BukkitPlayer.adapt(player, plugin);
     }
 
     /**
