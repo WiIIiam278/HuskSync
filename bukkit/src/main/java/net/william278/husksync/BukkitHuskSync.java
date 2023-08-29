@@ -94,7 +94,7 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
         });
 
         // Prepare data adapter
-        initialize("data adaptor", (plugin) -> {
+        initialize("data adapter", (plugin) -> {
             if (settings.doCompressData()) {
                 dataAdapter = new CompressedDataAdapter();
             } else {

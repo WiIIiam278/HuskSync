@@ -36,8 +36,8 @@ import java.util.logging.Level;
 public class UserDataCommand extends Command implements TabProvider {
 
     private static final Map<String, Boolean> SUB_COMMANDS = Map.of(
-            "view", true,
-            "list", true,
+            "view", false,
+            "list", false,
             "delete", true,
             "restore", true,
             "pin", true,
@@ -48,6 +48,8 @@ public class UserDataCommand extends Command implements TabProvider {
         super("userdata", List.of("playerdata"), String.format(
                 "<%s> <username> [version_uuid]", String.join("/", SUB_COMMANDS.keySet())
         ), plugin);
+        setOperatorCommand(true);
+        addAdditionalPermissions(SUB_COMMANDS);
     }
 
     @Override
@@ -95,10 +97,6 @@ public class UserDataCommand extends Command implements TabProvider {
                 }
             }
             case "list" -> {
-                if (!executor.hasPermission(Permission.COMMAND_USER_DATA_MANAGE.node)) {
-                    plugin.getLocales().getLocale("error_no_permission").ifPresent(executor::sendMessage);
-                    return;
-                }
                 if (args.length < 2) {
                     plugin.getLocales().getLocale("error_invalid_syntax",
                                     "/userdata list <username> [page]")
@@ -137,10 +135,6 @@ public class UserDataCommand extends Command implements TabProvider {
                                 .ifPresent(executor::sendMessage));
             }
             case "delete" -> {
-                if (!executor.hasPermission(Permission.COMMAND_USER_DATA_MANAGE.node)) {
-                    plugin.getLocales().getLocale("error_no_permission").ifPresent(executor::sendMessage);
-                    return;
-                }
                 // Delete user data by specified UUID
                 if (args.length < 3) {
                     plugin.getLocales().getLocale("error_invalid_syntax",
@@ -173,10 +167,6 @@ public class UserDataCommand extends Command implements TabProvider {
                 }
             }
             case "restore" -> {
-                if (!executor.hasPermission(Permission.COMMAND_USER_DATA_MANAGE.node)) {
-                    plugin.getLocales().getLocale("error_no_permission").ifPresent(executor::sendMessage);
-                    return;
-                }
                 // Get user data by specified uuid and username
                 if (args.length < 3) {
                     plugin.getLocales().getLocale("error_invalid_syntax",
@@ -219,10 +209,6 @@ public class UserDataCommand extends Command implements TabProvider {
                 }
             }
             case "pin" -> {
-                if (!executor.hasPermission(Permission.COMMAND_USER_DATA_MANAGE.node)) {
-                    plugin.getLocales().getLocale("error_no_permission").ifPresent(executor::sendMessage);
-                    return;
-                }
                 if (args.length < 3) {
                     plugin.getLocales().getLocale("error_invalid_syntax",
                                     "/userdata pin <username> <version_uuid>")
@@ -264,10 +250,6 @@ public class UserDataCommand extends Command implements TabProvider {
                 }
             }
             case "dump" -> {
-                if (!executor.hasPermission(Permission.COMMAND_USER_DATA_DUMP.node)) {
-                    plugin.getLocales().getLocale("error_no_permission").ifPresent(executor::sendMessage);
-                    return;
-                }
                 if (args.length < 3) {
                     plugin.getLocales().getLocale("error_invalid_syntax",
                                     "/userdata dump <username> <version_uuid>")

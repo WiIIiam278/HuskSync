@@ -32,16 +32,15 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.text.SimpleDateFormat;
-import java.util.List;
-import java.util.Locale;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.logging.Level;
 
 public class EnderChestCommand extends Command implements TabProvider {
 
     public EnderChestCommand(@NotNull HuskSync plugin) {
         super("enderchest", List.of("echest", "openechest"), "<player> [version_uuid]", plugin);
+        setOperatorCommand(true);
+        addAdditionalPermissions(Map.of("edit", true));
     }
 
     @Override
@@ -75,7 +74,7 @@ public class EnderChestCommand extends Command implements TabProvider {
                 // View (and edit) the latest user data
                 plugin.getDatabase().getCurrentUserData(user).ifPresentOrElse(
                         versionedUserData -> showEnderChestMenu(player, versionedUserData, user,
-                                player.hasPermission(Permission.COMMAND_ENDER_CHEST_EDIT.node)),
+                                player.hasPermission(getPermission("edit"))),
                         () -> plugin.getLocales().getLocale("error_no_data_to_display")
                                 .ifPresent(player::sendMessage));
             }

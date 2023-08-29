@@ -15,6 +15,7 @@ language: en-gb
 check_for_updates: true
 cluster_id: ''
 debug_logging: false
+brigadier_tab_completion: true
 database:
   credentials:
     # Database connection settings
