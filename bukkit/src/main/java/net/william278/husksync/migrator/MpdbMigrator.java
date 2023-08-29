@@ -35,10 +35,7 @@ import org.jetbrains.annotations.NotNull;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
@@ -60,9 +57,12 @@ public class MpdbMigrator extends Migrator {
     private String sourceExperienceTable;
     private final String minecraftVersion;
 
-    public MpdbMigrator(@NotNull BukkitHuskSync plugin, @NotNull Plugin mySqlPlayerDataBridge) {
+    public MpdbMigrator(@NotNull BukkitHuskSync plugin) {
         super(plugin);
-        this.mpdbConverter = MPDBConverter.getInstance(mySqlPlayerDataBridge);
+        this.mpdbConverter = MPDBConverter.getInstance(Objects.requireNonNull(
+                Bukkit.getPluginManager().getPlugin("MySQLPlayerDataBridge"),
+                "MySQLPlayerDataBridge dependency not found!"
+        ));
         this.sourceHost = plugin.getSettings().getMySqlHost();
         this.sourcePort = plugin.getSettings().getMySqlPort();
         this.sourceUsername = plugin.getSettings().getMySqlUsername();

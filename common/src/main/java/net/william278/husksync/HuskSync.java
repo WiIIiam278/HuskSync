@@ -19,6 +19,8 @@
 
 package net.william278.husksync;
 
+import net.william278.annotaml.Annotaml;
+import net.william278.desertwell.util.ThrowingConsumer;
 import net.william278.desertwell.util.UpdateChecker;
 import net.william278.desertwell.util.Version;
 import net.william278.husksync.config.Locales;
@@ -33,12 +35,10 @@ import net.william278.husksync.util.Task;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
+import java.lang.reflect.InvocationTargetException;
+import java.util.*;
 import java.util.logging.Level;
 
 /**
@@ -98,6 +98,23 @@ public interface HuskSync extends Task.Supplier, EventDispatcher {
     @NotNull
     List<Migrator> getAvailableMigrators();
 
+
+    /**
+     * Initialize a faucet of the plugin.
+     *
+     * @param name   the name of the faucet
+     * @param runner a runnable for initializing the faucet
+     */
+    default void initialize(@NotNull String name, @NotNull ThrowingConsumer<HuskSync> runner) {
+        log(Level.INFO, "Initializing " + name + "...");
+        try {
+            runner.accept(this);
+        } catch (Exception e) {
+            throw new IllegalStateException("Failed to initialize " + name, e);
+        }
+        log(Level.INFO, "Successfully initialized " + name);
+    }
+
     /**
      * Returns the plugin {@link Settings}
      *
@@ -105,6 +122,8 @@ public interface HuskSync extends Task.Supplier, EventDispatcher {
      */
     @NotNull
     Settings getSettings();
+
+    void setSettings(@NotNull Settings settings);
 
     /**
      * Returns the plugin {@link Locales}
@@ -114,6 +133,16 @@ public interface HuskSync extends Task.Supplier, EventDispatcher {
     @NotNull
     Locales getLocales();
 
+    void setLocales(@NotNull Locales locales);
+
+    /**
+     * Returns if a dependency is loaded
+     *
+     * @param name the name of the dependency
+     * @return {@code true} if the dependency is loaded, {@code false} otherwise
+     */
+    boolean isDependencyLoaded(@NotNull String name);
+
     /**
      * Get a resource as an {@link InputStream} from the plugin jar
      *
@@ -121,6 +150,14 @@ public interface HuskSync extends Task.Supplier, EventDispatcher {
      * @return the {@link InputStream} of the resource
      */
     InputStream getResource(@NotNull String name);
+
+    /**
+     * Returns the plugin data folder
+     *
+     * @return the plugin data folder as a {@link File}
+     */
+    @NotNull
+    File getDataFolder();
 
     /**
      * Log a message to the console
@@ -139,7 +176,7 @@ public interface HuskSync extends Task.Supplier, EventDispatcher {
      */
     default void debug(@NotNull String message, @NotNull Throwable... throwable) {
         if (getSettings().doDebugLogging()) {
-            log(Level.INFO, "[DEBUG] " + message, throwable);
+            log(Level.INFO, String.format("[DEBUG] %s", message), throwable);
         }
     }
 
@@ -152,30 +189,6 @@ public interface HuskSync extends Task.Supplier, EventDispatcher {
     Version getPluginVersion();
 
     /**
-     * Returns the plugin data folder
-     *
-     * @return the plugin data folder as a {@link File}
-     */
-    @NotNull
-    File getDataFolder();
-
-    /**
-     * Returns a future returning the latest plugin {@link Version} if the plugin is out-of-date
-     *
-     * @return a {@link CompletableFuture} returning the latest {@link Version} if the current one is out-of-date
-     */
-    default CompletableFuture<Optional<Version>> getLatestVersionIfOutdated() {
-        return UpdateChecker.builder()
-                .currentVersion(getPluginVersion())
-                .endpoint(UpdateChecker.Endpoint.SPIGOT)
-                .resource(Integer.toString(SPIGOT_RESOURCE_ID)).build()
-                .check()
-                .thenApply(checked -> checked.isUpToDate()
-                        ? Optional.empty()
-                        : Optional.of(checked.getLatestVersion()));
-    }
-
-    /**
      * Returns the Minecraft version implementation
      *
      * @return the Minecraft {@link Version}
@@ -184,11 +197,53 @@ public interface HuskSync extends Task.Supplier, EventDispatcher {
     Version getMinecraftVersion();
 
     /**
-     * Reloads the {@link Settings} and {@link Locales} from their respective config files
+     * Reloads the {@link Settings} and {@link Locales} from their respective config files.
      *
-     * @return a {@link CompletableFuture} that will be completed when the plugin reload is complete and if it was successful
+     * @return {@code true} if the reload was successful, {@code false} otherwise
      */
-    CompletableFuture<Boolean> reload();
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+    default boolean loadConfigs() {
+        try {
+            // Load settings
+            setSettings(Annotaml.create(new File(getDataFolder(), "config.yml"), Settings.class).get());
+
+            // Load locales from language preset default
+            final Locales languagePresets = Annotaml.create(
+                    Locales.class,
+                    Objects.requireNonNull(getResource(String.format("locales/%s.yml", getSettings().getLanguage())))
+            ).get();
+            setLocales(Annotaml.create(new File(
+                    getDataFolder(),
+                    String.format("messages_%s.yml", getSettings().getLanguage())
+            ), languagePresets).get());
+            return true;
+        } catch (IOException | InvocationTargetException | InstantiationException | IllegalAccessException e) {
+            log(Level.SEVERE, "Failed to load HuskSync config or messages file", e);
+        }
+        return false;
+    }
+
+    @NotNull
+    default UpdateChecker getUpdateChecker() {
+        return UpdateChecker.builder()
+                .currentVersion(getPluginVersion())
+                .endpoint(UpdateChecker.Endpoint.SPIGOT)
+                .resource(Integer.toString(SPIGOT_RESOURCE_ID))
+                .build();
+    }
+
+    default void checkForUpdates() {
+        if (getSettings().doCheckForUpdates()) {
+            getUpdateChecker().check().thenAccept(checked -> {
+                if (!checked.isUpToDate()) {
+                    log(Level.WARNING, String.format(
+                            "A new version of HuskHomes is available: v%s (running v%s)",
+                            checked.getLatestVersion(), getPluginVersion())
+                    );
+                }
+            });
+        }
+    }
 
     Set<UUID> getLockedPlayers();
 

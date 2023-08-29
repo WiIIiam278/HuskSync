@@ -72,7 +72,7 @@ public class RedisManager extends JedisPubSub {
      *
      * @return a future returning void when complete
      */
-    public boolean initialize() {
+    public void initialize() throws IllegalStateException {
         if (redisPassword.isBlank()) {
             jedisPool = new JedisPool(jedisPoolConfig, redisHost, redisPort, 0, redisUseSsl);
         } else {
@@ -81,14 +81,14 @@ public class RedisManager extends JedisPubSub {
         try {
             jedisPool.getResource().ping();
         } catch (JedisException e) {
-            return false;
+            throw new IllegalStateException("Failed to establish connection with the Redis server."
+                    + "Please check the supplied credentials in the config file", e);
         }
         plugin.runAsync(this::subscribe);
-        return true;
     }
 
     private void subscribe() {
-        try (final Jedis subscriber = redisPassword.isBlank() ? new Jedis(redisHost, redisPort, 0, redisUseSsl) :
+        try (Jedis subscriber = redisPassword.isBlank() ? new Jedis(redisHost, redisPort, 0, redisUseSsl) :
                 new Jedis(redisHost, redisPort, DefaultJedisClientConfig.builder()
                         .password(redisPassword).timeoutMillis(0).ssl(redisUseSsl).build())) {
             subscriber.connect();
@@ -106,9 +106,9 @@ public class RedisManager extends JedisPubSub {
         }
 
         final RedisMessage redisMessage = RedisMessage.fromJson(message);
-        plugin.getOnlineUser(redisMessage.targetUserUuid).ifPresent(user -> {
-            user.setData(plugin.getDataAdapter().fromBytes(redisMessage.data), plugin);
-        });
+        plugin.getOnlineUser(redisMessage.targetUserUuid).ifPresent(
+                user -> user.setData(plugin.getDataAdapter().fromBytes(redisMessage.data), plugin)
+        );
     }
 
     protected void sendMessage(@NotNull String channel, @NotNull String message) {

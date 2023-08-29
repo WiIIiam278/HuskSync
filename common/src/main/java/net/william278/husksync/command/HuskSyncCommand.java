@@ -19,7 +19,6 @@
 
 package net.william278.husksync.command;
 
-import de.themoep.minedown.adventure.MineDown;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextColor;
 import net.william278.desertwell.about.AboutMenu;
@@ -79,14 +78,14 @@ public class HuskSyncCommand extends CommandBase implements TabCompletable, Cons
                     plugin.getLocales().getLocale("error_no_permission").ifPresent(player::sendMessage);
                     return;
                 }
-                plugin.getLatestVersionIfOutdated().thenAccept(newestVersion ->
-                        newestVersion.ifPresentOrElse(
-                                newVersion -> player.sendMessage(
-                                        new MineDown("[HuskSync](#00fb9a bold) [| A new version of HuskSync is available!"
-                                                     + " (v" + newVersion + " (Running: v" + plugin.getPluginVersion() + ")](#00fb9a)")),
-                                () -> player.sendMessage(
-                                        new MineDown("[HuskSync](#00fb9a bold) [| HuskSync is up-to-date."
-                                                     + " (Running: v" + plugin.getPluginVersion() + ")](#00fb9a)"))));
+//                plugin.getLatestVersionIfOutdated().thenAccept(newestVersion ->
+//                        newestVersion.ifPresentOrElse(
+//                                newVersion -> player.sendMessage(
+//                                        new MineDown("[HuskSync](#00fb9a bold) [| A new version of HuskSync is available!"
+//                                                     + " (v" + newVersion + " (Running: v" + plugin.getPluginVersion() + ")](#00fb9a)")),
+//                                () -> player.sendMessage(
+//                                        new MineDown("[HuskSync](#00fb9a bold) [| HuskSync is up-to-date."
+//                                                     + " (Running: v" + plugin.getPluginVersion() + ")](#00fb9a)"))));
             }
             case "about", "info" -> sendAboutMenu(player);
             case "reload" -> {
@@ -94,7 +93,7 @@ public class HuskSyncCommand extends CommandBase implements TabCompletable, Cons
                     plugin.getLocales().getLocale("error_no_permission").ifPresent(player::sendMessage);
                     return;
                 }
-                plugin.reload();
+                plugin.loadConfigs();
                 plugin.getLocales().getLocale("reload_complete").ifPresent(player::sendMessage);
             }
             case "migrate" ->
@@ -112,16 +111,16 @@ public class HuskSyncCommand extends CommandBase implements TabCompletable, Cons
             return;
         }
         switch (args[0].toLowerCase(Locale.ENGLISH)) {
-            case "update", "version" -> plugin.getLatestVersionIfOutdated().thenAccept(newestVersion ->
-                    newestVersion.ifPresentOrElse(newVersion -> plugin.log(Level.WARNING,
-                                    "An update is available for HuskSync, v" + newVersion
-                                    + " (Running v" + plugin.getPluginVersion() + ")"),
-                            () -> plugin.log(Level.INFO,
-                                    "HuskSync is up to date" +
-                                    " (Running v" + plugin.getPluginVersion() + ")")));
+//            case "update", "version" -> plugin.getLatestVersionIfOutdated().thenAccept(newestVersion ->
+//                    newestVersion.ifPresentOrElse(newVersion -> plugin.log(Level.WARNING,
+//                                    "An update is available for HuskSync, v" + newVersion
+//                                    + " (Running v" + plugin.getPluginVersion() + ")"),
+//                            () -> plugin.log(Level.INFO,
+//                                    "HuskSync is up to date" +
+//                                    " (Running v" + plugin.getPluginVersion() + ")")));
             case "about", "info" -> aboutMenu.toString().lines().forEach(line -> plugin.log(Level.INFO, line));
             case "reload" -> {
-                plugin.reload();
+                plugin.loadConfigs();
                 plugin.log(Level.INFO, "Reloaded config & message files.");
             }
             case "migrate" -> {
