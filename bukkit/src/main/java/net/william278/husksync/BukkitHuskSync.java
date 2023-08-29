@@ -323,7 +323,7 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
 
     @Override
     public CompletableFuture<Boolean> reload() {
-        return CompletableFuture.supplyAsync(() -> {
+        return supplyAsync(() -> {
             try {
                 // Load plugin settings
                 this.settings = Annotaml.create(new File(getDataFolder(), "config.yml"), new Settings()).get();

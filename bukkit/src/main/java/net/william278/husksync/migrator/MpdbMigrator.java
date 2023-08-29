@@ -21,6 +21,7 @@ package net.william278.husksync.migrator;
 
 import com.zaxxer.hikari.HikariDataSource;
 import net.william278.husksync.BukkitHuskSync;
+import net.william278.husksync.HuskSync;
 import net.william278.husksync.data.*;
 import net.william278.husksync.player.User;
 import net.william278.mpdbconverter.MPDBConverter;
@@ -78,7 +79,7 @@ public class MpdbMigrator extends Migrator {
     public CompletableFuture<Boolean> start() {
         plugin.log(Level.INFO, "Starting migration from MySQLPlayerDataBridge to HuskSync...");
         final long startTime = System.currentTimeMillis();
-        return CompletableFuture.supplyAsync(() -> {
+        return plugin.supplyAsync(() -> {
             // Wipe the existing database, preparing it for data import
             plugin.log(Level.INFO, "Preparing existing database (wiping)...");
             plugin.getDatabase().wipeDatabase();
@@ -133,7 +134,7 @@ public class MpdbMigrator extends Migrator {
                 plugin.log(Level.INFO, "Converting raw MySQLPlayerDataBridge data to HuskSync user data (this might take a while)...");
 
                 final AtomicInteger playersConverted = new AtomicInteger();
-                dataToMigrate.forEach(data -> data.toUserData(mpdbConverter, minecraftVersion).thenAccept(convertedData -> {
+                dataToMigrate.forEach(data -> data.toUserData(mpdbConverter, plugin, minecraftVersion).thenAccept(convertedData -> {
                     plugin.getDatabase().ensureUser(data.user());
                     plugin.getDatabase().setUserData(data.user(), convertedData, DataSaveCause.MPDB_MIGRATION);
                     playersConverted.getAndIncrement();
@@ -194,10 +195,10 @@ public class MpdbMigrator extends Migrator {
             }) {
                 plugin.log(Level.INFO, getHelpMenu());
                 plugin.log(Level.INFO, "Successfully set " + args[0] + " to " +
-                                       obfuscateDataString(args[1]));
+                        obfuscateDataString(args[1]));
             } else {
                 plugin.log(Level.INFO, "Invalid operation, could not set " + args[0] + " to " +
-                                       obfuscateDataString(args[1]) + " (is it a valid option?)");
+                        obfuscateDataString(args[1]) + " (is it a valid option?)");
             }
         } else {
             plugin.log(Level.INFO, getHelpMenu());
@@ -285,9 +286,9 @@ public class MpdbMigrator extends Migrator {
          * @return A {@link CompletableFuture} that will resolve to the converted {@link UserData} object
          */
         @NotNull
-        public CompletableFuture<UserData> toUserData(@NotNull MPDBConverter converter,
+        public CompletableFuture<UserData> toUserData(@NotNull MPDBConverter converter, @NotNull HuskSync plugin,
                                                       @NotNull String minecraftVersion) {
-            return CompletableFuture.supplyAsync(() -> {
+            return plugin.supplyAsync(() -> {
                 // Combine inventory and armour
                 final Inventory inventory = Bukkit.createInventory(null, InventoryType.PLAYER);
                 inventory.setContents(converter.getItemStackFromSerializedData(serializedInventory));

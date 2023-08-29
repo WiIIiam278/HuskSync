@@ -130,7 +130,7 @@ public class HuskSyncAPI extends BaseHuskSyncAPI {
      * @since 2.0
      */
     public CompletableFuture<Optional<BukkitInventoryMap>> getPlayerInventory(@NotNull User user) {
-        return CompletableFuture.supplyAsync(() -> getUserData(user).join()
+        return plugin.supplyAsync(() -> getUserData(user).join()
                 .map(userData -> deserializeInventory(userData.getInventory()
                         .orElse(ItemData.empty()).serializedItems).join()));
     }
@@ -146,7 +146,7 @@ public class HuskSyncAPI extends BaseHuskSyncAPI {
      * @since 2.0
      */
     public CompletableFuture<Optional<ItemStack[]>> getPlayerEnderChest(@NotNull User user) {
-        return CompletableFuture.supplyAsync(() -> getUserData(user).join()
+        return plugin.supplyAsync(() -> getUserData(user).join()
                 .map(userData -> deserializeItemStackArray(userData.getEnderChest()
                         .orElse(ItemData.empty()).serializedItems).join()));
     }
@@ -161,7 +161,7 @@ public class HuskSyncAPI extends BaseHuskSyncAPI {
      */
     public CompletableFuture<ItemStack[]> deserializeItemStackArray(@NotNull String serializedItemStackArray)
             throws DataSerializationException {
-        return CompletableFuture.supplyAsync(() -> BukkitSerializer.deserializeItemStackArray(serializedItemStackArray));
+        return plugin.supplyAsync(() -> BukkitSerializer.deserializeItemStackArray(serializedItemStackArray));
     }
 
     /**
@@ -174,8 +174,7 @@ public class HuskSyncAPI extends BaseHuskSyncAPI {
      */
     public CompletableFuture<BukkitInventoryMap> deserializeInventory(@NotNull String serializedInventory)
             throws DataSerializationException {
-        return CompletableFuture.supplyAsync(() -> BukkitSerializer
-                .deserializeInventory(serializedInventory));
+        return plugin.supplyAsync(() -> BukkitSerializer.deserializeInventory(serializedInventory));
     }
 
     /**
@@ -190,7 +189,7 @@ public class HuskSyncAPI extends BaseHuskSyncAPI {
      */
     public CompletableFuture<String> serializeItemStackArray(@NotNull ItemStack[] itemStacks)
             throws DataSerializationException {
-        return CompletableFuture.supplyAsync(() -> BukkitSerializer.serializeItemStackArray(itemStacks));
+        return plugin.supplyAsync(() -> BukkitSerializer.serializeItemStackArray(itemStacks));
     }
 
     /**
@@ -203,8 +202,7 @@ public class HuskSyncAPI extends BaseHuskSyncAPI {
      */
     public CompletableFuture<PotionEffect[]> deserializePotionEffectArray(@NotNull String serializedPotionEffectArray)
             throws DataSerializationException {
-        return plugin.supplyAsync(() -> BukkitSerializer
-                .deserializePotionEffectArray(serializedPotionEffectArray));
+        return plugin.supplyAsync(() -> BukkitSerializer.deserializePotionEffectArray(serializedPotionEffectArray));
     }
 
     /**

@@ -33,6 +33,7 @@ import java.util.Date;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.logging.Level;
 
 /**
  * Manages the connection to the Redis server, handling the caching of user data
@@ -145,18 +146,27 @@ public class RedisManager extends JedisPubSub {
         });
     }
 
+    /**
+     * Set a user's server switch to the Redis server
+     *
+     * @param user the user to set the server switch for
+     * @return a future returning void when complete
+     */
     public CompletableFuture<Void> setUserServerSwitch(@NotNull User user) {
-        return CompletableFuture.runAsync(() -> {
+        final CompletableFuture<Void> future = new CompletableFuture<>();
+        plugin.runAsync(() -> {
             try (Jedis jedis = jedisPool.getResource()) {
                 jedis.setex(getKey(RedisKeyType.SERVER_SWITCH, user.uuid),
                         RedisKeyType.SERVER_SWITCH.timeToLive, new byte[0]);
+                future.complete(null);
                 plugin.debug("[" + user.username + "] Set " + RedisKeyType.SERVER_SWITCH.name()
                         + " key to redis at: " +
                         new SimpleDateFormat("mm:ss.SSS").format(new Date()));
-            } catch (Exception e) {
-                e.printStackTrace();
+            } catch (Throwable e) {
+                plugin.log(Level.SEVERE, "An exception occurred setting a user's server switch", e);
             }
         });
+        return future;
     }
 
     /**

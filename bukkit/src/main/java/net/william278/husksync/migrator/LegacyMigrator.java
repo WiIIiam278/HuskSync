@@ -70,7 +70,7 @@ public class LegacyMigrator extends Migrator {
     public CompletableFuture<Boolean> start() {
         plugin.log(Level.INFO, "Starting migration of legacy HuskSync v1.x data...");
         final long startTime = System.currentTimeMillis();
-        return CompletableFuture.supplyAsync(() -> {
+        return plugin.supplyAsync(() -> {
             // Wipe the existing database, preparing it for data import
             plugin.log(Level.INFO, "Preparing existing database (wiping)...");
             plugin.getDatabase().wipeDatabase();
@@ -135,7 +135,7 @@ public class LegacyMigrator extends Migrator {
                 plugin.log(Level.INFO, "Converting HuskSync 1.x data to the new user data format (this might take a while)...");
 
                 final AtomicInteger playersConverted = new AtomicInteger();
-                dataToMigrate.forEach(data -> data.toUserData(hslConverter, minecraftVersion).thenAccept(convertedData -> {
+                dataToMigrate.forEach(data -> data.toUserData(hslConverter, plugin, minecraftVersion).thenAccept(convertedData -> {
                     plugin.getDatabase().ensureUser(data.user());
                     try {
                         plugin.getDatabase().setUserData(data.user(), convertedData, DataSaveCause.LEGACY_MIGRATION);
@@ -278,9 +278,9 @@ public class LegacyMigrator extends Migrator {
                               @NotNull String serializedAdvancements, @NotNull String serializedLocation) {
 
         @NotNull
-        public CompletableFuture<UserData> toUserData(@NotNull HSLConverter converter,
+        public CompletableFuture<UserData> toUserData(@NotNull HSLConverter converter, @NotNull HuskSync plugin,
                                                       @NotNull String minecraftVersion) {
-            return CompletableFuture.supplyAsync(() -> {
+            return plugin.supplyAsync(() -> {
                 try {
                     final DataSerializer.StatisticData legacyStatisticData = converter
                             .deserializeStatisticData(serializedStatistics);

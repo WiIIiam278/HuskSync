@@ -85,7 +85,7 @@ public class PlanDataExtension implements DataExtension {
     }
 
     private CompletableFuture<Optional<UserDataSnapshot>> getCurrentUserData(@NotNull UUID uuid) {
-        return CompletableFuture.supplyAsync(() -> {
+        return plugin.supplyAsync(() -> {
             final Optional<User> optionalUser = plugin.getDatabase().getUser(uuid);
             if (optionalUser.isPresent()) {
                 return plugin.getDatabase().getCurrentUserData(optionalUser.get());
