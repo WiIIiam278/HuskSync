@@ -25,7 +25,6 @@ import net.william278.husksync.HuskSync;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 
 public class RedisMessage {
 

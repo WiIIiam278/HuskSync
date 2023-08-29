@@ -293,42 +293,41 @@ public abstract class OnlineUser extends User {
         }
 
         // Fire the PreSyncEvent
-        plugin.getEventCannon().firePreSyncEvent(this, data)
-                .thenAccept(event -> {
-                    final PreSyncEvent preSyncEvent = (PreSyncEvent) event;
-                    final UserData finalData = preSyncEvent.getUserData();
-                    try {
-                        if (!isOffline() && !preSyncEvent.isCancelled()) {
-                            final Settings settings = plugin.getSettings();
-                            if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.INVENTORIES)) {
-                                finalData.getInventory().ifPresent(this::setInventory);
-                            }
-                            if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.ENDER_CHESTS)) {
-                                finalData.getEnderChest().ifPresent(this::setEnderChest);
-                            }
-                            finalData.getStatus().ifPresent(statusData -> setStatus(statusData, settings));
-                            if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.POTION_EFFECTS)) {
-                                finalData.getPotionEffects().ifPresent(this::setPotionEffects);
-                            }
-                            if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.ADVANCEMENTS)) {
-                                finalData.getAdvancements().ifPresent(this::setAdvancements);
-                            }
-                            if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.STATISTICS)) {
-                                finalData.getStatistics().ifPresent(this::setStatistics);
-                            }
-                            if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.LOCATION)) {
-                                finalData.getLocation().ifPresent(this::setLocation);
-                            }
-                            if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.PERSISTENT_DATA_CONTAINER)) {
-                                finalData.getPersistentDataContainer().ifPresent(this::setPersistentDataContainer);
-                            }
-                        }
-                        completeSynchronization(true, plugin);
-                    } catch (Throwable e) {
-                        plugin.log(Level.SEVERE, "An error occurred while setting data for " + username + ": " + e.getMessage(), e);
-                        completeSynchronization(false, plugin);
+        plugin.fireEvent(plugin.getPreSyncEvent(this, data), (event) -> {
+            final PreSyncEvent preSyncEvent = (PreSyncEvent) event;
+            final UserData finalData = preSyncEvent.getUserData();
+            try {
+                if (!isOffline() && !preSyncEvent.isCancelled()) {
+                    final Settings settings = plugin.getSettings();
+                    if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.INVENTORIES)) {
+                        finalData.getInventory().ifPresent(this::setInventory);
                     }
-                });
+                    if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.ENDER_CHESTS)) {
+                        finalData.getEnderChest().ifPresent(this::setEnderChest);
+                    }
+                    finalData.getStatus().ifPresent(statusData -> setStatus(statusData, settings));
+                    if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.POTION_EFFECTS)) {
+                        finalData.getPotionEffects().ifPresent(this::setPotionEffects);
+                    }
+                    if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.ADVANCEMENTS)) {
+                        finalData.getAdvancements().ifPresent(this::setAdvancements);
+                    }
+                    if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.STATISTICS)) {
+                        finalData.getStatistics().ifPresent(this::setStatistics);
+                    }
+                    if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.LOCATION)) {
+                        finalData.getLocation().ifPresent(this::setLocation);
+                    }
+                    if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.PERSISTENT_DATA_CONTAINER)) {
+                        finalData.getPersistentDataContainer().ifPresent(this::setPersistentDataContainer);
+                    }
+                }
+                completeSynchronization(true, plugin);
+            } catch (Throwable e) {
+                plugin.log(Level.SEVERE, String.format("An error occurred while setting data for %s", username), e);
+                completeSynchronization(false, plugin);
+            }
+        });
     }
 
     /**
@@ -405,7 +404,7 @@ public abstract class OnlineUser extends User {
             }
             plugin.getDatabase().ensureUser(this);
             plugin.getLockedPlayers().remove(uuid);
-            plugin.getEventCannon().fireSyncCompleteEvent(this);
+            plugin.fireEvent(plugin.getSyncCompleteEvent(this), null);
         } else {
             plugin.getLocales().getLocale("synchronisation_failed")
                     .ifPresent(this::sendMessage);

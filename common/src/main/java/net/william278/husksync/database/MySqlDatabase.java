@@ -25,7 +25,6 @@ import net.william278.husksync.data.DataAdaptionException;
 import net.william278.husksync.data.DataSaveCause;
 import net.william278.husksync.data.UserData;
 import net.william278.husksync.data.UserDataSnapshot;
-import net.william278.husksync.event.DataSaveEvent;
 import net.william278.husksync.player.User;
 import org.jetbrains.annotations.NotNull;
 
@@ -332,34 +331,21 @@ public class MySqlDatabase extends Database {
     }
 
     @Override
-    public void setUserData(@NotNull User user, @NotNull UserData userData, @NotNull DataSaveCause saveCause) {
-        final UserData finalData;
-        if (saveCause != DataSaveCause.SERVER_SHUTDOWN) {
-            final DataSaveEvent dataSaveEvent = (DataSaveEvent) plugin.getEventCannon()
-                    .fireDataSaveEvent(user, userData, saveCause).join();
-            if (dataSaveEvent.isCancelled()) {
-                return;
-            }
-            finalData = dataSaveEvent.getUserData();
-        } else {
-            finalData = userData;
-        }
-
+    protected void createUserData(@NotNull User user, @NotNull UserData data, @NotNull DataSaveCause cause) {
         try (Connection connection = getConnection()) {
             try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
                     INSERT INTO `%user_data_table%`
                     (`player_uuid`,`version_uuid`,`timestamp`,`save_cause`,`data`)
                     VALUES (?,UUID(),NOW(),?,?);"""))) {
                 statement.setString(1, user.uuid.toString());
-                statement.setString(2, saveCause.name());
+                statement.setString(2, cause.name());
                 statement.setBlob(3, new ByteArrayInputStream(
-                        plugin.getDataAdapter().toBytes(finalData)));
+                        plugin.getDataAdapter().toBytes(data)));
                 statement.executeUpdate();
             }
         } catch (SQLException | DataAdaptionException e) {
             plugin.log(Level.SEVERE, "Failed to set user data in the database", e);
         }
-
         this.rotateUserData(user);
     }
 

@@ -26,6 +26,7 @@ import net.william278.husksync.data.UserData;
 import net.william278.husksync.data.UserDataSnapshot;
 import net.william278.husksync.migrator.Migrator;
 import net.william278.husksync.player.User;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -147,19 +148,41 @@ public abstract class Database {
     public abstract boolean deleteUserData(@NotNull User user, @NotNull UUID versionUuid);
 
     /**
-     * Save user data to the database<p>
+     * Save user data to the database
+     * </p>
      * This will remove the oldest data for the user if the amount of data exceeds the limit as configured
      *
-     * @param user     The user to add data for
-     * @param userData The {@link UserData} to set. The implementation should version it with a random UUID and the current timestamp during insertion.
+     * @param user The user to add data for
+     * @param data The {@link UserData} to set.
+     *             The implementation should version it with a random UUID and the current timestamp during insertion.
      * @see UserDataSnapshot#create(UserData)
      */
-    public abstract void setUserData(@NotNull User user, @NotNull UserData userData, @NotNull DataSaveCause dataSaveCause);
+    public void setUserData(@NotNull User user, @NotNull UserData data, @NotNull DataSaveCause cause) {
+        if (cause != DataSaveCause.SERVER_SHUTDOWN) {
+            plugin.fireEvent(
+                    plugin.getDataSaveEvent(user, data, cause),
+                    (event) -> this.createUserData(user, data, cause)
+            );
+            return;
+        }
+
+        this.createUserData(user, data, cause);
+    }
+
+    /**
+     * <b>Internal</b> - Create user data in the database
+     *
+     * @param user  The user to add data for
+     * @param data  The {@link UserData} to set.
+     * @param cause The cause of the data save
+     */
+    @ApiStatus.Internal
+    protected abstract void createUserData(@NotNull User user, @NotNull UserData data, @NotNull DataSaveCause cause);
 
     /**
      * Pin or unpin a saved {@link UserDataSnapshot} by given version UUID
      *
-     * @param user        The whose data snapshot is being pinned or unpinned
+     * @param user        The user whose data snapshot is being pinned or unpinned
      * @param versionUuid The UUID of the user's {@link UserDataSnapshot} entry to pin/unpin
      * @param pinned      {@code true} to pin the data, {@code false} to unpin it
      * @see UserDataSnapshot#pinned()

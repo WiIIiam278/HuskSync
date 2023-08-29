@@ -24,31 +24,33 @@ import net.william278.husksync.data.UserData;
 import net.william278.husksync.player.BukkitPlayer;
 import net.william278.husksync.player.OnlineUser;
 import net.william278.husksync.player.User;
+import org.bukkit.Bukkit;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.concurrent.CompletableFuture;
-
-public class BukkitEventCannon extends EventCannon {
-
-    public BukkitEventCannon() {
-    }
+public interface BukkitEventDispatcher extends EventDispatcher {
 
     @Override
-    public CompletableFuture<Event> firePreSyncEvent(@NotNull OnlineUser user, @NotNull UserData userData) {
-//        return new BukkitPreSyncEvent(((BukkitPlayer) user).getPlayer(), userData).fire();
-        return CompletableFuture.completedFuture(new BukkitPreSyncEvent(((BukkitPlayer) user).getPlayer(), userData));
+    default <T extends Event> boolean fireIsCancelled(@NotNull T event) {
+        Bukkit.getPluginManager().callEvent((org.bukkit.event.Event) event);
+        return event instanceof Cancellable cancellable && cancellable.isCancelled();
     }
 
+    @NotNull
     @Override
-    public CompletableFuture<Event> fireDataSaveEvent(@NotNull User user, @NotNull UserData userData,
-                                                      @NotNull DataSaveCause saveCause) {
-//        return new BukkitDataSaveEvent(user, userData, saveCause).fire();
-        return CompletableFuture.completedFuture(new BukkitDataSaveEvent(user, userData, saveCause));
+    default PreSyncEvent getPreSyncEvent(@NotNull OnlineUser user, @NotNull UserData userData) {
+        return new BukkitPreSyncEvent(((BukkitPlayer) user).getPlayer(), userData);
     }
 
+    @NotNull
     @Override
-    public void fireSyncCompleteEvent(@NotNull OnlineUser user) {
-        new BukkitSyncCompleteEvent(((BukkitPlayer) user).getPlayer()).fire();
+    default DataSaveEvent getDataSaveEvent(@NotNull User user, @NotNull UserData userData, @NotNull DataSaveCause saveCause) {
+        return new BukkitDataSaveEvent(user, userData, saveCause);
+    }
+
+    @NotNull
+    @Override
+    default SyncCompleteEvent getSyncCompleteEvent(@NotNull OnlineUser user) {
+        return new BukkitSyncCompleteEvent(((BukkitPlayer) user).getPlayer());
     }
 
 }

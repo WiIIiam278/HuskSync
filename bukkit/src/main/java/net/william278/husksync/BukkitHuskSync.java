@@ -32,8 +32,7 @@ import net.william278.husksync.data.DataAdapter;
 import net.william278.husksync.data.JsonDataAdapter;
 import net.william278.husksync.database.Database;
 import net.william278.husksync.database.MySqlDatabase;
-import net.william278.husksync.event.BukkitEventCannon;
-import net.william278.husksync.event.EventCannon;
+import net.william278.husksync.event.BukkitEventDispatcher;
 import net.william278.husksync.hook.PlanHook;
 import net.william278.husksync.listener.BukkitEventListener;
 import net.william278.husksync.listener.EventListener;
@@ -64,7 +63,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
-public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.Supplier {
+public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.Supplier, BukkitEventDispatcher {
 
     /**
      * Metrics ID for <a href="https://bstats.org/plugin/bukkit/HuskSync%20-%20Bukkit/13140">HuskSync on Bukkit</a>.
@@ -74,7 +73,6 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
     private RedisManager redisManager;
     private EventListener eventListener;
     private DataAdapter dataAdapter;
-    private EventCannon eventCannon;
     private Settings settings;
     private Locales locales;
     private List<Migrator> availableMigrators;
@@ -121,9 +119,6 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
             } else {
                 dataAdapter = new JsonDataAdapter();
             }
-
-            // Prepare event cannon
-            eventCannon = new BukkitEventCannon();
 
             // Prepare migrators
             availableMigrators = new ArrayList<>();
@@ -270,12 +265,6 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
     @NotNull
     public DataAdapter getDataAdapter() {
         return dataAdapter;
-    }
-
-    @Override
-    @NotNull
-    public EventCannon getEventCannon() {
-        return eventCannon;
     }
 
     @NotNull

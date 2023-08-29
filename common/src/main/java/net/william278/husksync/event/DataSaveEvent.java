@@ -24,7 +24,7 @@ import net.william278.husksync.data.UserData;
 import net.william278.husksync.player.User;
 import org.jetbrains.annotations.NotNull;
 
-public interface DataSaveEvent extends CancellableEvent {
+public interface DataSaveEvent extends Cancellable {
 
     @NotNull
     UserData getUserData();

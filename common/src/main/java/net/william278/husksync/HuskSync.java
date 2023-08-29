@@ -25,7 +25,7 @@ import net.william278.husksync.config.Locales;
 import net.william278.husksync.config.Settings;
 import net.william278.husksync.data.DataAdapter;
 import net.william278.husksync.database.Database;
-import net.william278.husksync.event.EventCannon;
+import net.william278.husksync.event.EventDispatcher;
 import net.william278.husksync.migrator.Migrator;
 import net.william278.husksync.player.OnlineUser;
 import net.william278.husksync.redis.RedisManager;
@@ -44,7 +44,7 @@ import java.util.logging.Level;
 /**
  * Abstract implementation of the HuskSync plugin.
  */
-public interface HuskSync extends Task.Supplier {
+public interface HuskSync extends Task.Supplier, EventDispatcher {
 
     int SPIGOT_RESOURCE_ID = 97144;
 
@@ -89,14 +89,6 @@ public interface HuskSync extends Task.Supplier {
      */
     @NotNull
     DataAdapter getDataAdapter();
-
-    /**
-     * Returns the event firing cannon
-     *
-     * @return the {@link EventCannon} implementation
-     */
-    @NotNull
-    EventCannon getEventCannon();
 
     /**
      * Returns a list of available data {@link Migrator}s
