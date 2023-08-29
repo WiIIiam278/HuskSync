@@ -321,4 +321,4 @@ The name of the generated .json file will match the following format: `<username
 </details>
 
 ### Dumping to the web
-The Web Dump... button (equivalent to `/userdata dump <user> <snapshot-id> web`) will dump user data snapshot json data to the https://mc.lo.gs service and provide you with a link to the uploaded file. Note that the web dumping service may not work if your user data snapshot exceeds 10MB in file size.
+The Web Dump... button (equivalent to `/userdata dump <user> <snapshot-id> web`) will dump user data snapshot json data to the https://mclo.gs service and provide you with a link to the uploaded file. Note that the web dumping service may not work if your user data snapshot exceeds 10MB in file size.
