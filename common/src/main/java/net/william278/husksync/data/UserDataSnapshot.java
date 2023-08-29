@@ -19,7 +19,6 @@
 
 package net.william278.husksync.data;
 
-import net.william278.husksync.command.Permission;
 import net.william278.husksync.config.Locales;
 import net.william278.husksync.player.CommandUser;
 import net.william278.husksync.player.OnlineUser;
@@ -97,19 +96,23 @@ public record UserDataSnapshot(@NotNull UUID versionUUID, @NotNull Date versionT
                                         "PLAY_ONE_MINUTE", 0)) / 20d) / 60d) / 60d))))
                 .ifPresent(user::sendMessage);
 
-        if (user.hasPermission(Permission.COMMAND_INVENTORY.node)
-                && user.hasPermission(Permission.COMMAND_ENDER_CHEST.node)) {
+        if (user.hasPermission(getPermissionFormat("inventory"))
+                && user.hasPermission(getPermissionFormat("enderchest"))) {
             locales.getLocale("data_manager_item_buttons", dataOwner.username, versionUUID().toString())
                     .ifPresent(user::sendMessage);
         }
-        if (user.hasPermission(Permission.COMMAND_USER_DATA_MANAGE.node)) {
+        if (user.hasPermission(getPermissionFormat("userdata.manage"))) {
             locales.getLocale("data_manager_management_buttons", dataOwner.username, versionUUID().toString())
                     .ifPresent(user::sendMessage);
         }
-        if (user.hasPermission(Permission.COMMAND_USER_DATA_DUMP.node)) {
+        if (user.hasPermission(getPermissionFormat("userdata.dump"))) {
             locales.getLocale("data_manager_system_buttons", dataOwner.username, versionUUID().toString())
                     .ifPresent(user::sendMessage);
         }
+    }
+
+    private String getPermissionFormat(@NotNull String node) {
+        return String.format("husksync.command.%s", node);
     }
 
     @NotNull

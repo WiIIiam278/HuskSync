@@ -27,7 +27,6 @@ import net.william278.desertwell.util.Version;
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.config.Settings;
 import net.william278.husksync.data.*;
-import net.william278.husksync.event.PreSyncEvent;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -58,7 +57,6 @@ public abstract class OnlineUser extends User implements CommandUser {
      *
      * @param statusData the player's {@link StatusData}
      * @param settings   settings, containing information about which features should be synced
-     * @return a future returning void when complete
      */
     public abstract void setStatus(@NotNull StatusData statusData, @NotNull Settings settings);
 
@@ -74,7 +72,6 @@ public abstract class OnlineUser extends User implements CommandUser {
      * Set the player's {@link ItemData}
      *
      * @param itemData The player's {@link ItemData}
-     * @return a future returning void when complete
      */
     public abstract void setInventory(@NotNull ItemData itemData);
 
@@ -90,7 +87,6 @@ public abstract class OnlineUser extends User implements CommandUser {
      * Set the player's {@link ItemData}
      *
      * @param enderChestData The player's {@link ItemData}
-     * @return a future returning void when complete
      */
     public abstract void setEnderChest(@NotNull ItemData enderChestData);
 
@@ -122,7 +118,6 @@ public abstract class OnlineUser extends User implements CommandUser {
      * Set the player's {@link AdvancementData}
      *
      * @param advancementData List of the player's {@link AdvancementData}
-     * @return a future returning void when complete
      */
     public abstract void setAdvancements(@NotNull List<AdvancementData> advancementData);
 
@@ -138,7 +133,6 @@ public abstract class OnlineUser extends User implements CommandUser {
      * Set the player's {@link StatisticsData}
      *
      * @param statisticsData The player's {@link StatisticsData}
-     * @return a future returning void when complete
      */
     public abstract void setStatistics(@NotNull StatisticsData statisticsData);
 
@@ -294,10 +288,14 @@ public abstract class OnlineUser extends User implements CommandUser {
 
         // Fire the PreSyncEvent
         plugin.fireEvent(plugin.getPreSyncEvent(this, data), (event) -> {
-            final PreSyncEvent preSyncEvent = (PreSyncEvent) event;
-            final UserData finalData = preSyncEvent.getUserData();
-            try {
-                if (!isOffline() && !preSyncEvent.isCancelled()) {
+            if (isOffline() || event.isCancelled()) {
+                return;
+            }
+
+            // Set the user
+            final UserData finalData = event.getUserData();
+            plugin.runSync(() -> {
+                try {
                     final Settings settings = plugin.getSettings();
                     if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.INVENTORIES)) {
                         finalData.getInventory().ifPresent(this::setInventory);
@@ -321,12 +319,12 @@ public abstract class OnlineUser extends User implements CommandUser {
                     if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.PERSISTENT_DATA_CONTAINER)) {
                         finalData.getPersistentDataContainer().ifPresent(this::setPersistentDataContainer);
                     }
+                    completeSynchronization(true, plugin);
+                } catch (Throwable e) {
+                    plugin.log(Level.SEVERE, String.format("An error occurred while setting data for %s", username), e);
+                    completeSynchronization(false, plugin);
                 }
-                completeSynchronization(true, plugin);
-            } catch (Throwable e) {
-                plugin.log(Level.SEVERE, String.format("An error occurred while setting data for %s", username), e);
-                completeSynchronization(false, plugin);
-            }
+            });
         });
     }
 
@@ -402,14 +400,14 @@ public abstract class OnlineUser extends User implements CommandUser {
                         .ifPresent(locale -> this.sendToast(locale, new MineDown(""),
                                 "minecraft:bell", "TASK"));
             }
-            plugin.getDatabase().ensureUser(this);
-            plugin.getLockedPlayers().remove(uuid);
-            plugin.fireEvent(plugin.getSyncCompleteEvent(this), null);
+            plugin.fireEvent(plugin.getSyncCompleteEvent(this), (event) -> {
+                plugin.getLockedPlayers().remove(uuid);
+            });
         } else {
             plugin.getLocales().getLocale("synchronisation_failed")
                     .ifPresent(this::sendMessage);
-            plugin.getDatabase().ensureUser(this);
         }
+        plugin.getDatabase().ensureUser(this);
     }
 
     /**

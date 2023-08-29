@@ -112,15 +112,12 @@ public class BukkitPlayer extends OnlineUser {
             final double currentHealth = player.getHealth();
             if (statusData.health != currentHealth) {
                 final double healthToSet = currentHealth > currentMaxHealth ? currentMaxHealth : statusData.health;
-                final double maxHealth = currentMaxHealth;
-                plugin.runSync(() -> {
-                    try {
-                        player.setHealth(Math.min(healthToSet, maxHealth));
-                    } catch (IllegalArgumentException e) {
-                        plugin.log(Level.WARNING,
-                                "Failed to set health of player " + player.getName() + " to " + healthToSet);
-                    }
-                });
+                try {
+                    player.setHealth(Math.min(healthToSet, currentMaxHealth));
+                } catch (IllegalArgumentException e) {
+                    plugin.log(Level.WARNING,
+                            "Failed to set health of player " + player.getName() + " to " + healthToSet);
+                }
             }
 
             // Set health scale
@@ -132,8 +129,7 @@ public class BukkitPlayer extends OnlineUser {
                 }
                 player.setHealthScaled(statusData.healthScale != 0D);
             } catch (IllegalArgumentException e) {
-                plugin.log(Level.WARNING,
-                        "Failed to set health scale of player " + player.getName() + " to " + statusData.healthScale);
+                plugin.log(Level.WARNING, "Failed to set health scale of player " + player.getName() + " to " + statusData.healthScale);
             }
         }
         if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.HUNGER)) {
@@ -150,16 +146,14 @@ public class BukkitPlayer extends OnlineUser {
             player.setExp(statusData.expProgress);
         }
         if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.GAME_MODE)) {
-            plugin.runSync(() -> player.setGameMode(GameMode.valueOf(statusData.gameMode)));
+            player.setGameMode(GameMode.valueOf(statusData.gameMode));
         }
         if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.LOCATION)) {
-            plugin.runSync(() -> {
-                if (statusData.isFlying) {
-                    player.setAllowFlight(true);
-                    player.setFlying(true);
-                }
-                player.setFlying(false);
-            });
+            if (statusData.isFlying) {
+                player.setAllowFlight(true);
+                player.setFlying(true);
+            }
+            player.setFlying(false);
         }
     }
 
@@ -176,14 +170,10 @@ public class BukkitPlayer extends OnlineUser {
     @Override
     public void setInventory(@NotNull ItemData itemData) {
         final ItemStack[] contents = BukkitSerializer.deserializeInventory(itemData.serializedItems).getContents();
-        final CompletableFuture<Void> inventorySetFuture = new CompletableFuture<>();
-        plugin.runSync(() -> {
-            this.clearInventoryCraftingSlots();
-            player.setItemOnCursor(null);
-            player.getInventory().setContents(contents);
-            player.updateInventory();
-            inventorySetFuture.complete(null);
-        });
+        this.clearInventoryCraftingSlots();
+        player.setItemOnCursor(null);
+        player.getInventory().setContents(contents);
+        player.updateInventory();
     }
 
     // Clears any items the player may have in the crafting slots of their inventory
@@ -208,9 +198,7 @@ public class BukkitPlayer extends OnlineUser {
 
     @Override
     public void setEnderChest(@NotNull ItemData enderChestData) {
-        plugin.runSync(() -> player.getEnderChest().setContents(
-                BukkitSerializer.deserializeItemStackArray(enderChestData.serializedItems))
-        );
+        player.getEnderChest().setContents(BukkitSerializer.deserializeItemStackArray(enderChestData.serializedItems));
     }
 
     @NotNull
@@ -224,14 +212,12 @@ public class BukkitPlayer extends OnlineUser {
     @Override
     public void setPotionEffects(@NotNull PotionEffectData potionEffectData) {
         final PotionEffect[] effects = BukkitSerializer.deserializePotionEffectArray(potionEffectData.serializedPotionEffects);
-        plugin.runSync(() -> {
-            for (PotionEffect effect : player.getActivePotionEffects()) {
-                player.removePotionEffect(effect.getType());
-            }
-            for (PotionEffect effect : effects) {
-                player.addPotionEffect(effect);
-            }
-        });
+        for (PotionEffect effect : player.getActivePotionEffects()) {
+            player.removePotionEffect(effect.getType());
+        }
+        for (PotionEffect effect : effects) {
+            player.addPotionEffect(effect);
+        }
     }
 
     @NotNull
@@ -258,68 +244,63 @@ public class BukkitPlayer extends OnlineUser {
 
     @Override
     public void setAdvancements(@NotNull List<AdvancementData> advancementData) {
-        plugin.runSync(() -> {
-            // Temporarily disable advancement announcing if needed
-            boolean announceAdvancementUpdate = false;
-            if (Boolean.TRUE.equals(player.getWorld().getGameRuleValue(GameRule.ANNOUNCE_ADVANCEMENTS))) {
-                player.getWorld().setGameRule(GameRule.ANNOUNCE_ADVANCEMENTS, false);
-                announceAdvancementUpdate = true;
-            }
-            final boolean finalAnnounceAdvancementUpdate = announceAdvancementUpdate;
+        // Temporarily disable advancement announcing if needed
+        boolean announceAdvancementUpdate = false;
+        if (Boolean.TRUE.equals(player.getWorld().getGameRuleValue(GameRule.ANNOUNCE_ADVANCEMENTS))) {
+            player.getWorld().setGameRule(GameRule.ANNOUNCE_ADVANCEMENTS, false);
+            announceAdvancementUpdate = true;
+        }
+        final boolean finalAnnounceAdvancementUpdate = announceAdvancementUpdate;
 
-            // Save current experience and level
-            final int experienceLevel = player.getLevel();
-            final float expProgress = player.getExp();
+        // Save current experience and level
+        final int experienceLevel = player.getLevel();
+        final float expProgress = player.getExp();
 
-            // Determines whether the experience might have changed warranting an update
-            final AtomicBoolean correctExperience = new AtomicBoolean(false);
+        // Determines whether the experience might have changed warranting an update
+        final AtomicBoolean correctExperience = new AtomicBoolean(false);
 
-            // Run asynchronously as advancement setting is expensive
-            plugin.runAsync(() -> {
-                // Apply the advancements to the player
-                final Iterator<Advancement> serverAdvancements = Bukkit.getServer().advancementIterator();
-                while (serverAdvancements.hasNext()) {
-                    // Iterate through all advancements
-                    final Advancement advancement = serverAdvancements.next();
-                    final AdvancementProgress playerProgress = player.getAdvancementProgress(advancement);
+        // Run asynchronously as advancement setting is expensive
+        plugin.runAsync(() -> {
+            // Apply the advancements to the player
+            final Iterator<Advancement> serverAdvancements = Bukkit.getServer().advancementIterator();
+            while (serverAdvancements.hasNext()) {
+                // Iterate through all advancements
+                final Advancement advancement = serverAdvancements.next();
+                final AdvancementProgress playerProgress = player.getAdvancementProgress(advancement);
 
-                    advancementData.stream().filter(record -> record.key.equals(advancement.getKey().toString())).findFirst().ifPresentOrElse(
-                            // Award all criteria that the player does not have that they do on the cache
-                            record -> {
-                                record.completedCriteria.keySet().stream()
-                                        .filter(criterion -> !playerProgress.getAwardedCriteria().contains(criterion))
-                                        .forEach(criterion -> {
-                                            plugin.runSync(
-                                                    () -> player.getAdvancementProgress(advancement).awardCriteria(criterion));
-                                            correctExperience.set(true);
-                                        });
+                advancementData.stream().filter(record -> record.key.equals(advancement.getKey().toString())).findFirst().ifPresentOrElse(
+                        // Award all criteria that the player does not have that they do on the cache
+                        record -> {
+                            record.completedCriteria.keySet().stream()
+                                    .filter(criterion -> !playerProgress.getAwardedCriteria().contains(criterion))
+                                    .forEach(criterion -> {
+                                        plugin.runSync(
+                                                () -> player.getAdvancementProgress(advancement).awardCriteria(criterion));
+                                        correctExperience.set(true);
+                                    });
 
-                                // Revoke all criteria that the player does have but should not
-                                new ArrayList<>(playerProgress.getAwardedCriteria()).stream().filter(criterion -> !record.completedCriteria.containsKey(criterion))
-                                        .forEach(criterion -> plugin.runSync(
-                                                () -> player.getAdvancementProgress(advancement).revokeCriteria(criterion)));
+                            // Revoke all criteria that the player does have but should not
+                            new ArrayList<>(playerProgress.getAwardedCriteria()).stream().filter(criterion -> !record.completedCriteria.containsKey(criterion))
+                                    .forEach(criterion -> plugin.runSync(
+                                            () -> player.getAdvancementProgress(advancement).revokeCriteria(criterion)));
 
-                            },
-                            // Revoke the criteria as the player shouldn't have any
-                            () -> new ArrayList<>(playerProgress.getAwardedCriteria()).forEach(criterion ->
-                                    plugin.runSync(
-                                            () -> player.getAdvancementProgress(advancement).revokeCriteria(criterion))));
+                        },
+                        // Revoke the criteria as the player shouldn't have any
+                        () -> new ArrayList<>(playerProgress.getAwardedCriteria()).forEach(criterion ->
+                                plugin.runSync(
+                                        () -> player.getAdvancementProgress(advancement).revokeCriteria(criterion))));
 
-                    // Update the player's experience in case the advancement changed that
-                    if (correctExperience.get()) {
-                        player.setLevel(experienceLevel);
-                        player.setExp(expProgress);
-                        correctExperience.set(false);
-                    }
+                // Update the player's experience in case the advancement changed that
+                if (correctExperience.get()) {
+                    player.setLevel(experienceLevel);
+                    player.setExp(expProgress);
+                    correctExperience.set(false);
                 }
+            }
 
-                // Re-enable announcing advancements (back on main thread again)
-                plugin.runSync(() -> {
-                    if (finalAnnounceAdvancementUpdate) {
-                        player.getWorld().setGameRule(GameRule.ANNOUNCE_ADVANCEMENTS, true);
-                    }
-                });
-            });
+            if (finalAnnounceAdvancementUpdate) {
+                plugin.runSync(() -> player.getWorld().setGameRule(GameRule.ANNOUNCE_ADVANCEMENTS, true));
+            }
         });
     }
 
@@ -445,11 +426,9 @@ public class BukkitPlayer extends OnlineUser {
                     .valueOf(locationData.worldEnvironment)).findFirst().ifPresent(bukkitWorld::set);
         }
         if (bukkitWorld.get() != null) {
-            plugin.runSync(() -> {
-                player.teleport(new Location(bukkitWorld.get(),
-                        locationData.x, locationData.y, locationData.z,
-                        locationData.yaw, locationData.pitch), PlayerTeleportEvent.TeleportCause.PLUGIN);
-            });
+            player.teleport(new Location(bukkitWorld.get(),
+                    locationData.x, locationData.y, locationData.z,
+                    locationData.yaw, locationData.pitch), PlayerTeleportEvent.TeleportCause.PLUGIN);
         }
     }
 

@@ -37,8 +37,7 @@ import java.util.*;
         ┃    Developed by William278   ┃
         ┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
         ┣╸ Information: https://william278.net/project/husksync
-        ┗╸ Documentation: https://william278.net/docs/husksync""",
-        versionField = "config_version", versionNumber = 4)
+        ┗╸ Documentation: https://william278.net/docs/husksync""")
 public class Settings {
 
     // Top-level settings
@@ -120,7 +119,7 @@ public class Settings {
     // Synchronization settings
     @YamlComment("Synchronization settings")
     @YamlKey("synchronization.max_user_data_snapshots")
-    private int maxUserDataSnapshots = 5;
+    private int maxUserDataSnapshots = 16;
 
     @YamlKey("synchronization.save_on_world_save")
     private boolean saveOnWorldSave = true;
@@ -385,53 +384,6 @@ public class Settings {
             return enabledByDefault;
         }
 
-    }
-
-    /**
-     * Represents events that HuskSync listens to, with a configurable priority listener
-     */
-    public enum EventType {
-        JOIN_LISTENER(EventPriority.LOWEST),
-        QUIT_LISTENER(EventPriority.LOWEST),
-        DEATH_LISTENER(EventPriority.NORMAL);
-
-        private final EventPriority defaultPriority;
-
-        EventType(@NotNull EventPriority defaultPriority) {
-            this.defaultPriority = defaultPriority;
-        }
-
-        @NotNull
-        private Map.Entry<String, String> toEntry() {
-            return Map.entry(name().toLowerCase(Locale.ENGLISH), defaultPriority.name());
-        }
-
-
-        @SuppressWarnings("unchecked")
-        @NotNull
-        private static Map<String, String> getDefaults() {
-            return Map.ofEntries(Arrays.stream(values())
-                    .map(EventType::toEntry)
-                    .toArray(Map.Entry[]::new));
-        }
-    }
-
-    /**
-     * Represents priorities for events that HuskSync listens to
-     */
-    public enum EventPriority {
-        /**
-         * Listens and processes the event execution last
-         */
-        HIGHEST,
-        /**
-         * Listens in between {@link #HIGHEST} and {@link #LOWEST} priority marked
-         */
-        NORMAL,
-        /**
-         * Listens and processes the event execution first
-         */
-        LOWEST
     }
 
 }

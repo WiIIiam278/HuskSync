@@ -20,7 +20,6 @@
 package net.william278.husksync.api;
 
 import net.william278.husksync.BukkitHuskSync;
-import net.william278.husksync.HuskSync;
 import net.william278.husksync.data.*;
 import net.william278.husksync.player.BukkitPlayer;
 import net.william278.husksync.player.OnlineUser;
