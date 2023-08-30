@@ -19,9 +19,9 @@
 
 package net.william278.husksync.event;
 
+@SuppressWarnings("unused")
 public interface Cancellable extends Event {
 
-    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     default boolean isCancelled() {
         return false;
     }

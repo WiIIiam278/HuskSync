@@ -22,6 +22,7 @@ package net.william278.husksync.config;
 import net.william278.annotaml.YamlComment;
 import net.william278.annotaml.YamlFile;
 import net.william278.annotaml.YamlKey;
+import net.william278.husksync.data.DataContainer;
 import net.william278.husksync.database.Database;
 import net.william278.husksync.listener.EventListener;
 import org.jetbrains.annotations.NotNull;
@@ -59,7 +60,7 @@ public class Settings {
 
     // Database settings
     @YamlComment("Type of database to use (MYSQL, MARIADB)")
-    @YamlKey("database.type")
+    @YamlKey("database.material")
     private Database.Type databaseType = Database.Type.MYSQL;
 
     @YamlComment("Database connection settings")
@@ -144,7 +145,7 @@ public class Settings {
     private int networkLatencyMilliseconds = 500;
 
     @YamlKey("synchronization.features")
-    private Map<String, Boolean> synchronizationFeatures = SynchronizationFeature.getDefaults();
+    private Map<String, Boolean> synchronizationFeatures = DataContainer.Type.getDefaults();
 
     @YamlKey("synchronization.blacklisted_commands_while_locked")
     private List<String> blacklistedCommandsWhileLocked = new ArrayList<>(List.of("*"));
@@ -297,8 +298,8 @@ public class Settings {
         return synchronizationFeatures;
     }
 
-    public boolean getSynchronizationFeature(@NotNull SynchronizationFeature feature) {
-        return getSynchronizationFeatures().getOrDefault(feature.name().toLowerCase(Locale.ENGLISH), feature.isEnabledByDefault());
+    public boolean getSynchronizationFeature(@NotNull DataContainer.Type feature) {
+        return getSynchronizationFeatures().getOrDefault(feature.name().toLowerCase(Locale.ENGLISH), feature.getDefault());
     }
 
     @NotNull

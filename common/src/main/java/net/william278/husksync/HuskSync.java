@@ -23,9 +23,11 @@ import net.william278.annotaml.Annotaml;
 import net.william278.desertwell.util.ThrowingConsumer;
 import net.william278.desertwell.util.UpdateChecker;
 import net.william278.desertwell.util.Version;
+import net.william278.husksync.adapter.DataAdapter;
 import net.william278.husksync.config.Locales;
 import net.william278.husksync.config.Settings;
-import net.william278.husksync.data.DataAdapter;
+import net.william278.husksync.data.DataContainer;
+import net.william278.husksync.data.Serializer;
 import net.william278.husksync.database.Database;
 import net.william278.husksync.event.EventDispatcher;
 import net.william278.husksync.migrator.Migrator;
@@ -83,13 +85,14 @@ public interface HuskSync extends Task.Supplier, EventDispatcher {
     @NotNull
     RedisManager getRedisManager();
 
-    /**
-     * Returns the data adapter implementation
-     *
-     * @return the {@link DataAdapter} implementation
-     */
     @NotNull
     DataAdapter getDataAdapter();
+
+    /**
+     * Returns the data serializer for the given {@link DataContainer.Type}
+     */
+    @NotNull
+    <T extends DataContainer> Map<DataContainer.Type, Serializer<T>> getSerializers();
 
     /**
      * Returns a list of available data {@link Migrator}s

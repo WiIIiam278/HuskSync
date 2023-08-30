@@ -21,10 +21,8 @@ package net.william278.husksync.listener;
 
 import net.william278.husksync.BukkitHuskSync;
 import net.william278.husksync.HuskSync;
-import net.william278.husksync.data.BukkitInventoryMap;
-import net.william278.husksync.data.BukkitSerializer;
-import net.william278.husksync.data.ItemData;
-import net.william278.husksync.player.BukkitPlayer;
+import net.william278.husksync.data.BukkitDataContainer;
+import net.william278.husksync.player.BukkitUser;
 import net.william278.husksync.player.OnlineUser;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -46,7 +44,6 @@ import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.world.WorldSaveEvent;
-import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -69,26 +66,26 @@ public class BukkitEventListener extends EventListener implements BukkitJoinEven
     }
 
     @Override
-    public void handlePlayerQuit(@NotNull BukkitPlayer bukkitPlayer) {
-        final Player player = bukkitPlayer.getPlayer();
-        if (!bukkitPlayer.isLocked() && !player.getItemOnCursor().getType().isAir()) {
+    public void handlePlayerQuit(@NotNull BukkitUser bukkitUser) {
+        final Player player = bukkitUser.getPlayer();
+        if (!bukkitUser.isLocked() && !player.getItemOnCursor().getType().isAir()) {
             player.getWorld().dropItem(player.getLocation(), player.getItemOnCursor());
             player.setItemOnCursor(null);
         }
-        super.handlePlayerQuit(bukkitPlayer);
+        super.handlePlayerQuit(bukkitUser);
     }
 
     @Override
-    public void handlePlayerJoin(@NotNull BukkitPlayer bukkitPlayer) {
-        super.handlePlayerJoin(bukkitPlayer);
+    public void handlePlayerJoin(@NotNull BukkitUser bukkitUser) {
+        super.handlePlayerJoin(bukkitUser);
     }
 
     @Override
     public void handlePlayerDeath(@NotNull PlayerDeathEvent event) {
-        final OnlineUser user = BukkitPlayer.adapt(event.getEntity(), plugin);
+        final OnlineUser user = BukkitUser.adapt(event.getEntity(), plugin);
 
         // If the player is locked or the plugin disabling, clear their drops
-        if (cancelPlayerEvent(user.uuid)) {
+        if (cancelPlayerEvent(user.getUuid())) {
             event.getDrops().clear();
             return;
         }
@@ -99,13 +96,11 @@ public class BukkitEventListener extends EventListener implements BukkitJoinEven
         }
 
         // Truncate the dropped items list to the inventory size and save the player's inventory
-        final int maxInventorySize = BukkitInventoryMap.INVENTORY_SLOT_COUNT;
+        final int maxInventorySize = BukkitDataContainer.Items.Inventory.INVENTORY_SLOT_COUNT;
         if (event.getDrops().size() > maxInventorySize) {
             event.getDrops().subList(maxInventorySize, event.getDrops().size()).clear();
         }
-        super.saveOnPlayerDeath(user, new ItemData(
-                BukkitSerializer.serializeItemStackArray(event.getDrops().toArray(new ItemStack[0]))
-        ));
+        super.saveOnPlayerDeath(user, BukkitDataContainer.Items.DeathDrops.adapt(event.getDrops()));
     }
 
     @EventHandler(ignoreCancelled = true)
@@ -116,7 +111,7 @@ public class BukkitEventListener extends EventListener implements BukkitJoinEven
         }
 
         plugin.runAsync(() -> super.saveOnWorldSave(event.getWorld().getPlayers()
-                .stream().map(player -> BukkitPlayer.adapt(player, plugin))
+                .stream().map(player -> BukkitUser.adapt(player, plugin))
                 .collect(Collectors.toList())));
     }
 

@@ -26,5 +26,5 @@ This guide will walk you through how to upgrade from HuskSync v1.4.x to HuskSync
 - Run `husksync migrate legacy start` to begin the migration process. This may take some time, depending on the amount of data you're migrating.
 
 ### 5. Ensure the migration was successful
-- HuskSync will notify in console when migration is complete. Verify that the migration went OK by logging in and using the `/userdata list <username>` command to see if the data was imported with the `legacy migration` cause. 
+- HuskSync will notify in console when migration is complete. Verify that the migration went OK by logging in and using the `/userdata list <username>` command to see if the data was imported with the `legacy migration` saveCause. 
 - You can delete the old tables in the database if you want. Be careful to make sure you delete the right ones. By default the *new* table names are `husksync_users` and `husksync_user_data` and the *old* ones were `husksync_players` and `husksync_data`, but you may have changed these.

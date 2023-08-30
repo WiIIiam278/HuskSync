@@ -20,7 +20,7 @@
 package net.william278.husksync.redis;
 
 import net.william278.husksync.HuskSync;
-import net.william278.husksync.data.UserData;
+import net.william278.husksync.data.DataSnapshot;
 import net.william278.husksync.player.User;
 import org.jetbrains.annotations.NotNull;
 import redis.clients.jedis.*;
@@ -107,7 +107,7 @@ public class RedisManager extends JedisPubSub {
 
         final RedisMessage redisMessage = RedisMessage.fromJson(message);
         plugin.getOnlineUser(redisMessage.targetUserUuid).ifPresent(
-                user -> user.setData(plugin.getDataAdapter().fromBytes(redisMessage.data), plugin)
+                user -> user.applySnapshot(DataSnapshot.deserialize(plugin, redisMessage.data))
         );
     }
 
@@ -117,9 +117,9 @@ public class RedisManager extends JedisPubSub {
         }
     }
 
-    public void sendUserDataUpdate(@NotNull User user, @NotNull UserData userData) {
+    public void sendUserDataUpdate(@NotNull User user, @NotNull DataSnapshot.Packed data) {
         plugin.runAsync(() -> {
-            final RedisMessage redisMessage = new RedisMessage(user.uuid, plugin.getDataAdapter().toBytes(userData));
+            final RedisMessage redisMessage = new RedisMessage(user.getUuid(), data.serialize(plugin));
             redisMessage.dispatch(plugin, RedisMessageType.UPDATE_USER_DATA);
         });
     }
@@ -127,21 +127,21 @@ public class RedisManager extends JedisPubSub {
     /**
      * Set a user's data to the Redis server
      *
-     * @param user     the user to set data for
-     * @param userData the user's data to set
+     * @param user the user to set data for
+     * @param data the user's data to set
      */
-    public void setUserData(@NotNull User user, @NotNull UserData userData) {
+    public void setUserData(@NotNull User user, @NotNull DataSnapshot.Packed data) {
         plugin.runAsync(() -> {
             try (Jedis jedis = jedisPool.getResource()) {
-                // Set the user's data as a compressed byte array of the json using Snappy
                 jedis.setex(
-                        getKey(RedisKeyType.DATA_UPDATE, user.uuid),
-                        RedisKeyType.DATA_UPDATE.timeToLive,
-                        plugin.getDataAdapter().toBytes(userData)
+                        getKey(RedisKeyType.DATA_UPDATE, user.getUuid()),
+                        RedisKeyType.DATA_UPDATE.getTimeToLive(),
+                        data.serialize(plugin)
                 );
-                plugin.debug(String.format("[%s] Set %s key to redis at: %s",
-                        user.username, RedisKeyType.DATA_UPDATE.name(),
-                        new SimpleDateFormat("mm:ss.SSS").format(new Date())));
+                plugin.debug(String.format("[%s] Set %s key to redis at: %s", user.getUsername(),
+                        RedisKeyType.DATA_UPDATE.name(), new SimpleDateFormat("mm:ss.SSS").format(new Date())));
+            } catch (Throwable e) {
+                plugin.log(Level.SEVERE, "An exception occurred setting a user's server switch", e);
             }
         });
     }
@@ -156,12 +156,11 @@ public class RedisManager extends JedisPubSub {
         final CompletableFuture<Void> future = new CompletableFuture<>();
         plugin.runAsync(() -> {
             try (Jedis jedis = jedisPool.getResource()) {
-                jedis.setex(getKey(RedisKeyType.SERVER_SWITCH, user.uuid),
-                        RedisKeyType.SERVER_SWITCH.timeToLive, new byte[0]);
+                jedis.setex(getKey(RedisKeyType.SERVER_SWITCH, user.getUuid()),
+                        RedisKeyType.SERVER_SWITCH.getTimeToLive(), new byte[0]);
                 future.complete(null);
-                plugin.debug("[" + user.username + "] Set " + RedisKeyType.SERVER_SWITCH.name()
-                        + " key to redis at: " +
-                        new SimpleDateFormat("mm:ss.SSS").format(new Date()));
+                plugin.debug(String.format("[%s] Set %s key to redis at: %s", user.getUsername(),
+                        RedisKeyType.SERVER_SWITCH.name(), new SimpleDateFormat("mm:ss.SSS").format(new Date())));
             } catch (Throwable e) {
                 plugin.log(Level.SEVERE, "An exception occurred setting a user's server switch", e);
             }
@@ -175,17 +174,17 @@ public class RedisManager extends JedisPubSub {
      * @param user The user to fetch data for
      * @return The user's data, if it's present on the database. Otherwise, an empty optional.
      */
-    public Optional<UserData> getUserData(@NotNull User user) {
+    public Optional<DataSnapshot.Packed> getUserData(@NotNull User user) {
         try (Jedis jedis = jedisPool.getResource()) {
-            final byte[] key = getKey(RedisKeyType.DATA_UPDATE, user.uuid);
+            final byte[] key = getKey(RedisKeyType.DATA_UPDATE, user.getUuid());
             final byte[] dataByteArray = jedis.get(key);
             if (dataByteArray == null) {
-                plugin.debug("[" + user.username + "] Could not read " +
+                plugin.debug("[" + user.getUsername() + "] Could not read " +
                         RedisKeyType.DATA_UPDATE.name() + " key from redis at: " +
                         new SimpleDateFormat("mm:ss.SSS").format(new Date()));
                 return Optional.empty();
             }
-            plugin.debug("[" + user.username + "] Successfully read "
+            plugin.debug("[" + user.getUsername() + "] Successfully read "
                     + RedisKeyType.DATA_UPDATE.name() + " key from redis at: " +
                     new SimpleDateFormat("mm:ss.SSS").format(new Date()));
 
@@ -193,24 +192,24 @@ public class RedisManager extends JedisPubSub {
             jedis.del(key);
 
             // Use Snappy to decompress the json
-            return Optional.of(plugin.getDataAdapter().fromBytes(dataByteArray));
-        } catch (Exception e) {
-            e.printStackTrace();
+            return Optional.of(DataSnapshot.deserialize(plugin, dataByteArray));
+        } catch (Throwable e) {
+            plugin.log(Level.SEVERE, "An exception occurred fetching a user's data from redis", e);
             return Optional.empty();
         }
     }
 
     public boolean getUserServerSwitch(@NotNull User user) {
         try (Jedis jedis = jedisPool.getResource()) {
-            final byte[] key = getKey(RedisKeyType.SERVER_SWITCH, user.uuid);
+            final byte[] key = getKey(RedisKeyType.SERVER_SWITCH, user.getUuid());
             final byte[] readData = jedis.get(key);
             if (readData == null) {
-                plugin.debug("[" + user.username + "] Could not read " +
+                plugin.debug("[" + user.getUsername() + "] Could not read " +
                         RedisKeyType.SERVER_SWITCH.name() + " key from redis at: " +
                         new SimpleDateFormat("mm:ss.SSS").format(new Date()));
                 return false;
             }
-            plugin.debug("[" + user.username + "] Successfully read "
+            plugin.debug("[" + user.getUsername() + "] Successfully read "
                     + RedisKeyType.SERVER_SWITCH.name() + " key from redis at: " +
                     new SimpleDateFormat("mm:ss.SSS").format(new Date()));
 
@@ -218,7 +217,7 @@ public class RedisManager extends JedisPubSub {
             jedis.del(key);
             return true;
         } catch (Throwable e) {
-            e.printStackTrace();
+            plugin.log(Level.SEVERE, "An exception occurred fetching a user's server switch from redis", e);
             return false;
         }
     }

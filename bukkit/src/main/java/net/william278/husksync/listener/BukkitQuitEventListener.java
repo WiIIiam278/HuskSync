@@ -20,7 +20,7 @@
 package net.william278.husksync.listener;
 
 import net.william278.husksync.HuskSync;
-import net.william278.husksync.player.BukkitPlayer;
+import net.william278.husksync.player.BukkitUser;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -34,25 +34,25 @@ public interface BukkitQuitEventListener extends Listener {
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     default void onPlayerQuitHighest(@NotNull PlayerQuitEvent event) {
         if (handleEvent(EventListener.ListenerType.QUIT_LISTENER, EventListener.Priority.HIGHEST)) {
-            handlePlayerQuit(BukkitPlayer.adapt(event.getPlayer(), getPlugin()));
+            handlePlayerQuit(BukkitUser.adapt(event.getPlayer(), getPlugin()));
         }
     }
 
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     default void onPlayerQuit(@NotNull PlayerQuitEvent event) {
         if (handleEvent(EventListener.ListenerType.QUIT_LISTENER, EventListener.Priority.NORMAL)) {
-            handlePlayerQuit(BukkitPlayer.adapt(event.getPlayer(), getPlugin()));
+            handlePlayerQuit(BukkitUser.adapt(event.getPlayer(), getPlugin()));
         }
     }
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     default void onPlayerQuitLowest(@NotNull PlayerQuitEvent event) {
         if (handleEvent(EventListener.ListenerType.QUIT_LISTENER, EventListener.Priority.LOWEST)) {
-            handlePlayerQuit(BukkitPlayer.adapt(event.getPlayer(), getPlugin()));
+            handlePlayerQuit(BukkitUser.adapt(event.getPlayer(), getPlugin()));
         }
     }
 
-    void handlePlayerQuit(@NotNull BukkitPlayer player);
+    void handlePlayerQuit(@NotNull BukkitUser player);
 
     @NotNull
     HuskSync getPlugin();

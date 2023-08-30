@@ -22,11 +22,12 @@ package net.william278.husksync.redis;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 import net.william278.husksync.HuskSync;
+import net.william278.husksync.adapter.Adaptable;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
-public class RedisMessage {
+public class RedisMessage implements Adaptable {
 
     public UUID targetUserUuid;
     public byte[] data;
@@ -36,6 +37,7 @@ public class RedisMessage {
         this.data = message;
     }
 
+    @SuppressWarnings("unused")
     public RedisMessage() {
     }
 

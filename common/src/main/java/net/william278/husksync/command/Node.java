@@ -73,63 +73,12 @@ public abstract class Node implements Executable {
         this.operatorCommand = operatorCommand;
     }
 
-    protected Optional<Integer> parseIntArg(@NotNull String[] args, int index) {
-        try {
-            if (args.length > index) {
-                return Optional.of(Integer.parseInt(args[index]));
-            }
-        } catch (NumberFormatException e) {
-            return Optional.empty();
+    protected Optional<String> parseStringArg(@NotNull String[] args) {
+        if (args.length > 0) {
+            return Optional.of(args[0]);
         }
         return Optional.empty();
     }
 
-    protected Optional<Float> parseFloatArg(@NotNull String[] args, int index) {
-        try {
-            if (args.length > index) {
-                return Optional.of(Float.parseFloat(args[index]));
-            }
-        } catch (NumberFormatException e) {
-            return Optional.empty();
-        }
-        return Optional.empty();
-    }
-
-    protected Optional<Double> parseCoordinateArg(@NotNull String[] args, int index, double relativeTo) {
-        try {
-            if (args.length > index) {
-                final String arg = args[index];
-                if (arg.startsWith("~")) {
-                    final String coordinate = arg.substring(1);
-                    if (coordinate.isBlank()) {
-                        return Optional.of(relativeTo);
-                    }
-                    return Optional.of(relativeTo + Double.parseDouble(coordinate));
-                }
-                return Optional.of(Double.parseDouble(arg));
-            }
-        } catch (NumberFormatException e) {
-            return Optional.empty();
-        }
-        return Optional.empty();
-    }
-
-    protected Optional<String> parseStringArg(@NotNull String[] args, int index) {
-        if (args.length > index) {
-            return Optional.of(args[index]);
-        }
-        return Optional.empty();
-    }
-
-    protected Optional<String> parseGreedyArguments(@NotNull String[] args) {
-        if (args.length > 1) {
-            final StringJoiner sentence = new StringJoiner(" ");
-            for (int i = 1; i < args.length; i++) {
-                sentence.add(args[i]);
-            }
-            return Optional.of(sentence.toString().trim());
-        }
-        return Optional.empty();
-    }
 
 }

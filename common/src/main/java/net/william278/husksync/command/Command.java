@@ -52,16 +52,6 @@ public abstract class Command extends Node {
     public abstract void execute(@NotNull CommandUser executor, @NotNull String[] args);
 
     @NotNull
-    protected String[] removeFirstArg(@NotNull String[] args) {
-        if (args.length <= 1) {
-            return new String[0];
-        }
-        String[] newArgs = new String[args.length - 1];
-        System.arraycopy(args, 1, newArgs, 0, args.length - 1);
-        return newArgs;
-    }
-
-    @NotNull
     public final String getRawUsage() {
         return usage;
     }

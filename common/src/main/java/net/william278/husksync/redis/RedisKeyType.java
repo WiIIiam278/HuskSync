@@ -28,7 +28,7 @@ public enum RedisKeyType {
     DATA_UPDATE(10),
     SERVER_SWITCH(10);
 
-    public final int timeToLive;
+    private final int timeToLive;
 
     RedisKeyType(int timeToLive) {
         this.timeToLive = timeToLive;
@@ -38,4 +38,9 @@ public enum RedisKeyType {
     public String getKeyPrefix() {
         return RedisManager.KEY_NAMESPACE.toLowerCase(Locale.ENGLISH) + ":" + RedisManager.clusterId.toLowerCase(Locale.ENGLISH) + ":" + name().toLowerCase(Locale.ENGLISH);
     }
+
+    public int getTimeToLive() {
+        return timeToLive;
+    }
+
 }

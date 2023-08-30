@@ -20,13 +20,12 @@
 package net.william278.husksync.migrator;
 
 import net.william278.husksync.HuskSync;
-import net.william278.husksync.data.UserData;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.CompletableFuture;
 
 /**
- * A migrator that migrates data from other data formats to HuskSync's {@link UserData} format
+ * A migrator that migrates data from other data formats to HuskSync's format
  */
 public abstract class Migrator {
 

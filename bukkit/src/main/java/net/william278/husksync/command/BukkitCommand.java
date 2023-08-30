@@ -22,7 +22,7 @@ package net.william278.husksync.command;
 
 import me.lucko.commodore.CommodoreProvider;
 import net.william278.husksync.BukkitHuskSync;
-import net.william278.husksync.player.BukkitPlayer;
+import net.william278.husksync.player.BukkitUser;
 import net.william278.husksync.player.CommandUser;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -48,7 +48,7 @@ public class BukkitCommand extends org.bukkit.command.Command {
 
     @Override
     public boolean execute(@NotNull CommandSender sender, @NotNull String commandLabel, @NotNull String[] args) {
-        this.command.onExecuted(sender instanceof Player p ? BukkitPlayer.adapt(p, plugin) : plugin.getConsole(), args);
+        this.command.onExecuted(sender instanceof Player p ? BukkitUser.adapt(p, plugin) : plugin.getConsole(), args);
         return true;
     }
 
@@ -59,7 +59,7 @@ public class BukkitCommand extends org.bukkit.command.Command {
         if (!(this.command instanceof TabProvider provider)) {
             return List.of();
         }
-        final CommandUser user = sender instanceof Player p ? BukkitPlayer.adapt(p, plugin) : plugin.getConsole();
+        final CommandUser user = sender instanceof Player p ? BukkitUser.adapt(p, plugin) : plugin.getConsole();
         return provider.getSuggestions(user, args);
     }
 

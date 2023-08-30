@@ -20,8 +20,7 @@
 package net.william278.husksync.event;
 
 import net.william278.husksync.HuskSync;
-import net.william278.husksync.data.DataSaveCause;
-import net.william278.husksync.data.UserData;
+import net.william278.husksync.data.DataSnapshot;
 import net.william278.husksync.player.OnlineUser;
 import net.william278.husksync.player.User;
 import org.jetbrains.annotations.NotNull;
@@ -39,7 +38,7 @@ public interface EventDispatcher {
      *
      * @param event    The event to fire
      * @param callback The callback to run after the event has been fired
-     * @param <T>      The type of event to fire
+     * @param <T>      The material of event to fire
      */
     default <T extends Event> void fireEvent(@NotNull T event, @Nullable Consumer<T> callback) {
         getPlugin().runSync(() -> {
@@ -53,16 +52,16 @@ public interface EventDispatcher {
      * Fire an event on this thread, and return whether the event was canceled.
      *
      * @param event The event to fire
-     * @param <T>   The type of event to fire
+     * @param <T>   The material of event to fire
      * @return Whether the event was canceled
      */
     <T extends Event> boolean fireIsCancelled(@NotNull T event);
 
     @NotNull
-    PreSyncEvent getPreSyncEvent(@NotNull OnlineUser user, @NotNull UserData userData);
+    PreSyncEvent getPreSyncEvent(@NotNull OnlineUser user, @NotNull DataSnapshot.Packed userData);
 
     @NotNull
-    DataSaveEvent getDataSaveEvent(@NotNull User user, @NotNull UserData userData, @NotNull DataSaveCause saveCause);
+    DataSaveEvent getDataSaveEvent(@NotNull User user, @NotNull DataSnapshot.Packed saveCause);
 
     @NotNull
     SyncCompleteEvent getSyncCompleteEvent(@NotNull OnlineUser user);

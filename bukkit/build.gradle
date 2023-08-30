@@ -10,6 +10,7 @@ dependencies {
     implementation 'net.kyori:adventure-platform-bukkit:4.3.0'
     implementation 'dev.triumphteam:triumph-gui:3.1.5'
     implementation 'space.arim.morepaperlib:morepaperlib:0.4.3'
+    implementation 'de.tr7zw:item-nbt-api:2.11.3'
 
     compileOnly 'org.spigotmc:spigot-api:1.16.5-R0.1-SNAPSHOT'
     compileOnly 'commons-io:commons-io:2.13.0'
@@ -31,6 +32,7 @@ shadowJar {
     relocate 'org.apache.commons.text', 'net.william278.husksync.libraries.commons.text'
     relocate 'org.apache.commons.lang3', 'net.william278.husksync.libraries.commons.lang3'
     relocate 'com.google.gson', 'net.william278.husksync.libraries.gson'
+    relocate 'com.fatboyindustrial', 'net.william278.husktowns.libraries'
     relocate 'de.themoep', 'net.william278.husksync.libraries'
     relocate 'net.kyori', 'net.william278.husksync.libraries'
     relocate 'org.jetbrains', 'net.william278.husksync.libraries'
@@ -52,4 +54,5 @@ shadowJar {
     relocate 'net.william278.hslmigrator', 'net.william278.husksync.libraries.hslconverter'
     relocate 'net.william278.annotaml', 'net.william278.husksync.libraries.annotaml'
     relocate 'space.arim.morepaperlib', 'net.william278.husksync.libraries.paperlib'
+    relocate 'de.tr7zw', 'net.william278.husksync.libraries.itemnbtapi'
 }

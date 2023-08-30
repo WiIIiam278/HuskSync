@@ -19,21 +19,17 @@
 
 package net.william278.husksync.command;
 
-import de.themoep.minedown.adventure.MineDown;
 import net.william278.husksync.HuskSync;
-import net.william278.husksync.data.DataSaveCause;
-import net.william278.husksync.data.UserData;
-import net.william278.husksync.data.UserDataBuilder;
-import net.william278.husksync.data.UserDataSnapshot;
 import net.william278.husksync.player.CommandUser;
 import net.william278.husksync.player.OnlineUser;
 import net.william278.husksync.player.User;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.text.SimpleDateFormat;
-import java.util.*;
-import java.util.logging.Level;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.UUID;
 
 public class EnderChestCommand extends Command implements TabProvider {
 
@@ -62,43 +58,43 @@ public class EnderChestCommand extends Command implements TabProvider {
                 // View user data by specified UUID
                 try {
                     final UUID versionUuid = UUID.fromString(args[1]);
-                    plugin.getDatabase().getUserData(user, versionUuid).ifPresentOrElse(
-                            userData -> showEnderChestMenu(player, userData, user, false),
-                            () -> plugin.getLocales().getLocale("error_invalid_version_uuid")
-                                    .ifPresent(player::sendMessage));
+//                    plugin.getDatabase().getUserData(user, versionUuid).ifPresentOrElse(
+//                            userData -> showEnderChestMenu(player, userData, user, false),
+//                            () -> plugin.getLocales().getLocale("error_invalid_version_uuid")
+//                                    .ifPresent(player::sendMessage));
                 } catch (IllegalArgumentException e) {
                     plugin.getLocales().getLocale("error_invalid_syntax",
                             "/enderchest <player> [version_uuid]").ifPresent(player::sendMessage);
                 }
             } else {
                 // View (and edit) the latest user data
-                plugin.getDatabase().getCurrentUserData(user).ifPresentOrElse(
-                        versionedUserData -> showEnderChestMenu(player, versionedUserData, user,
-                                player.hasPermission(getPermission("edit"))),
-                        () -> plugin.getLocales().getLocale("error_no_data_to_display")
-                                .ifPresent(player::sendMessage));
+//                plugin.getDatabase().getCurrentUserData(user).ifPresentOrElse(
+//                        versionedUserData -> showEnderChestMenu(player, versionedUserData, user,
+//                                player.hasPermission(getPermission("edit"))),
+//                        () -> plugin.getLocales().getLocale("error_no_data_to_display")
+//                                .ifPresent(player::sendMessage));
             }
         }, () -> plugin.getLocales().getLocale("error_invalid_player")
                 .ifPresent(player::sendMessage));
     }
 
-    private void showEnderChestMenu(@NotNull OnlineUser player, @NotNull UserDataSnapshot userDataSnapshot,
+    /*private void showEnderChestMenu(@NotNull OnlineUser player, @NotNull UserDataSnapshot userDataSnapshot,
                                     @NotNull User dataOwner, boolean allowEdit) {
         plugin.runAsync(() -> {
             final UserData data = userDataSnapshot.userData();
             data.getEnderChest().ifPresent(itemData -> {
                 // Show message
-                plugin.getLocales().getLocale("ender_chest_viewer_opened", dataOwner.username,
+                plugin.getLocales().getLocale("ender_chest_viewer_opened", dataOwner.getUsername(),
                                 new SimpleDateFormat("MMM dd yyyy, HH:mm:ss.sss")
                                         .format(userDataSnapshot.versionTimestamp()))
                         .ifPresent(player::sendMessage);
 
                 // Show inventory menu
                 player.showMenu(itemData, allowEdit, 3, plugin.getLocales()
-                                .getLocale("ender_chest_viewer_menu_title", dataOwner.username)
+                                .getLocale("ender_chest_viewer_menu_title", dataOwner.getUsername())
                                 .orElse(new MineDown("Ender Chest Viewer")))
                         .exceptionally(throwable -> {
-                            plugin.log(Level.WARNING, "Exception displaying inventory menu to " + player.username, throwable);
+                            plugin.log(Level.WARNING, "Exception displaying inventory menu to " + player.getUsername(), throwable);
                             return Optional.empty();
                         })
                         .thenAccept(dataOnClose -> {
@@ -124,13 +120,13 @@ public class EnderChestCommand extends Command implements TabProvider {
                         });
             });
         });
-    }
+    }*/
 
     @Nullable
     @Override
     public List<String> suggest(@NotNull CommandUser executor, @NotNull String[] args) {
         return switch (args.length) {
-            case 0, 1 -> plugin.getOnlineUsers().stream().map(user -> user.username).toList();
+            case 0, 1 -> plugin.getOnlineUsers().stream().map(User::getUsername).toList();
             default -> null;
         };
     }

@@ -12,7 +12,7 @@ This can be useful in debugging synchronization problems or for manually inspect
 ### Dumping to a file
 After clicking the "File Dump..." button (equivalent to `/userdata dump <user> <snapshot-id> file`), a dump of this user data entry will be output in `~/plugins/HuskSync/dumps/`.
 
-The name of the generated .json file will match the following format: `<username>_<timestamp>_<save-cause>_<short-uuid>.json`
+The name of the generated .json file will match the following format: `<username>_<timestamp>_<save-saveCause>_<short-uuid>.json`
 
 <details>
 <summary>Example output file: William278_2022-10-12_21-46-37_disconnect_f7719f5c.json</summary>

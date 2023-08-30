@@ -1,4 +1,4 @@
-If your server uses the `keepInventory` gamerule, where players keep the contents of their inventory after dying, HuskSync's built-in snapshot-on-death and dead-player synchronisation features can cause a conflict leading to synchronisation issues.
+If your server uses the `keepInventory` gamerule, where players keep the contents of their inventory after dying, HuskSync's built-in snapshot-on-death and dead-player synchronisation features can saveCause a conflict leading to synchronisation issues.
 
 To solve this issue, you will need to adjust three settings in your `config.yml` file, as described below.
 

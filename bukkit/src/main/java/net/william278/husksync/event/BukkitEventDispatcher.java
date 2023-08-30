@@ -19,8 +19,7 @@
 
 package net.william278.husksync.event;
 
-import net.william278.husksync.data.DataSaveCause;
-import net.william278.husksync.data.UserData;
+import net.william278.husksync.data.DataSnapshot;
 import net.william278.husksync.player.OnlineUser;
 import net.william278.husksync.player.User;
 import org.bukkit.Bukkit;
@@ -36,20 +35,20 @@ public interface BukkitEventDispatcher extends EventDispatcher {
 
     @NotNull
     @Override
-    default PreSyncEvent getPreSyncEvent(@NotNull OnlineUser user, @NotNull UserData userData) {
-        return new BukkitPreSyncEvent(user, userData);
+    default PreSyncEvent getPreSyncEvent(@NotNull OnlineUser user, @NotNull DataSnapshot.Packed data) {
+        return new BukkitPreSyncEvent(user, data, getPlugin());
     }
 
     @NotNull
     @Override
-    default DataSaveEvent getDataSaveEvent(@NotNull User user, @NotNull UserData userData, @NotNull DataSaveCause saveCause) {
-        return new BukkitDataSaveEvent(user, userData, saveCause);
+    default DataSaveEvent getDataSaveEvent(@NotNull User user, @NotNull DataSnapshot.Packed data) {
+        return new BukkitDataSaveEvent(user, data, getPlugin());
     }
 
     @NotNull
     @Override
     default SyncCompleteEvent getSyncCompleteEvent(@NotNull OnlineUser user) {
-        return new BukkitSyncCompleteEvent(user);
+        return new BukkitSyncCompleteEvent(user, getPlugin());
     }
 
 }

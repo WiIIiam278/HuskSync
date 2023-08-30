@@ -19,7 +19,8 @@
 
 package net.william278.husksync.event;
 
-import net.william278.husksync.data.UserData;
+import net.william278.husksync.HuskSync;
+import net.william278.husksync.data.DataSnapshot;
 import net.william278.husksync.player.OnlineUser;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
@@ -28,12 +29,14 @@ import org.jetbrains.annotations.NotNull;
 @SuppressWarnings("unused")
 public class BukkitPreSyncEvent extends BukkitPlayerEvent implements PreSyncEvent, Cancellable {
     private static final HandlerList HANDLER_LIST = new HandlerList();
+    private final HuskSync plugin;
+    private final DataSnapshot.Packed data;
     private boolean cancelled = false;
-    private UserData userData;
 
-    protected BukkitPreSyncEvent(@NotNull OnlineUser player, @NotNull UserData userData) {
+    protected BukkitPreSyncEvent(@NotNull OnlineUser player, @NotNull DataSnapshot.Packed data, @NotNull HuskSync plugin) {
         super(player);
-        this.userData = userData;
+        this.data = data;
+        this.plugin = plugin;
     }
 
     @Override
@@ -48,13 +51,14 @@ public class BukkitPreSyncEvent extends BukkitPlayerEvent implements PreSyncEven
 
     @Override
     @NotNull
-    public UserData getUserData() {
-        return userData;
+    public DataSnapshot.Packed getData() {
+        return data;
     }
 
+    @NotNull
     @Override
-    public void setUserData(@NotNull UserData userData) {
-        this.userData = userData;
+    public HuskSync getPlugin() {
+        return plugin;
     }
 
     @NotNull

@@ -21,9 +21,8 @@ package net.william278.husksync.database;
 
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.config.Settings;
-import net.william278.husksync.data.DataSaveCause;
-import net.william278.husksync.data.UserData;
-import net.william278.husksync.data.UserDataSnapshot;
+import net.william278.husksync.data.DataSnapshot.SaveCause;
+import net.william278.husksync.data.DataSnapshot;
 import net.william278.husksync.migrator.Migrator;
 import net.william278.husksync.player.User;
 import org.jetbrains.annotations.ApiStatus;
@@ -109,27 +108,27 @@ public abstract class Database {
      * Get the current uniquely versioned user data for a given user, if it exists.
      *
      * @param user the user to get data for
-     * @return an optional containing the {@link UserDataSnapshot}, if it exists, or an empty optional if it does not
+     * @return an optional containing the {@link DataSnapshot}, if it exists, or an empty optional if it does not
      */
-    public abstract Optional<UserDataSnapshot> getCurrentUserData(@NotNull User user);
+    public abstract Optional<DataSnapshot.Packed> getCurrentUserData(@NotNull User user);
 
     /**
-     * Get all {@link UserDataSnapshot} entries for a user from the database.
+     * Get all {@link DataSnapshot} entries for a user from the database.
      *
      * @param user The user to get data for
-     * @return A future returning a list of a user's {@link UserDataSnapshot} entries
+     * @return A future returning a list of a user's {@link DataSnapshot} entries
      */
     @NotNull
-    public abstract List<UserDataSnapshot> getUserData(@NotNull User user);
+    public abstract List<DataSnapshot.Packed> getUserData(@NotNull User user);
 
     /**
-     * Gets a specific {@link UserDataSnapshot} entry for a user from the database, by its UUID.
+     * Gets a specific {@link DataSnapshot} entry for a user from the database, by its UUID.
      *
      * @param user        The user to get data for
-     * @param versionUuid The UUID of the {@link UserDataSnapshot} entry to get
-     * @return A future returning an optional containing the {@link UserDataSnapshot}, if it exists, or an empty optional if it does not
+     * @param versionUuid The UUID of the {@link DataSnapshot} entry to get
+     * @return A future returning an optional containing the {@link DataSnapshot}, if it exists, or an empty optional if it does not
      */
-    public abstract Optional<UserDataSnapshot> getUserData(@NotNull User user, @NotNull UUID versionUuid);
+    public abstract Optional<DataSnapshot.Packed> getUserData(@NotNull User user, @NotNull UUID versionUuid);
 
     /**
      * <b>(Internal)</b> Prune user data for a given user to the maximum value as configured.
@@ -140,10 +139,10 @@ public abstract class Database {
     protected abstract void rotateUserData(@NotNull User user);
 
     /**
-     * Deletes a specific {@link UserDataSnapshot} entry for a user from the database, by its UUID.
+     * Deletes a specific {@link DataSnapshot} entry for a user from the database, by its UUID.
      *
      * @param user        The user to get data for
-     * @param versionUuid The UUID of the {@link UserDataSnapshot} entry to delete
+     * @param versionUuid The UUID of the {@link DataSnapshot} entry to delete
      */
     public abstract boolean deleteUserData(@NotNull User user, @NotNull UUID versionUuid);
 
@@ -152,66 +151,71 @@ public abstract class Database {
      * </p>
      * This will remove the oldest data for the user if the amount of data exceeds the limit as configured
      *
-     * @param user The user to add data for
-     * @param data The {@link UserData} to set.
-     *             The implementation should version it with a random UUID and the current timestamp during insertion.
-     * @see UserDataSnapshot#create(UserData)
+     * @param user     The user to add data for
+     * @param snapshot The {@link DataSnapshot} to set.
+     *                 The implementation should version it with a random UUID and the current timestamp during insertion.
+     * @see net.william278.husksync.data.DataOwner#createSnapshot(SaveCause)
      */
-    public void setUserData(@NotNull User user, @NotNull UserData data, @NotNull DataSaveCause cause) {
-        if (cause != DataSaveCause.SERVER_SHUTDOWN) {
+    public void setUserData(@NotNull User user, @NotNull DataSnapshot.Packed snapshot) {
+        if (snapshot.getSaveCause() != SaveCause.SERVER_SHUTDOWN) {
             plugin.fireEvent(
-                    plugin.getDataSaveEvent(user, data, cause),
-                    (event) -> this.createUserData(user, data, cause)
+                    plugin.getDataSaveEvent(user, snapshot),
+                    (event) -> this.createUserData(user, snapshot)
             );
             return;
         }
 
-        this.createUserData(user, data, cause);
+        this.createUserData(user, snapshot);
     }
 
     /**
      * <b>Internal</b> - Create user data in the database
      *
-     * @param user  The user to add data for
-     * @param data  The {@link UserData} to set.
-     * @param cause The cause of the data save
+     * @param user The user to add data for
+     * @param data The {@link DataSnapshot} to set.
      */
     @ApiStatus.Internal
-    protected abstract void createUserData(@NotNull User user, @NotNull UserData data, @NotNull DataSaveCause cause);
+    protected abstract void createUserData(@NotNull User user, @NotNull DataSnapshot.Packed data);
 
     /**
-     * Pin or unpin a saved {@link UserDataSnapshot} by given version UUID
+     * Update a saved {@link DataSnapshot} by given version UUID
      *
-     * @param user        The user whose data snapshot is being pinned or unpinned
-     * @param versionUuid The UUID of the user's {@link UserDataSnapshot} entry to pin/unpin
-     * @param pinned      {@code true} to pin the data, {@code false} to unpin it
-     * @see UserDataSnapshot#pinned()
+     * @param user        The user whose data snapshot
+     * @param versionUuid The UUID of the user's {@link DataSnapshot} entry
+     * @param snapshot    The {@link DataSnapshot} to update
      */
-    protected abstract void pinUserData(@NotNull User user, @NotNull UUID versionUuid, boolean pinned);
+    protected abstract void updateUserData(@NotNull User user, @NotNull UUID versionUuid,
+                                           @NotNull DataSnapshot.Packed snapshot);
 
     /**
-     * Unpin a saved {@link UserDataSnapshot} by given version UUID, setting it's {@code pinned} state to {@code false}.
+     * Unpin a saved {@link DataSnapshot} by given version UUID, setting it's {@code pinned} state to {@code false}.
      *
      * @param user        The user to unpin the data for
-     * @param versionUuid The UUID of the user's {@link UserDataSnapshot} entry to unpin
-     * @see UserDataSnapshot#pinned()
+     * @param versionUuid The UUID of the user's {@link DataSnapshot} entry to unpin
+     * @see DataSnapshot#isPinned()
      */
     public final void unpinUserData(@NotNull User user, @NotNull UUID versionUuid) {
-        this.pinUserData(user, versionUuid, false);
+        this.getUserData(user, versionUuid).ifPresent(data -> {
+            data.edit(plugin, (snapshot) -> snapshot.setPinned(false));
+            this.updateUserData(user, versionUuid, data);
+        });
     }
 
     /**
-     * Pin a saved {@link UserDataSnapshot} by given version UUID, setting it's {@code pinned} state to {@code true}.
+     * Pin a saved {@link DataSnapshot} by given version UUID, setting it's {@code pinned} state to {@code true}.
      *
      * @param user        The user to pin the data for
-     * @param versionUuid The UUID of the user's {@link UserDataSnapshot} entry to pin
+     * @param versionUuid The UUID of the user's {@link DataSnapshot} entry to pin
      */
     public final void pinUserData(@NotNull User user, @NotNull UUID versionUuid) {
-        this.pinUserData(user, versionUuid, true);
+        this.getUserData(user, versionUuid).ifPresent(data -> {
+            data.edit(plugin, (snapshot) -> snapshot.setPinned(true));
+            this.updateUserData(user, versionUuid, data);
+        });
     }
 
     /**
-     * Wipes <b>all</b> {@link UserData} entries from the database.
+     * Wipes <b>all</b> {@link User} entries from the database.
      * <b>This should never be used</b>, except when preparing tables for migration.
      *
      * @see Migrator#start()

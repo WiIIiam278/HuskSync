@@ -30,16 +30,14 @@ import com.djrapitops.plan.extension.icon.Icon;
 import com.djrapitops.plan.extension.table.Table;
 import com.djrapitops.plan.extension.table.TableColumnFormat;
 import net.william278.husksync.HuskSync;
-import net.william278.husksync.data.UserDataSnapshot;
-import net.william278.husksync.player.User;
+import net.william278.husksync.data.DataContainer;
+import net.william278.husksync.data.DataSnapshot;
+import net.william278.husksync.data.MutableDataStore;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Date;
-import java.util.Locale;
+import java.time.OffsetDateTime;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-import java.util.regex.Pattern;
 
 @TabInfo(
         tab = "Current Status",
@@ -84,14 +82,11 @@ public class PlanDataExtension implements DataExtension {
         };
     }
 
-    private CompletableFuture<Optional<UserDataSnapshot>> getCurrentUserData(@NotNull UUID uuid) {
-        return plugin.supplyAsync(() -> {
-            final Optional<User> optionalUser = plugin.getDatabase().getUser(uuid);
-            if (optionalUser.isPresent()) {
-                return plugin.getDatabase().getCurrentUserData(optionalUser.get());
-            }
-            return Optional.empty();
-        });
+    // Get the user's latest data snapshot
+    private Optional<DataSnapshot.Unpacked> getLatestSnapshot(@NotNull UUID uuid) {
+        return plugin.getDatabase().getUser(uuid)
+                .flatMap(user -> plugin.getDatabase().getCurrentUserData(user))
+                .map(snapshot -> snapshot.unpack(plugin));
     }
 
     @BooleanProvider(
@@ -104,7 +99,7 @@ public class PlanDataExtension implements DataExtension {
     )
     @Tab("Current Status")
     public boolean getUserHasSynced(@NotNull UUID uuid) {
-        return getCurrentUserData(uuid).join().isPresent();
+        return getLatestSnapshot(uuid).isPresent();
     }
 
     @Conditional("hasSynced")
@@ -118,9 +113,10 @@ public class PlanDataExtension implements DataExtension {
     )
     @Tab("Current Status")
     public long getCurrentDataTimestamp(@NotNull UUID uuid) {
-        return getCurrentUserData(uuid).join().map(
-                        versionedUserData -> versionedUserData.versionTimestamp().getTime())
-                .orElse(new Date().getTime());
+        return getLatestSnapshot(uuid)
+                .map(DataSnapshot::getTimestamp)
+                .orElse(OffsetDateTime.now())
+                .toEpochSecond();
     }
 
     @Conditional("hasSynced")
@@ -133,9 +129,8 @@ public class PlanDataExtension implements DataExtension {
     )
     @Tab("Current Status")
     public String getCurrentDataId(@NotNull UUID uuid) {
-        return getCurrentUserData(uuid).join()
-                .map(versionedUserData -> versionedUserData.versionUUID().toString()
-                        .split(Pattern.quote("-"))[0])
+        return getLatestSnapshot(uuid)
+                .map(DataSnapshot::getShortId)
                 .orElse(UNKNOWN_STRING);
     }
 
@@ -149,9 +144,9 @@ public class PlanDataExtension implements DataExtension {
     )
     @Tab("Current Status")
     public String getHealth(@NotNull UUID uuid) {
-        return getCurrentUserData(uuid).join()
-                .flatMap(versionedUserData -> versionedUserData.userData().getStatus())
-                .map(statusData -> (int) statusData.health + "/" + (int) statusData.maxHealth)
+        return getLatestSnapshot(uuid)
+                .flatMap(MutableDataStore::getHealth)
+                .map(health -> String.format("%s / %s", health.getHealth(), health.getMaxHealth()))
                 .orElse(UNKNOWN_STRING);
     }
 
@@ -165,10 +160,10 @@ public class PlanDataExtension implements DataExtension {
     )
     @Tab("Current Status")
     public long getHunger(@NotNull UUID uuid) {
-        return getCurrentUserData(uuid).join()
-                .flatMap(versionedUserData -> versionedUserData.userData().getStatus())
-                .map(statusData -> (long) statusData.hunger)
-                .orElse(0L);
+        return getLatestSnapshot(uuid)
+                .flatMap(MutableDataStore::getFood)
+                .map(DataContainer.Food::getFoodLevel)
+                .orElse(20);
     }
 
     @Conditional("hasSynced")
@@ -181,10 +176,10 @@ public class PlanDataExtension implements DataExtension {
     )
     @Tab("Current Status")
     public long getExperienceLevel(@NotNull UUID uuid) {
-        return getCurrentUserData(uuid).join()
-                .flatMap(versionedUserData -> versionedUserData.userData().getStatus())
-                .map(statusData -> (long) statusData.expLevel)
-                .orElse(0L);
+        return getLatestSnapshot(uuid)
+                .flatMap(MutableDataStore::getExperience)
+                .map(DataContainer.Experience::getExpLevel)
+                .orElse(0);
     }
 
     @Conditional("hasSynced")
@@ -197,9 +192,9 @@ public class PlanDataExtension implements DataExtension {
     )
     @Tab("Current Status")
     public String getGameMode(@NotNull UUID uuid) {
-        return getCurrentUserData(uuid).join()
-                .flatMap(versionedUserData -> versionedUserData.userData().getStatus())
-                .map(status -> status.gameMode)
+        return getLatestSnapshot(uuid)
+                .flatMap(MutableDataStore::getGameMode)
+                .map(DataContainer.GameMode::getGameMode)
                 .orElse(UNKNOWN_STRING);
     }
 
@@ -212,10 +207,10 @@ public class PlanDataExtension implements DataExtension {
     )
     @Tab("Current Status")
     public long getAdvancementsCompleted(@NotNull UUID playerUUID) {
-        return getCurrentUserData(playerUUID).join()
-                .flatMap(versionedUserData -> versionedUserData.userData().getAdvancements())
-                .map(advancementsData -> (long) advancementsData.size())
-                .orElse(0L);
+        return getLatestSnapshot(playerUUID)
+                .flatMap(MutableDataStore::getAdvancements)
+                .map(DataContainer.Advancements::getCompleted)
+                .stream().count();
     }
 
     @Conditional("hasSynced")
@@ -229,12 +224,13 @@ public class PlanDataExtension implements DataExtension {
                 .columnThree("Cause", new Icon(Family.SOLID, "flag", Color.NONE))
                 .columnFour("Pinned", new Icon(Family.SOLID, "thumbtack", Color.NONE));
         plugin.getDatabase().getUser(playerUUID).ifPresent(user ->
-                plugin.getDatabase().getUserData(user).forEach(versionedUserData -> dataSnapshotsTable.addRow(
-                        versionedUserData.versionTimestamp().getTime(),
-                        versionedUserData.versionUUID().toString().split("-")[0],
-                        versionedUserData.cause().name().toLowerCase(Locale.ENGLISH).replaceAll("_", " "),
-                        versionedUserData.pinned() ? PINNED_HTML_STRING + "Pinned" : "Unpinned"
-                )));
+                plugin.getDatabase().getUserData(user).forEach(snapshot -> dataSnapshotsTable.addRow(
+                        snapshot.getTimestamp().toEpochSecond(),
+                        snapshot.getShortId(),
+                        snapshot.getSaveCause().getDisplayName(),
+                        snapshot.isPinned() ? PINNED_HTML_STRING + "Pinned" : "Unpinned"
+                ))
+        );
         return dataSnapshotsTable.build();
     }
 }

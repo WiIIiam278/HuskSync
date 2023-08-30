@@ -6,7 +6,7 @@ HuskSync creates what is known as "Snapshots" of a user's data whenever it saves
 Each user data snapshot has:
 - a unique ID
 - a timestamp (when it was created)
-- a save cause (why it was created)
+- a save saveCause (why it was created)
 - a flag to indicate if the snapshot has been pinned (preventing it from being rotated)
 
 By default, HuskSync will store 5 user data snapshots about a user (including their latest snapshot). After that, when a new user snapshot is set, the oldest snapshot will automatically be deleted. You can change the number of snapshots to keep by changing the `max_user_data_snapshots` setting in the `config.yml` file (minimum 1).
@@ -42,4 +42,4 @@ Data save causes, marked with a 🚩 flag, indicate what caused the data to be s
 - **api**: Indicates data was saved by an [[API]] call
 - **mpdb migration**: Indicates data was saved from being imported from MySQLPlayerDataBridge (See [[MPDB Migration]])
 - **legacy migration**: Indicates data was saved from being imported from a legacy version (v1.x - See [[Legacy Migration]])
-- **unknown**: Indicates data was saved by an unknown cause.
+- **unknown**: Indicates data was saved by an unknown saveCause.

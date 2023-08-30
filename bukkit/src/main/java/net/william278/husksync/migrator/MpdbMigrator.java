@@ -135,7 +135,7 @@ public class MpdbMigrator extends Migrator {
                 final AtomicInteger playersConverted = new AtomicInteger();
                 dataToMigrate.forEach(data -> data.toUserData(mpdbConverter, plugin, minecraftVersion).thenAccept(convertedData -> {
                     plugin.getDatabase().ensureUser(data.user());
-                    plugin.getDatabase().setUserData(data.user(), convertedData, DataSaveCause.MPDB_MIGRATION);
+                    plugin.getDatabase().setUserData(data.user(), convertedData);
                     playersConverted.getAndIncrement();
                     if (playersConverted.get() % 50 == 0) {
                         plugin.log(Level.INFO, "Converted MySQLPlayerDataBridge data for " + playersConverted + " players...");
@@ -285,8 +285,8 @@ public class MpdbMigrator extends Migrator {
          * @return A {@link CompletableFuture} that will resolve to the converted {@link UserData} object
          */
         @NotNull
-        public CompletableFuture<UserData> toUserData(@NotNull MPDBConverter converter, @NotNull HuskSync plugin,
-                                                      @NotNull String minecraftVersion) {
+        public CompletableFuture<DataSnapshot.Packed> toUserData(@NotNull MPDBConverter converter,
+                                                                 @NotNull HuskSync plugin) {
             return plugin.supplyAsync(() -> {
                 // Combine inventory and armour
                 final Inventory inventory = Bukkit.createInventory(null, InventoryType.PLAYER);

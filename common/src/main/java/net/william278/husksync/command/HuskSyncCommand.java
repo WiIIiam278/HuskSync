@@ -82,7 +82,7 @@ public class HuskSyncCommand extends Command implements TabProvider {
 
     @Override
     public void execute(@NotNull CommandUser executor, @NotNull String[] args) {
-        final String action = parseStringArg(args, 0).orElse("about");
+        final String action = parseStringArg(args).orElse("about");
         if (SUB_COMMANDS.containsKey(action) && !executor.hasPermission(getPermission(action))) {
             plugin.getLocales().getLocale("error_no_permission")
                     .ifPresent(executor::sendMessage);

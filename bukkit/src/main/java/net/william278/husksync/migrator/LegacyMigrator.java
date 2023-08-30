@@ -23,7 +23,7 @@ import com.zaxxer.hikari.HikariDataSource;
 import me.william278.husksync.bukkit.data.DataSerializer;
 import net.william278.hslmigrator.HSLConverter;
 import net.william278.husksync.HuskSync;
-import net.william278.husksync.data.*;
+import net.william278.husksync.data.DataSnapshot;
 import net.william278.husksync.player.User;
 import org.bukkit.Material;
 import org.bukkit.Statistic;
@@ -138,9 +138,9 @@ public class LegacyMigrator extends Migrator {
                 dataToMigrate.forEach(data -> data.toUserData(hslConverter, plugin, minecraftVersion).thenAccept(convertedData -> {
                     plugin.getDatabase().ensureUser(data.user());
                     try {
-                        plugin.getDatabase().setUserData(data.user(), convertedData, DataSaveCause.LEGACY_MIGRATION);
+                        plugin.getDatabase().setUserData(data.user(), convertedData, DataSnapshot.SaveCause.LEGACY_MIGRATION);
                     } catch (Throwable e) {
-                        plugin.log(Level.SEVERE, "Failed to migrate legacy data for " + data.user().username + ": " + e.getMessage());
+                        plugin.log(Level.SEVERE, "Failed to migrate legacy data for " + data.user().getUsername() + ": " + e.getMessage());
                         return;
                     }
 

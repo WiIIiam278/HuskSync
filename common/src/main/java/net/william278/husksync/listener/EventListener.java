@@ -20,8 +20,8 @@
 package net.william278.husksync.listener;
 
 import net.william278.husksync.HuskSync;
-import net.william278.husksync.data.DataSaveCause;
-import net.william278.husksync.data.ItemData;
+import net.william278.husksync.data.DataContainer;
+import net.william278.husksync.data.DataSnapshot;
 import net.william278.husksync.player.OnlineUser;
 import net.william278.husksync.util.Task;
 import org.jetbrains.annotations.NotNull;
@@ -66,7 +66,7 @@ public abstract class EventListener {
         if (user.isNpc()) {
             return;
         }
-        lockedPlayers.add(user.uuid);
+        lockedPlayers.add(user.getUuid());
 
         plugin.runAsyncDelayed(() -> {
             // Fetch from the database if the user isn't changing servers
@@ -91,8 +91,8 @@ public abstract class EventListener {
                 }
 
                 plugin.getRedisManager().getUserData(user).ifPresent(redisData -> {
-                    user.setData(redisData, plugin);
                     task.get().cancel();
+                    user.applySnapshot(redisData);
                 });
             };
             task.set(plugin.getRepeatingTask(runnable, 4));
@@ -108,8 +108,7 @@ public abstract class EventListener {
      */
     private void setUserFromDatabase(@NotNull OnlineUser user) {
         plugin.getDatabase().getCurrentUserData(user).ifPresentOrElse(
-                snapshot -> user.setData(snapshot.userData(), plugin),
-                () -> user.completeSynchronization(true, plugin)
+                user::applySnapshot, () -> user.completeSync(true, plugin)
         );
     }
 
@@ -125,18 +124,18 @@ public abstract class EventListener {
         }
 
         // Don't sync players awaiting synchronization
-        if (lockedPlayers.contains(user.uuid) || user.isNpc()) {
+        if (lockedPlayers.contains(user.getUuid()) || user.isNpc()) {
             return;
         }
 
         // Handle disconnection
         try {
-            lockedPlayers.add(user.uuid);
-            plugin.getRedisManager().setUserServerSwitch(user).thenRun(() -> user.getUserData(plugin)
-                    .ifPresent(userData -> {
-                        plugin.getRedisManager().setUserData(user, userData);
-                        plugin.getDatabase().setUserData(user, userData, DataSaveCause.DISCONNECT);
-                    }));
+            lockedPlayers.add(user.getUuid());
+            plugin.getRedisManager().setUserServerSwitch(user).thenRun(() -> {
+                final DataSnapshot.Packed data = user.createSnapshot(DataSnapshot.SaveCause.DISCONNECT);
+                plugin.getRedisManager().setUserData(user, data);
+                plugin.getDatabase().setUserData(user, data);
+            });
         } catch (Throwable e) {
             plugin.log(Level.SEVERE, "An exception occurred handling a player disconnection", e);
         }
@@ -152,10 +151,10 @@ public abstract class EventListener {
             return;
         }
         usersInWorld.stream()
-                .filter(user -> !lockedPlayers.contains(user.uuid) && !user.isNpc())
-                .forEach(user -> user.getUserData(plugin)
-                        .ifPresent(userData -> plugin.getDatabase()
-                                .setUserData(user, userData, DataSaveCause.WORLD_SAVE)));
+                .filter(user -> !lockedPlayers.contains(user.getUuid()) && !user.isNpc())
+                .forEach(user -> plugin.getDatabase().setUserData(
+                        user, user.createSnapshot(DataSnapshot.SaveCause.WORLD_SAVE)
+                ));
     }
 
     /**
@@ -164,23 +163,22 @@ public abstract class EventListener {
      * @param user  The user who died
      * @param drops The items that this user would have dropped
      */
-    protected void saveOnPlayerDeath(@NotNull OnlineUser user, @NotNull ItemData drops) {
-        if (disabling || !plugin.getSettings().doSaveOnDeath() || lockedPlayers.contains(user.uuid) || user.isNpc()
+    protected void saveOnPlayerDeath(@NotNull OnlineUser user, @NotNull DataContainer.Items drops) {
+        if (disabling || !plugin.getSettings().doSaveOnDeath() || lockedPlayers.contains(user.getUuid()) || user.isNpc()
                 || (!plugin.getSettings().doSaveEmptyDropsOnDeath() && drops.isEmpty())) {
             return;
         }
 
-        user.getUserData(plugin).ifPresent(data -> plugin.runAsync(() -> {
-            data.getInventory().orElse(ItemData.empty()).serializedItems = drops.serializedItems;
-            plugin.getDatabase().setUserData(user, data, DataSaveCause.DEATH);
-        }));
+        final DataSnapshot.Packed snapshot = user.createSnapshot(DataSnapshot.SaveCause.DEATH);
+        snapshot.edit(plugin, (data -> data.getInventory().ifPresent(inventory -> inventory.setContents(drops))));
+        plugin.getDatabase().setUserData(user, snapshot);
     }
 
     /**
-     * Determine whether a player event should be cancelled
+     * Determine whether a player event should be canceled
      *
      * @param userUuid The UUID of the user to check
-     * @return Whether the event should be cancelled
+     * @return Whether the event should be canceled
      */
     protected final boolean cancelPlayerEvent(@NotNull UUID userUuid) {
         return disabling || lockedPlayers.contains(userUuid);
@@ -194,11 +192,10 @@ public abstract class EventListener {
 
         // Save data for all online users
         plugin.getOnlineUsers().stream()
-                .filter(user -> !lockedPlayers.contains(user.uuid) && !user.isNpc())
+                .filter(user -> !lockedPlayers.contains(user.getUuid()) && !user.isNpc())
                 .forEach(user -> {
-                    lockedPlayers.add(user.uuid);
-                    user.getUserData(plugin).ifPresent(userData -> plugin.getDatabase()
-                            .setUserData(user, userData, DataSaveCause.SERVER_SHUTDOWN));
+                    lockedPlayers.add(user.getUuid());
+                    plugin.getDatabase().setUserData(user, user.createSnapshot(DataSnapshot.SaveCause.SERVER_SHUTDOWN));
                 });
 
         // Close outstanding connections

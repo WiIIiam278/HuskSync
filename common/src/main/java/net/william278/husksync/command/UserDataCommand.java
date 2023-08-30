@@ -20,12 +20,12 @@
 package net.william278.husksync.command;
 
 import net.william278.husksync.HuskSync;
-import net.william278.husksync.data.DataSaveCause;
-import net.william278.husksync.data.UserData;
-import net.william278.husksync.data.UserDataSnapshot;
+import net.william278.husksync.data.DataSnapshot;
 import net.william278.husksync.player.CommandUser;
+import net.william278.husksync.player.User;
 import net.william278.husksync.util.DataDumper;
 import net.william278.husksync.util.DataSnapshotList;
+import net.william278.husksync.util.DataSnapshotOverview;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -75,7 +75,7 @@ public class UserDataCommand extends Command implements TabProvider {
                         plugin.getDatabase()
                                 .getUserByName(username.toLowerCase(Locale.ENGLISH))
                                 .ifPresentOrElse(user -> plugin.getDatabase().getUserData(user, versionUuid).ifPresentOrElse(
-                                                userData -> userData.displayDataOverview(executor, user, plugin.getLocales()),
+                                                data -> DataSnapshotOverview.of(data.unpack(plugin), user, plugin).show(executor),
                                                 () -> plugin.getLocales().getLocale("error_invalid_version_uuid")
                                                         .ifPresent(executor::sendMessage)),
                                         () -> plugin.getLocales().getLocale("error_invalid_player")
@@ -89,7 +89,7 @@ public class UserDataCommand extends Command implements TabProvider {
                     plugin.getDatabase()
                             .getUserByName(username.toLowerCase(Locale.ENGLISH))
                             .ifPresentOrElse(user -> plugin.getDatabase().getCurrentUserData(user).ifPresentOrElse(
-                                            userData -> userData.displayDataOverview(executor, user, plugin.getLocales()),
+                                            data -> DataSnapshotOverview.of(data.unpack(plugin), user, plugin).show(executor),
                                             () -> plugin.getLocales().getLocale("error_no_data_to_display")
                                                     .ifPresent(executor::sendMessage)),
                                     () -> plugin.getLocales().getLocale("error_invalid_player")
@@ -105,9 +105,8 @@ public class UserDataCommand extends Command implements TabProvider {
                 }
                 final String username = args[1];
                 plugin.getDatabase().getUserByName(username.toLowerCase(Locale.ENGLISH)).ifPresentOrElse(user -> {
-                            final List<UserDataSnapshot> dataList = plugin.getDatabase().getUserData(user);
-
                             // Check if there is data to display
+                            final List<DataSnapshot.Packed> dataList = plugin.getDatabase().getUserData(user);
                             if (dataList.isEmpty()) {
                                 plugin.getLocales().getLocale("error_no_data_to_display")
                                         .ifPresent(executor::sendMessage);
@@ -150,8 +149,8 @@ public class UserDataCommand extends Command implements TabProvider {
                                     plugin.getLocales().getLocale("data_deleted",
                                                     versionUuid.toString().split("-")[0],
                                                     versionUuid.toString(),
-                                                    user.username,
-                                                    user.uuid.toString())
+                                                    user.getUsername(),
+                                                    user.getUuid().toString())
                                             .ifPresent(executor::sendMessage);
                                 } else {
                                     plugin.getLocales().getLocale("error_invalid_version_uuid")
@@ -179,23 +178,25 @@ public class UserDataCommand extends Command implements TabProvider {
                     final UUID versionUuid = UUID.fromString(args[2]);
                     plugin.getDatabase().getUserByName(username.toLowerCase(Locale.ENGLISH)).ifPresentOrElse(
                             user -> {
-                                final Optional<UserDataSnapshot> data = plugin.getDatabase().getUserData(user, versionUuid);
-                                if (data.isEmpty()) {
+                                final Optional<DataSnapshot.Packed> optionalData = plugin.getDatabase().getUserData(user, versionUuid);
+                                if (optionalData.isEmpty()) {
                                     plugin.getLocales().getLocale("error_invalid_version_uuid")
                                             .ifPresent(executor::sendMessage);
                                     return;
                                 }
 
                                 // Restore users with a minimum of one health (prevent restoring players with <=0 health)
-                                final UserData userData = data.get().userData();
-                                userData.getStatus().ifPresent(status -> status.health = Math.max(1, status.health));
+                                final DataSnapshot.Packed data = optionalData.get().copy();
+                                data.edit(plugin, (unpacked -> unpacked.getHealth().ifPresent(
+                                        status -> status.setHealth(Math.max(1, status.getHealth()))
+                                )));
 
-                                // Set the users data and send a message
-                                plugin.getDatabase().setUserData(user, userData, DataSaveCause.BACKUP_RESTORE);
-                                plugin.getRedisManager().sendUserDataUpdate(user, data.get().userData());
+                                // Set the user's data and send a message
+                                plugin.getDatabase().setUserData(user, data);
+                                plugin.getRedisManager().sendUserDataUpdate(user, data);
                                 plugin.getLocales().getLocale("data_restored",
-                                                user.username,
-                                                user.uuid.toString(),
+                                                user.getUsername(),
+                                                user.getUuid().toString(),
                                                 versionUuid.toString().split("-")[0],
                                                 versionUuid.toString())
                                         .ifPresent(executor::sendMessage);
@@ -222,21 +223,21 @@ public class UserDataCommand extends Command implements TabProvider {
                     plugin.getDatabase()
                             .getUserByName(username.toLowerCase(Locale.ENGLISH)).ifPresentOrElse(
                                     user -> plugin.getDatabase().getUserData(user, versionUuid).ifPresentOrElse(userData -> {
-                                        if (userData.pinned()) {
+                                        if (userData.isPinned()) {
                                             plugin.getDatabase().unpinUserData(user, versionUuid);
                                             plugin.getLocales().getLocale("data_unpinned",
                                                             versionUuid.toString().split("-")[0],
                                                             versionUuid.toString(),
-                                                            user.username,
-                                                            user.uuid.toString())
+                                                            user.getUsername(),
+                                                            user.getUuid().toString())
                                                     .ifPresent(executor::sendMessage);
                                         } else {
                                             plugin.getDatabase().pinUserData(user, versionUuid);
                                             plugin.getLocales().getLocale("data_pinned",
                                                             versionUuid.toString().split("-")[0],
                                                             versionUuid.toString(),
-                                                            user.username,
-                                                            user.uuid.toString())
+                                                            user.getUsername(),
+                                                            user.getUuid().toString())
                                                     .ifPresent(executor::sendMessage);
                                         }
                                     }, () -> plugin.getLocales().getLocale("error_invalid_version_uuid")
@@ -269,7 +270,7 @@ public class UserDataCommand extends Command implements TabProvider {
                                             final DataDumper dumper = DataDumper.create(userData, user, plugin);
                                             final String result = toWeb ? dumper.toWeb() : dumper.toFile();
                                             plugin.getLocales().getLocale("data_dumped", versionUuid.toString()
-                                                            .split("-")[0], user.username, result)
+                                                            .split("-")[0], user.getUsername(), result)
                                                     .ifPresent(executor::sendMessage);
                                         } catch (IOException e) {
                                             plugin.log(Level.SEVERE, "Failed to dump user data", e);
@@ -294,7 +295,7 @@ public class UserDataCommand extends Command implements TabProvider {
     public List<String> suggest(@NotNull CommandUser executor, @NotNull String[] args) {
         return switch (args.length) {
             case 0, 1 -> SUB_COMMANDS.keySet().stream().sorted().toList();
-            case 2 -> plugin.getOnlineUsers().stream().map(user -> user.username).toList();
+            case 2 -> plugin.getOnlineUsers().stream().map(User::getUsername).toList();
             default -> null;
         };
     }

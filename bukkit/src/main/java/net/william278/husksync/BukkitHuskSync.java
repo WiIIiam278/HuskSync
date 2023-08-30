@@ -21,12 +21,14 @@ package net.william278.husksync;
 
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import net.william278.desertwell.util.Version;
+import net.william278.husksync.adapter.DataAdapter;
+import net.william278.husksync.adapter.GsonAdapter;
+import net.william278.husksync.adapter.SnappyGsonAdapter;
 import net.william278.husksync.command.BukkitCommand;
 import net.william278.husksync.config.Locales;
 import net.william278.husksync.config.Settings;
-import net.william278.husksync.data.CompressedDataAdapter;
-import net.william278.husksync.data.DataAdapter;
-import net.william278.husksync.data.JsonDataAdapter;
+import net.william278.husksync.data.DataContainer;
+import net.william278.husksync.data.Serializer;
 import net.william278.husksync.database.Database;
 import net.william278.husksync.database.MySqlDatabase;
 import net.william278.husksync.event.BukkitEventDispatcher;
@@ -36,7 +38,7 @@ import net.william278.husksync.listener.EventListener;
 import net.william278.husksync.migrator.LegacyMigrator;
 import net.william278.husksync.migrator.Migrator;
 import net.william278.husksync.migrator.MpdbMigrator;
-import net.william278.husksync.player.BukkitPlayer;
+import net.william278.husksync.player.BukkitUser;
 import net.william278.husksync.player.ConsoleUser;
 import net.william278.husksync.player.OnlineUser;
 import net.william278.husksync.redis.RedisManager;
@@ -51,6 +53,7 @@ import space.arim.morepaperlib.commands.CommandRegistration;
 import space.arim.morepaperlib.scheduling.GracefulScheduling;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
@@ -60,26 +63,16 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
      * Metrics ID for <a href="https://bstats.org/plugin/bukkit/HuskSync%20-%20Bukkit/13140">HuskSync on Bukkit</a>.
      */
     private static final int METRICS_ID = 13140;
-    private static BukkitHuskSync instance;
     private Database database;
     private RedisManager redisManager;
     private EventListener eventListener;
     private DataAdapter dataAdapter;
+    private Map<DataContainer.Type, Serializer<?>> serializers;
     private Settings settings;
     private Locales locales;
     private List<Migrator> availableMigrators;
     private BukkitAudiences audiences;
     private MorePaperLib paperLib;
-
-    @NotNull
-    public static BukkitHuskSync getInstance() {
-        return instance;
-    }
-
-    @Override
-    public void onLoad() {
-        instance = this;
-    }
 
     @Override
     public void onEnable() {
@@ -87,6 +80,7 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
         this.audiences = BukkitAudiences.create(this);
         this.paperLib = new MorePaperLib(this);
         this.availableMigrators = new ArrayList<>();
+        this.serializers = new ConcurrentHashMap<>();
 
         // Load settings and locales
         initialize("plugin config & locale files", (plugin) -> {
@@ -96,10 +90,15 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
         // Prepare data adapter
         initialize("data adapter", (plugin) -> {
             if (settings.doCompressData()) {
-                dataAdapter = new CompressedDataAdapter();
+                dataAdapter = new SnappyGsonAdapter();
             } else {
-                dataAdapter = new JsonDataAdapter();
+                dataAdapter = new GsonAdapter();
             }
+        });
+
+        // Prepare serializers
+        initialize("data serializers", (plugin) -> {
+            //todo
         });
 
         // Setup available migrators
@@ -152,7 +151,7 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
     @NotNull
     public Set<OnlineUser> getOnlineUsers() {
         return Bukkit.getOnlinePlayers().stream()
-                .map(player -> BukkitPlayer.adapt(player, this))
+                .map(player -> BukkitUser.adapt(player, this))
                 .collect(Collectors.toSet());
     }
 
@@ -163,7 +162,7 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
         if (player == null) {
             return Optional.empty();
         }
-        return Optional.of(BukkitPlayer.adapt(player, this));
+        return Optional.of(BukkitUser.adapt(player, this));
     }
 
     @Override
@@ -178,10 +177,16 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
         return redisManager;
     }
 
-    @Override
     @NotNull
+    @Override
     public DataAdapter getDataAdapter() {
         return dataAdapter;
+    }
+
+    @NotNull
+    @Override
+    public Map<DataContainer.Type, Serializer<?>> getSerializers() {
+        return serializers;
     }
 
     @NotNull
