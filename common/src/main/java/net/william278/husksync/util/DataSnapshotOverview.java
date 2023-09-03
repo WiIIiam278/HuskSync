@@ -87,9 +87,9 @@ public class DataSnapshotOverview {
     }
 
     @NotNull
-    private String generateAdvancementPreview(@NotNull List<DataContainer.Advancements.CompletedAdvancement> advancementData, @NotNull Locales locales) {
+    private String generateAdvancementPreview(@NotNull List<DataContainer.Advancements.Advancement> advancementData, @NotNull Locales locales) {
         final StringJoiner joiner = new StringJoiner("\n");
-        final List<DataContainer.Advancements.CompletedAdvancement> advancementsToPreview = advancementData.stream()
+        final List<DataContainer.Advancements.Advancement> advancementsToPreview = advancementData.stream()
                 .filter(id -> !id.getKey().startsWith("minecraft:recipe")).toList();
         final int PREVIEW_SIZE = 8;
         for (int i = 0; i < advancementsToPreview.size(); i++) {

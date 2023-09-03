@@ -11,31 +11,31 @@ public interface BukkitDataOwner extends DataOwner {
     @NotNull
     @Override
     default Optional<DataContainer.Items.Inventory> getInventory() {
-        return DataOwner.super.getInventory();
+        return Optional.of(BukkitDataContainer.Items.Inventory.adapt(getBukkitPlayer()));
     }
 
     @NotNull
     @Override
     default Optional<DataContainer.Items.EnderChest> getEnderChest() {
-        return DataOwner.super.getEnderChest();
+        return Optional.of(BukkitDataContainer.Items.EnderChest.adapt(getBukkitPlayer().getEnderChest().getContents()));
     }
 
     @NotNull
     @Override
     default Optional<DataContainer.PotionEffects> getPotionEffects() {
-        return DataOwner.super.getPotionEffects();
+        return Optional.of(BukkitDataContainer.PotionEffects.adapt(getBukkitPlayer().getActivePotionEffects()));
     }
 
     @NotNull
     @Override
     default Optional<DataContainer.Advancements> getAdvancements() {
-        return DataOwner.super.getAdvancements();
+        return Optional.of(BukkitDataContainer.Advancements.adapt(getBukkitPlayer(), getPlugin()));
     }
 
     @NotNull
     @Override
     default Optional<DataContainer.Location> getLocation() {
-        return DataOwner.super.getLocation();
+        return Optional.of(BukkitDataContainer.Location.adapt(getBukkitPlayer().getLocation()));
     }
 
     @NotNull

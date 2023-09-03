@@ -1,19 +1,24 @@
 package net.william278.husksync.data;
 
-import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
+import de.tr7zw.changeme.nbtapi.NBTCompound;
+import de.tr7zw.changeme.nbtapi.NBTPersistentDataContainer;
 import net.william278.husksync.HuskSync;
+import net.william278.husksync.adapter.Adaptable;
 import net.william278.husksync.player.BukkitUser;
 import org.apache.commons.lang.NotImplementedException;
-import org.bukkit.Bukkit;
-import org.bukkit.GameRule;
-import org.bukkit.advancement.Advancement;
+import org.bukkit.*;
 import org.bukkit.advancement.AdvancementProgress;
+import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeInstance;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.potion.PotionEffect;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -161,15 +166,16 @@ public abstract class BukkitDataContainer implements DataContainer {
         }
     }
 
-    public static class PotionEffects implements DataContainer.PotionEffects {
+    public static class PotionEffects implements DataContainer.PotionEffects, Adaptable {
 
-        private final PotionEffect[] effects;
+        private final Collection<PotionEffect> effects;
 
-        private PotionEffects(@NotNull PotionEffect[] effects) {
+        private PotionEffects(@NotNull Collection<PotionEffect> effects) {
             this.effects = effects;
         }
 
-        public static BukkitDataContainer.PotionEffects adapt(@NotNull PotionEffect[] effects) {
+        @NotNull
+        public static BukkitDataContainer.PotionEffects adapt(@NotNull Collection<PotionEffect> effects) {
             return new BukkitDataContainer.PotionEffects(effects);
         }
 
@@ -177,14 +183,14 @@ public abstract class BukkitDataContainer implements DataContainer {
         public void apply(@NotNull DataOwner user) throws IllegalStateException {
             final Player player = ((BukkitUser) user).getPlayer();
             player.getActivePotionEffects().forEach(potionEffect -> player.removePotionEffect(potionEffect.getType()));
-            player.addPotionEffects(List.of(effects));
+            player.addPotionEffects(effects);
         }
 
         @NotNull
         @Override
-        public List<EffectPreview> getPreview() {
-            return Arrays.stream(effects)
-                    .map(potionEffect -> new EffectPreview(
+        public List<Effect> getActiveEffects() {
+            return effects.stream()
+                    .map(potionEffect -> new Effect(
                             potionEffect.getType().getName().toLowerCase(Locale.ENGLISH),
                             potionEffect.getDuration(),
                             potionEffect.getAmplifier(),
@@ -196,7 +202,7 @@ public abstract class BukkitDataContainer implements DataContainer {
         }
 
         @NotNull
-        public PotionEffect[] getEffects() {
+        public Collection<PotionEffect> getEffects() {
             return effects;
         }
 
@@ -205,14 +211,14 @@ public abstract class BukkitDataContainer implements DataContainer {
     public static class Advancements implements DataContainer.Advancements {
 
         private final HuskSync plugin;
-        private List<CompletedAdvancement> completed;
+        private List<Advancement> completed;
 
         private Advancements(@NotNull Player player, @NotNull HuskSync plugin) {
-            final Iterator<Advancement> serverAdvancements = Bukkit.getServer().advancementIterator();
-            final ArrayList<CompletedAdvancement> advancementData = new ArrayList<>();
+            final ArrayList<Advancement> advancementData = new ArrayList<>();
+            this.plugin = plugin;
 
             // Iterate through the server advancement set and add all advancements to the list
-            serverAdvancements.forEachRemaining(advancement -> {
+            Bukkit.getServer().advancementIterator().forEachRemaining(advancement -> {
                 final AdvancementProgress advancementProgress = player.getAdvancementProgress(advancement);
                 final Map<String, Date> awardedCriteria = new HashMap<>();
 
@@ -221,15 +227,13 @@ public abstract class BukkitDataContainer implements DataContainer {
 
                 // Only save the advancement if criteria has been completed
                 if (!awardedCriteria.isEmpty()) {
-                    advancementData.add(CompletedAdvancement.adapt(advancement.getKey().toString(), awardedCriteria));
+                    advancementData.add(Advancement.adapt(advancement.getKey().toString(), awardedCriteria));
                 }
             });
-
             this.completed = advancementData;
-            this.plugin = plugin;
         }
 
-        private Advancements(@NotNull List<CompletedAdvancement> advancements, @NotNull HuskSync plugin) {
+        private Advancements(@NotNull List<Advancement> advancements, @NotNull HuskSync plugin) {
             this.completed = advancements;
             this.plugin = plugin;
         }
@@ -240,7 +244,7 @@ public abstract class BukkitDataContainer implements DataContainer {
         }
 
         @NotNull
-        public static BukkitDataContainer.Advancements from(@NotNull List<CompletedAdvancement> advancements,
+        public static BukkitDataContainer.Advancements from(@NotNull List<Advancement> advancements,
                                                             @NotNull HuskSync plugin) {
             return new BukkitDataContainer.Advancements(advancements, plugin);
         }
@@ -267,10 +271,10 @@ public abstract class BukkitDataContainer implements DataContainer {
             plugin.runAsync(() -> {
 
                 // Apply the advancements to the player
-                final Iterator<Advancement> serverAdvancements = Bukkit.getServer().advancementIterator();
+                final Iterator<org.bukkit.advancement.Advancement> serverAdvancements = Bukkit.getServer().advancementIterator();
                 while (serverAdvancements.hasNext()) {
                     // Iterate through all advancements
-                    final Advancement advancement = serverAdvancements.next();
+                    final org.bukkit.advancement.Advancement advancement = serverAdvancements.next();
                     final AdvancementProgress playerProgress = player.getAdvancementProgress(advancement);
 
                     completed.stream().filter(record -> record.getKey().equals(advancement.getKey().toString())).findFirst().ifPresentOrElse(
@@ -313,13 +317,541 @@ public abstract class BukkitDataContainer implements DataContainer {
 
         @NotNull
         @Override
-        public List<CompletedAdvancement> getCompleted() {
+        public List<Advancement> getCompleted() {
             return completed;
         }
 
         @Override
-        public void setCompleted(@NotNull List<CompletedAdvancement> completed) {
+        public void setCompleted(@NotNull List<Advancement> completed) {
             this.completed = completed;
+        }
+
+    }
+
+    public static class Location implements DataContainer.Location, Adaptable {
+        private double x;
+        private double y;
+        private double z;
+        private float yaw;
+        private float pitch;
+        private World world;
+
+        private Location(@NotNull org.bukkit.Location location) {
+            this.x = location.getX();
+            this.y = location.getY();
+            this.z = location.getZ();
+            this.yaw = location.getYaw();
+            this.pitch = location.getPitch();
+            this.world = new World(
+                    Objects.requireNonNull(location.getWorld(), "World is null").getName(),
+                    location.getWorld().getUID()
+            );
+        }
+
+        @SuppressWarnings("unused")
+        private Location() {
+        }
+
+        @NotNull
+        public static BukkitDataContainer.Location adapt(@NotNull org.bukkit.Location location) {
+            return new BukkitDataContainer.Location(location);
+        }
+
+        @Override
+        public void apply(@NotNull DataOwner user) throws IllegalStateException {
+            try {
+                final org.bukkit.Location location = new org.bukkit.Location(
+                        Bukkit.getWorld(world.name()), x, y, z, yaw, pitch
+                );
+                ((BukkitUser) user).getPlayer().teleport(location);
+            } catch (Throwable e) {
+                throw new IllegalStateException("Failed to apply location", e);
+            }
+        }
+
+        @Override
+        public double getX() {
+            return x;
+        }
+
+        @Override
+        public void setX(double x) {
+            this.x = x;
+        }
+
+        @Override
+        public double getY() {
+            return y;
+        }
+
+        @Override
+        public void setY(double y) {
+            this.y = y;
+        }
+
+        @Override
+        public double getZ() {
+            return z;
+        }
+
+        @Override
+        public void setZ(double z) {
+            this.z = z;
+        }
+
+        @Override
+        public float getYaw() {
+            return yaw;
+        }
+
+        @Override
+        public void setYaw(float yaw) {
+            this.yaw = yaw;
+        }
+
+        @Override
+        public float getPitch() {
+            return pitch;
+        }
+
+        @Override
+        public void setPitch(float pitch) {
+            this.pitch = pitch;
+        }
+
+        @NotNull
+        @Override
+        public World getWorld() {
+            return world;
+        }
+
+        @Override
+        public void setWorld(@NotNull World world) {
+            this.world = world;
+        }
+
+    }
+
+    public static class Statistics implements DataContainer.Statistics, Adaptable {
+        private Map<Statistic, Integer> untypedStatistics;
+        private Map<Statistic, Map<Material, Integer>> blockStatistics;
+        private Map<Statistic, Map<Material, Integer>> itemStatistics;
+        private Map<Statistic, Map<EntityType, Integer>> entityStatistics;
+
+        private Statistics(@NotNull Map<Statistic, Integer> genericStatistics,
+                           @NotNull Map<Statistic, Map<Material, Integer>> blockStatistics,
+                           @NotNull Map<Statistic, Map<Material, Integer>> itemStatistics,
+                           @NotNull Map<Statistic, Map<EntityType, Integer>> entityStatistics) {
+            this.untypedStatistics = genericStatistics;
+            this.blockStatistics = blockStatistics;
+            this.itemStatistics = itemStatistics;
+            this.entityStatistics = entityStatistics;
+        }
+
+        @SuppressWarnings("unused")
+        private Statistics() {
+        }
+
+        @NotNull
+        public static BukkitDataContainer.Statistics adapt(@NotNull Map<Statistic, Integer> generics,
+                                                           @NotNull Map<Statistic, Map<Material, Integer>> blocks,
+                                                           @NotNull Map<Statistic, Map<Material, Integer>> items,
+                                                           @NotNull Map<Statistic, Map<EntityType, Integer>> entities) {
+            return new BukkitDataContainer.Statistics(generics, blocks, items, entities);
+        }
+
+        @Override
+        public void apply(@NotNull DataOwner user) throws IllegalStateException {
+            untypedStatistics.forEach((stat, value) -> applyStat(user, stat, null, value));
+            blockStatistics.forEach((stat, m) -> m.forEach((block, value) -> applyStat(user, stat, block, value)));
+            itemStatistics.forEach((stat, m) -> m.forEach((item, value) -> applyStat(user, stat, item, value)));
+            entityStatistics.forEach((stat, m) -> m.forEach((entity, value) -> applyStat(user, stat, entity, value)));
+        }
+
+        private void applyStat(@NotNull DataOwner user, @NotNull Statistic stat, @Nullable Object type, int value) {
+            try {
+                final Player player = ((BukkitUser) user).getPlayer();
+                if (type == null) {
+                    player.setStatistic(stat, value);
+                } else if (type instanceof Material) {
+                    player.setStatistic(stat, (Material) type, value);
+                } else if (type instanceof EntityType) {
+                    player.setStatistic(stat, (EntityType) type, value);
+                }
+            } catch (IllegalArgumentException ignored) {
+            }
+        }
+
+        @NotNull
+        @Override
+        public Map<String, Integer> getUntypedStatistics() {
+            return untypedStatistics.entrySet().stream().collect(
+                    TreeMap::new,
+                    (m, e) -> m.put(e.getKey().toString(), e.getValue()), TreeMap::putAll
+            );
+        }
+
+        @NotNull
+        @Override
+        public Map<String, Map<String, Integer>> getBlockStatistics() {
+            return blockStatistics.entrySet().stream().collect(
+                    TreeMap::new,
+                    (m, e) -> m.put(e.getKey().toString(), e.getValue().entrySet().stream().collect(
+                            TreeMap::new,
+                            (m2, e2) -> m2.put(e2.getKey().getKey().toString(), e2.getValue()), TreeMap::putAll
+                    )), TreeMap::putAll
+            );
+        }
+
+        @NotNull
+        @Override
+        public Map<String, Map<String, Integer>> getItemStatistics() {
+            return itemStatistics.entrySet().stream().collect(
+                    TreeMap::new,
+                    (m, e) -> m.put(e.getKey().toString(), e.getValue().entrySet().stream().collect(
+                            TreeMap::new,
+                            (m2, e2) -> m2.put(e2.getKey().getKey().toString(), e2.getValue()), TreeMap::putAll
+                    )), TreeMap::putAll
+            );
+        }
+
+        @NotNull
+        @Override
+        public Map<String, Map<String, Integer>> getEntityStatistics() {
+            return entityStatistics.entrySet().stream().collect(
+                    TreeMap::new,
+                    (m, e) -> m.put(e.getKey().toString(), e.getValue().entrySet().stream().collect(
+                            TreeMap::new,
+                            (m2, e2) -> m2.put(e2.getKey().getKey().toString(), e2.getValue()), TreeMap::putAll
+                    )), TreeMap::putAll
+            );
+        }
+    }
+
+    public static class PersistentData implements DataContainer.PersistentData {
+        private final NBTCompound persistentData;
+
+        private PersistentData(@NotNull NBTCompound persistentData) {
+            this.persistentData = persistentData;
+        }
+
+        @NotNull
+        public static BukkitDataContainer.PersistentData adapt(@NotNull PersistentDataContainer persistentData) {
+            return new BukkitDataContainer.PersistentData(new NBTPersistentDataContainer(persistentData));
+        }
+
+        @NotNull
+        public static BukkitDataContainer.PersistentData from(@NotNull NBTCompound compound) {
+            return new BukkitDataContainer.PersistentData(compound);
+        }
+
+        @Override
+        public void apply(@NotNull DataOwner user) throws IllegalStateException {
+            final NBTPersistentDataContainer container = new NBTPersistentDataContainer(
+                    ((BukkitUser) user).getPlayer().getPersistentDataContainer()
+            );
+            container.clearNBT();
+            container.mergeCompound(persistentData);
+        }
+
+        @NotNull
+        public NBTCompound getPersistentData() {
+            return persistentData;
+        }
+
+    }
+
+    public static class Health implements DataContainer.Health, Adaptable {
+        @SerializedName("health")
+        private double health;
+        @SerializedName("max_health")
+        private double maxHealth;
+        @SerializedName("health_scale")
+        private double healthScale;
+
+        private Health(double health, double maxHealth, double healthScale) {
+            this.health = health;
+            this.maxHealth = maxHealth;
+            this.healthScale = healthScale;
+        }
+
+        @SuppressWarnings("unused")
+        private Health() {
+        }
+
+        public static BukkitDataContainer.Health adapt(@NotNull Player player) {
+            return new BukkitDataContainer.Health(
+                    player.getHealth(),
+                    Objects.requireNonNull(player.getAttribute(Attribute.GENERIC_MAX_HEALTH),
+                            "Missing max health attribute").getValue(),
+                    player.getHealthScale()
+            );
+        }
+
+        @Override
+        public void apply(@NotNull DataOwner user) throws IllegalStateException {
+            final Player player = ((BukkitUser) user).getPlayer();
+
+            // Set base max health
+            final AttributeInstance maxHealthAttribute = Objects.requireNonNull(
+                    player.getAttribute(Attribute.GENERIC_MAX_HEALTH), "Missing max health attribute");
+            double currentMaxHealth = maxHealthAttribute.getBaseValue();
+            if (maxHealth != 0d) {
+                maxHealthAttribute.setBaseValue(maxHealth);
+                currentMaxHealth = maxHealth;
+            }
+
+            // Set health
+            final double currentHealth = player.getHealth();
+            if (health != currentHealth) {
+                final double healthToSet = currentHealth > currentMaxHealth ? currentMaxHealth : health;
+                try {
+                    player.setHealth(Math.min(healthToSet, currentMaxHealth));
+                } catch (IllegalArgumentException e) {
+//                    plugin.log(Level.WARNING, "Failed to set player health", e);
+                }
+            }
+
+            // Set health scale
+            try {
+                if (healthScale != 0d) {
+                    player.setHealthScale(healthScale);
+                } else {
+                    player.setHealthScale(maxHealth);
+                }
+                player.setHealthScaled(healthScale != 0D);
+            } catch (IllegalArgumentException e) {
+//                plugin.log(Level.WARNING, "Failed to set player health scale", e);
+            }
+        }
+
+        @Override
+        public double getHealth() {
+            return health;
+        }
+
+        @Override
+        public void setHealth(double health) {
+            this.health = health;
+        }
+
+        @Override
+        public double getMaxHealth() {
+            return maxHealth;
+        }
+
+        @Override
+        public void setMaxHealth(double maxHealth) {
+            this.maxHealth = maxHealth;
+        }
+
+        @Override
+        public double getHealthScale() {
+            return healthScale;
+        }
+
+        @Override
+        public void setHealthScale(double healthScale) {
+            this.healthScale = healthScale;
+        }
+
+    }
+
+    public static class Food implements DataContainer.Food, Adaptable {
+
+        @SerializedName("food_level")
+        private int foodLevel;
+        @SerializedName("saturation")
+        private float saturation;
+        @SerializedName("exhaustion")
+        private float exhaustion;
+
+        private Food(int foodLevel, float saturation, float exhaustion) {
+            this.foodLevel = foodLevel;
+            this.saturation = saturation;
+            this.exhaustion = exhaustion;
+        }
+
+        @SuppressWarnings("unused")
+        private Food() {
+        }
+
+        public static BukkitDataContainer.Food adapt(@NotNull Player player) {
+            return new BukkitDataContainer.Food(
+                    player.getFoodLevel(),
+                    player.getSaturation(),
+                    player.getExhaustion()
+            );
+        }
+
+        @Override
+        public void apply(@NotNull DataOwner user) throws IllegalStateException {
+            final Player player = ((BukkitUser) user).getPlayer();
+            player.setFoodLevel(foodLevel);
+            player.setSaturation(saturation);
+            player.setExhaustion(exhaustion);
+        }
+
+        @Override
+        public int getFoodLevel() {
+            return foodLevel;
+        }
+
+        @Override
+        public void setFoodLevel(int foodLevel) {
+            this.foodLevel = foodLevel;
+        }
+
+        @Override
+        public float getSaturation() {
+            return saturation;
+        }
+
+        @Override
+        public void setSaturation(float saturation) {
+            this.saturation = saturation;
+        }
+
+        @Override
+        public float getExhaustion() {
+            return exhaustion;
+        }
+
+        @Override
+        public void setExhaustion(float exhaustion) {
+            this.exhaustion = exhaustion;
+        }
+    }
+
+    public static class Experience implements DataContainer.Experience, Adaptable {
+
+        @SerializedName("total_experience")
+        private int totalExperience;
+
+        @SerializedName("exp_level")
+        private int expLevel;
+
+        @SerializedName("exp_progress")
+        private float expProgress;
+
+        private Experience(int totalExperience, int expLevel, float expProgress) {
+            this.totalExperience = totalExperience;
+            this.expLevel = expLevel;
+            this.expProgress = expProgress;
+        }
+
+        @SuppressWarnings("unused")
+        private Experience() {
+        }
+
+        public static BukkitDataContainer.Experience adapt(@NotNull Player player) {
+            return new BukkitDataContainer.Experience(
+                    player.getTotalExperience(),
+                    player.getLevel(),
+                    player.getExp()
+            );
+        }
+
+        @Override
+        public void apply(@NotNull DataOwner user) throws IllegalStateException {
+            final Player player = ((BukkitUser) user).getPlayer();
+            player.setTotalExperience(totalExperience);
+            player.setLevel(expLevel);
+            player.setExp(expProgress);
+        }
+
+        @Override
+        public int getTotalExperience() {
+            return totalExperience;
+        }
+
+        @Override
+        public void setTotalExperience(int totalExperience) {
+            this.totalExperience = totalExperience;
+        }
+
+        @Override
+        public int getExpLevel() {
+            return expLevel;
+        }
+
+        @Override
+        public void setExpLevel(int expLevel) {
+            this.expLevel = expLevel;
+        }
+
+        @Override
+        public float getExpProgress() {
+            return expProgress;
+        }
+
+        @Override
+        public void setExpProgress(float expProgress) {
+            this.expProgress = expProgress;
+        }
+
+    }
+
+    public static class GameMode implements DataContainer.GameMode, Adaptable {
+
+        @SerializedName("game_mode")
+        private String gameMode;
+        @SerializedName("allow_flight")
+        private boolean allowFlight;
+        @SerializedName("is_flying")
+        private boolean isFlying;
+
+        private GameMode(@NotNull org.bukkit.GameMode gameMode, boolean allowFlight, boolean isFlying) {
+            this.gameMode = gameMode.name();
+            this.allowFlight = allowFlight;
+            this.isFlying = isFlying;
+        }
+
+        public static BukkitDataContainer.GameMode adapt(@NotNull Player player) {
+            return new BukkitDataContainer.GameMode(
+                    player.getGameMode(),
+                    player.getAllowFlight(),
+                    player.isFlying()
+            );
+        }
+
+        @Override
+        public void apply(@NotNull DataOwner user) throws IllegalStateException {
+            final Player player = ((BukkitUser) user).getPlayer();
+            player.setGameMode(org.bukkit.GameMode.valueOf(gameMode));
+            player.setAllowFlight(allowFlight);
+            player.setFlying(isFlying);
+        }
+
+        @NotNull
+        @Override
+        public String getGameMode() {
+            return gameMode;
+        }
+
+        @Override
+        public void setGameMode(@NotNull String gameMode) {
+            this.gameMode = gameMode;
+        }
+
+        @Override
+        public boolean getAllowFlight() {
+            return allowFlight;
+        }
+
+        @Override
+        public void setAllowFlight(boolean allowFlight) {
+            this.allowFlight = allowFlight;
+        }
+
+        @Override
+        public boolean getIsFlying() {
+            return isFlying;
+        }
+
+        @Override
+        public void setIsFlying(boolean isFlying) {
+            this.isFlying = isFlying;
         }
 
     }

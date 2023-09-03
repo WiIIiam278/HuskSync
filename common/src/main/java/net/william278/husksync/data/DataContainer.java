@@ -6,6 +6,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * A piece of data, held by an {@link DataOwner}
@@ -134,11 +135,24 @@ public interface DataContainer {
     interface PotionEffects extends DataContainer {
 
         @NotNull
-        List<EffectPreview> getPreview();
+        List<Effect> getActiveEffects();
 
-
-        record EffectPreview(@NotNull String type, int amplifier, int duration, boolean ambient, boolean particles,
-                             boolean icon) {
+        /**
+         * Represents a potion effect
+         *
+         * @param type          the type of potion effect
+         * @param amplifier     the amplifier of the potion effect
+         * @param duration      the duration of the potion effect
+         * @param isAmbient     whether the potion effect is ambient
+         * @param showParticles whether the potion effect shows particles
+         * @param hasIcon       whether the potion effect displays a HUD icon
+         */
+        record Effect(@SerializedName("type") @NotNull String type,
+                      @SerializedName("amplifier") int amplifier,
+                      @SerializedName("duration") int duration,
+                      @SerializedName("is_ambient") boolean isAmbient,
+                      @SerializedName("show_particles") boolean showParticles,
+                      @SerializedName("has_icon") boolean hasIcon) {
 
         }
 
@@ -150,45 +164,58 @@ public interface DataContainer {
     interface Advancements extends DataContainer {
 
         @NotNull
-        List<CompletedAdvancement> getCompleted();
+        List<Advancement> getCompleted();
 
-        void setCompleted(@NotNull List<CompletedAdvancement> completed);
+        void setCompleted(@NotNull List<Advancement> completed);
 
-        class CompletedAdvancement {
+        class Advancement {
             @SerializedName("key")
             private String key;
 
             @SerializedName("completed_criteria")
-            private Map<String, Date> completedCriteria;
+            private Map<String, Long> completedCriteria;
 
-            private CompletedAdvancement(@NotNull String key, @NotNull Map<String, Date> completedCriteria) {
+            private Advancement(@NotNull String key, @NotNull Map<String, Date> completedCriteria) {
                 this.key = key;
-                this.completedCriteria = completedCriteria;
+                this.completedCriteria = adaptDateMap(completedCriteria);
             }
 
             @SuppressWarnings("unused")
-            private CompletedAdvancement() {
+            private Advancement() {
             }
 
             @NotNull
-            public static CompletedAdvancement adapt(@NotNull String key, @NotNull Map<String, Date> completedCriteria) {
-                return new CompletedAdvancement(key, completedCriteria);
+            public static Advancement adapt(@NotNull String key, @NotNull Map<String, Date> completedCriteria) {
+                return new Advancement(key, completedCriteria);
             }
 
+            @NotNull
+            private static Map<String, Long> adaptDateMap(@NotNull Map<String, Date> dateMap) {
+                return dateMap.entrySet().stream()
+                        .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().getTime()));
+            }
+
+            @NotNull
+            private static Map<String, Date> adaptLongMap(@NotNull Map<String, Long> dateMap) {
+                return dateMap.entrySet().stream()
+                        .collect(Collectors.toMap(Map.Entry::getKey, e -> new Date(e.getValue())));
+            }
+
+            @NotNull
             public String getKey() {
                 return key;
             }
 
-            public void setKey(String key) {
+            public void setKey(@NotNull String key) {
                 this.key = key;
             }
 
             public Map<String, Date> getCompletedCriteria() {
-                return completedCriteria;
+                return adaptLongMap(completedCriteria);
             }
 
             public void setCompletedCriteria(Map<String, Date> completedCriteria) {
-                this.completedCriteria = completedCriteria;
+                this.completedCriteria = adaptDateMap(completedCriteria);
             }
         }
 
@@ -200,17 +227,28 @@ public interface DataContainer {
     interface Location extends DataContainer {
         double getX();
 
+        void setX(double x);
+
         double getY();
+
+        void setY(double y);
 
         double getZ();
 
+        void setZ(double z);
+
         float getYaw();
 
+        void setYaw(float yaw);
+
         float getPitch();
+
+        void setPitch(float pitch);
 
         @NotNull
         World getWorld();
 
+        void setWorld(@NotNull World world);
 
         record World(@NotNull String name, @NotNull UUID uuid) {
         }
@@ -228,6 +266,9 @@ public interface DataContainer {
 
         @NotNull
         Map<String, Map<String, Integer>> getItemStatistics();
+
+        @NotNull
+        Map<String, Map<String, Integer>> getEntityStatistics();
     }
 
     /**

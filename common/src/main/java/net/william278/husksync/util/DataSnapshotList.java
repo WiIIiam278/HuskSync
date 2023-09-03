@@ -77,10 +77,10 @@ public class DataSnapshotList {
     }
 
     /**
-     * Get an icon for the given snapshot number, via {@link #CIRCLED_NUMBER_ICONS}
+     * Get an hasIcon for the given snapshot number, via {@link #CIRCLED_NUMBER_ICONS}
      *
      * @param number the snapshot number
-     * @return the icon for the given snapshot number
+     * @return the hasIcon for the given snapshot number
      */
     private static String getNumberIcon(int number) {
         if (number < 1 || number > 20) {

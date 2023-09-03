@@ -90,7 +90,7 @@ public abstract class OnlineUser extends User implements CommandUser, DataOwner 
      *
      * @param title          the title of the toast
      * @param description    the description of the toast
-     * @param iconMaterial   the namespace-keyed material to use as an icon of the toast
+     * @param iconMaterial   the namespace-keyed material to use as an hasIcon of the toast
      * @param backgroundType the background ("ToastType") of the toast
      */
     public abstract void sendToast(@NotNull MineDown title, @NotNull MineDown description,
