@@ -1,3 +1,22 @@
+/*
+ * This file is part of HuskSync, licensed under the Apache License 2.0.
+ *
+ *  Copyright (c) William278 <will27528@gmail.com>
+ *  Copyright (c) contributors
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
 package net.william278.husksync.data;
 
 import com.google.gson.annotations.SerializedName;
@@ -22,6 +41,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 public abstract class BukkitDataContainer implements DataContainer {
 
@@ -432,7 +452,7 @@ public abstract class BukkitDataContainer implements DataContainer {
 
     }
 
-    public static class Statistics implements DataContainer.Statistics, Adaptable {
+    public static class Statistics implements DataContainer.Statistics {
         private Map<Statistic, Integer> untypedStatistics;
         private Map<Statistic, Map<Material, Integer>> blockStatistics;
         private Map<Statistic, Map<Material, Integer>> itemStatistics;
@@ -453,11 +473,79 @@ public abstract class BukkitDataContainer implements DataContainer {
         }
 
         @NotNull
-        public static BukkitDataContainer.Statistics adapt(@NotNull Map<Statistic, Integer> generics,
-                                                           @NotNull Map<Statistic, Map<Material, Integer>> blocks,
-                                                           @NotNull Map<Statistic, Map<Material, Integer>> items,
-                                                           @NotNull Map<Statistic, Map<EntityType, Integer>> entities) {
-            return new BukkitDataContainer.Statistics(generics, blocks, items, entities);
+        public static BukkitDataContainer.Statistics adapt(@NotNull Player player) {
+            return new BukkitDataContainer.Statistics(
+                    // Generic (untyped) stats
+                    Arrays.stream(Statistic.values())
+                            .filter(stat -> stat.getType() == Statistic.Type.UNTYPED)
+                            .filter(stat -> player.getStatistic(stat) != 0)
+                            .map(stat -> Map.entry(stat, player.getStatistic(stat)))
+                            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)),
+
+                    // Block stats
+                    Arrays.stream(Statistic.values())
+                            .filter(stat -> stat.getType() == Statistic.Type.BLOCK)
+                            .map(stat -> Map.entry(stat, Arrays.stream(Material.values())
+                                    .filter(Material::isBlock)
+                                    .filter(material -> player.getStatistic(stat, material) != 0)
+                                    .map(material -> Map.entry(material, player.getStatistic(stat, material)))
+                                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))))
+                            .filter(entry -> !entry.getValue().isEmpty())
+                            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)),
+
+                    // Item stats
+                    Arrays.stream(Statistic.values())
+                            .filter(stat -> stat.getType() == Statistic.Type.ITEM)
+                            .map(stat -> Map.entry(stat, Arrays.stream(Material.values())
+                                    .filter(Material::isItem)
+                                    .filter(material -> player.getStatistic(stat, material) != 0)
+                                    .map(material -> Map.entry(material, player.getStatistic(stat, material)))
+                                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))))
+                            .filter(entry -> !entry.getValue().isEmpty())
+                            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)),
+
+                    // Entity stats
+                    Arrays.stream(Statistic.values())
+                            .filter(stat -> stat.getType() == Statistic.Type.ENTITY)
+                            .map(stat -> Map.entry(stat, Arrays.stream(EntityType.values())
+                                    .filter(EntityType::isAlive)
+                                    .filter(entityType -> player.getStatistic(stat, entityType) != 0)
+                                    .map(entityType -> Map.entry(entityType, player.getStatistic(stat, entityType)))
+                                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))))
+                            .filter(entry -> !entry.getValue().isEmpty())
+                            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))
+            );
+        }
+
+        @NotNull
+        public static BukkitDataContainer.Statistics from(@NotNull StatisticsSet stats) {
+            return new BukkitDataContainer.Statistics(
+                    stats.genericStats().entrySet().stream().collect(Collectors.toMap(
+                            entry -> Statistic.valueOf(entry.getKey()),
+                            Map.Entry::getValue
+                    )),
+                    stats.blockStats().entrySet().stream().collect(Collectors.toMap(
+                            entry -> Statistic.valueOf(entry.getKey()),
+                            entry -> entry.getValue().entrySet().stream().collect(Collectors.toMap(
+                                    blockEntry -> Material.valueOf(blockEntry.getKey()),
+                                    Map.Entry::getValue
+                            ))
+                    )),
+                    stats.itemStats().entrySet().stream().collect(Collectors.toMap(
+                            entry -> Statistic.valueOf(entry.getKey()),
+                            entry -> entry.getValue().entrySet().stream().collect(Collectors.toMap(
+                                    itemEntry -> Material.valueOf(itemEntry.getKey()),
+                                    Map.Entry::getValue
+                            ))
+                    )),
+                    stats.entityStats().entrySet().stream().collect(Collectors.toMap(
+                            entry -> Statistic.valueOf(entry.getKey()),
+                            entry -> entry.getValue().entrySet().stream().collect(Collectors.toMap(
+                                    entityEntry -> EntityType.valueOf(entityEntry.getKey()),
+                                    Map.Entry::getValue
+                            ))
+                    ))
+            );
         }
 
         @Override
@@ -484,7 +572,7 @@ public abstract class BukkitDataContainer implements DataContainer {
 
         @NotNull
         @Override
-        public Map<String, Integer> getUntypedStatistics() {
+        public Map<String, Integer> getGenericStatistics() {
             return untypedStatistics.entrySet().stream().collect(
                     TreeMap::new,
                     (m, e) -> m.put(e.getKey().toString(), e.getValue()), TreeMap::putAll
@@ -526,6 +614,24 @@ public abstract class BukkitDataContainer implements DataContainer {
                     )), TreeMap::putAll
             );
         }
+
+        @NotNull
+        protected StatisticsSet getStatisticsSet() {
+            return new StatisticsSet(
+                    getGenericStatistics(),
+                    getBlockStatistics(),
+                    getItemStatistics(),
+                    getEntityStatistics()
+            );
+        }
+
+        protected record StatisticsSet(
+                @SerializedName("generic") @NotNull Map<String, Integer> genericStats,
+                @SerializedName("blocks") @NotNull Map<String, Map<String, Integer>> blockStats,
+                @SerializedName("items") @NotNull Map<String, Map<String, Integer>> itemStats,
+                @SerializedName("entities") @NotNull Map<String, Map<String, Integer>> entityStats) {
+        }
+
     }
 
     public static class PersistentData implements DataContainer.PersistentData {

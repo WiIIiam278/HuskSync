@@ -27,6 +27,7 @@ import net.william278.husksync.adapter.SnappyGsonAdapter;
 import net.william278.husksync.command.BukkitCommand;
 import net.william278.husksync.config.Locales;
 import net.william278.husksync.config.Settings;
+import net.william278.husksync.data.BukkitSerializer;
 import net.william278.husksync.data.DataContainer;
 import net.william278.husksync.data.Serializer;
 import net.william278.husksync.database.Database;
@@ -35,9 +36,7 @@ import net.william278.husksync.event.BukkitEventDispatcher;
 import net.william278.husksync.hook.PlanHook;
 import net.william278.husksync.listener.BukkitEventListener;
 import net.william278.husksync.listener.EventListener;
-import net.william278.husksync.migrator.LegacyMigrator;
 import net.william278.husksync.migrator.Migrator;
-import net.william278.husksync.migrator.MpdbMigrator;
 import net.william278.husksync.player.BukkitUser;
 import net.william278.husksync.player.ConsoleUser;
 import net.william278.husksync.player.OnlineUser;
@@ -67,7 +66,7 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
     private RedisManager redisManager;
     private EventListener eventListener;
     private DataAdapter dataAdapter;
-    private Map<DataContainer.Type, Serializer<?>> serializers;
+    private Map<DataContainer.Type, Serializer<? extends DataContainer>> serializers;
     private Settings settings;
     private Locales locales;
     private List<Migrator> availableMigrators;
@@ -83,9 +82,7 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
         this.serializers = new ConcurrentHashMap<>();
 
         // Load settings and locales
-        initialize("plugin config & locale files", (plugin) -> {
-            this.loadConfigs();
-        });
+        initialize("plugin config & locale files", (plugin) -> this.loadConfigs());
 
         // Prepare data adapter
         initialize("data adapter", (plugin) -> {
@@ -98,16 +95,26 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
 
         // Prepare serializers
         initialize("data serializers", (plugin) -> {
-            //todo
+            serializers.put(DataContainer.Type.INVENTORY, new BukkitSerializer.Inventory(this));
+            serializers.put(DataContainer.Type.ENDER_CHEST, new BukkitSerializer.EnderChest(this));
+            serializers.put(DataContainer.Type.POTION_EFFECTS, new BukkitSerializer.PotionEffects(this));
+            serializers.put(DataContainer.Type.ADVANCEMENTS, new BukkitSerializer.Advancements(this));
+            serializers.put(DataContainer.Type.LOCATION, new BukkitSerializer.Location(this));
+            serializers.put(DataContainer.Type.STATISTICS, new BukkitSerializer.Statistics(this));
+            serializers.put(DataContainer.Type.HEALTH, new BukkitSerializer.Health(this));
+            serializers.put(DataContainer.Type.FOOD, new BukkitSerializer.Food(this));
+            serializers.put(DataContainer.Type.EXPERIENCE, new BukkitSerializer.Experience(this));
+            serializers.put(DataContainer.Type.GAME_MODE, new BukkitSerializer.GameMode(this));
+            serializers.put(DataContainer.Type.PERSISTENT_DATA, new BukkitSerializer.PersistentData(this));
         });
 
-        // Setup available migrators
-        initialize("data migrators", (plugin) -> {
+        // Setup available migrators - todo
+        /*initialize("data migrators", (plugin) -> {
             availableMigrators.add(new LegacyMigrator(this));
             if (isDependencyLoaded("MySqlPlayerDataBridge")) {
                 availableMigrators.add(new MpdbMigrator(this));
             }
-        });
+        });*/
 
         // Initialize the database
         initialize(getSettings().getDatabaseType().getDisplayName() + " database connection", (plugin) -> {
@@ -185,7 +192,8 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
 
     @NotNull
     @Override
-    public Map<DataContainer.Type, Serializer<?>> getSerializers() {
+    @SuppressWarnings("unchecked")
+    public Map<DataContainer.Type, Serializer<? extends DataContainer>> getSerializers() {
         return serializers;
     }
 
