@@ -21,4 +21,7 @@ On servers that use Keep Inventory move (where players keep their items when the
 Some lightweight Linux distros such as Alpine Linux (used on Pterodactyl) might not have the dependencies needed for the [Snappy](https://github.com/xerial/snappy-java) compressor. It's possible to disable data compression by changing `compress_data` to false in your config. Note that after changing this setting you will need to reset your database. Alternatively, find the right libraries for your distro!
 
 ### Redis connection problems on Pterodactyl
-The internal firewall on Pterodactyl can block Redis connections between servers. Add an allocation to each server allowing them to communicate with your Redis server. It may be easier to install Redis in an egg than trying to use the backend internal service.
+If you are hosting your Redis server on the same node as your servers, you need to use 172.18.0.1 (or equivelant if you changed your network settings) as your host. You may also need to [allow connections from your firewall](https://pterodactyl.io/community/games/minecraft.html#firewalls) depending on your distribution.
+
+### MySQL connection problems on Pterodactyl
+If you have more than one MySQL server connected to your panel, you may need to set `useSSL=true` in the parameters.

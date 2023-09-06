@@ -36,6 +36,7 @@ import org.bukkit.advancement.AdvancementProgress;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -55,7 +56,7 @@ import java.util.logging.Level;
  * Bukkit implementation of an {@link OnlineUser}
  */
 public class BukkitPlayer extends OnlineUser {
-    
+
     private final BukkitHuskSync plugin;
     private final Player player;
 
@@ -178,6 +179,7 @@ public class BukkitPlayer extends OnlineUser {
         return BukkitSerializer.deserializeInventory(itemData.serializedItems).thenApplyAsync(contents -> {
             final CompletableFuture<Void> inventorySetFuture = new CompletableFuture<>();
             Bukkit.getScheduler().runTask(plugin, () -> {
+                this.clearInventoryCraftingSlots();
                 player.setItemOnCursor(null);
                 player.getInventory().setContents(contents.getContents());
                 player.updateInventory();
@@ -185,6 +187,16 @@ public class BukkitPlayer extends OnlineUser {
             });
             return inventorySetFuture.join();
         });
+    }
+
+    // Clears any items the player may have in the crafting slots of their inventory
+    private void clearInventoryCraftingSlots() {
+        final Inventory inventory = player.getOpenInventory().getTopInventory();
+        if (inventory.getType() == InventoryType.CRAFTING) {
+            for (int slot = 0; slot < 5; slot++) {
+                inventory.setItem(slot, null);
+            }
+        }
     }
 
     @Override
@@ -500,7 +512,7 @@ public class BukkitPlayer extends OnlineUser {
                             .ifPresentOrElse(mapping -> mapping.setContainerValue(container, player, key),
                                     () -> plugin.log(Level.WARNING,
                                             "Could not set " + player.getName() + "'s persistent data key " + keyString +
-                                            " as it has an invalid type. Skipping!"));
+                                                    " as it has an invalid type. Skipping!"));
                 }
             });
         }).exceptionally(throwable -> {
@@ -517,7 +529,7 @@ public class BukkitPlayer extends OnlineUser {
     public Audience getAudience() {
         return plugin.getAudiences().player(player);
     }
-    
+
     @Override
     public boolean isOffline() {
         try {

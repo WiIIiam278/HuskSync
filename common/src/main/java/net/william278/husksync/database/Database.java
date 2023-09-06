@@ -75,10 +75,8 @@ public abstract class Database {
 
     /**
      * Initialize the database and ensure tables are present; create tables if they do not exist.
-     *
-     * @return A future returning boolean - if the connection could be established.
      */
-    public abstract boolean initialize();
+    public abstract void initialize();
 
     /**
      * Ensure a {@link User} has an entry in the database and that their username is up-to-date

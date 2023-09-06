@@ -3,29 +3,43 @@ This page addresses a number of frequently asked questions about the plugin.
 ## Frequently Asked Questions
 
 <details>
-<summary>&nbsp;<b>What data can be synchronised?</b></summary>
+<summary>&nbsp;<b>What data can be synchronized?</b></summary>
 
 HuskSync supports synchronising a wide range of different data elements, each of which can be toggled to your liking. Please check out the [[Sync Features]] page for a full list.
 
 </details>
 
 <details>
-<summary>&nbsp;<b>Is Redis required? What is Redis?</b></summary>
+<summary>&nbsp;<b>Are modded items supported?</b></summary>
 
-HuskSync requires Redis to operate (for reasons demonstrated below). Redis is an in-memory database server used for caching data at scale and sending messages across a network. You have a Redis server in a similar fashion to the way you have a MySQL database server. If you're using a Minecraft hosting company, you'll want to contact their support and ask if they offer Redis. If you're looking for a host, I have a list of some popular hosts and whether or not they support Redis [available to read here.](https://william278.net/redis-hosts)
+Modded items are not supported.
 
 </details>
 
 <details>
-<summary>&nbsp;<b>How does the plugin synchronise data?</b></summary>
+<summary>&nbsp;<b>Are MMOItems / SlimeFun items supported?</b></summary>
 
-[![System diagram](https://raw.githubusercontent.com/WiIIiam278/HuskSync/master/images/system-diagram.png)](#)
+No. MMOItems and SlimeFun are not compatible with HuskSync due to the way they inject data directly into item NBT rather than the Spigot API's plugin-agnostic PersistentDataContainer.
+
+</details>
+
+<details>
+<summary>&nbsp;<b>Is Redis required? What is Redis?</b></summary>
+
+HuskSync requires Redis to operate (for reasons demonstrated below). Redis is an in-memory database server used for caching data at scale and sending messages across a network. You have a Redis server in a similar fashion to the way you have a MySQL database server. If you're using a Minecraft hosting company, you'll want to contact their support and ask if they offer Redis. If you're looking for a host, I have a list of some popular hosts and whether they support Redis [available to read here.](https://william278.net/redis-hosts)
+
+</details>
+
+<details>
+<summary>&nbsp;<b>How does the plugin synchronize data?</b></summary>
+
+![System diagram](https://raw.githubusercontent.com/WiIIiam278/HuskSync/master/images/system-diagram.png)
 
 HuskSync makes use of both MySQL and Redis for optimal data synchronisation.
 
 When a user changes servers, in addition to data being saved to MySQL, it is also cached via the Redis server with a temproary expiry key. When changing servers, the receiving server detects the key and sets the user data from Redis. When a player rejoins the network, the system fetches the last-saved data snapshot from the MySQL Database.
 
-This approach is able to dramatically improve both synchronisation performance and reliability. A few other techniques are used to optimize this process, such as comrpessing the serialized user data json using Snappy.
+This approach is able to dramatically improve both synchronization performance and reliability. A few other techniques are used to optimize this process, such as compressing the serialized user data json using Snappy.
 
 </details>
 
@@ -47,7 +61,9 @@ As a result, I recommend using an economy plugin (that directly *implements* the
 <details>
 <summary>&nbsp;<b>Is this better than MySQLPlayerDataBridge?</b></summary>
 
-I can't provide a fair answer to this question! What I can say is that your mileage may vary. The performance improvements offered by HuskSync's synchronisation method will depend on your network environment and the economies of scale that come with your player count.
+I can't provide a fair answer to this question! What I can say is that your mileage may vary. The performance improvements offered by HuskSync's synchronization method will depend on your network environment and the economies of scale that come with your player count.
+
+With that said, servers running plugins or mods that make use of custom items (such as MMOItems, SlimeFun) are not supported by HuskSync and so MySQLPlayerDataBridge may be a better choice for you.
 
 A migrator from MPDB is built-in to HuskSync.
 
