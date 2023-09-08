@@ -34,6 +34,7 @@ import net.william278.husksync.migrator.Migrator;
 import net.william278.husksync.player.ConsoleUser;
 import net.william278.husksync.player.OnlineUser;
 import net.william278.husksync.redis.RedisManager;
+import net.william278.husksync.util.LegacyDataConverter;
 import net.william278.husksync.util.Task;
 import org.jetbrains.annotations.NotNull;
 
@@ -215,6 +216,12 @@ public interface HuskSync extends Task.Supplier, EventDispatcher {
      */
     @NotNull
     String getPlatformType();
+
+    /**
+     * Returns the legacy data converter, if it exists
+     * @return the {@link LegacyDataConverter}
+     */
+    Optional<LegacyDataConverter> getLegacyConverter();
 
     /**
      * Reloads the {@link Settings} and {@link Locales} from their respective config files.

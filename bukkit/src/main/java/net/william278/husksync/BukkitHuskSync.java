@@ -41,7 +41,9 @@ import net.william278.husksync.player.BukkitUser;
 import net.william278.husksync.player.ConsoleUser;
 import net.william278.husksync.player.OnlineUser;
 import net.william278.husksync.redis.RedisManager;
+import net.william278.husksync.util.BukkitLegacyConverter;
 import net.william278.husksync.util.BukkitTask;
+import net.william278.husksync.util.LegacyDataConverter;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -72,6 +74,7 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
     private Settings settings;
     private Locales locales;
     private List<Migrator> availableMigrators;
+    private LegacyDataConverter legacyConverter;
     private BukkitAudiences audiences;
     private MorePaperLib paperLib;
 
@@ -111,12 +114,13 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
         });
 
         // Setup available migrators - todo
-        /*initialize("data migrators", (plugin) -> {
-            availableMigrators.add(new LegacyMigrator(this));
-            if (isDependencyLoaded("MySqlPlayerDataBridge")) {
-                availableMigrators.add(new MpdbMigrator(this));
-            }
-        });*/
+        initialize("data migrators/converters", (plugin) -> {
+//            availableMigrators.add(new LegacyMigrator(this));
+//            if (isDependencyLoaded("MySqlPlayerDataBridge")) {
+//                availableMigrators.add(new MpdbMigrator(this));
+//            }
+            legacyConverter = new BukkitLegacyConverter(this);
+        });
 
         // Initialize the database
         initialize(getSettings().getDatabaseType().getDisplayName() + " database connection", (plugin) -> {
@@ -276,6 +280,11 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
     @Override
     public String getPlatformType() {
         return PLATFORM_TYPE_ID;
+    }
+
+    @Override
+    public Optional<LegacyDataConverter> getLegacyConverter() {
+        return Optional.of(legacyConverter);
     }
 
     @NotNull

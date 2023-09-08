@@ -116,13 +116,20 @@ public class DataSnapshot {
                             "Please ensure each server is running the latest version of HuskSync.",
                     snapshot.getFormatVersion(), CURRENT_FORMAT_VERSION));
         }
+        if (snapshot.getFormatVersion() < CURRENT_FORMAT_VERSION) {
+            //todo convert version 3 data to version 4
+            if (plugin.getLegacyConverter().isPresent()) {
+                return plugin.getLegacyConverter().get().convert(data).pack(plugin);
+            }
+            throw new IllegalStateException(String.format("Unable to convert data from format: %s",
+                    snapshot.getFormatVersion()));
+        }
         if (!snapshot.getPlatformType().equalsIgnoreCase(plugin.getPlatformType())) {
             throw new IllegalStateException(String.format("Cannot set data for user because the platform type of " +
                             "their user data (%s) is different to the server platform type (%s). " +
                             "Please ensure each server is running the same platform type.",
                     snapshot.getPlatformType(), plugin.getPlatformType()));
         }
-        //todo convert version 3 data to version 4
         return snapshot;
     }
 
