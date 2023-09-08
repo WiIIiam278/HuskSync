@@ -29,11 +29,7 @@ import net.william278.husksync.adapter.Adaptable;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
-import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
 
 public class BukkitSerializer {
 
@@ -52,20 +48,20 @@ public class BukkitSerializer {
         }
 
         @Override
-        public BukkitDataContainer.Items.Inventory deserialize(byte[] serialized) throws DeserializationException {
-            final ReadWriteNBT root = NBT.parseNBT(new String(serialized, StandardCharsets.UTF_8));
+        public BukkitDataContainer.Items.Inventory deserialize(@NotNull String serialized) throws DeserializationException {
+            final ReadWriteNBT root = NBT.parseNBT(serialized);
             final ItemStack[] items = root.getItemStackArray(ITEMS_TAG);
-            final int selectedHotbarSlot = root.getInteger(HELD_ITEM_SLOT_TAG);
-            return BukkitDataContainer.Items.Inventory.from(items, selectedHotbarSlot);
+            final int heldItemSlot = root.getInteger(HELD_ITEM_SLOT_TAG);
+            return BukkitDataContainer.Items.Inventory.from(items, heldItemSlot);
         }
 
         @NotNull
         @Override
-        public byte[] serialize(@NotNull BukkitDataContainer.Items.Inventory data) throws SerializationException {
+        public String serialize(@NotNull BukkitDataContainer.Items.Inventory data) throws SerializationException {
             final ReadWriteNBT root = NBT.createNBTObject();
             root.setItemStackArray(ITEMS_TAG, data.getContents());
             root.setInteger(HELD_ITEM_SLOT_TAG, data.getHeldItemSlot());
-            return root.toString().getBytes(StandardCharsets.UTF_8);
+            return root.toString();
         }
     }
 
@@ -76,16 +72,16 @@ public class BukkitSerializer {
         }
 
         @Override
-        public BukkitDataContainer.Items.EnderChest deserialize(byte[] serialized) throws DeserializationException {
+        public BukkitDataContainer.Items.EnderChest deserialize(@NotNull String serialized) throws DeserializationException {
             return BukkitDataContainer.Items.EnderChest.adapt(
-                    NBT.itemStackArrayFromNBT(NBT.parseNBT(new String(serialized, StandardCharsets.UTF_8)))
+                    NBT.itemStackArrayFromNBT(NBT.parseNBT(serialized))
             );
         }
 
         @NotNull
         @Override
-        public byte[] serialize(@NotNull BukkitDataContainer.Items.EnderChest data) throws SerializationException {
-            return NBT.itemStackArrayToNBT(data.getContents()).toString().getBytes(StandardCharsets.UTF_8);
+        public String serialize(@NotNull BukkitDataContainer.Items.EnderChest data) throws SerializationException {
+            return NBT.itemStackArrayToNBT(data.getContents()).toString();
         }
     }
 
@@ -99,16 +95,16 @@ public class BukkitSerializer {
         }
 
         @Override
-        public BukkitDataContainer.PotionEffects deserialize(byte[] serialized) throws DeserializationException {
+        public BukkitDataContainer.PotionEffects deserialize(@NotNull String serialized) throws DeserializationException {
             return BukkitDataContainer.PotionEffects.adapt(
-                    new Gson().fromJson(new String(serialized, StandardCharsets.UTF_8), TYPE.getType())
+                    new Gson().fromJson(serialized, TYPE.getType())
             );
         }
 
         @NotNull
         @Override
-        public byte[] serialize(@NotNull BukkitDataContainer.PotionEffects element) throws SerializationException {
-            return new Gson().toJson(element.getActiveEffects()).getBytes(StandardCharsets.UTF_8);
+        public String serialize(@NotNull BukkitDataContainer.PotionEffects element) throws SerializationException {
+            return new Gson().toJson(element.getActiveEffects());
         }
 
     }
@@ -123,16 +119,16 @@ public class BukkitSerializer {
         }
 
         @Override
-        public BukkitDataContainer.Advancements deserialize(byte[] serialized) throws DeserializationException {
+        public BukkitDataContainer.Advancements deserialize(@NotNull String serialized) throws DeserializationException {
             return BukkitDataContainer.Advancements.from(
-                    new Gson().fromJson(new String(serialized, StandardCharsets.UTF_8), TYPE.getType()), plugin
+                    new Gson().fromJson(serialized, TYPE.getType()), plugin
             );
         }
 
         @NotNull
         @Override
-        public byte[] serialize(@NotNull BukkitDataContainer.Advancements element) throws SerializationException {
-            return new Gson().toJson(element.getCompleted()).getBytes(StandardCharsets.UTF_8);
+        public String serialize(@NotNull BukkitDataContainer.Advancements element) throws SerializationException {
+            return new Gson().toJson(element.getCompleted());
         }
     }
 
@@ -143,14 +139,14 @@ public class BukkitSerializer {
         }
 
         @Override
-        public BukkitDataContainer.Location deserialize(byte[] serialized) throws DeserializationException {
-            return plugin.getDataAdapter().fromBytes(serialized, BukkitDataContainer.Location.class);
+        public BukkitDataContainer.Location deserialize(@NotNull String serialized) throws DeserializationException {
+            return plugin.getDataAdapter().fromJson(serialized, BukkitDataContainer.Location.class);
         }
 
         @NotNull
         @Override
-        public byte[] serialize(@NotNull BukkitDataContainer.Location element) throws SerializationException {
-            return plugin.getDataAdapter().toBytes(element);
+        public String serialize(@NotNull BukkitDataContainer.Location element) throws SerializationException {
+            return plugin.getDataAdapter().toJson(element);
         }
     }
 
@@ -161,17 +157,17 @@ public class BukkitSerializer {
         }
 
         @Override
-        public BukkitDataContainer.Statistics deserialize(byte[] serialized) throws DeserializationException {
+        public BukkitDataContainer.Statistics deserialize(@NotNull String serialized) throws DeserializationException {
             return BukkitDataContainer.Statistics.from(new Gson().fromJson(
-                    new String(serialized, StandardCharsets.UTF_8),
+                    serialized,
                     BukkitDataContainer.Statistics.StatisticsSet.class
             ));
         }
 
         @NotNull
         @Override
-        public byte[] serialize(@NotNull BukkitDataContainer.Statistics element) throws SerializationException {
-            return new Gson().toJson(element.getStatisticsSet()).getBytes(StandardCharsets.UTF_8);
+        public String serialize(@NotNull BukkitDataContainer.Statistics element) throws SerializationException {
+            return new Gson().toJson(element.getStatisticsSet());
         }
 
     }
@@ -183,16 +179,16 @@ public class BukkitSerializer {
         }
 
         @Override
-        public BukkitDataContainer.PersistentData deserialize(byte[] serialized) throws DeserializationException {
+        public BukkitDataContainer.PersistentData deserialize(@NotNull String serialized) throws DeserializationException {
             return BukkitDataContainer.PersistentData.from(new NBTContainer(
-                    new String(serialized, StandardCharsets.UTF_8)
+                    serialized
             ));
         }
 
         @NotNull
         @Override
-        public byte[] serialize(@NotNull BukkitDataContainer.PersistentData element) throws SerializationException {
-            return element.getPersistentData().toString().getBytes(StandardCharsets.UTF_8);
+        public String serialize(@NotNull BukkitDataContainer.PersistentData element) throws SerializationException {
+            return element.getPersistentData().toString();
         }
 
     }
@@ -239,14 +235,14 @@ public class BukkitSerializer {
         }
 
         @Override
-        public T deserialize(byte[] serialized) throws DeserializationException {
-            return plugin.getDataAdapter().fromBytes(serialized, type);
+        public T deserialize(@NotNull String serialized) throws DeserializationException {
+            return plugin.getDataAdapter().fromJson(serialized, type);
         }
 
         @NotNull
         @Override
-        public byte[] serialize(@NotNull T element) throws SerializationException {
-            return plugin.getDataAdapter().toBytes(element);
+        public String serialize(@NotNull T element) throws SerializationException {
+            return plugin.getDataAdapter().toJson(element);
         }
 
     }

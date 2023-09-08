@@ -89,7 +89,7 @@
 //        this.sourceInventoryTable = "mpdb_inventory";
 //        this.sourceEnderChestTable = "mpdb_enderchest";
 //        this.sourceExperienceTable = "mpdb_experience";
-//        this.minecraftVersion = plugin.getMinecraftVersion().toString();
+//        this.minecraftVersion = plugin.getMinecraftVersion().asString();
 //
 //    }
 //
@@ -274,7 +274,7 @@
 //                STEP 4] To start the migration, please run:
 //                "husksync migrate mpdb start"
 //                """.replaceAll(Pattern.quote("%source_host%"), obfuscateDataString(sourceHost))
-//                .replaceAll(Pattern.quote("%source_port%"), Integer.toString(sourcePort))
+//                .replaceAll(Pattern.quote("%source_port%"), Integer.asString(sourcePort))
 //                .replaceAll(Pattern.quote("%source_username%"), obfuscateDataString(sourceUsername))
 //                .replaceAll(Pattern.quote("%source_password%"), obfuscateDataString(sourcePassword))
 //                .replaceAll(Pattern.quote("%source_database%"), sourceDatabase)

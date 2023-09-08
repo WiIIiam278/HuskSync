@@ -26,7 +26,10 @@ import net.william278.husksync.HuskSync;
 import net.william278.husksync.adapter.Adaptable;
 import net.william278.husksync.player.BukkitUser;
 import org.apache.commons.lang.NotImplementedException;
-import org.bukkit.*;
+import org.bukkit.Bukkit;
+import org.bukkit.GameRule;
+import org.bukkit.Material;
+import org.bukkit.Statistic;
 import org.bukkit.advancement.AdvancementProgress;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
@@ -251,6 +254,7 @@ public abstract class BukkitDataContainer implements DataContainer {
                 }
             });
             this.completed = advancementData;
+            this.completed = new ArrayList<>();
         }
 
         private Advancements(@NotNull List<Advancement> advancements, @NotNull HuskSync plugin) {
@@ -527,14 +531,14 @@ public abstract class BukkitDataContainer implements DataContainer {
                     stats.blockStats().entrySet().stream().collect(Collectors.toMap(
                             entry -> Statistic.valueOf(entry.getKey()),
                             entry -> entry.getValue().entrySet().stream().collect(Collectors.toMap(
-                                    blockEntry -> Material.valueOf(blockEntry.getKey()),
+                                    blockEntry -> Material.matchMaterial(blockEntry.getKey()),
                                     Map.Entry::getValue
                             ))
                     )),
                     stats.itemStats().entrySet().stream().collect(Collectors.toMap(
                             entry -> Statistic.valueOf(entry.getKey()),
                             entry -> entry.getValue().entrySet().stream().collect(Collectors.toMap(
-                                    itemEntry -> Material.valueOf(itemEntry.getKey()),
+                                    itemEntry -> Material.matchMaterial(itemEntry.getKey()),
                                     Map.Entry::getValue
                             ))
                     )),

@@ -27,7 +27,6 @@ import net.william278.husksync.player.CommandUser;
 import net.william278.husksync.player.User;
 import org.jetbrains.annotations.NotNull;
 
-import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -59,7 +58,8 @@ public class DataSnapshotOverview {
                         dataOwner.getUsername(), dataOwner.getUuid().toString())
                 .ifPresent(user::sendMessage);
         locales.getLocale("data_manager_timestamp",
-                        new SimpleDateFormat("MMM dd yyyy, HH:mm:ss.sss").format(snapshot.getTimestamp()))
+//                        new SimpleDateFormat("MMM dd yyyy, HH:mm:ss.sss").format(snapshot.getTimestamp())) todo fix
+                    snapshot.getTimestamp().toString())
                 .ifPresent(user::sendMessage);
         if (snapshot.isPinned()) {
             locales.getLocale("data_manager_pinned").ifPresent(user::sendMessage);

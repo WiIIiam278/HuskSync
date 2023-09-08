@@ -21,8 +21,8 @@ package net.william278.husksync.database;
 
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.config.Settings;
-import net.william278.husksync.data.DataSnapshot.SaveCause;
 import net.william278.husksync.data.DataSnapshot;
+import net.william278.husksync.data.DataSnapshot.SaveCause;
 import net.william278.husksync.migrator.Migrator;
 import net.william278.husksync.player.User;
 import org.jetbrains.annotations.ApiStatus;
@@ -119,7 +119,7 @@ public abstract class Database {
      * @return A future returning a list of a user's {@link DataSnapshot} entries
      */
     @NotNull
-    public abstract List<DataSnapshot.Packed> getUserData(@NotNull User user);
+    public abstract List<DataSnapshot.Packed> getDataSnapshots(@NotNull User user);
 
     /**
      * Gets a specific {@link DataSnapshot} entry for a user from the database, by its UUID.
@@ -128,7 +128,7 @@ public abstract class Database {
      * @param versionUuid The UUID of the {@link DataSnapshot} entry to get
      * @return A future returning an optional containing the {@link DataSnapshot}, if it exists, or an empty optional if it does not
      */
-    public abstract Optional<DataSnapshot.Packed> getUserData(@NotNull User user, @NotNull UUID versionUuid);
+    public abstract Optional<DataSnapshot.Packed> getDataSnapshot(@NotNull User user, @NotNull UUID versionUuid);
 
     /**
      * <b>(Internal)</b> Prune user data for a given user to the maximum value as configured.
@@ -160,12 +160,12 @@ public abstract class Database {
         if (snapshot.getSaveCause() != SaveCause.SERVER_SHUTDOWN) {
             plugin.fireEvent(
                     plugin.getDataSaveEvent(user, snapshot),
-                    (event) -> this.createUserData(user, snapshot)
+                    (event) -> this.saveDataSnapshot(user, snapshot)
             );
             return;
         }
 
-        this.createUserData(user, snapshot);
+        this.saveDataSnapshot(user, snapshot);
     }
 
     /**
@@ -175,7 +175,7 @@ public abstract class Database {
      * @param data The {@link DataSnapshot} to set.
      */
     @ApiStatus.Internal
-    protected abstract void createUserData(@NotNull User user, @NotNull DataSnapshot.Packed data);
+    protected abstract void saveDataSnapshot(@NotNull User user, @NotNull DataSnapshot.Packed data);
 
     /**
      * Update a saved {@link DataSnapshot} by given version UUID
@@ -195,7 +195,7 @@ public abstract class Database {
      * @see DataSnapshot#isPinned()
      */
     public final void unpinUserData(@NotNull User user, @NotNull UUID versionUuid) {
-        this.getUserData(user, versionUuid).ifPresent(data -> {
+        this.getDataSnapshot(user, versionUuid).ifPresent(data -> {
             data.edit(plugin, (snapshot) -> snapshot.setPinned(false));
             this.updateUserData(user, versionUuid, data);
         });
@@ -208,7 +208,7 @@ public abstract class Database {
      * @param versionUuid The UUID of the user's {@link DataSnapshot} entry to pin
      */
     public final void pinUserData(@NotNull User user, @NotNull UUID versionUuid) {
-        this.getUserData(user, versionUuid).ifPresent(data -> {
+        this.getDataSnapshot(user, versionUuid).ifPresent(data -> {
             data.edit(plugin, (snapshot) -> snapshot.setPinned(true));
             this.updateUserData(user, versionUuid, data);
         });

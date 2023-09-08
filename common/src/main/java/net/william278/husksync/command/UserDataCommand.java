@@ -74,7 +74,7 @@ public class UserDataCommand extends Command implements TabProvider {
                         final UUID versionUuid = UUID.fromString(args[2]);
                         plugin.getDatabase()
                                 .getUserByName(username.toLowerCase(Locale.ENGLISH))
-                                .ifPresentOrElse(user -> plugin.getDatabase().getUserData(user, versionUuid).ifPresentOrElse(
+                                .ifPresentOrElse(user -> plugin.getDatabase().getDataSnapshot(user, versionUuid).ifPresentOrElse(
                                                 data -> DataSnapshotOverview.of(data.unpack(plugin), user, plugin).show(executor),
                                                 () -> plugin.getLocales().getLocale("error_invalid_version_uuid")
                                                         .ifPresent(executor::sendMessage)),
@@ -106,7 +106,7 @@ public class UserDataCommand extends Command implements TabProvider {
                 final String username = args[1];
                 plugin.getDatabase().getUserByName(username.toLowerCase(Locale.ENGLISH)).ifPresentOrElse(user -> {
                             // Check if there is data to display
-                            final List<DataSnapshot.Packed> dataList = plugin.getDatabase().getUserData(user);
+                            final List<DataSnapshot.Packed> dataList = plugin.getDatabase().getDataSnapshots(user);
                             if (dataList.isEmpty()) {
                                 plugin.getLocales().getLocale("error_no_data_to_display")
                                         .ifPresent(executor::sendMessage);
@@ -178,7 +178,7 @@ public class UserDataCommand extends Command implements TabProvider {
                     final UUID versionUuid = UUID.fromString(args[2]);
                     plugin.getDatabase().getUserByName(username.toLowerCase(Locale.ENGLISH)).ifPresentOrElse(
                             user -> {
-                                final Optional<DataSnapshot.Packed> optionalData = plugin.getDatabase().getUserData(user, versionUuid);
+                                final Optional<DataSnapshot.Packed> optionalData = plugin.getDatabase().getDataSnapshot(user, versionUuid);
                                 if (optionalData.isEmpty()) {
                                     plugin.getLocales().getLocale("error_invalid_version_uuid")
                                             .ifPresent(executor::sendMessage);
@@ -222,7 +222,7 @@ public class UserDataCommand extends Command implements TabProvider {
                     final UUID versionUuid = UUID.fromString(args[2]);
                     plugin.getDatabase()
                             .getUserByName(username.toLowerCase(Locale.ENGLISH)).ifPresentOrElse(
-                                    user -> plugin.getDatabase().getUserData(user, versionUuid).ifPresentOrElse(userData -> {
+                                    user -> plugin.getDatabase().getDataSnapshot(user, versionUuid).ifPresentOrElse(userData -> {
                                         if (userData.isPinned()) {
                                             plugin.getDatabase().unpinUserData(user, versionUuid);
                                             plugin.getLocales().getLocale("data_unpinned",
@@ -265,7 +265,7 @@ public class UserDataCommand extends Command implements TabProvider {
                     plugin.getDatabase()
                             .getUserByName(username.toLowerCase(Locale.ENGLISH))
                             .ifPresentOrElse(
-                                    user -> plugin.getDatabase().getUserData(user, versionUuid).ifPresentOrElse(userData -> {
+                                    user -> plugin.getDatabase().getDataSnapshot(user, versionUuid).ifPresentOrElse(userData -> {
                                         try {
                                             final DataDumper dumper = DataDumper.create(userData, user, plugin);
                                             final String result = toWeb ? dumper.toWeb() : dumper.toFile();
@@ -283,6 +283,7 @@ public class UserDataCommand extends Command implements TabProvider {
                     plugin.getLocales().getLocale("error_invalid_syntax",
                                     "/userdata dump <username> <version_uuid>")
                             .ifPresent(executor::sendMessage);
+                    plugin.log(Level.SEVERE, "Failed to dump user data", e);
                 }
             }
             default -> plugin.getLocales().getLocale("error_invalid_syntax", getUsage())

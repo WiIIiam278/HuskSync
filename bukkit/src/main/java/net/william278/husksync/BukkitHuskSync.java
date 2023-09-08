@@ -62,6 +62,8 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
      * Metrics ID for <a href="https://bstats.org/plugin/bukkit/HuskSync%20-%20Bukkit/13140">HuskSync on Bukkit</a>.
      */
     private static final int METRICS_ID = 13140;
+    private static final String PLATFORM_TYPE_ID = "bukkit";
+
     private Database database;
     private RedisManager redisManager;
     private EventListener eventListener;
@@ -268,6 +270,12 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
     @Override
     public Version getMinecraftVersion() {
         return Version.fromString(Bukkit.getBukkitVersion());
+    }
+
+    @NotNull
+    @Override
+    public String getPlatformType() {
+        return PLATFORM_TYPE_ID;
     }
 
     @NotNull

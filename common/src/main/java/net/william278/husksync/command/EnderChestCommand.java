@@ -58,7 +58,7 @@ public class EnderChestCommand extends Command implements TabProvider {
                 // View user data by specified UUID
                 try {
                     final UUID versionUuid = UUID.fromString(args[1]);
-//                    plugin.getDatabase().getUserData(user, versionUuid).ifPresentOrElse(
+//                    plugin.getDatabase().getDataSnapshots(user, versionUuid).ifPresentOrElse(
 //                            userData -> showEnderChestMenu(player, userData, user, false),
 //                            () -> plugin.getLocales().getLocale("error_invalid_version_uuid")
 //                                    .ifPresent(player::sendMessage));

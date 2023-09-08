@@ -26,10 +26,10 @@ import java.util.Optional;
 
 public interface BukkitDataOwner extends DataOwner {
 
-    //todo check if dead and apply special rule
     @NotNull
     @Override
     default Optional<DataContainer.Items.Inventory> getInventory() {
+        //todo check if dead and apply special rule
         return Optional.of(BukkitDataContainer.Items.Inventory.adapt(getBukkitPlayer()));
     }
 
@@ -60,37 +60,37 @@ public interface BukkitDataOwner extends DataOwner {
     @NotNull
     @Override
     default Optional<DataContainer.Statistics> getStatistics() {
-        return DataOwner.super.getStatistics();
+        return Optional.of(BukkitDataContainer.Statistics.adapt(getBukkitPlayer()));
     }
 
     @NotNull
     @Override
     default Optional<DataContainer.Health> getHealth() {
-        return DataOwner.super.getHealth();
+        return Optional.of(BukkitDataContainer.Health.adapt(getBukkitPlayer()));
     }
 
     @NotNull
     @Override
     default Optional<DataContainer.Food> getFood() {
-        return DataOwner.super.getFood();
+        return Optional.of(BukkitDataContainer.Food.adapt(getBukkitPlayer()));
     }
 
     @NotNull
     @Override
     default Optional<DataContainer.Experience> getExperience() {
-        return DataOwner.super.getExperience();
+        return Optional.of(BukkitDataContainer.Experience.adapt(getBukkitPlayer()));
     }
 
     @NotNull
     @Override
     default Optional<DataContainer.GameMode> getGameMode() {
-        return DataOwner.super.getGameMode();
+        return Optional.of(BukkitDataContainer.GameMode.adapt(getBukkitPlayer()));
     }
 
     @NotNull
     @Override
     default Optional<DataContainer.PersistentData> getPersistentData() {
-        return DataOwner.super.getPersistentData();
+        return Optional.of(BukkitDataContainer.PersistentData.adapt(getBukkitPlayer().getPersistentDataContainer()));
     }
 
     @NotNull

@@ -209,6 +209,14 @@ public interface HuskSync extends Task.Supplier, EventDispatcher {
     Version getMinecraftVersion();
 
     /**
+     * Returns the platform type
+     *
+     * @return the platform type
+     */
+    @NotNull
+    String getPlatformType();
+
+    /**
      * Reloads the {@link Settings} and {@link Locales} from their respective config files.
      */
     default void loadConfigs() {

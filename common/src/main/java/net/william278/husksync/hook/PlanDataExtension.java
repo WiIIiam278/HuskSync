@@ -224,7 +224,7 @@ public class PlanDataExtension implements DataExtension {
                 .columnThree("Cause", new Icon(Family.SOLID, "flag", Color.NONE))
                 .columnFour("Pinned", new Icon(Family.SOLID, "thumbtack", Color.NONE));
         plugin.getDatabase().getUser(playerUUID).ifPresent(user ->
-                plugin.getDatabase().getUserData(user).forEach(snapshot -> dataSnapshotsTable.addRow(
+                plugin.getDatabase().getDataSnapshots(user).forEach(snapshot -> dataSnapshotsTable.addRow(
                         snapshot.getTimestamp().toEpochSecond(),
                         snapshot.getShortId(),
                         snapshot.getSaveCause().getDisplayName(),

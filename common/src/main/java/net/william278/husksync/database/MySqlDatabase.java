@@ -28,6 +28,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.sql.*;
 import java.util.*;
 import java.util.logging.Level;
@@ -227,7 +228,7 @@ public class MySqlDatabase extends Database {
 
     @Override
     @NotNull
-    public List<DataSnapshot.Packed> getUserData(@NotNull User user) {
+    public List<DataSnapshot.Packed> getDataSnapshots(@NotNull User user) {
         final List<DataSnapshot.Packed> retrievedData = new ArrayList<>();
         try (Connection connection = getConnection()) {
             try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
@@ -252,7 +253,7 @@ public class MySqlDatabase extends Database {
     }
 
     @Override
-    public Optional<DataSnapshot.Packed> getUserData(@NotNull User user, @NotNull UUID versionUuid) {
+    public Optional<DataSnapshot.Packed> getDataSnapshot(@NotNull User user, @NotNull UUID versionUuid) {
         try (Connection connection = getConnection()) {
             try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
                     SELECT `version_uuid`, `timestamp`, `save_cause`, `pinned`, `data`
@@ -273,12 +274,13 @@ public class MySqlDatabase extends Database {
         } catch (SQLException | DataAdapter.AdaptionException e) {
             plugin.log(Level.SEVERE, "Failed to fetch specific user data by UUID from the database", e);
         }
+        plugin.debug(String.format("No data found for user uuid: %s for ID %s", user.getUuid().toString(), versionUuid.toString()));
         return Optional.empty();
     }
 
     @Override
     protected void rotateUserData(@NotNull User user) {
-        final List<DataSnapshot.Packed> unpinnedUserData = getUserData(user).stream()
+        final List<DataSnapshot.Packed> unpinnedUserData = getDataSnapshots(user).stream()
                 .filter(dataSnapshot -> !dataSnapshot.isPinned()).toList();
         if (unpinnedUserData.size() > plugin.getSettings().getMaxUserDataSnapshots()) {
             try (Connection connection = getConnection()) {
@@ -316,15 +318,17 @@ public class MySqlDatabase extends Database {
     }
 
     @Override
-    protected void createUserData(@NotNull User user, @NotNull DataSnapshot.Packed data) {
+    protected void saveDataSnapshot(@NotNull User user, @NotNull DataSnapshot.Packed data) {
         try (Connection connection = getConnection()) {
             try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
                     INSERT INTO `%user_data_table%`
                     (`player_uuid`,`version_uuid`,`timestamp`,`save_cause`,`data`)
-                    VALUES (?,UUID(),NOW(),?,?);"""))) {
+                    VALUES (?,?,?,?,?);"""))) {
                 statement.setString(1, user.getUuid().toString());
-                statement.setString(2, data.getSaveCause().name());
-                statement.setBlob(3, new ByteArrayInputStream(data.serialize(plugin)));
+                statement.setString(2, data.getId().toString());
+                statement.setTimestamp(3, Timestamp.from(data.getTimestamp().toInstant()));
+                statement.setString(4, data.getSaveCause().name());
+                statement.setBlob(5, new ByteArrayInputStream(data.asBytes(plugin)));
                 statement.executeUpdate();
             }
         } catch (SQLException | DataAdapter.AdaptionException e) {
@@ -342,7 +346,7 @@ public class MySqlDatabase extends Database {
                     WHERE `player_uuid`=? AND `version_uuid`=?
                     LIMIT 1;"""))) {
                 statement.setBoolean(1, data.isPinned());
-                statement.setBlob(2, new ByteArrayInputStream(data.serialize(plugin)));
+                statement.setBlob(2, new ByteArrayInputStream(data.asBytes(plugin)));
                 statement.setString(3, user.getUuid().toString());
                 statement.setString(4, versionUuid.toString());
                 statement.executeUpdate();

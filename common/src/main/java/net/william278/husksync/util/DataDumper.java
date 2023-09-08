@@ -31,7 +31,6 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.text.SimpleDateFormat;
 import java.util.Locale;
 import java.util.StringJoiner;
 import java.util.logging.Level;
@@ -182,7 +181,7 @@ public class DataDumper {
     private String getFileName() {
         return new StringJoiner("_")
                 .add(user.getUsername())
-                .add(new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss").format(snapshot.getTimestamp()))
+//                .add(new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss").format(snapshot.getTimestamp())) todo fix
                 .add(snapshot.getSaveCause().name().toLowerCase(Locale.ENGLISH))
                 .add(snapshot.getShortId())
                 + ".json";

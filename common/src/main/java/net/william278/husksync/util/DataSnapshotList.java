@@ -26,7 +26,6 @@ import net.william278.husksync.player.User;
 import net.william278.paginedown.PaginatedList;
 import org.jetbrains.annotations.NotNull;
 
-import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -47,8 +46,8 @@ public class DataSnapshotList {
         this.paginatedList = PaginatedList.of(snapshots.stream()
                         .map(snapshot -> locales.getRawLocale("data_list_item",
                                         getNumberIcon(snapshotNumber.getAndIncrement()),
-                                        new SimpleDateFormat("MMM dd yyyy, HH:mm:ss.sss")
-                                                .format(snapshot.getTimestamp()),
+                                        /*new SimpleDateFormat("MMM dd yyyy, HH:mm:ss.sss")
+                                                .format(snapshot.getTimestamp())*/ snapshot.getTimestamp().toString(),
                                         snapshot.getShortId(),
                                         snapshot.getId().toString(),
                                         snapshot.getSaveCause().getDisplayName(),

@@ -82,7 +82,7 @@
 //        this.sourceDatabase = plugin.getSettings().getMySqlDatabase();
 //        this.sourcePlayersTable = "husksync_players";
 //        this.sourceDataTable = "husksync_data";
-//        this.minecraftVersion = plugin.getMinecraftVersion().toString();
+//        this.minecraftVersion = plugin.getMinecraftVersion().asString();
 //    }
 //
 //    @Override
@@ -280,7 +280,7 @@
 //                STEP 4] To start the migration, please run:
 //                "husksync migrate legacy start"
 //                """.replaceAll(Pattern.quote("%source_host%"), obfuscateDataString(sourceHost))
-//                .replaceAll(Pattern.quote("%source_port%"), Integer.toString(sourcePort))
+//                .replaceAll(Pattern.quote("%source_port%"), Integer.asString(sourcePort))
 //                .replaceAll(Pattern.quote("%source_username%"), obfuscateDataString(sourceUsername))
 //                .replaceAll(Pattern.quote("%source_password%"), obfuscateDataString(sourcePassword))
 //                .replaceAll(Pattern.quote("%source_database%"), sourceDatabase)
@@ -344,7 +344,7 @@
 //        private Map<String, Integer> convertStatisticMap(@NotNull HashMap<Statistic, Integer> rawMap) {
 //            final HashMap<String, Integer> convertedMap = new HashMap<>();
 //            for (Map.Entry<Statistic, Integer> entry : rawMap.entrySet()) {
-//                convertedMap.put(entry.getKey().toString(), entry.getValue());
+//                convertedMap.put(entry.getKey().asString(), entry.getValue());
 //            }
 //            return convertedMap;
 //        }
@@ -353,8 +353,8 @@
 //            final Map<String, Map<String, Integer>> convertedMap = new HashMap<>();
 //            for (Map.Entry<Statistic, HashMap<Material, Integer>> entry : rawMap.entrySet()) {
 //                for (Map.Entry<Material, Integer> materialEntry : entry.getValue().entrySet()) {
-//                    convertedMap.computeIfAbsent(entry.getKey().toString(), k -> new HashMap<>())
-//                            .put(materialEntry.getKey().toString(), materialEntry.getValue());
+//                    convertedMap.computeIfAbsent(entry.getKey().asString(), k -> new HashMap<>())
+//                            .put(materialEntry.getKey().asString(), materialEntry.getValue());
 //                }
 //            }
 //            return convertedMap;
@@ -364,8 +364,8 @@
 //            final Map<String, Map<String, Integer>> convertedMap = new HashMap<>();
 //            for (Map.Entry<Statistic, HashMap<EntityType, Integer>> entry : rawMap.entrySet()) {
 //                for (Map.Entry<EntityType, Integer> materialEntry : entry.getValue().entrySet()) {
-//                    convertedMap.computeIfAbsent(entry.getKey().toString(), k -> new HashMap<>())
-//                            .put(materialEntry.getKey().toString(), materialEntry.getValue());
+//                    convertedMap.computeIfAbsent(entry.getKey().asString(), k -> new HashMap<>())
+//                            .put(materialEntry.getKey().asString(), materialEntry.getValue());
 //                }
 //            }
 //            return convertedMap;

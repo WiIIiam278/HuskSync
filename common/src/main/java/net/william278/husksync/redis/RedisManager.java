@@ -119,7 +119,7 @@ public class RedisManager extends JedisPubSub {
 
     public void sendUserDataUpdate(@NotNull User user, @NotNull DataSnapshot.Packed data) {
         plugin.runAsync(() -> {
-            final RedisMessage redisMessage = new RedisMessage(user.getUuid(), data.serialize(plugin));
+            final RedisMessage redisMessage = new RedisMessage(user.getUuid(), data.asBytes(plugin));
             redisMessage.dispatch(plugin, RedisMessageType.UPDATE_USER_DATA);
         });
     }
@@ -136,7 +136,7 @@ public class RedisManager extends JedisPubSub {
                 jedis.setex(
                         getKey(RedisKeyType.DATA_UPDATE, user.getUuid()),
                         RedisKeyType.DATA_UPDATE.getTimeToLive(),
-                        data.serialize(plugin)
+                        data.asBytes(plugin)
                 );
                 plugin.debug(String.format("[%s] Set %s key to redis at: %s", user.getUsername(),
                         RedisKeyType.DATA_UPDATE.name(), new SimpleDateFormat("mm:ss.SSS").format(new Date())));

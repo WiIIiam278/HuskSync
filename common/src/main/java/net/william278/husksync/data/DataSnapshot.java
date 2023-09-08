@@ -54,23 +54,27 @@ public class DataSnapshot {
     protected SaveCause saveCause;
 
     @SerializedName("minecraft_version")
-    protected Version minecraftVersion;
+    protected String minecraftVersion;
+
+    @SerializedName("platform_type")
+    protected String platformType;
 
     @SerializedName("format_version")
     protected int formatVersion;
 
     @SerializedName("data")
-    protected Map<DataContainer.Type, byte[]> data;
+    protected Map<DataContainer.Type, String> data;
 
     private DataSnapshot(@NotNull UUID id, boolean pinned, @NotNull OffsetDateTime timestamp,
-                         @NotNull SaveCause saveCause, @NotNull Map<DataContainer.Type, byte[]> data,
-                         @NotNull Version minecraftVersion, int formatVersion) {
+                         @NotNull SaveCause saveCause, @NotNull Map<DataContainer.Type, String> data,
+                         @NotNull Version minecraftVersion, @NotNull String platformType, int formatVersion) {
         this.id = id;
         this.pinned = pinned;
         this.timestamp = timestamp;
         this.saveCause = saveCause;
         this.data = data;
-        this.minecraftVersion = minecraftVersion;
+        this.minecraftVersion = minecraftVersion.toStringWithoutMetadata();
+        this.platformType = platformType;
         this.formatVersion = formatVersion;
     }
 
@@ -80,18 +84,20 @@ public class DataSnapshot {
 
     @NotNull
     public static DataSnapshot.Packed of(@NotNull UUID id, boolean pinned, @NotNull OffsetDateTime timestamp,
-                                         @NotNull SaveCause saveCause, @NotNull Map<DataContainer.Type, byte[]> data,
-                                         @NotNull Version minecraftVersion, int formatVersion) {
-        return new DataSnapshot.Packed(id, pinned, timestamp, saveCause, data, minecraftVersion, formatVersion);
+                                         @NotNull SaveCause saveCause, @NotNull Map<DataContainer.Type, String> data,
+                                         @NotNull Version minecraftVersion, @NotNull String platformType, int formatVersion) {
+        return new DataSnapshot.Packed(
+                id, pinned, timestamp, saveCause, data,
+                minecraftVersion, platformType, formatVersion
+        );
     }
 
     @NotNull
     protected static DataSnapshot.Packed create(@NotNull HuskSync plugin, @NotNull DataOwner owner,
                                                 @NotNull SaveCause saveCause) {
         return new DataSnapshot.Unpacked(
-                UUID.randomUUID(), false, OffsetDateTime.now(),
-                saveCause, owner.getData(),
-                plugin.getMinecraftVersion(), CURRENT_FORMAT_VERSION
+                UUID.randomUUID(), false, OffsetDateTime.now(), saveCause, owner.getData(),
+                plugin.getMinecraftVersion(), plugin.getPlatformType(), CURRENT_FORMAT_VERSION
         ).pack(plugin);
     }
 
@@ -109,6 +115,12 @@ public class DataSnapshot {
                             "their user data (%s) is newer than the current format version (%s). " +
                             "Please ensure each server is running the latest version of HuskSync.",
                     snapshot.getFormatVersion(), CURRENT_FORMAT_VERSION));
+        }
+        if (!snapshot.getPlatformType().equalsIgnoreCase(plugin.getPlatformType())) {
+            throw new IllegalStateException(String.format("Cannot set data for user because the platform type of " +
+                            "their user data (%s) is different to the server platform type (%s). " +
+                            "Please ensure each server is running the same platform type.",
+                    snapshot.getPlatformType(), plugin.getPlatformType()));
         }
         //todo convert version 3 data to version 4
         return snapshot;
@@ -141,6 +153,7 @@ public class DataSnapshot {
         return timestamp;
     }
 
+    @SuppressWarnings("unused")
     @NotNull
     public Set<DataContainer.Type> getDataTypes() {
         return data.keySet();
@@ -148,7 +161,12 @@ public class DataSnapshot {
 
     @NotNull
     public Version getMinecraftVersion() {
-        return minecraftVersion;
+        return Version.fromString(minecraftVersion);
+    }
+
+    @NotNull
+    public String getPlatformType() {
+        return platformType;
     }
 
     public int getFormatVersion() {
@@ -161,9 +179,9 @@ public class DataSnapshot {
     public static class Packed extends DataSnapshot implements Adaptable {
 
         protected Packed(@NotNull UUID id, boolean pinned, @NotNull OffsetDateTime timestamp,
-                         @NotNull SaveCause saveCause, @NotNull Map<DataContainer.Type, byte[]> data,
-                         @NotNull Version minecraftVersion, int formatVersion) {
-            super(id, pinned, timestamp, saveCause, data, minecraftVersion, formatVersion);
+                         @NotNull SaveCause saveCause, @NotNull Map<DataContainer.Type, String> data,
+                         @NotNull Version minecraftVersion, @NotNull String platformType, int formatVersion) {
+            super(id, pinned, timestamp, saveCause, data, minecraftVersion, platformType, formatVersion);
         }
 
         @SuppressWarnings("unused")
@@ -179,11 +197,13 @@ public class DataSnapshot {
         @NotNull
         public Packed copy() {
             return new Packed(
-                    UUID.randomUUID(), pinned, OffsetDateTime.now(), saveCause, data, minecraftVersion, formatVersion
+                    UUID.randomUUID(), pinned, OffsetDateTime.now(), saveCause, data,
+                    getMinecraftVersion(), platformType, formatVersion
             );
         }
 
-        public byte[] serialize(@NotNull HuskSync plugin) throws DataAdapter.AdaptionException {
+        @NotNull
+        public byte[] asBytes(@NotNull HuskSync plugin) throws DataAdapter.AdaptionException {
             return plugin.getDataAdapter().toBytes(this);
         }
 
@@ -194,7 +214,10 @@ public class DataSnapshot {
 
         @NotNull
         public DataSnapshot.Unpacked unpack(@NotNull HuskSync plugin) {
-            return new Unpacked(id, pinned, timestamp, saveCause, data, minecraftVersion, formatVersion, plugin);
+            return new Unpacked(
+                    id, pinned, timestamp, saveCause, data,
+                    getMinecraftVersion(), platformType, formatVersion, plugin
+            );
         }
 
     }
@@ -208,16 +231,17 @@ public class DataSnapshot {
         private final Map<DataContainer.Type, DataContainer> deserialized;
 
         private Unpacked(@NotNull UUID id, boolean pinned, @NotNull OffsetDateTime timestamp,
-                         @NotNull SaveCause saveCause, @NotNull Map<DataContainer.Type, byte[]> data,
-                         @NotNull Version minecraftVersion, int formatVersion, @NotNull HuskSync plugin) {
-            super(id, pinned, timestamp, saveCause, data, minecraftVersion, formatVersion);
+                         @NotNull SaveCause saveCause, @NotNull Map<DataContainer.Type, String> data,
+                         @NotNull Version minecraftVersion, @NotNull String platformType, int formatVersion,
+                         @NotNull HuskSync plugin) {
+            super(id, pinned, timestamp, saveCause, data, minecraftVersion, platformType, formatVersion);
             this.deserialized = deserializeData(plugin);
         }
 
         private Unpacked(@NotNull UUID id, boolean pinned, @NotNull OffsetDateTime timestamp,
                          @NotNull SaveCause saveCause, @NotNull Map<DataContainer.Type, DataContainer> data,
-                         @NotNull Version minecraftVersion, int formatVersion) {
-            super(id, pinned, timestamp, saveCause, Map.of(), minecraftVersion, formatVersion);
+                         @NotNull Version minecraftVersion, @NotNull String platformType, int formatVersion) {
+            super(id, pinned, timestamp, saveCause, Map.of(), minecraftVersion, platformType, formatVersion);
             this.deserialized = data;
         }
 
@@ -232,8 +256,9 @@ public class DataSnapshot {
         }
 
         @NotNull
-        private Map<DataContainer.Type, byte[]> serializeData(@NotNull HuskSync plugin) {
+        private Map<DataContainer.Type, String> serializeData(@NotNull HuskSync plugin) {
             return deserialized.entrySet().stream()
+                    .peek((data) -> plugin.debug(String.format("Serializing %s data...", data.getKey().name())))
                     .map((entry) -> Map.entry(entry.getKey(), Objects.requireNonNull(
                             plugin.getSerializers().get(entry.getKey()),
                             String.format("No serializer found for %s", entry.getKey().name())
@@ -249,7 +274,8 @@ public class DataSnapshot {
         @NotNull
         public DataSnapshot.Packed pack(@NotNull HuskSync plugin) {
             return new DataSnapshot.Packed(
-                    id, pinned, timestamp, saveCause, serializeData(plugin), minecraftVersion, formatVersion
+                    id, pinned, timestamp, saveCause, serializeData(plugin),
+                    getMinecraftVersion(), platformType, formatVersion
             );
         }
 
