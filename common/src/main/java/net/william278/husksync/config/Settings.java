@@ -55,7 +55,7 @@ public class Settings {
 
 
     // Database settings
-    @YamlComment("Type of database to use (MYSQL, SQLITE)")
+    @YamlComment("Type of database to use (MYSQL, MARIADB)")
     @YamlKey("database.type")
     private Database.Type databaseType = Database.Type.MYSQL;
     
