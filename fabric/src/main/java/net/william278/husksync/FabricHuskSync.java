@@ -135,7 +135,7 @@ public class FabricHuskSync implements DedicatedServerModInitializer, HuskSync {
             // Prepare database connection
             this.database = new MySqlDatabase(this);
             log(Level.INFO, "Attempting to establish connection to the database...");
-            initialized.set(this.database.initialize());
+            this.database.initialize();
             if (initialized.get()) {
                 log(Level.INFO, "Successfully established a connection to the database");
             } else {
