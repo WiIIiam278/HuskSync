@@ -26,6 +26,7 @@ import net.william278.husksync.HuskSync;
 import net.william278.husksync.adapter.Adaptable;
 import net.william278.husksync.adapter.DataAdapter;
 import net.william278.husksync.config.Locales;
+import org.checkerframework.checker.units.qual.N;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.OffsetDateTime;
@@ -93,6 +94,16 @@ public class DataSnapshot {
     }
 
     @NotNull
+    public static DataSnapshot.Packed create(@NotNull HuskSync plugin,
+                                             @NotNull Map<DataContainer.Type, DataContainer> data,
+                                             @NotNull SaveCause saveCause) {
+        return new Unpacked(
+                UUID.randomUUID(), false, OffsetDateTime.now(), saveCause, data,
+                plugin.getMinecraftVersion(), plugin.getPlatformType(), DataSnapshot.CURRENT_FORMAT_VERSION
+        ).pack(plugin);
+    }
+
+    @NotNull
     protected static DataSnapshot.Packed create(@NotNull HuskSync plugin, @NotNull DataOwner owner,
                                                 @NotNull SaveCause saveCause) {
         return new DataSnapshot.Unpacked(
@@ -117,12 +128,12 @@ public class DataSnapshot {
                     snapshot.getFormatVersion(), CURRENT_FORMAT_VERSION));
         }
         if (snapshot.getFormatVersion() < CURRENT_FORMAT_VERSION) {
-            //todo convert version 3 data to version 4
             if (plugin.getLegacyConverter().isPresent()) {
-                return plugin.getLegacyConverter().get().convert(data).pack(plugin);
+                return plugin.getLegacyConverter().get().convert(data);
             }
-            throw new IllegalStateException(String.format("Unable to convert data from format: %s",
-                    snapshot.getFormatVersion()));
+            throw new IllegalStateException(String.format(
+                    "No legacy converter to convert format version: %s", snapshot.getFormatVersion())
+            );
         }
         if (!snapshot.getPlatformType().equalsIgnoreCase(plugin.getPlatformType())) {
             throw new IllegalStateException(String.format("Cannot set data for user because the platform type of " +
@@ -352,7 +363,7 @@ public class DataSnapshot {
          */
         MPDB_MIGRATION,
         /**
-         * Indicates data was saved from being imported from a legacy version (v1.x)
+         * Indicates data was saved from being imported from a legacy version (v1.x -> v2.x, v2.x -> v3.x)
          *
          * @since 2.0
          */

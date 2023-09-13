@@ -47,7 +47,7 @@ public interface DataContainer {
         ENDER_CHEST(true),
         POTION_EFFECTS(true),
         ADVANCEMENTS(true),
-        LOCATION(true),
+        LOCATION(false),
         STATISTICS(true),
         HEALTH(true),
         FOOD(true),
@@ -269,7 +269,11 @@ public interface DataContainer {
 
         void setWorld(@NotNull World world);
 
-        record World(@NotNull String name, @NotNull UUID uuid) {
+        record World(
+                @SerializedName("name") @NotNull String name,
+                @SerializedName("uuid") @NotNull UUID uuid,
+                @SerializedName("environment") @NotNull String environment
+        ) {
         }
     }
 

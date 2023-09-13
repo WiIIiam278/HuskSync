@@ -26,10 +26,7 @@ import net.william278.husksync.HuskSync;
 import net.william278.husksync.adapter.Adaptable;
 import net.william278.husksync.player.BukkitUser;
 import org.apache.commons.lang.NotImplementedException;
-import org.bukkit.Bukkit;
-import org.bukkit.GameRule;
-import org.bukkit.Material;
-import org.bukkit.Statistic;
+import org.bukkit.*;
 import org.bukkit.advancement.AdvancementProgress;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
@@ -358,23 +355,26 @@ public abstract class BukkitDataContainer implements DataContainer {
     }
 
     public static class Location implements DataContainer.Location, Adaptable {
+        @SerializedName("x")
         private double x;
+        @SerializedName("y")
         private double y;
+        @SerializedName("z")
         private double z;
+        @SerializedName("yaw")
         private float yaw;
+        @SerializedName("pitch")
         private float pitch;
+        @SerializedName("world")
         private World world;
 
-        private Location(@NotNull org.bukkit.Location location) {
-            this.x = location.getX();
-            this.y = location.getY();
-            this.z = location.getZ();
-            this.yaw = location.getYaw();
-            this.pitch = location.getPitch();
-            this.world = new World(
-                    Objects.requireNonNull(location.getWorld(), "World is null").getName(),
-                    location.getWorld().getUID()
-            );
+        private Location(double x, double y, double z, float yaw, float pitch, @NotNull World world) {
+            this.x = x;
+            this.y = y;
+            this.z = z;
+            this.yaw = yaw;
+            this.pitch = pitch;
+            this.world = world;
         }
 
         @SuppressWarnings("unused")
@@ -382,8 +382,25 @@ public abstract class BukkitDataContainer implements DataContainer {
         }
 
         @NotNull
+        public static BukkitDataContainer.Location from(double x, double y, double z,
+                                                        float yaw, float pitch, @NotNull World world) {
+            return new BukkitDataContainer.Location(x, y, z, yaw, pitch, world);
+        }
+
+        @NotNull
         public static BukkitDataContainer.Location adapt(@NotNull org.bukkit.Location location) {
-            return new BukkitDataContainer.Location(location);
+            return from(
+                    location.getX(),
+                    location.getY(),
+                    location.getZ(),
+                    location.getYaw(),
+                    location.getPitch(),
+                    new World(
+                            Objects.requireNonNull(location.getWorld(), "World is null").getName(),
+                            location.getWorld().getUID(),
+                            location.getWorld().getEnvironment().name()
+                    )
+            );
         }
 
         @Override
@@ -694,8 +711,14 @@ public abstract class BukkitDataContainer implements DataContainer {
         private Health() {
         }
 
+        @NotNull
+        public static BukkitDataContainer.Health from(double health, double maxHealth, double healthScale) {
+            return new BukkitDataContainer.Health(health, maxHealth, healthScale);
+        }
+
+        @NotNull
         public static BukkitDataContainer.Health adapt(@NotNull Player player) {
-            return new BukkitDataContainer.Health(
+            return from(
                     player.getHealth(),
                     Objects.requireNonNull(player.getAttribute(Attribute.GENERIC_MAX_HEALTH),
                             "Missing max health attribute").getValue(),
@@ -791,12 +814,14 @@ public abstract class BukkitDataContainer implements DataContainer {
         private Food() {
         }
 
+        @NotNull
         public static BukkitDataContainer.Food adapt(@NotNull Player player) {
-            return new BukkitDataContainer.Food(
-                    player.getFoodLevel(),
-                    player.getSaturation(),
-                    player.getExhaustion()
-            );
+            return from(player.getFoodLevel(), player.getSaturation(), player.getExhaustion());
+        }
+
+        @NotNull
+        public static BukkitDataContainer.Food from(int foodLevel, float saturation, float exhaustion) {
+            return new BukkitDataContainer.Food(foodLevel, saturation, exhaustion);
         }
 
         @Override
@@ -859,12 +884,14 @@ public abstract class BukkitDataContainer implements DataContainer {
         private Experience() {
         }
 
+        @NotNull
+        public static BukkitDataContainer.Experience from(int totalExperience, int expLevel, float expProgress) {
+            return new BukkitDataContainer.Experience(totalExperience, expLevel, expProgress);
+        }
+
+        @NotNull
         public static BukkitDataContainer.Experience adapt(@NotNull Player player) {
-            return new BukkitDataContainer.Experience(
-                    player.getTotalExperience(),
-                    player.getLevel(),
-                    player.getExp()
-            );
+            return from(player.getTotalExperience(), player.getLevel(), player.getExp());
         }
 
         @Override
@@ -916,18 +943,20 @@ public abstract class BukkitDataContainer implements DataContainer {
         @SerializedName("is_flying")
         private boolean isFlying;
 
-        private GameMode(@NotNull org.bukkit.GameMode gameMode, boolean allowFlight, boolean isFlying) {
-            this.gameMode = gameMode.name();
+        private GameMode(@NotNull String gameMode, boolean allowFlight, boolean isFlying) {
+            this.gameMode = gameMode;
             this.allowFlight = allowFlight;
             this.isFlying = isFlying;
         }
 
+        @NotNull
+        public static BukkitDataContainer.GameMode from(@NotNull String gameMode, boolean allowFlight, boolean isFlying) {
+            return new BukkitDataContainer.GameMode(gameMode, allowFlight, isFlying);
+        }
+
+        @NotNull
         public static BukkitDataContainer.GameMode adapt(@NotNull Player player) {
-            return new BukkitDataContainer.GameMode(
-                    player.getGameMode(),
-                    player.getAllowFlight(),
-                    player.isFlying()
-            );
+            return from(player.getGameMode().name(), player.getAllowFlight(), player.isFlying());
         }
 
         @Override

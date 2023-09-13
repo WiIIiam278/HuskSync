@@ -102,8 +102,12 @@ public interface DataAdapter {
     static final class AdaptionException extends IllegalStateException {
         static final String FORMAT = "An exception occurred when adapting serialized/deserialized data: %s";
 
-        AdaptionException(@NotNull String message, @NotNull Throwable cause) {
+        public AdaptionException(@NotNull String message, @NotNull Throwable cause) {
             super(String.format(FORMAT, message), cause);
+        }
+
+        public AdaptionException(@NotNull String message) {
+            super(String.format(FORMAT, message));
         }
     }
 }

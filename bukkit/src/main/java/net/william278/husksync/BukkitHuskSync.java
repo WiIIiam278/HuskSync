@@ -43,7 +43,7 @@ import net.william278.husksync.player.OnlineUser;
 import net.william278.husksync.redis.RedisManager;
 import net.william278.husksync.util.BukkitLegacyConverter;
 import net.william278.husksync.util.BukkitTask;
-import net.william278.husksync.util.LegacyDataConverter;
+import net.william278.husksync.util.LegacyConverter;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -74,7 +74,7 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
     private Settings settings;
     private Locales locales;
     private List<Migrator> availableMigrators;
-    private LegacyDataConverter legacyConverter;
+    private LegacyConverter legacyConverter;
     private BukkitAudiences audiences;
     private MorePaperLib paperLib;
 
@@ -283,7 +283,7 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
     }
 
     @Override
-    public Optional<LegacyDataConverter> getLegacyConverter() {
+    public Optional<LegacyConverter> getLegacyConverter() {
         return Optional.of(legacyConverter);
     }
 
