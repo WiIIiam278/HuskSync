@@ -121,7 +121,7 @@ public class BukkitSerializer {
         @Override
         public BukkitDataContainer.Advancements deserialize(@NotNull String serialized) throws DeserializationException {
             return BukkitDataContainer.Advancements.from(
-                    new Gson().fromJson(serialized, TYPE.getType()), plugin
+                    new Gson().fromJson(serialized, TYPE.getType())
             );
         }
 

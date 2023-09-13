@@ -93,7 +93,7 @@ public interface DataOwner extends MutableDataStore {
             try {
                 unpacked.getData().forEach((type, data) -> {
                     if (plugin.getSettings().getSynchronizationFeature(type)) {
-                        data.apply(this);
+                        data.apply(this, plugin);
                     }
                 });
             } catch (Throwable e) {
@@ -107,57 +107,57 @@ public interface DataOwner extends MutableDataStore {
 
     @Override
     default void setInventory(@NotNull DataContainer.Items.Inventory inventory) {
-        inventory.apply(this);
+        inventory.apply(this, getPlugin());
     }
 
     @Override
     default void setEnderChest(@NotNull DataContainer.Items.EnderChest enderChest) {
-        enderChest.apply(this);
+        enderChest.apply(this, getPlugin());
     }
 
     @Override
     default void setPotionEffects(@NotNull DataContainer.PotionEffects potionEffects) {
-        potionEffects.apply(this);
+        potionEffects.apply(this, getPlugin());
     }
 
     @Override
     default void setAdvancements(@NotNull DataContainer.Advancements advancements) {
-        advancements.apply(this);
+        advancements.apply(this, getPlugin());
     }
 
     @Override
     default void setLocation(@NotNull DataContainer.Location location) {
-        location.apply(this);
+        location.apply(this, getPlugin());
     }
 
     @Override
     default void setStatistics(@NotNull DataContainer.Statistics statistics) {
-        statistics.apply(this);
+        statistics.apply(this, getPlugin());
     }
 
     @Override
     default void setHealth(@NotNull DataContainer.Health health) {
-        health.apply(this);
+        health.apply(this, getPlugin());
     }
 
     @Override
     default void setFood(@NotNull DataContainer.Food food) {
-        food.apply(this);
+        food.apply(this, getPlugin());
     }
 
     @Override
     default void setExperience(@NotNull DataContainer.Experience experience) {
-        experience.apply(this);
+        experience.apply(this, getPlugin());
     }
 
     @Override
     default void setGameMode(@NotNull DataContainer.GameMode gameMode) {
-        gameMode.apply(this);
+        gameMode.apply(this, getPlugin());
     }
 
     @Override
     default void setPersistentData(@NotNull DataContainer.PersistentData persistentData) {
-        persistentData.apply(this);
+        persistentData.apply(this, getPlugin());
     }
 
     @NotNull

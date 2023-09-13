@@ -22,6 +22,7 @@ package net.william278.husksync.data;
 import com.google.gson.annotations.SerializedName;
 import de.tr7zw.changeme.nbtapi.NBTCompound;
 import de.tr7zw.changeme.nbtapi.NBTPersistentDataContainer;
+import net.william278.desertwell.util.ThrowingConsumer;
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.adapter.Adaptable;
 import net.william278.husksync.player.BukkitUser;
@@ -30,6 +31,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.GameRule;
 import org.bukkit.Material;
 import org.bukkit.Statistic;
+import org.bukkit.advancement.Advancement;
 import org.bukkit.advancement.AdvancementProgress;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
@@ -43,7 +45,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public abstract class BukkitDataContainer implements DataContainer {
@@ -126,7 +128,7 @@ public abstract class BukkitDataContainer implements DataContainer {
             }
 
             @Override
-            public void apply(@NotNull DataOwner user) throws IllegalStateException {
+            public void apply(@NotNull DataOwner user, @NotNull HuskSync plugin) throws IllegalStateException {
                 final Player player = ((BukkitUser) user).getPlayer();
                 this.clearInventoryCraftingSlots(player);
                 player.setItemOnCursor(null);
@@ -170,7 +172,7 @@ public abstract class BukkitDataContainer implements DataContainer {
             }
 
             @Override
-            public void apply(@NotNull DataOwner user) throws IllegalStateException {
+            public void apply(@NotNull DataOwner user, @NotNull HuskSync plugin) throws IllegalStateException {
                 ((BukkitUser) user).getPlayer().getEnderChest().setContents(getContents());
             }
 
@@ -188,7 +190,7 @@ public abstract class BukkitDataContainer implements DataContainer {
             }
 
             @Override
-            public void apply(@NotNull DataOwner user) throws IllegalStateException {
+            public void apply(@NotNull DataOwner user, @NotNull HuskSync plugin) throws IllegalStateException {
                 throw new NotImplementedException("Death drops cannot be applied to a player");
             }
         }
@@ -208,7 +210,7 @@ public abstract class BukkitDataContainer implements DataContainer {
         }
 
         @Override
-        public void apply(@NotNull DataOwner user) throws IllegalStateException {
+        public void apply(@NotNull DataOwner user, @NotNull HuskSync plugin) throws IllegalStateException {
             final Player player = ((BukkitUser) user).getPlayer();
             player.getActivePotionEffects().forEach(potionEffect -> player.removePotionEffect(potionEffect.getType()));
             player.addPotionEffects(effects);
@@ -238,15 +240,17 @@ public abstract class BukkitDataContainer implements DataContainer {
 
     public static class Advancements implements DataContainer.Advancements {
 
-        private final HuskSync plugin;
         private List<Advancement> completed;
 
-        private Advancements(@NotNull Player player, @NotNull HuskSync plugin) {
-            final ArrayList<Advancement> advancementData = new ArrayList<>();
-            this.plugin = plugin;
+        private Advancements(@NotNull List<Advancement> advancements) {
+            this.completed = advancements;
+        }
 
-            // Iterate through the server advancement set and add all advancements to the list
-            Bukkit.getServer().advancementIterator().forEachRemaining(advancement -> {
+        // Iterate through the server advancement set and add all advancements to the list
+        @NotNull
+        public static BukkitDataContainer.Advancements adapt(@NotNull Player player) {
+            final List<Advancement> advancements = new ArrayList<>();
+            forEachAdvancement(advancement -> {
                 final AdvancementProgress advancementProgress = player.getAdvancementProgress(advancement);
                 final Map<String, Date> awardedCriteria = new HashMap<>();
 
@@ -255,93 +259,71 @@ public abstract class BukkitDataContainer implements DataContainer {
 
                 // Only save the advancement if criteria has been completed
                 if (!awardedCriteria.isEmpty()) {
-                    advancementData.add(Advancement.adapt(advancement.getKey().toString(), awardedCriteria));
+                    advancements.add(Advancement.adapt(advancement.getKey().toString(), awardedCriteria));
                 }
             });
-            this.completed = advancementData;
-            this.completed = new ArrayList<>();
-        }
-
-        private Advancements(@NotNull List<Advancement> advancements, @NotNull HuskSync plugin) {
-            this.completed = advancements;
-            this.plugin = plugin;
+            return new BukkitDataContainer.Advancements(advancements);
         }
 
         @NotNull
-        public static BukkitDataContainer.Advancements adapt(@NotNull Player player, @NotNull HuskSync plugin) {
-            return new BukkitDataContainer.Advancements(player, plugin);
-        }
-
-        @NotNull
-        public static BukkitDataContainer.Advancements from(@NotNull List<Advancement> advancements,
-                                                            @NotNull HuskSync plugin) {
-            return new BukkitDataContainer.Advancements(advancements, plugin);
+        public static BukkitDataContainer.Advancements from(@NotNull List<Advancement> advancements) {
+            return new BukkitDataContainer.Advancements(advancements);
         }
 
         @Override
-        public void apply(@NotNull DataOwner user) throws IllegalStateException {
-            // Temporarily disable advancement announcing if needed
-            final Player player = ((BukkitUser) user).getPlayer();
-            boolean announceAdvancementUpdate = false;
-            if (Boolean.TRUE.equals(player.getWorld().getGameRuleValue(GameRule.ANNOUNCE_ADVANCEMENTS))) {
-                player.getWorld().setGameRule(GameRule.ANNOUNCE_ADVANCEMENTS, false);
-                announceAdvancementUpdate = true;
-            }
-            final boolean finalAnnounceAdvancementUpdate = announceAdvancementUpdate;
-
-            // Save current experience and level
-            final int experienceLevel = player.getLevel();
-            final float expProgress = player.getExp();
-
-            // Determines whether the experience might have changed warranting an update
-            final AtomicBoolean correctExperience = new AtomicBoolean(false);
-
-            // Run asynchronously as advancement setting is expensive
-            plugin.runAsync(() -> {
-
-                // Apply the advancements to the player
-                final Iterator<org.bukkit.advancement.Advancement> serverAdvancements = Bukkit.getServer().advancementIterator();
-                while (serverAdvancements.hasNext()) {
-                    // Iterate through all advancements
-                    final org.bukkit.advancement.Advancement advancement = serverAdvancements.next();
-                    final AdvancementProgress playerProgress = player.getAdvancementProgress(advancement);
-
-                    completed.stream().filter(record -> record.getKey().equals(advancement.getKey().toString())).findFirst().ifPresentOrElse(
-                            // Award all criteria that the player does not have that they do on the cache
-                            record -> {
-                                record.getCompletedCriteria().keySet().stream()
-                                        .filter(criterion -> !playerProgress.getAwardedCriteria().contains(criterion))
-                                        .forEach(criterion -> {
-                                            plugin.runAsync(() -> player.getAdvancementProgress(advancement).awardCriteria(criterion));
-                                            correctExperience.set(true);
-                                        });
-
-                                // Revoke all criteria that the player does have but should not
-                                new ArrayList<>(playerProgress.getAwardedCriteria()).stream()
-                                        .filter(criterion -> !record.getCompletedCriteria().containsKey(criterion))
-                                        .forEach(criterion -> plugin.runSync(
-                                                () -> player.getAdvancementProgress(advancement).revokeCriteria(criterion)));
-
-                            },
-                            // Revoke the criteria as the player shouldn't have any
-                            () -> new ArrayList<>(playerProgress.getAwardedCriteria()).forEach(criterion ->
-                                    plugin.runAsync(() -> player.getAdvancementProgress(advancement).revokeCriteria(criterion))));
-
-                    // Update the player's experience in case the advancement changed that
-                    if (correctExperience.get()) {
-                        player.setLevel(experienceLevel);
-                        player.setExp(expProgress);
-                        correctExperience.set(false);
-                    }
+        public void apply(@NotNull DataOwner user, @NotNull HuskSync plugin) throws IllegalStateException {
+            plugin.runAsync(() -> forEachAdvancement(advancement -> {
+                final Player player = ((BukkitUser) user).getPlayer();
+                final AdvancementProgress progress = player.getAdvancementProgress(advancement);
+                final Optional<Advancement> record = completed.stream()
+                        .filter(r -> r.getKey().equals(advancement.getKey().toString()))
+                        .findFirst();
+                if (record.isEmpty()) {
+                    this.setAdvancement(plugin, advancement, player,  List.of(), progress.getAwardedCriteria());
+                    return;
                 }
 
-                // Re-enable announcing advancements (back on the main thread again)
-                plugin.runSync(() -> {
-                    if (finalAnnounceAdvancementUpdate) {
-                        player.getWorld().setGameRule(GameRule.ANNOUNCE_ADVANCEMENTS, true);
-                    }
-                });
+                final Map<String, Date> criteria = record.get().getCompletedCriteria();
+                this.setAdvancement(
+                        plugin, advancement, player,
+                        criteria.keySet().stream().filter(key -> !progress.getAwardedCriteria().contains(key)).toList(),
+                        progress.getAwardedCriteria().stream().filter(key -> !criteria.containsKey(key)).toList()
+                );
+            }));
+        }
+
+        private void setAdvancement(@NotNull HuskSync plugin,
+                                    @NotNull org.bukkit.advancement.Advancement advancement, @NotNull Player player,
+                                    @NotNull Collection<String> toAward, @NotNull Collection<String> toRevoke) {
+            plugin.runSync(() -> {
+                // Track player exp level & progress
+                final int expLevel = player.getLevel();
+                final float expProgress = player.getExp();
+                boolean gameRuleUpdated = false;
+                if (Boolean.TRUE.equals(player.getWorld().getGameRuleValue(GameRule.ANNOUNCE_ADVANCEMENTS))) {
+                    player.getWorld().setGameRule(GameRule.ANNOUNCE_ADVANCEMENTS, false);
+                    gameRuleUpdated = true;
+                }
+
+                // Award and revoke advancement criteria
+                final AdvancementProgress progress = player.getAdvancementProgress(advancement);
+                toAward.forEach(progress::awardCriteria);
+                toRevoke.forEach(progress::revokeCriteria);
+
+                // Set player experience and level (prevent advancement awards applying twice), reset game rule
+                if (!toAward.isEmpty() && player.getLevel() != expLevel || player.getExp() != expProgress) {
+                    player.setLevel(expLevel);
+                    player.setExp(expProgress);
+                }
+                if (gameRuleUpdated) {
+                    player.getWorld().setGameRule(GameRule.ANNOUNCE_ADVANCEMENTS, true);
+                }
             });
+        }
+
+        // Performs a consuming function for every advancement registered on the server
+        private static void forEachAdvancement(@NotNull ThrowingConsumer<org.bukkit.advancement.Advancement> consumer) {
+            Bukkit.getServer().advancementIterator().forEachRemaining(consumer);
         }
 
         @NotNull
@@ -407,7 +389,7 @@ public abstract class BukkitDataContainer implements DataContainer {
         }
 
         @Override
-        public void apply(@NotNull DataOwner user) throws IllegalStateException {
+        public void apply(@NotNull DataOwner user, @NotNull HuskSync plugin) throws IllegalStateException {
             try {
                 final org.bukkit.Location location = new org.bukkit.Location(
                         Bukkit.getWorld(world.name()), x, y, z, yaw, pitch
@@ -578,7 +560,7 @@ public abstract class BukkitDataContainer implements DataContainer {
         }
 
         @Override
-        public void apply(@NotNull DataOwner user) throws IllegalStateException {
+        public void apply(@NotNull DataOwner user, @NotNull HuskSync plugin) throws IllegalStateException {
             untypedStatistics.forEach((stat, value) -> applyStat(user, stat, null, value));
             blockStatistics.forEach((stat, m) -> m.forEach((block, value) -> applyStat(user, stat, block, value)));
             itemStatistics.forEach((stat, m) -> m.forEach((item, value) -> applyStat(user, stat, item, value)));
@@ -681,7 +663,7 @@ public abstract class BukkitDataContainer implements DataContainer {
         }
 
         @Override
-        public void apply(@NotNull DataOwner user) throws IllegalStateException {
+        public void apply(@NotNull DataOwner user, @NotNull HuskSync plugin) throws IllegalStateException {
             final NBTPersistentDataContainer container = new NBTPersistentDataContainer(
                     ((BukkitUser) user).getPlayer().getPersistentDataContainer()
             );
@@ -730,7 +712,7 @@ public abstract class BukkitDataContainer implements DataContainer {
         }
 
         @Override
-        public void apply(@NotNull DataOwner user) throws IllegalStateException {
+        public void apply(@NotNull DataOwner user, @NotNull HuskSync plugin) throws IllegalStateException {
             final Player player = ((BukkitUser) user).getPlayer();
 
             // Set base max health
@@ -828,7 +810,7 @@ public abstract class BukkitDataContainer implements DataContainer {
         }
 
         @Override
-        public void apply(@NotNull DataOwner user) throws IllegalStateException {
+        public void apply(@NotNull DataOwner user, @NotNull HuskSync plugin) throws IllegalStateException {
             final Player player = ((BukkitUser) user).getPlayer();
             player.setFoodLevel(foodLevel);
             player.setSaturation(saturation);
@@ -898,7 +880,7 @@ public abstract class BukkitDataContainer implements DataContainer {
         }
 
         @Override
-        public void apply(@NotNull DataOwner user) throws IllegalStateException {
+        public void apply(@NotNull DataOwner user, @NotNull HuskSync plugin) throws IllegalStateException {
             final Player player = ((BukkitUser) user).getPlayer();
             player.setTotalExperience(totalExperience);
             player.setLevel(expLevel);
@@ -963,7 +945,7 @@ public abstract class BukkitDataContainer implements DataContainer {
         }
 
         @Override
-        public void apply(@NotNull DataOwner user) throws IllegalStateException {
+        public void apply(@NotNull DataOwner user, @NotNull HuskSync plugin) throws IllegalStateException {
             final Player player = ((BukkitUser) user).getPlayer();
             player.setGameMode(org.bukkit.GameMode.valueOf(gameMode));
             player.setAllowFlight(allowFlight);

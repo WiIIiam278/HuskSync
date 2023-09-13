@@ -151,7 +151,7 @@ public class BukkitLegacyConverter extends LegacyConverter {
             converted.add(DataContainer.Advancements.Advancement.adapt(key, criteriaMap));
         });
 
-        return Optional.of(BukkitDataContainer.Advancements.from(converted, plugin));
+        return Optional.of(BukkitDataContainer.Advancements.from(converted));
     }
 
     @NotNull

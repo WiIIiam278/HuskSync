@@ -20,6 +20,7 @@
 package net.william278.husksync.data;
 
 import com.google.gson.annotations.SerializedName;
+import net.william278.husksync.HuskSync;
 import net.william278.husksync.player.OnlineUser;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -35,9 +36,10 @@ public interface DataContainer {
     /**
      * Apply (set) this data container to the given {@link OnlineUser}
      *
-     * @param user the user to apply this element to
+     * @param user   the user to apply this element to
+     * @param plugin
      */
-    void apply(@NotNull DataOwner user) throws IllegalStateException;
+    void apply(@NotNull DataOwner user, @NotNull HuskSync plugin) throws IllegalStateException;
 
     /**
      * Enumeration of types of {@link DataContainer}s

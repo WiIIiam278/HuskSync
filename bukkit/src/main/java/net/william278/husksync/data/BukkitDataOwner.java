@@ -50,7 +50,7 @@ public interface BukkitDataOwner extends DataOwner {
     @NotNull
     @Override
     default Optional<DataContainer.Advancements> getAdvancements() {
-        return Optional.of(BukkitDataContainer.Advancements.adapt(getBukkitPlayer(), getPlugin()));
+        return Optional.of(BukkitDataContainer.Advancements.adapt(getBukkitPlayer()));
     }
 
     @NotNull
