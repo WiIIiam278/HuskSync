@@ -31,7 +31,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.GameRule;
 import org.bukkit.Material;
 import org.bukkit.Statistic;
-import org.bukkit.advancement.Advancement;
 import org.bukkit.advancement.AdvancementProgress;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
@@ -45,7 +44,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public abstract class BukkitDataContainer implements DataContainer {

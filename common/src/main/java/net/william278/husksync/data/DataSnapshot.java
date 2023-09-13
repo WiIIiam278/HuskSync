@@ -31,6 +31,7 @@ import org.jetbrains.annotations.NotNull;
 import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 /**
@@ -38,7 +39,10 @@ import java.util.stream.Collectors;
  */
 public class DataSnapshot {
 
-    // Current version of the snapshot data format
+    /*
+     * Current version of the snapshot data format.
+     * HuskSync v3.0 uses v4; HuskSync v2.0 uses v3. HuskSync v1.0 uses v1 or v2
+     */
     protected static final int CURRENT_FORMAT_VERSION = 4;
 
     @SerializedName("id")
@@ -128,6 +132,7 @@ public class DataSnapshot {
         }
         if (snapshot.getFormatVersion() < CURRENT_FORMAT_VERSION) {
             if (plugin.getLegacyConverter().isPresent()) {
+                plugin.log(Level.INFO, "Updating ");
                 return plugin.getLegacyConverter().get().convert(data);
             }
             throw new IllegalStateException(String.format(

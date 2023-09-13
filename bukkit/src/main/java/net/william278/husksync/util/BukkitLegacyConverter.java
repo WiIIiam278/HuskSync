@@ -32,8 +32,8 @@ public class BukkitLegacyConverter extends LegacyConverter {
         final int version = object.getInt("format_version");
         if (version != 3) {
             throw new DataAdapter.AdaptionException(String.format(
-                    "Unsupported legacy format version: %s. Please downgrade to an earlier version of HuskSync, " +
-                            "perform a manual legacy migration, then attempt an upgrade again.", version
+                    "Unsupported legacy data format version: %s. Please downgrade to an earlier version of HuskSync, " +
+                            "perform a manual legacy migration, then attempt to upgrade again.", version
             ));
         }
 
@@ -42,6 +42,8 @@ public class BukkitLegacyConverter extends LegacyConverter {
         readEnderChest(object).ifPresent(e -> containers.put(DataContainer.Type.ENDER_CHEST, e));
         readLocation(object).ifPresent(l -> containers.put(DataContainer.Type.LOCATION, l));
         readAdvancements(object).ifPresent(a -> containers.put(DataContainer.Type.ADVANCEMENTS, a));
+
+        //todo statistics, persistent data container
 
         return DataSnapshot.create(plugin, containers, DataSnapshot.SaveCause.LEGACY_MIGRATION);
     }

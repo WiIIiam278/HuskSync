@@ -138,6 +138,11 @@ public class Settings {
     @YamlKey("synchronization.notification_display_slot")
     private Locales.NotificationSlot notificationSlot = Locales.NotificationSlot.ACTION_BAR;
 
+    @YamlComment("(Experimental) Persist maps that have been locked in a cartography table. " +
+            "This allows them to be viewed on any server")
+    @YamlKey("synchronization.persist_locked_maps")
+    private boolean persistLockedMaps = false;
+
     @YamlKey("synchronization.synchronise_dead_players_changing_server")
     private boolean synchroniseDeadPlayersChangingServer = true;
 
@@ -285,7 +290,11 @@ public class Settings {
         return notificationSlot;
     }
 
-    public boolean isSynchroniseDeadPlayersChangingServer() {
+    public boolean doPersistLockedMaps() {
+        return persistLockedMaps;
+    }
+
+    public boolean doSynchroniseDeadPlayersChangingServer() {
         return synchroniseDeadPlayersChangingServer;
     }
 

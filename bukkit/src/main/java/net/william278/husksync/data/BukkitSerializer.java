@@ -26,7 +26,9 @@ import de.tr7zw.changeme.nbtapi.NBTContainer;
 import de.tr7zw.changeme.nbtapi.iface.ReadWriteNBT;
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.adapter.Adaptable;
+import net.william278.husksync.util.LockedMapPersister;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -39,7 +41,13 @@ public class BukkitSerializer {
         this.plugin = plugin;
     }
 
-    public static class Inventory extends BukkitSerializer implements Serializer<BukkitDataContainer.Items.Inventory> {
+    @ApiStatus.Internal
+    @NotNull
+    public HuskSync getPlugin() {
+        return plugin;
+    }
+
+    public static class Inventory extends BukkitSerializer implements Serializer<BukkitDataContainer.Items.Inventory>, LockedMapPersister {
         private static final String ITEMS_TAG = "items";
         private static final String HELD_ITEM_SLOT_TAG = "held_item_slot";
 
@@ -59,13 +67,14 @@ public class BukkitSerializer {
         @Override
         public String serialize(@NotNull BukkitDataContainer.Items.Inventory data) throws SerializationException {
             final ReadWriteNBT root = NBT.createNBTObject();
-            root.setItemStackArray(ITEMS_TAG, data.getContents());
+            root.setItemStackArray(ITEMS_TAG, persistLockedMaps(data.getContents()));
             root.setInteger(HELD_ITEM_SLOT_TAG, data.getHeldItemSlot());
             return root.toString();
         }
+
     }
 
-    public static class EnderChest extends BukkitSerializer implements Serializer<BukkitDataContainer.Items.EnderChest> {
+    public static class EnderChest extends BukkitSerializer implements Serializer<BukkitDataContainer.Items.EnderChest>, LockedMapPersister {
 
         public EnderChest(@NotNull HuskSync plugin) {
             super(plugin);
@@ -81,7 +90,7 @@ public class BukkitSerializer {
         @NotNull
         @Override
         public String serialize(@NotNull BukkitDataContainer.Items.EnderChest data) throws SerializationException {
-            return NBT.itemStackArrayToNBT(data.getContents()).toString();
+            return NBT.itemStackArrayToNBT(persistLockedMaps(data.getContents())).toString();
         }
     }
 
