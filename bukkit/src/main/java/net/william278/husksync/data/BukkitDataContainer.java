@@ -120,6 +120,11 @@ public abstract class BukkitDataContainer implements DataContainer {
                 return new BukkitDataContainer.Items.Inventory(contents, heldItemSlot);
             }
 
+            @NotNull
+            public static BukkitDataContainer.Items.Inventory empty() {
+                return new BukkitDataContainer.Items.Inventory(new ItemStack[INVENTORY_SLOT_COUNT], 0);
+            }
+
             @Override
             public void apply(@NotNull DataOwner user) throws IllegalStateException {
                 final Player player = ((BukkitUser) user).getPlayer();
