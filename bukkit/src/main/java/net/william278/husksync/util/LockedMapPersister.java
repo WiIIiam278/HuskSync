@@ -2,6 +2,7 @@ package net.william278.husksync.util;
 
 import de.tr7zw.changeme.nbtapi.NBT;
 import net.william278.husksync.HuskSync;
+import net.william278.husksync.player.BukkitUser;
 import net.william278.mapdataapi.MapData;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -29,12 +30,6 @@ public interface LockedMapPersister {
         }
 
         return getMapStream(items)
-                .filter(map -> {
-                    final MapMeta meta = ((MapMeta) Objects.requireNonNull(
-                            map.getItemMeta(), "Missing map meta"));
-                    return meta.hasMapView() && Objects.requireNonNull(
-                            meta.getMapView(), "Missing map view").isLocked();
-                })
                 .map(this::persistMapView)
                 .toList().toArray(new ItemStack[0]);
     }
@@ -60,21 +55,34 @@ public interface LockedMapPersister {
     @NotNull
     private ItemStack persistMapView(@NotNull ItemStack map) {
         final MapMeta meta = Objects.requireNonNull((MapMeta) map.getItemMeta());
+        if (!meta.hasMapView()) {
+            return map;
+        }
         final MapView view = Objects.requireNonNull(meta.getMapView());
-        if (view.getWorld() == null) {
+        if (view.getWorld() == null || !view.isLocked() || view.isVirtual()) {
             return map;
         }
 
-        final int mapId = view.getId();
-        try {
-            final MapData data = MapData.getFromFile(view.getWorld().getWorldFolder(), mapId);
-            NBT.modify(map, item -> {
-                getPlugin().debug("Serializing locked map data to NBT...");
-                item.setByteArray(MAP_DATA_KEY, data.toBytes());
-            });
-        } catch (Throwable e) {
-            getPlugin().log(Level.WARNING, String.format("Failed to serialize locked map data (Map ID: %s)", mapId));
-        }
+        NBT.modify(map, nbt -> {
+            // Don't save the map's data twice
+            if (nbt.hasTag(MAP_DATA_KEY)) {
+                return;
+            }
+
+            // Get the map data
+            final PersistentMapCanvas canvas = new PersistentMapCanvas(view);
+            for (MapRenderer renderer : view.getRenderers()) {
+                getPlugin().getOnlineUsers().stream()
+                        .findAny().ifPresent(user -> renderer.render(
+                                view, canvas, ((BukkitUser) user).getBukkitPlayer()
+                        ));
+            }
+            getPlugin().debug("Rendered map view onto canvas for locked map");
+
+            // Save the extracted rendered map data
+            nbt.setByteArray(MAP_DATA_KEY, canvas.extractMapData().toBytes());
+            getPlugin().debug("Saving pixel canvas data to NBT for locked map");
+        });
         return map;
     }
 
@@ -145,13 +153,13 @@ public interface LockedMapPersister {
     /**
      * A {@link MapCanvas} implementation used for pre-rendering maps to be converted into {@link MapData}
      */
-    class LockedMapCanvas implements MapCanvas {
+    class PersistentMapCanvas implements MapCanvas {
 
         private final MapView mapView;
         private final int[][] pixels = new int[128][128];
         private MapCursorCollection cursors;
 
-        private LockedMapCanvas(@NotNull MapView mapView) {
+        private PersistentMapCanvas(@NotNull MapView mapView) {
             this.mapView = mapView;
         }
 
