@@ -19,6 +19,8 @@
 
 package net.william278.husksync.data;
 
+import net.william278.husksync.BukkitHuskSync;
+import net.william278.husksync.util.MapPersister;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
@@ -32,13 +34,18 @@ public interface BukkitDataOwner extends DataOwner {
         if ((getBukkitPlayer().isDead() && getPlugin().getSettings().doSynchroniseDeadPlayersChangingServer())) {
             return Optional.of(BukkitDataContainer.Items.Inventory.empty());
         }
-        return Optional.of(BukkitDataContainer.Items.Inventory.adapt(getBukkitPlayer()));
+        return Optional.of(BukkitDataContainer.Items.Inventory.from(
+                getMapPersister().persistLockedMaps(getBukkitPlayer().getInventory().getContents()),
+                getBukkitPlayer().getInventory().getHeldItemSlot()
+        ));
     }
 
     @NotNull
     @Override
     default Optional<DataContainer.Items.EnderChest> getEnderChest() {
-        return Optional.of(BukkitDataContainer.Items.EnderChest.adapt(getBukkitPlayer().getEnderChest().getContents()));
+        return Optional.of(BukkitDataContainer.Items.EnderChest.adapt(
+                getMapPersister().persistLockedMaps(getBukkitPlayer().getEnderChest().getContents())
+        ));
     }
 
     @NotNull
@@ -97,5 +104,10 @@ public interface BukkitDataOwner extends DataOwner {
 
     @NotNull
     Player getBukkitPlayer();
+
+    @NotNull
+    default MapPersister getMapPersister() {
+        return (BukkitHuskSync) getPlugin();
+    }
 
 }

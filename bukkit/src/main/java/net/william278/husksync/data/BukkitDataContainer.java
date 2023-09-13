@@ -23,9 +23,11 @@ import com.google.gson.annotations.SerializedName;
 import de.tr7zw.changeme.nbtapi.NBTCompound;
 import de.tr7zw.changeme.nbtapi.NBTPersistentDataContainer;
 import net.william278.desertwell.util.ThrowingConsumer;
+import net.william278.husksync.BukkitHuskSync;
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.adapter.Adaptable;
 import net.william278.husksync.player.BukkitUser;
+import net.william278.husksync.util.MapPersister;
 import org.apache.commons.lang.NotImplementedException;
 import org.bukkit.Bukkit;
 import org.bukkit.GameRule;
@@ -108,14 +110,6 @@ public abstract class BukkitDataContainer implements DataContainer {
             }
 
             @NotNull
-            public static BukkitDataContainer.Items.Inventory adapt(@NotNull Player player) {
-                return new BukkitDataContainer.Items.Inventory(
-                        player.getInventory().getContents(),
-                        player.getInventory().getHeldItemSlot()
-                );
-            }
-
-            @NotNull
             public static BukkitDataContainer.Items.Inventory from(@NotNull ItemStack[] contents, int heldItemSlot) {
                 return new BukkitDataContainer.Items.Inventory(contents, heldItemSlot);
             }
@@ -130,7 +124,7 @@ public abstract class BukkitDataContainer implements DataContainer {
                 final Player player = ((BukkitUser) user).getPlayer();
                 this.clearInventoryCraftingSlots(player);
                 player.setItemOnCursor(null);
-                player.getInventory().setContents(getContents());
+                player.getInventory().setContents(((BukkitHuskSync) plugin).setMapViews(getContents()));
                 player.updateInventory();
             }
 
@@ -171,7 +165,9 @@ public abstract class BukkitDataContainer implements DataContainer {
 
             @Override
             public void apply(@NotNull DataOwner user, @NotNull HuskSync plugin) throws IllegalStateException {
-                ((BukkitUser) user).getPlayer().getEnderChest().setContents(getContents());
+                ((BukkitUser) user).getPlayer().getEnderChest().setContents(
+                        ((BukkitHuskSync) plugin).setMapViews(getContents())
+                );
             }
 
         }

@@ -19,7 +19,7 @@ import java.util.Objects;
 import java.util.logging.Level;
 import java.util.stream.Stream;
 
-public interface LockedMapPersister {
+public interface MapPersister {
 
     String MAP_DATA_KEY = "husksync:locked_map_data";
 
