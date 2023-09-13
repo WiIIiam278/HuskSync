@@ -8,15 +8,19 @@ import net.william278.husksync.data.DataSnapshot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.io.BukkitObjectInputStream;
 import org.jetbrains.annotations.NotNull;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.yaml.snakeyaml.external.biz.base64Coder.Base64Coder;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class BukkitLegacyConverter extends LegacyConverter {
+
     public BukkitLegacyConverter(@NotNull HuskSync plugin) {
         super(plugin);
     }
@@ -34,9 +38,11 @@ public class BukkitLegacyConverter extends LegacyConverter {
         }
 
         final Map<DataContainer.Type, DataContainer> containers = new LinkedHashMap<>(readStatusData(object));
-        readInventory(object).ifPresent(items -> containers.put(DataContainer.Type.INVENTORY, items));
-        readEnderChest(object).ifPresent(items -> containers.put(DataContainer.Type.ENDER_CHEST, items));
-        readLocation(object).ifPresent(location -> containers.put(DataContainer.Type.LOCATION, location));
+        readInventory(object).ifPresent(i -> containers.put(DataContainer.Type.INVENTORY, i));
+        readEnderChest(object).ifPresent(e -> containers.put(DataContainer.Type.ENDER_CHEST, e));
+        readLocation(object).ifPresent(l -> containers.put(DataContainer.Type.LOCATION, l));
+        readAdvancements(object).ifPresent(a -> containers.put(DataContainer.Type.ADVANCEMENTS, a));
+
         return DataSnapshot.create(plugin, containers, DataSnapshot.SaveCause.LEGACY_MIGRATION);
     }
 
@@ -81,7 +87,7 @@ public class BukkitLegacyConverter extends LegacyConverter {
 
     @NotNull
     private Optional<DataContainer.Items> readInventory(@NotNull JSONObject object) {
-        if (!object.has("inventory") && shouldImport(DataContainer.Type.INVENTORY)) {
+        if (!object.has("inventory") || !shouldImport(DataContainer.Type.INVENTORY)) {
             return Optional.empty();
         }
 
@@ -93,7 +99,7 @@ public class BukkitLegacyConverter extends LegacyConverter {
 
     @NotNull
     private Optional<DataContainer.Items> readEnderChest(@NotNull JSONObject object) {
-        if (!object.has("ender_chest") && shouldImport(DataContainer.Type.ENDER_CHEST)) {
+        if (!object.has("ender_chest") || !shouldImport(DataContainer.Type.ENDER_CHEST)) {
             return Optional.empty();
         }
 
@@ -105,7 +111,7 @@ public class BukkitLegacyConverter extends LegacyConverter {
 
     @NotNull
     private Optional<DataContainer.Location> readLocation(@NotNull JSONObject object) {
-        if (!object.has("location") && shouldImport(DataContainer.Type.LOCATION)) {
+        if (!object.has("location") || !shouldImport(DataContainer.Type.LOCATION)) {
             return Optional.empty();
         }
 
@@ -122,6 +128,30 @@ public class BukkitLegacyConverter extends LegacyConverter {
                         locationData.getString("world_environment")
                 )
         ));
+    }
+
+    //todo check against actual v3 data format
+    @NotNull
+    private Optional<DataContainer.Advancements> readAdvancements(@NotNull JSONObject object) {
+        if (!object.has("advancements") || !shouldImport(DataContainer.Type.ADVANCEMENTS)) {
+            return Optional.empty();
+        }
+
+        final JSONArray advancements = object.getJSONArray("advancements");
+        final List<DataContainer.Advancements.Advancement> converted = new ArrayList<>();
+        advancements.iterator().forEachRemaining(o -> {
+            final JSONObject advancement = (JSONObject) JSONObject.wrap(o);
+            final String key = advancement.getString("key");
+
+            final JSONObject criteria = advancement.getJSONObject("completed_criteria");
+            final Map<String, Date> criteriaMap = new LinkedHashMap<>();
+            criteria.keys().forEachRemaining(criteriaKey -> criteriaMap.put(
+                    criteriaKey, parseDate(criteria.getString(criteriaKey)))
+            );
+            converted.add(DataContainer.Advancements.Advancement.adapt(key, criteriaMap));
+        });
+
+        return Optional.of(BukkitDataContainer.Advancements.from(converted, plugin));
     }
 
     @NotNull
@@ -143,6 +173,15 @@ public class BukkitLegacyConverter extends LegacyConverter {
 
     private boolean shouldImport(@NotNull DataContainer.Type type) {
         return plugin.getSettings().getSynchronizationFeature(type);
+    }
+
+    @NotNull
+    private Date parseDate(@NotNull String dateString) {
+        try {
+            return new SimpleDateFormat().parse(dateString);
+        } catch (ParseException e) {
+            return new Date();
+        }
     }
 
 }
