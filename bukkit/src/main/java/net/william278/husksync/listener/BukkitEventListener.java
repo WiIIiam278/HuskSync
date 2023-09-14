@@ -105,6 +105,9 @@ public class BukkitEventListener extends EventListener implements BukkitJoinEven
 
     @EventHandler(ignoreCancelled = true)
     public void onWorldSave(@NotNull WorldSaveEvent event) {
+        // Clear map view cache (as they're now saved to disk)
+        ((BukkitHuskSync) plugin).getMapViews().clear();
+
         // Handle saving player data snapshots when the world saves
         if (!plugin.getSettings().doSaveOnWorldSave()) {
             return;

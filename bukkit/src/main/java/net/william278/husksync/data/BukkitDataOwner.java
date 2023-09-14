@@ -35,7 +35,7 @@ public interface BukkitDataOwner extends DataOwner {
             return Optional.of(BukkitDataContainer.Items.Inventory.empty());
         }
         return Optional.of(BukkitDataContainer.Items.Inventory.from(
-                getMapPersister().persistLockedMaps(getBukkitPlayer().getInventory().getContents()),
+                getMapPersister().persistLockedMaps(getBukkitPlayer().getInventory().getContents(), getBukkitPlayer()),
                 getBukkitPlayer().getInventory().getHeldItemSlot()
         ));
     }
@@ -44,7 +44,7 @@ public interface BukkitDataOwner extends DataOwner {
     @Override
     default Optional<DataContainer.Items.EnderChest> getEnderChest() {
         return Optional.of(BukkitDataContainer.Items.EnderChest.adapt(
-                getMapPersister().persistLockedMaps(getBukkitPlayer().getEnderChest().getContents())
+                getMapPersister().persistLockedMaps(getBukkitPlayer().getEnderChest().getContents(), getBukkitPlayer())
         ));
     }
 

@@ -48,6 +48,7 @@ import net.william278.husksync.util.MapPersister;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.map.MapView;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import space.arim.morepaperlib.MorePaperLib;
@@ -76,6 +77,7 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
     private Locales locales;
     private List<Migrator> availableMigrators;
     private LegacyConverter legacyConverter;
+    private Map<Integer, MapView> mapViews;
     private BukkitAudiences audiences;
     private MorePaperLib paperLib;
 
@@ -86,6 +88,7 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
         this.paperLib = new MorePaperLib(this);
         this.availableMigrators = new ArrayList<>();
         this.serializers = new ConcurrentHashMap<>();
+        this.mapViews = new ConcurrentHashMap<>();
 
         // Load settings and locales
         initialize("plugin config & locale files", (plugin) -> this.loadConfigs());
@@ -292,6 +295,11 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
     @Override
     public Set<UUID> getLockedPlayers() {
         return this.eventListener.getLockedPlayers();
+    }
+
+    @NotNull
+    public Map<Integer, MapView> getMapViews() {
+        return mapViews;
     }
 
     @NotNull
