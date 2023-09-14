@@ -215,11 +215,7 @@ public interface MapPersister {
     }
 
     default Optional<MapView> getMapView(int id) {
-        if (getMapViews().containsKey(id)) {
-            return Optional.of(getMapViews().get(id));
-        }
-        //noinspection deprecation - Bukkit#getMap is needed to get existing map views
-        return Optional.ofNullable(Bukkit.getMap(id));
+        return getMapViews().containsKey(id) ? Optional.of(getMapViews().get(id)) : Optional.empty();
     }
 
     default void setMapView(@NotNull MapView view) {
