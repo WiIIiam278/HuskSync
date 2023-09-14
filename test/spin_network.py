@@ -4,10 +4,9 @@
 # Run pip install -r requirements.txt to install the required packages
 # Then use python ./spin_network.py to spin up the network
 import os
-import shutil
-
-from tqdm import tqdm
 import requests
+import shutil
+from tqdm import tqdm
 
 
 # Parameters for starting a network of Minecraft servers

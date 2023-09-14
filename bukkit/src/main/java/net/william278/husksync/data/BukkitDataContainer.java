@@ -27,7 +27,6 @@ import net.william278.husksync.BukkitHuskSync;
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.adapter.Adaptable;
 import net.william278.husksync.player.BukkitUser;
-import net.william278.husksync.util.MapPersister;
 import org.apache.commons.lang.NotImplementedException;
 import org.bukkit.Bukkit;
 import org.bukkit.GameRule;
@@ -273,7 +272,7 @@ public abstract class BukkitDataContainer implements DataContainer {
                         .filter(r -> r.getKey().equals(advancement.getKey().toString()))
                         .findFirst();
                 if (record.isEmpty()) {
-                    this.setAdvancement(plugin, advancement, player,  List.of(), progress.getAwardedCriteria());
+                    this.setAdvancement(plugin, advancement, player, List.of(), progress.getAwardedCriteria());
                     return;
                 }
 
@@ -546,7 +545,9 @@ public abstract class BukkitDataContainer implements DataContainer {
                     stats.entityStats().entrySet().stream().collect(Collectors.toMap(
                             entry -> Statistic.valueOf(entry.getKey()),
                             entry -> entry.getValue().entrySet().stream().collect(Collectors.toMap(
-                                    entityEntry -> EntityType.valueOf(entityEntry.getKey()),
+                                    entityEntry -> Arrays.stream(EntityType.values()).filter(
+                                            e -> e.getKey().toString().equals(entityEntry.getKey())
+                                    ).findFirst().orElse(null),
                                     Map.Entry::getValue
                             ))
                     ))

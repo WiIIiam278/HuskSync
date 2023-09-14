@@ -14,10 +14,9 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
-import java.util.Arrays;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.logging.Level;
-import java.util.stream.Stream;
 
 public interface MapPersister {
 
@@ -28,10 +27,7 @@ public interface MapPersister {
         if (!getPlugin().getSettings().doPersistLockedMaps()) {
             return items;
         }
-
-        return getMapStream(items)
-                .map(this::persistMapView)
-                .toList().toArray(new ItemStack[0]);
+        return forEachMap(items, this::persistMapView);
     }
 
     @NotNull
@@ -39,17 +35,21 @@ public interface MapPersister {
         if (!getPlugin().getSettings().doPersistLockedMaps()) {
             return items;
         }
-
-        return getMapStream(items)
-                .map(this::applyMapView)
-                .toList().toArray(new ItemStack[0]);
+        return forEachMap(items, this::applyMapView);
     }
 
-    private Stream<ItemStack> getMapStream(@NotNull ItemStack[] items) {
-        return Arrays.stream(items)
-                .filter(Objects::nonNull)
-                .filter(stack -> stack.getType() == Material.FILLED_MAP)
-                .filter(ItemStack::hasItemMeta);
+    @NotNull
+    private ItemStack[] forEachMap(@NotNull ItemStack[] items, @NotNull Function<ItemStack, ItemStack> function) {
+        for (int i = 0; i < items.length; i++) {
+            final ItemStack item = items[i];
+            if (item == null) {
+                continue;
+            }
+            if (item.getType() == Material.FILLED_MAP && item.hasItemMeta()) {
+                items[i] = function.apply(item);
+            }
+        }
+        return items;
     }
 
     @NotNull

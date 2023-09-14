@@ -31,7 +31,7 @@ public interface BukkitDataOwner extends DataOwner {
     @NotNull
     @Override
     default Optional<DataContainer.Items.Inventory> getInventory() {
-        if ((getBukkitPlayer().isDead() && getPlugin().getSettings().doSynchroniseDeadPlayersChangingServer())) {
+        if ((getBukkitPlayer().isDead() && !getPlugin().getSettings().doSynchroniseDeadPlayersChangingServer())) {
             return Optional.of(BukkitDataContainer.Items.Inventory.empty());
         }
         return Optional.of(BukkitDataContainer.Items.Inventory.from(
