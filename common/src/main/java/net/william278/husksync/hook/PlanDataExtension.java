@@ -31,8 +31,8 @@ import com.djrapitops.plan.extension.table.Table;
 import com.djrapitops.plan.extension.table.TableColumnFormat;
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.data.Data;
-import net.william278.husksync.data.DataSnapshot;
 import net.william278.husksync.data.DataHolder;
+import net.william278.husksync.data.DataSnapshot;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.OffsetDateTime;

@@ -28,14 +28,12 @@ import net.william278.husksync.adapter.DataAdapter;
 import net.william278.husksync.config.Locales;
 import org.jetbrains.annotations.NotNull;
 
-import java.nio.charset.StandardCharsets;
 import java.time.OffsetDateTime;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.function.Consumer;
-import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 /**
@@ -126,12 +124,11 @@ public class DataSnapshot {
         }
         if (snapshot.getFormatVersion() < CURRENT_FORMAT_VERSION) {
             if (plugin.getLegacyConverter().isPresent()) {
-                plugin.log(Level.INFO, "Updating ");
                 return plugin.getLegacyConverter().get().convert(data);
             }
             throw new IllegalStateException(String.format(
-                    "No legacy converter to convert format version: %s", snapshot.getFormatVersion())
-            );
+                    "No legacy converter to convert format version: %s", snapshot.getFormatVersion()
+            ));
         }
         if (!snapshot.getPlatformType().equalsIgnoreCase(plugin.getPlatformType())) {
             throw new IllegalStateException(String.format("Cannot set data for user because the platform type of " +

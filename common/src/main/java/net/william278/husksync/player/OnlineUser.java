@@ -24,8 +24,8 @@ import de.themoep.minedown.adventure.MineDownParser;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.william278.husksync.HuskSync;
-import net.william278.husksync.data.PlayerDataHolder;
 import net.william278.husksync.data.DataSnapshot;
+import net.william278.husksync.data.PlayerDataHolder;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;

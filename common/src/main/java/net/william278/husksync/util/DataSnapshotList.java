@@ -20,7 +20,6 @@
 package net.william278.husksync.util;
 
 import net.william278.husksync.HuskSync;
-import net.william278.husksync.config.Locales;
 import net.william278.husksync.data.DataSnapshot;
 import net.william278.husksync.player.CommandUser;
 import net.william278.husksync.player.User;

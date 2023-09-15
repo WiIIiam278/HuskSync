@@ -23,8 +23,11 @@ import net.william278.husksync.HuskSync;
 import net.william278.husksync.adapter.DataAdapter;
 import net.william278.husksync.data.BukkitData;
 import net.william278.husksync.data.Data;
-import net.william278.husksync.data.Identifier;
 import net.william278.husksync.data.DataSnapshot;
+import net.william278.husksync.data.Identifier;
+import org.bukkit.Material;
+import org.bukkit.Statistic;
+import org.bukkit.entity.EntityType;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.io.BukkitObjectInputStream;
 import org.jetbrains.annotations.NotNull;
@@ -57,13 +60,13 @@ public class BukkitLegacyConverter extends LegacyConverter {
             ));
         }
 
+        // Read legacy data from the JSON object
         final Map<Identifier, Data> containers = new LinkedHashMap<>(readStatusData(object));
         readInventory(object).ifPresent(i -> containers.put(Identifier.INVENTORY, i));
         readEnderChest(object).ifPresent(e -> containers.put(Identifier.ENDER_CHEST, e));
         readLocation(object).ifPresent(l -> containers.put(Identifier.LOCATION, l));
         readAdvancements(object).ifPresent(a -> containers.put(Identifier.ADVANCEMENTS, a));
-
-        //todo statistics, persistent data container
+        readStatistics(object).ifPresent(s -> containers.put(Identifier.STATISTICS, s));
 
         return DataSnapshot.create(plugin, containers, DataSnapshot.SaveCause.LEGACY_MIGRATION);
     }
@@ -152,7 +155,6 @@ public class BukkitLegacyConverter extends LegacyConverter {
         ));
     }
 
-    //todo check against actual v3 data format
     @NotNull
     private Optional<Data.Advancements> readAdvancements(@NotNull JSONObject object) {
         if (!object.has("advancements") || !shouldImport(Identifier.ADVANCEMENTS)) {
@@ -177,8 +179,56 @@ public class BukkitLegacyConverter extends LegacyConverter {
     }
 
     @NotNull
+    private Optional<Data.Statistics> readStatistics(@NotNull JSONObject object) {
+        if (!object.has("statistics") || !shouldImport(Identifier.ADVANCEMENTS)) {
+            return Optional.empty();
+        }
+
+        final JSONObject stats = object.getJSONObject("statistics");
+        return Optional.of(readStatisticMaps(
+                stats.getJSONObject("untyped_statistics"),
+                stats.getJSONObject("block_statistics"),
+                stats.getJSONObject("item_statistics"),
+                stats.getJSONObject("entity_statistics")
+        ));
+    }
+
+    @NotNull
+    private BukkitData.Statistics readStatisticMaps(@NotNull JSONObject untyped, @NotNull JSONObject blocks,
+                                                    @NotNull JSONObject items, @NotNull JSONObject entities) {
+        final Map<Statistic, Integer> genericStats = new HashMap<>();
+        untyped.keys().forEachRemaining(stat -> genericStats.put(Statistic.valueOf(stat), untyped.getInt(stat)));
+
+        final Map<Statistic, Map<Material, Integer>> blockStats = new HashMap<>();
+        blocks.keys().forEachRemaining(stat -> {
+            final JSONObject blockStat = blocks.getJSONObject(stat);
+            final Map<Material, Integer> blockMap = new HashMap<>();
+            blockStat.keys().forEachRemaining(block -> blockMap.put(Material.valueOf(block), blockStat.getInt(block)));
+            blockStats.put(Statistic.valueOf(stat), blockMap);
+        });
+
+        final Map<Statistic, Map<Material, Integer>> itemStats = new HashMap<>();
+        items.keys().forEachRemaining(stat -> {
+            final JSONObject itemStat = items.getJSONObject(stat);
+            final Map<Material, Integer> itemMap = new HashMap<>();
+            itemStat.keys().forEachRemaining(item -> itemMap.put(Material.valueOf(item), itemStat.getInt(item)));
+            itemStats.put(Statistic.valueOf(stat), itemMap);
+        });
+
+        final Map<Statistic, Map<EntityType, Integer>> entityStats = new HashMap<>();
+        entities.keys().forEachRemaining(stat -> {
+            final JSONObject entityStat = entities.getJSONObject(stat);
+            final Map<EntityType, Integer> entityMap = new HashMap<>();
+            entityStat.keys().forEachRemaining(entity -> entityMap.put(EntityType.valueOf(entity), entityStat.getInt(entity)));
+            entityStats.put(Statistic.valueOf(stat), entityMap);
+        });
+
+        return BukkitData.Statistics.from(genericStats, blockStats, itemStats, entityStats);
+    }
+
+    @NotNull
     private ItemStack[] deserializeLegacyItemStacks(@NotNull String items) {
-        // Return empty array if there is no inventory data (set the player as having an empty inventory)
+        // Return an empty array if there is no inventory data (set the player as having an empty inventory)
         if (items.isEmpty()) {
             return new ItemStack[0];
         }

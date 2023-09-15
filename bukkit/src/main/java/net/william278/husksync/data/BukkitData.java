@@ -555,6 +555,14 @@ public abstract class BukkitData implements Data {
         }
 
         @NotNull
+        public static BukkitData.Statistics from(@NotNull Map<Statistic, Integer> genericStats,
+                                                 @NotNull Map<Statistic, Map<Material, Integer>> blockStats,
+                                                 @NotNull Map<Statistic, Map<Material, Integer>> itemStats,
+                                                 @NotNull Map<Statistic, Map<EntityType, Integer>> entityStats) {
+            return new BukkitData.Statistics(genericStats, blockStats, itemStats, entityStats);
+        }
+
+        @NotNull
         private static Statistic matchStatistic(@NotNull String key) {
             return Arrays.stream(Statistic.values())
                     .filter(stat -> stat.getKey().toString().equals(key))
@@ -651,7 +659,8 @@ public abstract class BukkitData implements Data {
                 @SerializedName("generic") @NotNull Map<String, Integer> genericStats,
                 @SerializedName("blocks") @NotNull Map<String, Map<String, Integer>> blockStats,
                 @SerializedName("items") @NotNull Map<String, Map<String, Integer>> itemStats,
-                @SerializedName("entities") @NotNull Map<String, Map<String, Integer>> entityStats) {
+                @SerializedName("entities") @NotNull Map<String, Map<String, Integer>> entityStats
+        ) {
         }
 
     }
