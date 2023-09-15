@@ -45,7 +45,7 @@ shadowJar {
     relocate 'net.william278.paginedown', 'net.william278.husksync.libraries.paginedown'
     relocate 'net.william278.mapdataapi', 'net.william278.husksync.libraries.mapdataapi'
     relocate 'net.william278.andjam', 'net.william278.husksync.libraries.andjam'
-    relocate 'net.querz', 'net.william278.husksync.libraries.nbt'
+    relocate 'net.querz', 'net.william278.husksync.libraries.nbtparser'
     relocate 'net.roxeez', 'net.william278.husksync.libraries'
 
     relocate 'me.lucko.commodore', 'net.william278.husksync.libraries.commodore'
@@ -56,5 +56,5 @@ shadowJar {
     relocate 'net.william278.hslmigrator', 'net.william278.husksync.libraries.hslconverter'
     relocate 'net.william278.annotaml', 'net.william278.husksync.libraries.annotaml'
     relocate 'space.arim.morepaperlib', 'net.william278.husksync.libraries.paperlib'
-    relocate 'de.tr7zw', 'net.william278.husksync.libraries.itemnbtapi'
+    relocate 'de.tr7zw.changeme.nbtapi', 'net.william278.husksync.libraries.nbtapi'
 }
