@@ -47,9 +47,9 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public abstract class BukkitDataContainer implements DataContainer {
+public abstract class BukkitData implements Data {
 
-    public static abstract class Items implements DataContainer.Items {
+    public static abstract class Items implements Data.Items {
 
         private final ItemStack[] contents;
 
@@ -87,7 +87,7 @@ public abstract class BukkitDataContainer implements DataContainer {
         @Override
         public void setContents(@NotNull Items contents) {
             System.arraycopy(
-                    ((BukkitDataContainer.Items) contents).getContents(),
+                    ((BukkitData.Items) contents).getContents(),
                     0, this.contents,
                     0, this.contents.length
             );
@@ -98,7 +98,7 @@ public abstract class BukkitDataContainer implements DataContainer {
             return contents;
         }
 
-        public static class Inventory extends BukkitDataContainer.Items implements Items.Inventory {
+        public static class Inventory extends BukkitData.Items implements Items.Inventory {
 
             public static final int INVENTORY_SLOT_COUNT = 41;
             private int heldItemSlot;
@@ -109,17 +109,17 @@ public abstract class BukkitDataContainer implements DataContainer {
             }
 
             @NotNull
-            public static BukkitDataContainer.Items.Inventory from(@NotNull ItemStack[] contents, int heldItemSlot) {
-                return new BukkitDataContainer.Items.Inventory(contents, heldItemSlot);
+            public static BukkitData.Items.Inventory from(@NotNull ItemStack[] contents, int heldItemSlot) {
+                return new BukkitData.Items.Inventory(contents, heldItemSlot);
             }
 
             @NotNull
-            public static BukkitDataContainer.Items.Inventory empty() {
-                return new BukkitDataContainer.Items.Inventory(new ItemStack[INVENTORY_SLOT_COUNT], 0);
+            public static BukkitData.Items.Inventory empty() {
+                return new BukkitData.Items.Inventory(new ItemStack[INVENTORY_SLOT_COUNT], 0);
             }
 
             @Override
-            public void apply(@NotNull DataOwner user, @NotNull HuskSync plugin) throws IllegalStateException {
+            public void apply(@NotNull PlayerDataHolder user, @NotNull HuskSync plugin) throws IllegalStateException {
                 final Player player = ((BukkitUser) user).getPlayer();
                 this.clearInventoryCraftingSlots(player);
                 player.setItemOnCursor(null);
@@ -152,19 +152,19 @@ public abstract class BukkitDataContainer implements DataContainer {
 
         }
 
-        public static class EnderChest extends BukkitDataContainer.Items implements Items.EnderChest {
+        public static class EnderChest extends BukkitData.Items implements Items.EnderChest {
 
             private EnderChest(@NotNull ItemStack[] contents) {
                 super(contents);
             }
 
             @NotNull
-            public static BukkitDataContainer.Items.EnderChest adapt(@NotNull ItemStack[] items) {
-                return new BukkitDataContainer.Items.EnderChest(items);
+            public static BukkitData.Items.EnderChest adapt(@NotNull ItemStack[] items) {
+                return new BukkitData.Items.EnderChest(items);
             }
 
             @Override
-            public void apply(@NotNull DataOwner user, @NotNull HuskSync plugin) throws IllegalStateException {
+            public void apply(@NotNull PlayerDataHolder user, @NotNull HuskSync plugin) throws IllegalStateException {
                 ((BukkitUser) user).getPlayer().getEnderChest().setContents(
                         ((BukkitHuskSync) plugin).setMapViews(getContents())
                 );
@@ -172,7 +172,7 @@ public abstract class BukkitDataContainer implements DataContainer {
 
         }
 
-        public static class DeathDrops extends BukkitDataContainer.Items implements Items {
+        public static class DeathDrops extends BukkitData.Items implements Items {
 
             private DeathDrops(@NotNull ItemStack[] contents) {
                 super(contents);
@@ -180,17 +180,17 @@ public abstract class BukkitDataContainer implements DataContainer {
 
             @NotNull
             public static DeathDrops adapt(@NotNull List<ItemStack> drops) {
-                return new BukkitDataContainer.Items.DeathDrops(drops.toArray(ItemStack[]::new));
+                return new BukkitData.Items.DeathDrops(drops.toArray(ItemStack[]::new));
             }
 
             @Override
-            public void apply(@NotNull DataOwner user, @NotNull HuskSync plugin) throws IllegalStateException {
+            public void apply(@NotNull PlayerDataHolder user, @NotNull HuskSync plugin) throws IllegalStateException {
                 throw new NotImplementedException("Death drops cannot be applied to a player");
             }
         }
     }
 
-    public static class PotionEffects implements DataContainer.PotionEffects, Adaptable {
+    public static class PotionEffects implements Data.PotionEffects, Adaptable {
 
         private final Collection<PotionEffect> effects;
 
@@ -199,12 +199,12 @@ public abstract class BukkitDataContainer implements DataContainer {
         }
 
         @NotNull
-        public static BukkitDataContainer.PotionEffects adapt(@NotNull Collection<PotionEffect> effects) {
-            return new BukkitDataContainer.PotionEffects(effects);
+        public static BukkitData.PotionEffects adapt(@NotNull Collection<PotionEffect> effects) {
+            return new BukkitData.PotionEffects(effects);
         }
 
         @Override
-        public void apply(@NotNull DataOwner user, @NotNull HuskSync plugin) throws IllegalStateException {
+        public void apply(@NotNull PlayerDataHolder user, @NotNull HuskSync plugin) throws IllegalStateException {
             final Player player = ((BukkitUser) user).getPlayer();
             player.getActivePotionEffects().forEach(potionEffect -> player.removePotionEffect(potionEffect.getType()));
             player.addPotionEffects(effects);
@@ -226,13 +226,14 @@ public abstract class BukkitDataContainer implements DataContainer {
         }
 
         @NotNull
+        @SuppressWarnings("unused")
         public Collection<PotionEffect> getEffects() {
             return effects;
         }
 
     }
 
-    public static class Advancements implements DataContainer.Advancements {
+    public static class Advancements implements Data.Advancements {
 
         private List<Advancement> completed;
 
@@ -242,7 +243,7 @@ public abstract class BukkitDataContainer implements DataContainer {
 
         // Iterate through the server advancement set and add all advancements to the list
         @NotNull
-        public static BukkitDataContainer.Advancements adapt(@NotNull Player player) {
+        public static BukkitData.Advancements adapt(@NotNull Player player) {
             final List<Advancement> advancements = new ArrayList<>();
             forEachAdvancement(advancement -> {
                 final AdvancementProgress advancementProgress = player.getAdvancementProgress(advancement);
@@ -256,16 +257,16 @@ public abstract class BukkitDataContainer implements DataContainer {
                     advancements.add(Advancement.adapt(advancement.getKey().toString(), awardedCriteria));
                 }
             });
-            return new BukkitDataContainer.Advancements(advancements);
+            return new BukkitData.Advancements(advancements);
         }
 
         @NotNull
-        public static BukkitDataContainer.Advancements from(@NotNull List<Advancement> advancements) {
-            return new BukkitDataContainer.Advancements(advancements);
+        public static BukkitData.Advancements from(@NotNull List<Advancement> advancements) {
+            return new BukkitData.Advancements(advancements);
         }
 
         @Override
-        public void apply(@NotNull DataOwner user, @NotNull HuskSync plugin) throws IllegalStateException {
+        public void apply(@NotNull PlayerDataHolder user, @NotNull HuskSync plugin) throws IllegalStateException {
             plugin.runAsync(() -> forEachAdvancement(advancement -> {
                 final Player player = ((BukkitUser) user).getPlayer();
                 final AdvancementProgress progress = player.getAdvancementProgress(advancement);
@@ -333,7 +334,7 @@ public abstract class BukkitDataContainer implements DataContainer {
 
     }
 
-    public static class Location implements DataContainer.Location, Adaptable {
+    public static class Location implements Data.Location, Adaptable {
         @SerializedName("x")
         private double x;
         @SerializedName("y")
@@ -361,13 +362,13 @@ public abstract class BukkitDataContainer implements DataContainer {
         }
 
         @NotNull
-        public static BukkitDataContainer.Location from(double x, double y, double z,
-                                                        float yaw, float pitch, @NotNull World world) {
-            return new BukkitDataContainer.Location(x, y, z, yaw, pitch, world);
+        public static BukkitData.Location from(double x, double y, double z,
+                                               float yaw, float pitch, @NotNull World world) {
+            return new BukkitData.Location(x, y, z, yaw, pitch, world);
         }
 
         @NotNull
-        public static BukkitDataContainer.Location adapt(@NotNull org.bukkit.Location location) {
+        public static BukkitData.Location adapt(@NotNull org.bukkit.Location location) {
             return from(
                     location.getX(),
                     location.getY(),
@@ -383,7 +384,7 @@ public abstract class BukkitDataContainer implements DataContainer {
         }
 
         @Override
-        public void apply(@NotNull DataOwner user, @NotNull HuskSync plugin) throws IllegalStateException {
+        public void apply(@NotNull PlayerDataHolder user, @NotNull HuskSync plugin) throws IllegalStateException {
             try {
                 final org.bukkit.Location location = new org.bukkit.Location(
                         Bukkit.getWorld(world.name()), x, y, z, yaw, pitch
@@ -457,7 +458,7 @@ public abstract class BukkitDataContainer implements DataContainer {
 
     }
 
-    public static class Statistics implements DataContainer.Statistics {
+    public static class Statistics implements Data.Statistics {
         private Map<Statistic, Integer> untypedStatistics;
         private Map<Statistic, Map<Material, Integer>> blockStatistics;
         private Map<Statistic, Map<Material, Integer>> itemStatistics;
@@ -478,8 +479,8 @@ public abstract class BukkitDataContainer implements DataContainer {
         }
 
         @NotNull
-        public static BukkitDataContainer.Statistics adapt(@NotNull Player player) {
-            return new BukkitDataContainer.Statistics(
+        public static BukkitData.Statistics adapt(@NotNull Player player) {
+            return new BukkitData.Statistics(
                     // Generic (untyped) stats
                     Arrays.stream(Statistic.values())
                             .filter(stat -> stat.getType() == Statistic.Type.UNTYPED)
@@ -523,8 +524,8 @@ public abstract class BukkitDataContainer implements DataContainer {
         }
 
         @NotNull
-        public static BukkitDataContainer.Statistics from(@NotNull StatisticsSet stats) {
-            return new BukkitDataContainer.Statistics(
+        public static BukkitData.Statistics from(@NotNull StatisticsSet stats) {
+            return new BukkitData.Statistics(
                     stats.genericStats().entrySet().stream().collect(Collectors.toMap(
                             entry -> Statistic.valueOf(entry.getKey()),
                             Map.Entry::getValue
@@ -556,14 +557,14 @@ public abstract class BukkitDataContainer implements DataContainer {
         }
 
         @Override
-        public void apply(@NotNull DataOwner user, @NotNull HuskSync plugin) throws IllegalStateException {
+        public void apply(@NotNull PlayerDataHolder user, @NotNull HuskSync plugin) throws IllegalStateException {
             untypedStatistics.forEach((stat, value) -> applyStat(user, stat, null, value));
             blockStatistics.forEach((stat, m) -> m.forEach((block, value) -> applyStat(user, stat, block, value)));
             itemStatistics.forEach((stat, m) -> m.forEach((item, value) -> applyStat(user, stat, item, value)));
             entityStatistics.forEach((stat, m) -> m.forEach((entity, value) -> applyStat(user, stat, entity, value)));
         }
 
-        private void applyStat(@NotNull DataOwner user, @NotNull Statistic stat, @Nullable Object type, int value) {
+        private void applyStat(@NotNull PlayerDataHolder user, @NotNull Statistic stat, @Nullable Object type, int value) {
             try {
                 final Player player = ((BukkitUser) user).getPlayer();
                 if (type == null) {
@@ -641,7 +642,7 @@ public abstract class BukkitDataContainer implements DataContainer {
 
     }
 
-    public static class PersistentData implements DataContainer.PersistentData {
+    public static class PersistentData implements Data.PersistentData {
         private final NBTCompound persistentData;
 
         private PersistentData(@NotNull NBTCompound persistentData) {
@@ -649,17 +650,17 @@ public abstract class BukkitDataContainer implements DataContainer {
         }
 
         @NotNull
-        public static BukkitDataContainer.PersistentData adapt(@NotNull PersistentDataContainer persistentData) {
-            return new BukkitDataContainer.PersistentData(new NBTPersistentDataContainer(persistentData));
+        public static BukkitData.PersistentData adapt(@NotNull PersistentDataContainer persistentData) {
+            return new BukkitData.PersistentData(new NBTPersistentDataContainer(persistentData));
         }
 
         @NotNull
-        public static BukkitDataContainer.PersistentData from(@NotNull NBTCompound compound) {
-            return new BukkitDataContainer.PersistentData(compound);
+        public static BukkitData.PersistentData from(@NotNull NBTCompound compound) {
+            return new BukkitData.PersistentData(compound);
         }
 
         @Override
-        public void apply(@NotNull DataOwner user, @NotNull HuskSync plugin) throws IllegalStateException {
+        public void apply(@NotNull PlayerDataHolder user, @NotNull HuskSync plugin) throws IllegalStateException {
             final NBTPersistentDataContainer container = new NBTPersistentDataContainer(
                     ((BukkitUser) user).getPlayer().getPersistentDataContainer()
             );
@@ -674,7 +675,7 @@ public abstract class BukkitDataContainer implements DataContainer {
 
     }
 
-    public static class Health implements DataContainer.Health, Adaptable {
+    public static class Health implements Data.Health, Adaptable {
         @SerializedName("health")
         private double health;
         @SerializedName("max_health")
@@ -693,12 +694,12 @@ public abstract class BukkitDataContainer implements DataContainer {
         }
 
         @NotNull
-        public static BukkitDataContainer.Health from(double health, double maxHealth, double healthScale) {
-            return new BukkitDataContainer.Health(health, maxHealth, healthScale);
+        public static BukkitData.Health from(double health, double maxHealth, double healthScale) {
+            return new BukkitData.Health(health, maxHealth, healthScale);
         }
 
         @NotNull
-        public static BukkitDataContainer.Health adapt(@NotNull Player player) {
+        public static BukkitData.Health adapt(@NotNull Player player) {
             return from(
                     player.getHealth(),
                     Objects.requireNonNull(player.getAttribute(Attribute.GENERIC_MAX_HEALTH),
@@ -708,7 +709,7 @@ public abstract class BukkitDataContainer implements DataContainer {
         }
 
         @Override
-        public void apply(@NotNull DataOwner user, @NotNull HuskSync plugin) throws IllegalStateException {
+        public void apply(@NotNull PlayerDataHolder user, @NotNull HuskSync plugin) throws IllegalStateException {
             final Player player = ((BukkitUser) user).getPlayer();
 
             // Set base max health
@@ -776,7 +777,7 @@ public abstract class BukkitDataContainer implements DataContainer {
 
     }
 
-    public static class Food implements DataContainer.Food, Adaptable {
+    public static class Hunger implements Data.Hunger, Adaptable {
 
         @SerializedName("food_level")
         private int foodLevel;
@@ -785,28 +786,28 @@ public abstract class BukkitDataContainer implements DataContainer {
         @SerializedName("exhaustion")
         private float exhaustion;
 
-        private Food(int foodLevel, float saturation, float exhaustion) {
+        private Hunger(int foodLevel, float saturation, float exhaustion) {
             this.foodLevel = foodLevel;
             this.saturation = saturation;
             this.exhaustion = exhaustion;
         }
 
         @SuppressWarnings("unused")
-        private Food() {
+        private Hunger() {
         }
 
         @NotNull
-        public static BukkitDataContainer.Food adapt(@NotNull Player player) {
+        public static Hunger adapt(@NotNull Player player) {
             return from(player.getFoodLevel(), player.getSaturation(), player.getExhaustion());
         }
 
         @NotNull
-        public static BukkitDataContainer.Food from(int foodLevel, float saturation, float exhaustion) {
-            return new BukkitDataContainer.Food(foodLevel, saturation, exhaustion);
+        public static Hunger from(int foodLevel, float saturation, float exhaustion) {
+            return new BukkitData.Hunger(foodLevel, saturation, exhaustion);
         }
 
         @Override
-        public void apply(@NotNull DataOwner user, @NotNull HuskSync plugin) throws IllegalStateException {
+        public void apply(@NotNull PlayerDataHolder user, @NotNull HuskSync plugin) throws IllegalStateException {
             final Player player = ((BukkitUser) user).getPlayer();
             player.setFoodLevel(foodLevel);
             player.setSaturation(saturation);
@@ -844,7 +845,7 @@ public abstract class BukkitDataContainer implements DataContainer {
         }
     }
 
-    public static class Experience implements DataContainer.Experience, Adaptable {
+    public static class Experience implements Data.Experience, Adaptable {
 
         @SerializedName("total_experience")
         private int totalExperience;
@@ -866,17 +867,17 @@ public abstract class BukkitDataContainer implements DataContainer {
         }
 
         @NotNull
-        public static BukkitDataContainer.Experience from(int totalExperience, int expLevel, float expProgress) {
-            return new BukkitDataContainer.Experience(totalExperience, expLevel, expProgress);
+        public static BukkitData.Experience from(int totalExperience, int expLevel, float expProgress) {
+            return new BukkitData.Experience(totalExperience, expLevel, expProgress);
         }
 
         @NotNull
-        public static BukkitDataContainer.Experience adapt(@NotNull Player player) {
+        public static BukkitData.Experience adapt(@NotNull Player player) {
             return from(player.getTotalExperience(), player.getLevel(), player.getExp());
         }
 
         @Override
-        public void apply(@NotNull DataOwner user, @NotNull HuskSync plugin) throws IllegalStateException {
+        public void apply(@NotNull PlayerDataHolder user, @NotNull HuskSync plugin) throws IllegalStateException {
             final Player player = ((BukkitUser) user).getPlayer();
             player.setTotalExperience(totalExperience);
             player.setLevel(expLevel);
@@ -915,7 +916,7 @@ public abstract class BukkitDataContainer implements DataContainer {
 
     }
 
-    public static class GameMode implements DataContainer.GameMode, Adaptable {
+    public static class GameMode implements Data.GameMode, Adaptable {
 
         @SerializedName("game_mode")
         private String gameMode;
@@ -931,17 +932,17 @@ public abstract class BukkitDataContainer implements DataContainer {
         }
 
         @NotNull
-        public static BukkitDataContainer.GameMode from(@NotNull String gameMode, boolean allowFlight, boolean isFlying) {
-            return new BukkitDataContainer.GameMode(gameMode, allowFlight, isFlying);
+        public static BukkitData.GameMode from(@NotNull String gameMode, boolean allowFlight, boolean isFlying) {
+            return new BukkitData.GameMode(gameMode, allowFlight, isFlying);
         }
 
         @NotNull
-        public static BukkitDataContainer.GameMode adapt(@NotNull Player player) {
+        public static BukkitData.GameMode adapt(@NotNull Player player) {
             return from(player.getGameMode().name(), player.getAllowFlight(), player.isFlying());
         }
 
         @Override
-        public void apply(@NotNull DataOwner user, @NotNull HuskSync plugin) throws IllegalStateException {
+        public void apply(@NotNull PlayerDataHolder user, @NotNull HuskSync plugin) throws IllegalStateException {
             final Player player = ((BukkitUser) user).getPlayer();
             player.setGameMode(org.bukkit.GameMode.valueOf(gameMode));
             player.setAllowFlight(allowFlight);

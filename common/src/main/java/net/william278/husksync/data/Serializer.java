@@ -21,7 +21,7 @@ package net.william278.husksync.data;
 
 import org.jetbrains.annotations.NotNull;
 
-public interface Serializer<T extends DataContainer> {
+public interface Serializer<T extends Data> {
 
     T deserialize(@NotNull String serialized) throws DeserializationException;
 

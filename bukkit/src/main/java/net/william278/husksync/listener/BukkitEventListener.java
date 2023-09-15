@@ -21,7 +21,7 @@ package net.william278.husksync.listener;
 
 import net.william278.husksync.BukkitHuskSync;
 import net.william278.husksync.HuskSync;
-import net.william278.husksync.data.BukkitDataContainer;
+import net.william278.husksync.data.BukkitData;
 import net.william278.husksync.player.BukkitUser;
 import net.william278.husksync.player.OnlineUser;
 import org.bukkit.Bukkit;
@@ -96,11 +96,11 @@ public class BukkitEventListener extends EventListener implements BukkitJoinEven
         }
 
         // Truncate the dropped items list to the inventory size and save the player's inventory
-        final int maxInventorySize = BukkitDataContainer.Items.Inventory.INVENTORY_SLOT_COUNT;
+        final int maxInventorySize = BukkitData.Items.Inventory.INVENTORY_SLOT_COUNT;
         if (event.getDrops().size() > maxInventorySize) {
             event.getDrops().subList(maxInventorySize, event.getDrops().size()).clear();
         }
-        super.saveOnPlayerDeath(user, BukkitDataContainer.Items.DeathDrops.adapt(event.getDrops()));
+        super.saveOnPlayerDeath(user, BukkitData.Items.DeathDrops.adapt(event.getDrops()));
     }
 
     @EventHandler(ignoreCancelled = true)

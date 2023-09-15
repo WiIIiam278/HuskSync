@@ -30,9 +30,9 @@ import com.djrapitops.plan.extension.icon.Icon;
 import com.djrapitops.plan.extension.table.Table;
 import com.djrapitops.plan.extension.table.TableColumnFormat;
 import net.william278.husksync.HuskSync;
-import net.william278.husksync.data.DataContainer;
+import net.william278.husksync.data.Data;
 import net.william278.husksync.data.DataSnapshot;
-import net.william278.husksync.data.MutableDataStore;
+import net.william278.husksync.data.DataHolder;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.OffsetDateTime;
@@ -145,7 +145,7 @@ public class PlanDataExtension implements DataExtension {
     @Tab("Current Status")
     public String getHealth(@NotNull UUID uuid) {
         return getLatestSnapshot(uuid)
-                .flatMap(MutableDataStore::getHealth)
+                .flatMap(DataHolder::getHealth)
                 .map(health -> String.format("%s / %s", health.getHealth(), health.getMaxHealth()))
                 .orElse(UNKNOWN_STRING);
     }
@@ -161,8 +161,8 @@ public class PlanDataExtension implements DataExtension {
     @Tab("Current Status")
     public long getHunger(@NotNull UUID uuid) {
         return getLatestSnapshot(uuid)
-                .flatMap(MutableDataStore::getFood)
-                .map(DataContainer.Food::getFoodLevel)
+                .flatMap(DataHolder::getHunger)
+                .map(Data.Hunger::getFoodLevel)
                 .orElse(20);
     }
 
@@ -177,8 +177,8 @@ public class PlanDataExtension implements DataExtension {
     @Tab("Current Status")
     public long getExperienceLevel(@NotNull UUID uuid) {
         return getLatestSnapshot(uuid)
-                .flatMap(MutableDataStore::getExperience)
-                .map(DataContainer.Experience::getExpLevel)
+                .flatMap(DataHolder::getExperience)
+                .map(Data.Experience::getExpLevel)
                 .orElse(0);
     }
 
@@ -193,8 +193,8 @@ public class PlanDataExtension implements DataExtension {
     @Tab("Current Status")
     public String getGameMode(@NotNull UUID uuid) {
         return getLatestSnapshot(uuid)
-                .flatMap(MutableDataStore::getGameMode)
-                .map(DataContainer.GameMode::getGameMode)
+                .flatMap(DataHolder::getGameMode)
+                .map(Data.GameMode::getGameMode)
                 .orElse(UNKNOWN_STRING);
     }
 
@@ -208,8 +208,8 @@ public class PlanDataExtension implements DataExtension {
     @Tab("Current Status")
     public long getAdvancementsCompleted(@NotNull UUID playerUUID) {
         return getLatestSnapshot(playerUUID)
-                .flatMap(MutableDataStore::getAdvancements)
-                .map(DataContainer.Advancements::getCompleted)
+                .flatMap(DataHolder::getAdvancements)
+                .map(Data.Advancements::getCompleted)
                 .stream().count();
     }
 

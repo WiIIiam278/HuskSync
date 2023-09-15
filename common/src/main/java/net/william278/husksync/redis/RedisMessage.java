@@ -19,7 +19,6 @@
 
 package net.william278.husksync.redis;
 
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.adapter.Adaptable;
@@ -43,13 +42,13 @@ public class RedisMessage implements Adaptable {
 
     public void dispatch(@NotNull HuskSync plugin, @NotNull RedisMessageType type) {
         plugin.runAsync(() -> plugin.getRedisManager().sendMessage(
-                type.getMessageChannel(), new GsonBuilder().create().toJson(this)
+                type.getMessageChannel(), plugin.getGson().toJson(this)
         ));
     }
 
     @NotNull
-    public static RedisMessage fromJson(@NotNull String json) throws JsonSyntaxException {
-        return new GsonBuilder().create().fromJson(json, RedisMessage.class);
+    public static RedisMessage fromJson(@NotNull HuskSync plugin, @NotNull String json) throws JsonSyntaxException {
+        return plugin.getGson().fromJson(json, RedisMessage.class);
     }
 
 }

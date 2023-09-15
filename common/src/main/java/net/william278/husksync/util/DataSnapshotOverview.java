@@ -21,7 +21,7 @@ package net.william278.husksync.util;
 
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.config.Locales;
-import net.william278.husksync.data.DataContainer;
+import net.william278.husksync.data.Data;
 import net.william278.husksync.data.DataSnapshot;
 import net.william278.husksync.player.CommandUser;
 import net.william278.husksync.player.User;
@@ -68,10 +68,10 @@ public class DataSnapshotOverview {
                 .ifPresent(user::sendMessage);
 
         // User status data, if present in the snapshot
-        final Optional<DataContainer.Health> health = snapshot.getHealth();
-        final Optional<DataContainer.Food> food = snapshot.getFood();
-        final Optional<DataContainer.Experience> experience = snapshot.getExperience();
-        final Optional<DataContainer.GameMode> gameMode = snapshot.getGameMode();
+        final Optional<Data.Health> health = snapshot.getHealth();
+        final Optional<Data.Hunger> food = snapshot.getHunger();
+        final Optional<Data.Experience> experience = snapshot.getExperience();
+        final Optional<Data.GameMode> gameMode = snapshot.getGameMode();
         if (health.isPresent() && food.isPresent() && experience.isPresent() && gameMode.isPresent()) {
             locales.getLocale("data_manager_status",
                             Integer.toString((int) health.get().getHealth()),
@@ -106,9 +106,9 @@ public class DataSnapshotOverview {
     }
 
     @NotNull
-    private String generateAdvancementPreview(@NotNull List<DataContainer.Advancements.Advancement> advancementData, @NotNull Locales locales) {
+    private String generateAdvancementPreview(@NotNull List<Data.Advancements.Advancement> advancementData, @NotNull Locales locales) {
         final StringJoiner joiner = new StringJoiner("\n");
-        final List<DataContainer.Advancements.Advancement> advancementsToPreview = advancementData.stream()
+        final List<Data.Advancements.Advancement> advancementsToPreview = advancementData.stream()
                 .filter(id -> !id.getKey().startsWith("minecraft:recipe")).toList();
         final int PREVIEW_SIZE = 8;
         for (int i = 0; i < advancementsToPreview.size(); i++) {

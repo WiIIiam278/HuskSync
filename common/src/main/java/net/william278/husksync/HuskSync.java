@@ -19,6 +19,9 @@
 
 package net.william278.husksync;
 
+import com.fatboyindustrial.gsonjavatime.Converters;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import net.william278.annotaml.Annotaml;
 import net.william278.desertwell.util.ThrowingConsumer;
 import net.william278.desertwell.util.UpdateChecker;
@@ -26,7 +29,8 @@ import net.william278.desertwell.util.Version;
 import net.william278.husksync.adapter.DataAdapter;
 import net.william278.husksync.config.Locales;
 import net.william278.husksync.config.Settings;
-import net.william278.husksync.data.DataContainer;
+import net.william278.husksync.data.Data;
+import net.william278.husksync.data.Identifier;
 import net.william278.husksync.data.Serializer;
 import net.william278.husksync.database.Database;
 import net.william278.husksync.event.EventDispatcher;
@@ -90,10 +94,38 @@ public interface HuskSync extends Task.Supplier, EventDispatcher {
     DataAdapter getDataAdapter();
 
     /**
-     * Returns the data serializer for the given {@link DataContainer.Type}
+     * Returns the data serializer for the given {@link Identifier}
      */
     @NotNull
-    <T extends DataContainer> Map<DataContainer.Type, Serializer<T>> getSerializers();
+    <T extends Data> Map<Identifier, Serializer<T>> getSerializers();
+
+    /**
+     * Register a data serializer for the given {@link Identifier}
+     *
+     * @param identifier the {@link Identifier}
+     * @param serializer the {@link Serializer}
+     */
+    default void registerSerializer(@NotNull Identifier identifier,
+                                    @NotNull Serializer<? extends Data> serializer) {
+        getSerializers().put(identifier, (Serializer<Data>) serializer);
+    }
+
+    /**
+     * Get the {@link Identifier} for the given key
+     */
+    default Optional<Identifier> getIdentifier(@NotNull String key) {
+        return getSerializers().keySet().stream().filter(identifier -> identifier.getKeyValue().equals(key)).findFirst();
+    }
+
+    /**
+     * Get the set of registered data types
+     *
+     * @return the set of registered data types
+     */
+    @NotNull
+    default Set<Identifier> getRegisteredDataTypes() {
+        return getSerializers().keySet();
+    }
 
     /**
      * Returns a list of available data {@link Migrator}s
@@ -219,6 +251,7 @@ public interface HuskSync extends Task.Supplier, EventDispatcher {
 
     /**
      * Returns the legacy data converter, if it exists
+     *
      * @return the {@link LegacyConverter}
      */
     Optional<LegacyConverter> getLegacyConverter();
@@ -269,6 +302,14 @@ public interface HuskSync extends Task.Supplier, EventDispatcher {
 
     @NotNull
     Set<UUID> getLockedPlayers();
+
+    @NotNull
+    Gson getGson();
+
+    @NotNull
+    default Gson createGson() {
+        return Converters.registerOffsetDateTime(new GsonBuilder()).create();
+    }
 
     /**
      * An exception indicating the plugin has been accessed before it has been registered.

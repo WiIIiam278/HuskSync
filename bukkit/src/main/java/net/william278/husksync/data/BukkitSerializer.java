@@ -19,7 +19,6 @@
 
 package net.william278.husksync.data;
 
-import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import de.tr7zw.changeme.nbtapi.NBT;
 import de.tr7zw.changeme.nbtapi.NBTContainer;
@@ -46,7 +45,7 @@ public class BukkitSerializer {
         return plugin;
     }
 
-    public static class Inventory extends BukkitSerializer implements Serializer<BukkitDataContainer.Items.Inventory> {
+    public static class Inventory extends BukkitSerializer implements Serializer<BukkitData.Items.Inventory> {
         private static final String ITEMS_TAG = "items";
         private static final String HELD_ITEM_SLOT_TAG = "held_item_slot";
 
@@ -55,16 +54,16 @@ public class BukkitSerializer {
         }
 
         @Override
-        public BukkitDataContainer.Items.Inventory deserialize(@NotNull String serialized) throws DeserializationException {
+        public BukkitData.Items.Inventory deserialize(@NotNull String serialized) throws DeserializationException {
             final ReadWriteNBT root = NBT.parseNBT(serialized);
             final ItemStack[] items = root.getItemStackArray(ITEMS_TAG);
             final int heldItemSlot = root.getInteger(HELD_ITEM_SLOT_TAG);
-            return BukkitDataContainer.Items.Inventory.from(items, heldItemSlot);
+            return BukkitData.Items.Inventory.from(items, heldItemSlot);
         }
 
         @NotNull
         @Override
-        public String serialize(@NotNull BukkitDataContainer.Items.Inventory data) throws SerializationException {
+        public String serialize(@NotNull BukkitData.Items.Inventory data) throws SerializationException {
             final ReadWriteNBT root = NBT.createNBTObject();
             root.setItemStackArray(ITEMS_TAG, data.getContents());
             root.setInteger(HELD_ITEM_SLOT_TAG, data.getHeldItemSlot());
@@ -73,29 +72,29 @@ public class BukkitSerializer {
 
     }
 
-    public static class EnderChest extends BukkitSerializer implements Serializer<BukkitDataContainer.Items.EnderChest> {
+    public static class EnderChest extends BukkitSerializer implements Serializer<BukkitData.Items.EnderChest> {
 
         public EnderChest(@NotNull HuskSync plugin) {
             super(plugin);
         }
 
         @Override
-        public BukkitDataContainer.Items.EnderChest deserialize(@NotNull String serialized) throws DeserializationException {
-            return BukkitDataContainer.Items.EnderChest.adapt(
+        public BukkitData.Items.EnderChest deserialize(@NotNull String serialized) throws DeserializationException {
+            return BukkitData.Items.EnderChest.adapt(
                     NBT.itemStackArrayFromNBT(NBT.parseNBT(serialized))
             );
         }
 
         @NotNull
         @Override
-        public String serialize(@NotNull BukkitDataContainer.Items.EnderChest data) throws SerializationException {
+        public String serialize(@NotNull BukkitData.Items.EnderChest data) throws SerializationException {
             return NBT.itemStackArrayToNBT(data.getContents()).toString();
         }
     }
 
-    public static class PotionEffects extends BukkitSerializer implements Serializer<BukkitDataContainer.PotionEffects> {
+    public static class PotionEffects extends BukkitSerializer implements Serializer<BukkitData.PotionEffects> {
 
-        private static final TypeToken<List<DataContainer.PotionEffects.Effect>> TYPE = new TypeToken<>() {
+        private static final TypeToken<List<Data.PotionEffects.Effect>> TYPE = new TypeToken<>() {
         };
 
         public PotionEffects(@NotNull HuskSync plugin) {
@@ -103,23 +102,23 @@ public class BukkitSerializer {
         }
 
         @Override
-        public BukkitDataContainer.PotionEffects deserialize(@NotNull String serialized) throws DeserializationException {
-            return BukkitDataContainer.PotionEffects.adapt(
-                    new Gson().fromJson(serialized, TYPE.getType())
+        public BukkitData.PotionEffects deserialize(@NotNull String serialized) throws DeserializationException {
+            return BukkitData.PotionEffects.adapt(
+                    plugin.getGson().fromJson(serialized, TYPE.getType())
             );
         }
 
         @NotNull
         @Override
-        public String serialize(@NotNull BukkitDataContainer.PotionEffects element) throws SerializationException {
-            return new Gson().toJson(element.getActiveEffects());
+        public String serialize(@NotNull BukkitData.PotionEffects element) throws SerializationException {
+            return plugin.getGson().toJson(element.getActiveEffects());
         }
 
     }
 
-    public static class Advancements extends BukkitSerializer implements Serializer<BukkitDataContainer.Advancements> {
+    public static class Advancements extends BukkitSerializer implements Serializer<BukkitData.Advancements> {
 
-        private static final TypeToken<List<DataContainer.Advancements.Advancement>> TYPE = new TypeToken<>() {
+        private static final TypeToken<List<Data.Advancements.Advancement>> TYPE = new TypeToken<>() {
         };
 
         public Advancements(@NotNull HuskSync plugin) {
@@ -127,113 +126,113 @@ public class BukkitSerializer {
         }
 
         @Override
-        public BukkitDataContainer.Advancements deserialize(@NotNull String serialized) throws DeserializationException {
-            return BukkitDataContainer.Advancements.from(
-                    new Gson().fromJson(serialized, TYPE.getType())
+        public BukkitData.Advancements deserialize(@NotNull String serialized) throws DeserializationException {
+            return BukkitData.Advancements.from(
+                    plugin.getGson().fromJson(serialized, TYPE.getType())
             );
         }
 
         @NotNull
         @Override
-        public String serialize(@NotNull BukkitDataContainer.Advancements element) throws SerializationException {
-            return new Gson().toJson(element.getCompleted());
+        public String serialize(@NotNull BukkitData.Advancements element) throws SerializationException {
+            return plugin.getGson().toJson(element.getCompleted());
         }
     }
 
-    public static class Location extends BukkitSerializer implements Serializer<BukkitDataContainer.Location> {
+    public static class Location extends BukkitSerializer implements Serializer<BukkitData.Location> {
 
         public Location(@NotNull HuskSync plugin) {
             super(plugin);
         }
 
         @Override
-        public BukkitDataContainer.Location deserialize(@NotNull String serialized) throws DeserializationException {
-            return plugin.getDataAdapter().fromJson(serialized, BukkitDataContainer.Location.class);
+        public BukkitData.Location deserialize(@NotNull String serialized) throws DeserializationException {
+            return plugin.getDataAdapter().fromJson(serialized, BukkitData.Location.class);
         }
 
         @NotNull
         @Override
-        public String serialize(@NotNull BukkitDataContainer.Location element) throws SerializationException {
+        public String serialize(@NotNull BukkitData.Location element) throws SerializationException {
             return plugin.getDataAdapter().toJson(element);
         }
     }
 
-    public static class Statistics extends BukkitSerializer implements Serializer<BukkitDataContainer.Statistics> {
+    public static class Statistics extends BukkitSerializer implements Serializer<BukkitData.Statistics> {
 
         public Statistics(@NotNull HuskSync plugin) {
             super(plugin);
         }
 
         @Override
-        public BukkitDataContainer.Statistics deserialize(@NotNull String serialized) throws DeserializationException {
-            return BukkitDataContainer.Statistics.from(new Gson().fromJson(
+        public BukkitData.Statistics deserialize(@NotNull String serialized) throws DeserializationException {
+            return BukkitData.Statistics.from(plugin.getGson().fromJson(
                     serialized,
-                    BukkitDataContainer.Statistics.StatisticsSet.class
+                    BukkitData.Statistics.StatisticsSet.class
             ));
         }
 
         @NotNull
         @Override
-        public String serialize(@NotNull BukkitDataContainer.Statistics element) throws SerializationException {
-            return new Gson().toJson(element.getStatisticsSet());
+        public String serialize(@NotNull BukkitData.Statistics element) throws SerializationException {
+            return plugin.getGson().toJson(element.getStatisticsSet());
         }
 
     }
 
-    public static class PersistentData extends BukkitSerializer implements Serializer<BukkitDataContainer.PersistentData> {
+    public static class PersistentData extends BukkitSerializer implements Serializer<BukkitData.PersistentData> {
 
         public PersistentData(@NotNull HuskSync plugin) {
             super(plugin);
         }
 
         @Override
-        public BukkitDataContainer.PersistentData deserialize(@NotNull String serialized) throws DeserializationException {
-            return BukkitDataContainer.PersistentData.from(new NBTContainer(
+        public BukkitData.PersistentData deserialize(@NotNull String serialized) throws DeserializationException {
+            return BukkitData.PersistentData.from(new NBTContainer(
                     serialized
             ));
         }
 
         @NotNull
         @Override
-        public String serialize(@NotNull BukkitDataContainer.PersistentData element) throws SerializationException {
+        public String serialize(@NotNull BukkitData.PersistentData element) throws SerializationException {
             return element.getPersistentData().toString();
         }
 
     }
 
-    public static class Health extends Json<BukkitDataContainer.Health> implements Serializer<BukkitDataContainer.Health> {
+    public static class Health extends Json<BukkitData.Health> implements Serializer<BukkitData.Health> {
 
         public Health(@NotNull HuskSync plugin) {
-            super(plugin, BukkitDataContainer.Health.class);
+            super(plugin, BukkitData.Health.class);
         }
 
     }
 
-    public static class Food extends Json<BukkitDataContainer.Food> implements Serializer<BukkitDataContainer.Food> {
+    public static class Hunger extends Json<BukkitData.Hunger> implements Serializer<BukkitData.Hunger> {
 
-        public Food(@NotNull HuskSync plugin) {
-            super(plugin, BukkitDataContainer.Food.class);
+        public Hunger(@NotNull HuskSync plugin) {
+            super(plugin, BukkitData.Hunger.class);
         }
 
     }
 
-    public static class Experience extends Json<BukkitDataContainer.Experience> implements Serializer<BukkitDataContainer.Experience> {
+    public static class Experience extends Json<BukkitData.Experience> implements Serializer<BukkitData.Experience> {
 
         public Experience(@NotNull HuskSync plugin) {
-            super(plugin, BukkitDataContainer.Experience.class);
+            super(plugin, BukkitData.Experience.class);
         }
 
     }
 
-    public static class GameMode extends Json<BukkitDataContainer.GameMode> implements Serializer<BukkitDataContainer.GameMode> {
+    public static class GameMode extends Json<BukkitData.GameMode> implements Serializer<BukkitData.GameMode> {
 
         public GameMode(@NotNull HuskSync plugin) {
-            super(plugin, BukkitDataContainer.GameMode.class);
+            super(plugin, BukkitData.GameMode.class);
         }
 
     }
 
-    public static abstract class Json<T extends DataContainer & Adaptable> extends BukkitSerializer implements Serializer<T> {
+    public static abstract class Json<T extends Data & Adaptable> extends BukkitSerializer implements Serializer<T> {
 
         private final Class<T> type;
 

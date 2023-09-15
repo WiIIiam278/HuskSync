@@ -19,6 +19,7 @@
 
 package net.william278.husksync;
 
+import com.google.gson.Gson;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import net.william278.desertwell.util.Version;
 import net.william278.husksync.adapter.DataAdapter;
@@ -28,7 +29,8 @@ import net.william278.husksync.command.BukkitCommand;
 import net.william278.husksync.config.Locales;
 import net.william278.husksync.config.Settings;
 import net.william278.husksync.data.BukkitSerializer;
-import net.william278.husksync.data.DataContainer;
+import net.william278.husksync.data.Data;
+import net.william278.husksync.data.Identifier;
 import net.william278.husksync.data.Serializer;
 import net.william278.husksync.database.Database;
 import net.william278.husksync.database.MySqlDatabase;
@@ -72,7 +74,7 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
     private RedisManager redisManager;
     private EventListener eventListener;
     private DataAdapter dataAdapter;
-    private Map<DataContainer.Type, Serializer<? extends DataContainer>> serializers;
+    private Map<Identifier, Serializer<? extends Data>> serializers;
     private Settings settings;
     private Locales locales;
     private List<Migrator> availableMigrators;
@@ -80,10 +82,12 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
     private Map<Integer, MapView> mapViews;
     private BukkitAudiences audiences;
     private MorePaperLib paperLib;
+    private Gson gson;
 
     @Override
     public void onEnable() {
-        // Create adventure audience
+        // Initial plugin setup
+        this.gson = createGson();
         this.audiences = BukkitAudiences.create(this);
         this.paperLib = new MorePaperLib(this);
         this.availableMigrators = new ArrayList<>();
@@ -96,25 +100,25 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
         // Prepare data adapter
         initialize("data adapter", (plugin) -> {
             if (settings.doCompressData()) {
-                dataAdapter = new SnappyGsonAdapter();
+                dataAdapter = new SnappyGsonAdapter(this);
             } else {
-                dataAdapter = new GsonAdapter();
+                dataAdapter = new GsonAdapter(this);
             }
         });
 
         // Prepare serializers
         initialize("data serializers", (plugin) -> {
-            serializers.put(DataContainer.Type.INVENTORY, new BukkitSerializer.Inventory(this));
-            serializers.put(DataContainer.Type.ENDER_CHEST, new BukkitSerializer.EnderChest(this));
-            serializers.put(DataContainer.Type.POTION_EFFECTS, new BukkitSerializer.PotionEffects(this));
-            serializers.put(DataContainer.Type.ADVANCEMENTS, new BukkitSerializer.Advancements(this));
-            serializers.put(DataContainer.Type.LOCATION, new BukkitSerializer.Location(this));
-            serializers.put(DataContainer.Type.STATISTICS, new BukkitSerializer.Statistics(this));
-            serializers.put(DataContainer.Type.HEALTH, new BukkitSerializer.Health(this));
-            serializers.put(DataContainer.Type.FOOD, new BukkitSerializer.Food(this));
-            serializers.put(DataContainer.Type.EXPERIENCE, new BukkitSerializer.Experience(this));
-            serializers.put(DataContainer.Type.GAME_MODE, new BukkitSerializer.GameMode(this));
-            serializers.put(DataContainer.Type.PERSISTENT_DATA, new BukkitSerializer.PersistentData(this));
+            registerSerializer(Identifier.INVENTORY, new BukkitSerializer.Inventory(this));
+            registerSerializer(Identifier.ENDER_CHEST, new BukkitSerializer.EnderChest(this));
+            registerSerializer(Identifier.POTION_EFFECTS, new BukkitSerializer.PotionEffects(this));
+            registerSerializer(Identifier.ADVANCEMENTS, new BukkitSerializer.Advancements(this));
+            registerSerializer(Identifier.LOCATION, new BukkitSerializer.Location(this));
+            registerSerializer(Identifier.STATISTICS, new BukkitSerializer.Statistics(this));
+            registerSerializer(Identifier.HEALTH, new BukkitSerializer.Health(this));
+            registerSerializer(Identifier.HUNGER, new BukkitSerializer.Hunger(this));
+            registerSerializer(Identifier.EXPERIENCE, new BukkitSerializer.Experience(this));
+            registerSerializer(Identifier.GAME_MODE, new BukkitSerializer.GameMode(this));
+            registerSerializer(Identifier.PERSISTENT_DATA, new BukkitSerializer.PersistentData(this));
         });
 
         // Setup available migrators - todo
@@ -203,7 +207,7 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
     @NotNull
     @Override
     @SuppressWarnings("unchecked")
-    public Map<DataContainer.Type, Serializer<? extends DataContainer>> getSerializers() {
+    public Map<Identifier, Serializer<? extends Data>> getSerializers() {
         return serializers;
     }
 
@@ -295,6 +299,12 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
     @Override
     public Set<UUID> getLockedPlayers() {
         return this.eventListener.getLockedPlayers();
+    }
+
+    @NotNull
+    @Override
+    public Gson getGson() {
+        return gson;
     }
 
     @NotNull

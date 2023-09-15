@@ -105,7 +105,7 @@ public class RedisManager extends JedisPubSub {
             return;
         }
 
-        final RedisMessage redisMessage = RedisMessage.fromJson(message);
+        final RedisMessage redisMessage = RedisMessage.fromJson(plugin, message);
         plugin.getOnlineUser(redisMessage.targetUserUuid).ifPresent(
                 user -> user.applySnapshot(DataSnapshot.deserialize(plugin, redisMessage.data))
         );

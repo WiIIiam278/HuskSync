@@ -20,7 +20,7 @@
 package net.william278.husksync.listener;
 
 import net.william278.husksync.HuskSync;
-import net.william278.husksync.data.DataContainer;
+import net.william278.husksync.data.Data;
 import net.william278.husksync.data.DataSnapshot;
 import net.william278.husksync.player.OnlineUser;
 import net.william278.husksync.util.Task;
@@ -163,7 +163,7 @@ public abstract class EventListener {
      * @param user  The user who died
      * @param drops The items that this user would have dropped
      */
-    protected void saveOnPlayerDeath(@NotNull OnlineUser user, @NotNull DataContainer.Items drops) {
+    protected void saveOnPlayerDeath(@NotNull OnlineUser user, @NotNull Data.Items drops) {
         if (disabling || !plugin.getSettings().doSaveOnDeath() || lockedPlayers.contains(user.getUuid()) || user.isNpc()
                 || (!plugin.getSettings().doSaveEmptyDropsOnDeath() && drops.isEmpty())) {
             return;

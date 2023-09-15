@@ -23,6 +23,7 @@ import net.william278.husksync.HuskSync;
 import net.william278.husksync.config.Settings;
 import net.william278.husksync.data.DataSnapshot;
 import net.william278.husksync.data.DataSnapshot.SaveCause;
+import net.william278.husksync.data.PlayerDataHolder;
 import net.william278.husksync.migrator.Migrator;
 import net.william278.husksync.player.User;
 import org.jetbrains.annotations.ApiStatus;
@@ -154,7 +155,7 @@ public abstract class Database {
      * @param user     The user to add data for
      * @param snapshot The {@link DataSnapshot} to set.
      *                 The implementation should version it with a random UUID and the current timestamp during insertion.
-     * @see net.william278.husksync.data.DataOwner#createSnapshot(SaveCause)
+     * @see PlayerDataHolder#createSnapshot(SaveCause)
      */
     public void setUserData(@NotNull User user, @NotNull DataSnapshot.Packed snapshot) {
         if (snapshot.getSaveCause() != SaveCause.SERVER_SHUTDOWN) {

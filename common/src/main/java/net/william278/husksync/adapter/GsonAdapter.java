@@ -19,19 +19,17 @@
 
 package net.william278.husksync.adapter;
 
-import com.fatboyindustrial.gsonjavatime.Converters;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import net.william278.husksync.HuskSync;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.charset.StandardCharsets;
 
 public class GsonAdapter implements DataAdapter {
 
-    private final Gson gson;
+    private final HuskSync plugin;
 
-    public GsonAdapter() {
-        this.gson = Converters.registerOffsetDateTime(new GsonBuilder()).create();
+    public GsonAdapter(@NotNull HuskSync plugin) {
+        this.plugin = plugin;
     }
 
     @Override
@@ -43,7 +41,7 @@ public class GsonAdapter implements DataAdapter {
     @Override
     public <A extends Adaptable> String toJson(@NotNull A data) throws AdaptionException {
         try {
-            return gson.toJson(data);
+            return plugin.getGson().toJson(data);
         } catch (Throwable e) {
             throw new AdaptionException("Failed to adapt data to JSON via Gson", e);
         }
@@ -59,7 +57,7 @@ public class GsonAdapter implements DataAdapter {
     @NotNull
     public <A extends Adaptable> A fromJson(@NotNull String data, @NotNull Class<A> type) throws AdaptionException {
         try {
-            return gson.fromJson(data, type);
+            return plugin.getGson().fromJson(data, type);
         } catch (Throwable e) {
             throw new AdaptionException("Failed to adapt data from JSON via Gson", e);
         }

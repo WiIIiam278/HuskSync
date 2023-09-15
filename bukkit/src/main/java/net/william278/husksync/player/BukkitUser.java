@@ -25,23 +25,29 @@ import net.roxeez.advancement.display.FrameType;
 import net.william278.andjam.Toast;
 import net.william278.husksync.BukkitHuskSync;
 import net.william278.husksync.HuskSync;
-import net.william278.husksync.data.BukkitDataOwner;
+import net.william278.husksync.data.BukkitPlayerDataHolder;
+import net.william278.husksync.data.Data;
+import net.william278.husksync.data.Identifier;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 
 /**
  * Bukkit platform implementation of an {@link OnlineUser}
  */
-public class BukkitUser extends OnlineUser implements BukkitDataOwner {
+public class BukkitUser extends OnlineUser implements BukkitPlayerDataHolder {
 
     private final HuskSync plugin;
+    private final Map<Identifier, Data> customDataStore;
     private final Player player;
 
     private BukkitUser(@NotNull Player player, @NotNull HuskSync plugin) {
         super(player.getUniqueId(), player.getName());
+        this.customDataStore = new ConcurrentHashMap<>();
         this.plugin = plugin;
         this.player = player;
     }
@@ -107,6 +113,12 @@ public class BukkitUser extends OnlineUser implements BukkitDataOwner {
     @Override
     public Player getBukkitPlayer() {
         return player;
+    }
+
+    @NotNull
+    @Override
+    public Map<Identifier, Data> getCustomDataStore() {
+        return customDataStore;
     }
 
     @NotNull

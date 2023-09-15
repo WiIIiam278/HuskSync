@@ -29,58 +29,17 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * A piece of data, held by an {@link DataOwner}
+ * A piece of data, held by a {@link DataHolder}
  */
-public interface DataContainer {
+public interface Data {
 
     /**
      * Apply (set) this data container to the given {@link OnlineUser}
      *
      * @param user   the user to apply this element to
-     * @param plugin
+     * @param plugin the plugin instance
      */
-    void apply(@NotNull DataOwner user, @NotNull HuskSync plugin) throws IllegalStateException;
-
-    /**
-     * Enumeration of types of {@link DataContainer}s
-     */
-    enum Type {
-        INVENTORY(true),
-        ENDER_CHEST(true),
-        POTION_EFFECTS(true),
-        ADVANCEMENTS(true),
-        LOCATION(false),
-        STATISTICS(true),
-        HEALTH(true),
-        FOOD(true),
-        EXPERIENCE(true),
-        GAME_MODE(true),
-        PERSISTENT_DATA(false);
-
-        private final boolean defaultSetting;
-
-        Type(boolean defaultSetting) {
-            this.defaultSetting = defaultSetting;
-        }
-
-        @NotNull
-        private Map.Entry<String, Boolean> toEntry() {
-            return Map.entry(name().toLowerCase(Locale.ENGLISH), defaultSetting);
-        }
-
-        @SuppressWarnings("unchecked")
-        @NotNull
-        public static Map<String, Boolean> getDefaults() {
-            return Map.ofEntries(Arrays.stream(values())
-                    .map(Type::toEntry)
-                    .toArray(Map.Entry[]::new));
-        }
-
-        public boolean getDefault() {
-            return defaultSetting;
-        }
-
-    }
+    void apply(@NotNull PlayerDataHolder user, @NotNull HuskSync plugin) throws IllegalStateException;
 
     /**
      * A data container holding data for:
@@ -89,7 +48,7 @@ public interface DataContainer {
      *     <li>Ender Chests</li>
      * </ul>
      */
-    interface Items extends DataContainer {
+    interface Items extends Data {
 
         @NotNull
         StackPreview[] getPreview();
@@ -153,7 +112,7 @@ public interface DataContainer {
     /**
      * Data container holding data for potion effects
      */
-    interface PotionEffects extends DataContainer {
+    interface PotionEffects extends Data {
 
         @NotNull
         List<Effect> getActiveEffects();
@@ -182,7 +141,7 @@ public interface DataContainer {
     /**
      * Data container holding data for advancements
      */
-    interface Advancements extends DataContainer {
+    interface Advancements extends Data {
 
         @NotNull
         List<Advancement> getCompleted();
@@ -245,7 +204,7 @@ public interface DataContainer {
     /**
      * Data container holding data for the player's location
      */
-    interface Location extends DataContainer {
+    interface Location extends Data {
         double getX();
 
         void setX(double x);
@@ -282,7 +241,7 @@ public interface DataContainer {
     /**
      * Data container holding data for statistics
      */
-    interface Statistics extends DataContainer {
+    interface Statistics extends Data {
         @NotNull
         Map<String, Integer> getGenericStatistics();
 
@@ -299,7 +258,7 @@ public interface DataContainer {
     /**
      * Data container holding data for persistent data containers
      */
-    interface PersistentData extends DataContainer {
+    interface PersistentData extends Data {
 
     }
 
@@ -311,7 +270,7 @@ public interface DataContainer {
      *     <li>Health Scale</li>
      * </ul>
      */
-    interface Health extends DataContainer {
+    interface Health extends Data {
         double getHealth();
 
         void setHealth(double health);
@@ -334,7 +293,7 @@ public interface DataContainer {
      *     <li>Exhaustion</li>
      * </ul>
      */
-    interface Food extends DataContainer {
+    interface Hunger extends Data {
 
         int getFoodLevel();
 
@@ -358,7 +317,7 @@ public interface DataContainer {
      *     <li>Experience progress</li>
      * </ul>
      */
-    interface Experience extends DataContainer {
+    interface Experience extends Data {
 
         int getTotalExperience();
 
@@ -381,7 +340,7 @@ public interface DataContainer {
      *     <li>Is flying</li>
      * </ul>
      */
-    interface GameMode extends DataContainer {
+    interface GameMode extends Data {
 
         @NotNull
         String getGameMode();

@@ -22,7 +22,7 @@ package net.william278.husksync.config;
 import net.william278.annotaml.YamlComment;
 import net.william278.annotaml.YamlFile;
 import net.william278.annotaml.YamlKey;
-import net.william278.husksync.data.DataContainer;
+import net.william278.husksync.data.Identifier;
 import net.william278.husksync.database.Database;
 import net.william278.husksync.listener.EventListener;
 import org.jetbrains.annotations.NotNull;
@@ -150,7 +150,7 @@ public class Settings {
     private int networkLatencyMilliseconds = 500;
 
     @YamlKey("synchronization.features")
-    private Map<String, Boolean> synchronizationFeatures = DataContainer.Type.getDefaults();
+    private Map<String, Boolean> synchronizationFeatures = Identifier.getConfigMap();
 
     @YamlKey("synchronization.blacklisted_commands_while_locked")
     private List<String> blacklistedCommandsWhileLocked = new ArrayList<>(List.of("*"));
@@ -307,8 +307,8 @@ public class Settings {
         return synchronizationFeatures;
     }
 
-    public boolean getSynchronizationFeature(@NotNull DataContainer.Type feature) {
-        return getSynchronizationFeatures().getOrDefault(feature.name().toLowerCase(Locale.ENGLISH), feature.getDefault());
+    public boolean getSynchronizationFeature(@NotNull Identifier feature) {
+        return getSynchronizationFeatures().getOrDefault(feature.toString(), feature.isEnabledByDefault());
     }
 
     @NotNull

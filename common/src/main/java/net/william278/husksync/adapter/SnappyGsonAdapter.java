@@ -19,12 +19,17 @@
 
 package net.william278.husksync.adapter;
 
+import net.william278.husksync.HuskSync;
 import org.jetbrains.annotations.NotNull;
 import org.xerial.snappy.Snappy;
 
 import java.io.IOException;
 
 public class SnappyGsonAdapter extends GsonAdapter {
+
+    public SnappyGsonAdapter(@NotNull HuskSync plugin) {
+        super(plugin);
+    }
 
     @NotNull
     @Override

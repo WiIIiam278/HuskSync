@@ -29,13 +29,16 @@ import net.william278.husksync.config.Locales;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.OffsetDateTime;
-import java.util.*;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
+import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 /**
- * A snapshot of data, held by a {@link DataOwner}
+ * A snapshot of a {@link DataHolder} at a given time.
  */
 public class DataSnapshot {
 
@@ -67,10 +70,10 @@ public class DataSnapshot {
     protected int formatVersion;
 
     @SerializedName("data")
-    protected Map<DataContainer.Type, String> data;
+    protected Map<String, String> data;
 
     private DataSnapshot(@NotNull UUID id, boolean pinned, @NotNull OffsetDateTime timestamp,
-                         @NotNull SaveCause saveCause, @NotNull Map<DataContainer.Type, String> data,
+                         @NotNull SaveCause saveCause, @NotNull Map<String, String> data,
                          @NotNull Version minecraftVersion, @NotNull String platformType, int formatVersion) {
         this.id = id;
         this.pinned = pinned;
@@ -87,18 +90,8 @@ public class DataSnapshot {
     }
 
     @NotNull
-    public static DataSnapshot.Packed of(@NotNull UUID id, boolean pinned, @NotNull OffsetDateTime timestamp,
-                                         @NotNull SaveCause saveCause, @NotNull Map<DataContainer.Type, String> data,
-                                         @NotNull Version minecraftVersion, @NotNull String platformType, int formatVersion) {
-        return new DataSnapshot.Packed(
-                id, pinned, timestamp, saveCause, data,
-                minecraftVersion, platformType, formatVersion
-        );
-    }
-
-    @NotNull
     public static DataSnapshot.Packed create(@NotNull HuskSync plugin,
-                                             @NotNull Map<DataContainer.Type, DataContainer> data,
+                                             @NotNull Map<Identifier, Data> data,
                                              @NotNull SaveCause saveCause) {
         return new Unpacked(
                 UUID.randomUUID(), false, OffsetDateTime.now(), saveCause, data,
@@ -107,7 +100,7 @@ public class DataSnapshot {
     }
 
     @NotNull
-    protected static DataSnapshot.Packed create(@NotNull HuskSync plugin, @NotNull DataOwner owner,
+    protected static DataSnapshot.Packed create(@NotNull HuskSync plugin, @NotNull PlayerDataHolder owner,
                                                 @NotNull SaveCause saveCause) {
         return new DataSnapshot.Unpacked(
                 UUID.randomUUID(), false, OffsetDateTime.now(), saveCause, owner.getData(),
@@ -175,12 +168,6 @@ public class DataSnapshot {
         return timestamp;
     }
 
-    @SuppressWarnings("unused")
-    @NotNull
-    public Set<DataContainer.Type> getDataTypes() {
-        return data.keySet();
-    }
-
     @NotNull
     public Version getMinecraftVersion() {
         return Version.fromString(minecraftVersion);
@@ -201,7 +188,7 @@ public class DataSnapshot {
     public static class Packed extends DataSnapshot implements Adaptable {
 
         protected Packed(@NotNull UUID id, boolean pinned, @NotNull OffsetDateTime timestamp,
-                         @NotNull SaveCause saveCause, @NotNull Map<DataContainer.Type, String> data,
+                         @NotNull SaveCause saveCause, @NotNull Map<String, String> data,
                          @NotNull Version minecraftVersion, @NotNull String platformType, int formatVersion) {
             super(id, pinned, timestamp, saveCause, data, minecraftVersion, platformType, formatVersion);
         }
@@ -247,13 +234,13 @@ public class DataSnapshot {
     /**
      * An unpacked {@link DataSnapshot}.
      */
-    public static class Unpacked extends DataSnapshot implements MutableDataStore {
+    public static class Unpacked extends DataSnapshot implements DataHolder {
 
         @Expose(serialize = false, deserialize = false)
-        private final Map<DataContainer.Type, DataContainer> deserialized;
+        private final Map<Identifier, Data> deserialized;
 
         private Unpacked(@NotNull UUID id, boolean pinned, @NotNull OffsetDateTime timestamp,
-                         @NotNull SaveCause saveCause, @NotNull Map<DataContainer.Type, String> data,
+                         @NotNull SaveCause saveCause, @NotNull Map<String, String> data,
                          @NotNull Version minecraftVersion, @NotNull String platformType, int formatVersion,
                          @NotNull HuskSync plugin) {
             super(id, pinned, timestamp, saveCause, data, minecraftVersion, platformType, formatVersion);
@@ -261,35 +248,36 @@ public class DataSnapshot {
         }
 
         private Unpacked(@NotNull UUID id, boolean pinned, @NotNull OffsetDateTime timestamp,
-                         @NotNull SaveCause saveCause, @NotNull Map<DataContainer.Type, DataContainer> data,
+                         @NotNull SaveCause saveCause, @NotNull Map<Identifier, Data> data,
                          @NotNull Version minecraftVersion, @NotNull String platformType, int formatVersion) {
             super(id, pinned, timestamp, saveCause, Map.of(), minecraftVersion, platformType, formatVersion);
             this.deserialized = data;
         }
 
         @NotNull
-        private Map<DataContainer.Type, DataContainer> deserializeData(@NotNull HuskSync plugin) {
+        private Map<Identifier, Data> deserializeData(@NotNull HuskSync plugin) {
             return data.entrySet().stream()
-                    .map((entry) -> Map.entry(entry.getKey(), Objects.requireNonNull(
-                            plugin.getSerializers().get(entry.getKey()),
-                            String.format("No deserializer found for %s", entry.getKey().name())
-                    ).deserialize(entry.getValue())))
+                    .map((entry) -> plugin.getIdentifier(entry.getKey()).map(id -> Map.entry(
+                            id, plugin.getSerializers().get(id).deserialize(entry.getValue())
+                    )).orElse(null))
+                    .filter(Objects::nonNull)
                     .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
         }
 
         @NotNull
-        private Map<DataContainer.Type, String> serializeData(@NotNull HuskSync plugin) {
+        private Map<String, String> serializeData(@NotNull HuskSync plugin) {
             return deserialized.entrySet().stream()
-                    .peek((data) -> plugin.debug(String.format("Serializing %s data...", data.getKey().name())))
-                    .map((entry) -> Map.entry(entry.getKey(), Objects.requireNonNull(
-                            plugin.getSerializers().get(entry.getKey()),
-                            String.format("No serializer found for %s", entry.getKey().name())
-                    ).serialize(entry.getValue())))
+                    .peek((data) -> plugin.debug(String.format("Serializing %s data...", data.getKey())))
+                    .map((entry) -> Map.entry(entry.getKey().toString(),
+                            Objects.requireNonNull(
+                                    plugin.getSerializers().get(entry.getKey()),
+                                    String.format("No serializer found for %s", entry.getKey())
+                            ).serialize(entry.getValue())))
                     .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
         }
 
         @NotNull
-        public Map<DataContainer.Type, DataContainer> getData() {
+        public Map<Identifier, Data> getData() {
             return deserialized;
         }
 

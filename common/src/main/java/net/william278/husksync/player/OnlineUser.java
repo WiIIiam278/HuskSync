@@ -24,7 +24,7 @@ import de.themoep.minedown.adventure.MineDownParser;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.william278.husksync.HuskSync;
-import net.william278.husksync.data.DataOwner;
+import net.william278.husksync.data.PlayerDataHolder;
 import net.william278.husksync.data.DataSnapshot;
 import org.jetbrains.annotations.NotNull;
 
@@ -33,7 +33,7 @@ import java.util.UUID;
 /**
  * Represents a logged-in {@link User}
  */
-public abstract class OnlineUser extends User implements CommandUser, DataOwner {
+public abstract class OnlineUser extends User implements CommandUser, PlayerDataHolder {
 
     public OnlineUser(@NotNull UUID uuid, @NotNull String username) {
         super(uuid, username);
@@ -120,7 +120,7 @@ public abstract class OnlineUser extends User implements CommandUser, DataOwner 
     public void applySnapshot(@NotNull DataSnapshot.Packed snapshot) {
         getPlugin().fireEvent(getPlugin().getPreSyncEvent(this, snapshot), (event) -> {
             if (!isOffline()) {
-                DataOwner.super.applySnapshot(
+                PlayerDataHolder.super.applySnapshot(
                         event.getData(), (owner) -> completeSync(true, getPlugin())
                 );
             }

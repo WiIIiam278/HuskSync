@@ -21,8 +21,9 @@ package net.william278.husksync.util;
 
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.adapter.DataAdapter;
-import net.william278.husksync.data.BukkitDataContainer;
-import net.william278.husksync.data.DataContainer;
+import net.william278.husksync.data.BukkitData;
+import net.william278.husksync.data.Data;
+import net.william278.husksync.data.Identifier;
 import net.william278.husksync.data.DataSnapshot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.io.BukkitObjectInputStream;
@@ -56,11 +57,11 @@ public class BukkitLegacyConverter extends LegacyConverter {
             ));
         }
 
-        final Map<DataContainer.Type, DataContainer> containers = new LinkedHashMap<>(readStatusData(object));
-        readInventory(object).ifPresent(i -> containers.put(DataContainer.Type.INVENTORY, i));
-        readEnderChest(object).ifPresent(e -> containers.put(DataContainer.Type.ENDER_CHEST, e));
-        readLocation(object).ifPresent(l -> containers.put(DataContainer.Type.LOCATION, l));
-        readAdvancements(object).ifPresent(a -> containers.put(DataContainer.Type.ADVANCEMENTS, a));
+        final Map<Identifier, Data> containers = new LinkedHashMap<>(readStatusData(object));
+        readInventory(object).ifPresent(i -> containers.put(Identifier.INVENTORY, i));
+        readEnderChest(object).ifPresent(e -> containers.put(Identifier.ENDER_CHEST, e));
+        readLocation(object).ifPresent(l -> containers.put(Identifier.LOCATION, l));
+        readAdvancements(object).ifPresent(a -> containers.put(Identifier.ADVANCEMENTS, a));
 
         //todo statistics, persistent data container
 
@@ -68,36 +69,36 @@ public class BukkitLegacyConverter extends LegacyConverter {
     }
 
     @NotNull
-    private Map<DataContainer.Type, DataContainer> readStatusData(@NotNull JSONObject object) {
+    private Map<Identifier, Data> readStatusData(@NotNull JSONObject object) {
         if (!object.has("status_data")) {
             return Map.of();
         }
 
         final JSONObject status = object.getJSONObject("status_data");
-        final HashMap<DataContainer.Type, DataContainer> containers = new HashMap<>();
-        if (shouldImport(DataContainer.Type.HEALTH)) {
-            containers.put(DataContainer.Type.HEALTH, BukkitDataContainer.Health.from(
+        final HashMap<Identifier, Data> containers = new HashMap<>();
+        if (shouldImport(Identifier.HEALTH)) {
+            containers.put(Identifier.HEALTH, BukkitData.Health.from(
                     status.getDouble("health"),
                     status.getDouble("max_health"),
                     status.getDouble("health_scale")
             ));
         }
-        if (shouldImport(DataContainer.Type.FOOD)) {
-            containers.put(DataContainer.Type.FOOD, BukkitDataContainer.Food.from(
+        if (shouldImport(Identifier.HUNGER)) {
+            containers.put(Identifier.HUNGER, BukkitData.Hunger.from(
                     status.getInt("hunger"),
                     status.getFloat("saturation"),
                     status.getFloat("saturation_exhaustion")
             ));
         }
-        if (shouldImport(DataContainer.Type.EXPERIENCE)) {
-            containers.put(DataContainer.Type.EXPERIENCE, BukkitDataContainer.Experience.from(
+        if (shouldImport(Identifier.EXPERIENCE)) {
+            containers.put(Identifier.EXPERIENCE, BukkitData.Experience.from(
                     status.getInt("total_experience"),
                     status.getInt("experience_level"),
                     status.getFloat("experience_progress")
             ));
         }
-        if (shouldImport(DataContainer.Type.GAME_MODE)) {
-            containers.put(DataContainer.Type.GAME_MODE, BukkitDataContainer.GameMode.from(
+        if (shouldImport(Identifier.GAME_MODE)) {
+            containers.put(Identifier.GAME_MODE, BukkitData.GameMode.from(
                     status.getString("game_mode"),
                     status.getBoolean("is_flying"),
                     status.getBoolean("is_flying")
@@ -107,43 +108,43 @@ public class BukkitLegacyConverter extends LegacyConverter {
     }
 
     @NotNull
-    private Optional<DataContainer.Items> readInventory(@NotNull JSONObject object) {
-        if (!object.has("inventory") || !shouldImport(DataContainer.Type.INVENTORY)) {
+    private Optional<Data.Items> readInventory(@NotNull JSONObject object) {
+        if (!object.has("inventory") || !shouldImport(Identifier.INVENTORY)) {
             return Optional.empty();
         }
 
         final JSONObject inventoryData = object.getJSONObject("inventory");
-        return Optional.of(BukkitDataContainer.Items.Inventory.from(
+        return Optional.of(BukkitData.Items.Inventory.from(
                 deserializeLegacyItemStacks(inventoryData.getString("serialized_items")), 0
         ));
     }
 
     @NotNull
-    private Optional<DataContainer.Items> readEnderChest(@NotNull JSONObject object) {
-        if (!object.has("ender_chest") || !shouldImport(DataContainer.Type.ENDER_CHEST)) {
+    private Optional<Data.Items> readEnderChest(@NotNull JSONObject object) {
+        if (!object.has("ender_chest") || !shouldImport(Identifier.ENDER_CHEST)) {
             return Optional.empty();
         }
 
         final JSONObject inventoryData = object.getJSONObject("ender_chest");
-        return Optional.of(BukkitDataContainer.Items.EnderChest.adapt(
+        return Optional.of(BukkitData.Items.EnderChest.adapt(
                 deserializeLegacyItemStacks(inventoryData.getString("serialized_items"))
         ));
     }
 
     @NotNull
-    private Optional<DataContainer.Location> readLocation(@NotNull JSONObject object) {
-        if (!object.has("location") || !shouldImport(DataContainer.Type.LOCATION)) {
+    private Optional<Data.Location> readLocation(@NotNull JSONObject object) {
+        if (!object.has("location") || !shouldImport(Identifier.LOCATION)) {
             return Optional.empty();
         }
 
         final JSONObject locationData = object.getJSONObject("location");
-        return Optional.of(BukkitDataContainer.Location.from(
+        return Optional.of(BukkitData.Location.from(
                 locationData.getDouble("x"),
                 locationData.getDouble("y"),
                 locationData.getDouble("z"),
                 locationData.getFloat("yaw"),
                 locationData.getFloat("pitch"),
-                new DataContainer.Location.World(
+                new Data.Location.World(
                         locationData.getString("world_name"),
                         UUID.fromString(locationData.getString("world_uuid")),
                         locationData.getString("world_environment")
@@ -153,13 +154,13 @@ public class BukkitLegacyConverter extends LegacyConverter {
 
     //todo check against actual v3 data format
     @NotNull
-    private Optional<DataContainer.Advancements> readAdvancements(@NotNull JSONObject object) {
-        if (!object.has("advancements") || !shouldImport(DataContainer.Type.ADVANCEMENTS)) {
+    private Optional<Data.Advancements> readAdvancements(@NotNull JSONObject object) {
+        if (!object.has("advancements") || !shouldImport(Identifier.ADVANCEMENTS)) {
             return Optional.empty();
         }
 
         final JSONArray advancements = object.getJSONArray("advancements");
-        final List<DataContainer.Advancements.Advancement> converted = new ArrayList<>();
+        final List<Data.Advancements.Advancement> converted = new ArrayList<>();
         advancements.iterator().forEachRemaining(o -> {
             final JSONObject advancement = (JSONObject) JSONObject.wrap(o);
             final String key = advancement.getString("key");
@@ -169,10 +170,10 @@ public class BukkitLegacyConverter extends LegacyConverter {
             criteria.keys().forEachRemaining(criteriaKey -> criteriaMap.put(
                     criteriaKey, parseDate(criteria.getString(criteriaKey)))
             );
-            converted.add(DataContainer.Advancements.Advancement.adapt(key, criteriaMap));
+            converted.add(Data.Advancements.Advancement.adapt(key, criteriaMap));
         });
 
-        return Optional.of(BukkitDataContainer.Advancements.from(converted));
+        return Optional.of(BukkitData.Advancements.from(converted));
     }
 
     @NotNull
@@ -192,7 +193,7 @@ public class BukkitLegacyConverter extends LegacyConverter {
         }
     }
 
-    private boolean shouldImport(@NotNull DataContainer.Type type) {
+    private boolean shouldImport(@NotNull Identifier type) {
         return plugin.getSettings().getSynchronizationFeature(type);
     }
 
