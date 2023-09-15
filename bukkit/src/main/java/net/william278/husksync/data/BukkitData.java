@@ -564,6 +564,13 @@ public abstract class BukkitData implements Data {
             return new BukkitData.Statistics(genericStats, blockStats, itemStats, entityStats);
         }
 
+        public static StatisticsMap createStatisticsMap(@NotNull Map<String, Integer> genericStats,
+                                                        @NotNull Map<String, Map<String, Integer>> blockStats,
+                                                        @NotNull Map<String, Map<String, Integer>> itemStats,
+                                                        @NotNull Map<String, Map<String, Integer>> entityStats) {
+            return new StatisticsMap(genericStats, blockStats, itemStats, entityStats);
+        }
+
         @NotNull
         private static Statistic matchStatistic(@NotNull String key) {
             return Arrays.stream(Statistic.values())

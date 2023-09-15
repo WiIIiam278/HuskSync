@@ -38,7 +38,9 @@ import net.william278.husksync.event.BukkitEventDispatcher;
 import net.william278.husksync.hook.PlanHook;
 import net.william278.husksync.listener.BukkitEventListener;
 import net.william278.husksync.listener.EventListener;
+import net.william278.husksync.migrator.LegacyMigrator;
 import net.william278.husksync.migrator.Migrator;
+import net.william278.husksync.migrator.MpdbMigrator;
 import net.william278.husksync.player.BukkitUser;
 import net.william278.husksync.player.ConsoleUser;
 import net.william278.husksync.player.OnlineUser;
@@ -121,12 +123,12 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
             registerSerializer(Identifier.PERSISTENT_DATA, new BukkitSerializer.PersistentData(this));
         });
 
-        // Setup available migrators - todo
+        // Setup available migrators
         initialize("data migrators/converters", (plugin) -> {
-//            availableMigrators.add(new LegacyMigrator(this));
-//            if (isDependencyLoaded("MySqlPlayerDataBridge")) {
-//                availableMigrators.add(new MpdbMigrator(this));
-//            }
+            availableMigrators.add(new LegacyMigrator(this));
+            if (isDependencyLoaded("MySqlPlayerDataBridge")) {
+                availableMigrators.add(new MpdbMigrator(this));
+            }
             legacyConverter = new BukkitLegacyConverter(this);
         });
 

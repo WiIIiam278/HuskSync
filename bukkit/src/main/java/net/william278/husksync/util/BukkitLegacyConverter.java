@@ -227,7 +227,7 @@ public class BukkitLegacyConverter extends LegacyConverter {
     }
 
     @NotNull
-    private ItemStack[] deserializeLegacyItemStacks(@NotNull String items) {
+    public ItemStack[] deserializeLegacyItemStacks(@NotNull String items) {
         // Return an empty array if there is no inventory data (set the player as having an empty inventory)
         if (items.isEmpty()) {
             return new ItemStack[0];
