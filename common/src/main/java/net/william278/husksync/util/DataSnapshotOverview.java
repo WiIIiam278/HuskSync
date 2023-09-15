@@ -27,6 +27,7 @@ import net.william278.husksync.player.CommandUser;
 import net.william278.husksync.player.User;
 import org.jetbrains.annotations.NotNull;
 
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -58,13 +59,14 @@ public class DataSnapshotOverview {
                         dataOwner.getUsername(), dataOwner.getUuid().toString())
                 .ifPresent(user::sendMessage);
         locales.getLocale("data_manager_timestamp",
-//                        new SimpleDateFormat("MMM dd yyyy, HH:mm:ss.sss").format(snapshot.getTimestamp())) todo fix
+                        snapshot.getTimestamp().format(DateTimeFormatter.ofPattern("MMM dd yyyy, HH:mm:ss.SSS")),
                     snapshot.getTimestamp().toString())
                 .ifPresent(user::sendMessage);
         if (snapshot.isPinned()) {
-            locales.getLocale("data_manager_pinned").ifPresent(user::sendMessage);
+            locales.getLocale("data_manager_pinned")
+                    .ifPresent(user::sendMessage);
         }
-        locales.getLocale("data_manager_cause", snapshot.getSaveCause().name().toLowerCase(Locale.ENGLISH).replaceAll("_", " "))
+        locales.getLocale("data_manager_cause", snapshot.getSaveCause().getDisplayName())
                 .ifPresent(user::sendMessage);
 
         // User status data, if present in the snapshot

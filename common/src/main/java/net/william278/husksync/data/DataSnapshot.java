@@ -28,6 +28,7 @@ import net.william278.husksync.adapter.DataAdapter;
 import net.william278.husksync.config.Locales;
 import org.jetbrains.annotations.NotNull;
 
+import java.nio.charset.StandardCharsets;
 import java.time.OffsetDateTime;
 import java.util.Locale;
 import java.util.Map;
@@ -221,6 +222,10 @@ public class DataSnapshot {
             return plugin.getDataAdapter().toJson(this);
         }
 
+        public int getFileSize(@NotNull HuskSync plugin) {
+            return asBytes(plugin).length;
+        }
+
         @NotNull
         public DataSnapshot.Unpacked unpack(@NotNull HuskSync plugin) {
             return new Unpacked(
@@ -362,7 +367,8 @@ public class DataSnapshot {
 
         @NotNull
         public String getDisplayName() {
-            return Locales.truncate(name().toLowerCase(Locale.ENGLISH), 10);
+            return Locales.truncate(name().toLowerCase(Locale.ENGLISH)
+                    .replaceAll("_", " "), 20);
         }
 
     }

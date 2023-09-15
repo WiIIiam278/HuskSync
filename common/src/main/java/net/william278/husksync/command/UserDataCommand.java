@@ -104,7 +104,8 @@ public class UserDataCommand extends Command implements TabProvider {
                     return;
                 }
                 final String username = args[1];
-                plugin.getDatabase().getUserByName(username.toLowerCase(Locale.ENGLISH)).ifPresentOrElse(user -> {
+                plugin.getDatabase().getUserByName(username.toLowerCase(Locale.ENGLISH)).ifPresentOrElse(
+                        (user) -> {
                             // Check if there is data to display
                             final List<DataSnapshot.Packed> dataList = plugin.getDatabase().getDataSnapshots(user);
                             if (dataList.isEmpty()) {
@@ -127,8 +128,7 @@ public class UserDataCommand extends Command implements TabProvider {
                             }
 
                             // Show the list to the player
-                            DataSnapshotList.create(dataList, user, plugin.getLocales())
-                                    .displayPage(executor, page);
+                            DataSnapshotList.create(dataList, user, plugin).displayPage(executor, page);
                         },
                         () -> plugin.getLocales().getLocale("error_invalid_player")
                                 .ifPresent(executor::sendMessage));
