@@ -75,7 +75,9 @@ public class UserDataCommand extends Command implements TabProvider {
                         plugin.getDatabase()
                                 .getUserByName(username.toLowerCase(Locale.ENGLISH))
                                 .ifPresentOrElse(user -> plugin.getDatabase().getDataSnapshot(user, versionUuid).ifPresentOrElse(
-                                                data -> DataSnapshotOverview.of(data.unpack(plugin), user, plugin).show(executor),
+                                                data -> DataSnapshotOverview.of(
+                                                        data.unpack(plugin), data.getFileSize(plugin), user, plugin
+                                                ).show(executor),
                                                 () -> plugin.getLocales().getLocale("error_invalid_version_uuid")
                                                         .ifPresent(executor::sendMessage)),
                                         () -> plugin.getLocales().getLocale("error_invalid_player")
@@ -89,7 +91,9 @@ public class UserDataCommand extends Command implements TabProvider {
                     plugin.getDatabase()
                             .getUserByName(username.toLowerCase(Locale.ENGLISH))
                             .ifPresentOrElse(user -> plugin.getDatabase().getCurrentUserData(user).ifPresentOrElse(
-                                            data -> DataSnapshotOverview.of(data.unpack(plugin), user, plugin).show(executor),
+                                            data -> DataSnapshotOverview.of(
+                                                    data.unpack(plugin), data.getFileSize(plugin), user, plugin
+                                            ).show(executor),
                                             () -> plugin.getLocales().getLocale("error_no_data_to_display")
                                                     .ifPresent(executor::sendMessage)),
                                     () -> plugin.getLocales().getLocale("error_invalid_player")

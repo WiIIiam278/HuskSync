@@ -38,18 +38,20 @@ public class DataSnapshotOverview {
     private final HuskSync plugin;
     private final User dataOwner;
     private final DataSnapshot.Unpacked snapshot;
+    private final long snapshotSize;
 
-    private DataSnapshotOverview(@NotNull DataSnapshot.Unpacked snapshot, @NotNull User dataOwner,
-                                 @NotNull HuskSync plugin) {
+    private DataSnapshotOverview(@NotNull DataSnapshot.Unpacked snapshot, long snapshotSize,
+                                 @NotNull User dataOwner, @NotNull HuskSync plugin) {
         this.snapshot = snapshot;
+        this.snapshotSize = snapshotSize;
         this.dataOwner = dataOwner;
         this.plugin = plugin;
     }
 
     @NotNull
-    public static DataSnapshotOverview of(@NotNull DataSnapshot.Unpacked snapshot, @NotNull User dataOwner,
-                                          @NotNull HuskSync plugin) {
-        return new DataSnapshotOverview(snapshot, dataOwner, plugin);
+    public static DataSnapshotOverview of(@NotNull DataSnapshot.Unpacked snapshot, long snapshotSize,
+                                          @NotNull User dataOwner, @NotNull HuskSync plugin) {
+        return new DataSnapshotOverview(snapshot, snapshotSize, dataOwner, plugin);
     }
 
     public void show(@NotNull CommandUser user) {
@@ -60,7 +62,7 @@ public class DataSnapshotOverview {
                 .ifPresent(user::sendMessage);
         locales.getLocale("data_manager_timestamp",
                         snapshot.getTimestamp().format(DateTimeFormatter.ofPattern("MMM dd yyyy, HH:mm:ss.SSS")),
-                    snapshot.getTimestamp().toString())
+                        snapshot.getTimestamp().toString())
                 .ifPresent(user::sendMessage);
         if (snapshot.isPinned()) {
             locales.getLocale("data_manager_pinned")
@@ -83,6 +85,10 @@ public class DataSnapshotOverview {
                             gameMode.get().getGameMode().toLowerCase(Locale.ENGLISH))
                     .ifPresent(user::sendMessage);
         }
+
+        // Snapshot size
+        locales.getLocale("data_manager_size", String.format("%.2fKiB", snapshotSize / 1024f))
+                .ifPresent(user::sendMessage);
 
         // Advancement and statistic data, if both are present in the snapshot
         snapshot.getAdvancements()

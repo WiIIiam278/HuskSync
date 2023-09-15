@@ -57,7 +57,7 @@ public class DataSnapshotList {
                                         snapshot.getTimestamp().format(DateTimeFormatter
                                                 .ofPattern("MMM dd yyyy, HH:mm:ss.SSS")),
                                         snapshot.getSaveCause().getDisplayName(),
-                                        String.format("%.2fKiB", snapshot.getFileSize(plugin) / 1024.0))
+                                        String.format("%.2fKiB", snapshot.getFileSize(plugin) / 1024f))
                                 .orElse("• " + snapshot.getId())).toList(),
                 plugin.getLocales().getBaseChatList(6)
                         .setHeaderFormat(plugin.getLocales()
