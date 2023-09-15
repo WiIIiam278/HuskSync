@@ -28,7 +28,7 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The HuskSync API implementation for the Bukkit platform, providing methods to access and modify player {@link UserData} held by {@link User}s.
+ * The HuskSync API implementation for the Bukkit platform
  * </p>
  * Retrieve an instance of the API class via {@link #getInstance()}.
  */

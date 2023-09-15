@@ -22,6 +22,7 @@ package net.william278.husksync.data;
 import net.william278.husksync.BukkitHuskSync;
 import net.william278.husksync.util.MapPersister;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.PlayerInventory;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
@@ -34,9 +35,10 @@ public interface BukkitDataOwner extends DataOwner {
         if ((getBukkitPlayer().isDead() && !getPlugin().getSettings().doSynchroniseDeadPlayersChangingServer())) {
             return Optional.of(BukkitDataContainer.Items.Inventory.empty());
         }
+        final PlayerInventory inventory = getBukkitPlayer().getInventory();
         return Optional.of(BukkitDataContainer.Items.Inventory.from(
-                getMapPersister().persistLockedMaps(getBukkitPlayer().getInventory().getContents(), getBukkitPlayer()),
-                getBukkitPlayer().getInventory().getHeldItemSlot()
+                getMapPersister().persistLockedMaps(inventory.getContents(), getBukkitPlayer()),
+                inventory.getHeldItemSlot()
         ));
     }
 

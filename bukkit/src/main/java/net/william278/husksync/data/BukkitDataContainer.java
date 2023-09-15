@@ -125,6 +125,7 @@ public abstract class BukkitDataContainer implements DataContainer {
                 player.setItemOnCursor(null);
                 player.getInventory().setContents(((BukkitHuskSync) plugin).setMapViews(getContents()));
                 player.updateInventory();
+                player.getInventory().setHeldItemSlot(heldItemSlot);
             }
 
             private void clearInventoryCraftingSlots(@NotNull Player player) {
