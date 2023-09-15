@@ -114,7 +114,7 @@ public interface HuskSync extends Task.Supplier, EventDispatcher {
      * Get the {@link Identifier} for the given key
      */
     default Optional<Identifier> getIdentifier(@NotNull String key) {
-        return getSerializers().keySet().stream().filter(identifier -> identifier.getKeyValue().equals(key)).findFirst();
+        return getSerializers().keySet().stream().filter(identifier -> identifier.toString().equals(key)).findFirst();
     }
 
     /**
