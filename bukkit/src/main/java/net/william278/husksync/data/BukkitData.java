@@ -154,6 +154,8 @@ public abstract class BukkitData implements Data {
 
         public static class EnderChest extends BukkitData.Items implements Items.EnderChest {
 
+            public static final int ENDER_CHEST_SLOT_COUNT = 27;
+
             private EnderChest(@NotNull ItemStack[] contents) {
                 super(contents);
             }

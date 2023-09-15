@@ -31,6 +31,9 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
+import static net.william278.husksync.data.BukkitData.Items.EnderChest.ENDER_CHEST_SLOT_COUNT;
+import static net.william278.husksync.data.BukkitData.Items.Inventory.INVENTORY_SLOT_COUNT;
+
 public class BukkitSerializer {
 
     protected final HuskSync plugin;
@@ -58,7 +61,10 @@ public class BukkitSerializer {
             final ReadWriteNBT root = NBT.parseNBT(serialized);
             final ItemStack[] items = root.getItemStackArray(ITEMS_TAG);
             final int heldItemSlot = root.getInteger(HELD_ITEM_SLOT_TAG);
-            return BukkitData.Items.Inventory.from(items, heldItemSlot);
+            return BukkitData.Items.Inventory.from(
+                    items == null ? new ItemStack[INVENTORY_SLOT_COUNT] : items,
+                    heldItemSlot
+            );
         }
 
         @NotNull
@@ -80,8 +86,9 @@ public class BukkitSerializer {
 
         @Override
         public BukkitData.Items.EnderChest deserialize(@NotNull String serialized) throws DeserializationException {
+            final ItemStack[] items = NBT.itemStackArrayFromNBT(NBT.parseNBT(serialized));
             return BukkitData.Items.EnderChest.adapt(
-                    NBT.itemStackArrayFromNBT(NBT.parseNBT(serialized))
+                    items == null ? new ItemStack[ENDER_CHEST_SLOT_COUNT] : items
             );
         }
 
