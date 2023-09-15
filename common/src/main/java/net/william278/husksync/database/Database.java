@@ -197,7 +197,10 @@ public abstract class Database {
      */
     public final void unpinUserData(@NotNull User user, @NotNull UUID versionUuid) {
         this.getDataSnapshot(user, versionUuid).ifPresent(data -> {
-            data.edit(plugin, (snapshot) -> snapshot.setPinned(false));
+            data.edit(plugin, (snapshot) -> {
+                snapshot.setPinned(false);
+                return snapshot;
+            });
             this.updateUserData(user, versionUuid, data);
         });
     }
@@ -210,7 +213,10 @@ public abstract class Database {
      */
     public final void pinUserData(@NotNull User user, @NotNull UUID versionUuid) {
         this.getDataSnapshot(user, versionUuid).ifPresent(data -> {
-            data.edit(plugin, (snapshot) -> snapshot.setPinned(true));
+            data.edit(plugin, (snapshot) -> {
+                snapshot.setPinned(true);
+                return snapshot;
+            });
             this.updateUserData(user, versionUuid, data);
         });
     }

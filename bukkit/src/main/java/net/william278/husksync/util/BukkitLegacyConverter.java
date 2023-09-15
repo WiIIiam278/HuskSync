@@ -68,7 +68,7 @@ public class BukkitLegacyConverter extends LegacyConverter {
         readAdvancements(object).ifPresent(a -> containers.put(Identifier.ADVANCEMENTS, a));
         readStatistics(object).ifPresent(s -> containers.put(Identifier.STATISTICS, s));
 
-        return DataSnapshot.create(plugin, containers, DataSnapshot.SaveCause.LEGACY_MIGRATION);
+        return DataSnapshot.create(plugin, containers, DataSnapshot.SaveCause.CONVERTED_FROM_V2);
     }
 
     @NotNull

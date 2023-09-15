@@ -33,7 +33,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -195,10 +195,10 @@ public class DataSnapshot {
         private Packed() {
         }
 
-        public void edit(@NotNull HuskSync plugin, @NotNull Consumer<Unpacked> editor) {
-            final Unpacked unpacked = unpack(plugin);
-            editor.accept(unpacked);
-            this.data = unpacked.serializeData(plugin);
+        public void edit(@NotNull HuskSync plugin, @NotNull Function<Unpacked, Unpacked> editor) {
+            final Unpacked edited = editor.apply(unpack(plugin));
+            this.pinned = edited.isPinned();
+            this.data = edited.serializeData(plugin);
         }
 
         @NotNull
@@ -356,11 +356,17 @@ public class DataSnapshot {
          */
         MPDB_MIGRATION,
         /**
-         * Indicates data was saved from being imported from a legacy version (v1.x -> v2.x, v2.x -> v3.x)
+         * Indicates data was saved from being imported from a legacy version (v1.x -> v2.x)
          *
          * @since 2.0
          */
-        LEGACY_MIGRATION;
+        LEGACY_MIGRATION,
+        /**
+         * Indicates data was saved from being imported from a legacy version (v2.x -> v3.x)
+         *
+         * @since 3.0
+         */
+        CONVERTED_FROM_V2;
 
         @NotNull
         public String getDisplayName() {

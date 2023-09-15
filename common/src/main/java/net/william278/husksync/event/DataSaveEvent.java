@@ -25,7 +25,7 @@ import net.william278.husksync.player.User;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.function.Consumer;
+import java.util.function.Function;
 
 @SuppressWarnings("unused")
 public interface DataSaveEvent extends Cancellable {
@@ -36,8 +36,8 @@ public interface DataSaveEvent extends Cancellable {
     @NotNull
     DataSnapshot.Packed getData();
 
-    default void editData(@NotNull Consumer<DataSnapshot.Unpacked> edit) {
-        getData().edit(getPlugin(), edit);
+    default void editData(@NotNull Function<DataSnapshot.Unpacked, DataSnapshot.Unpacked> editor) {
+        getData().edit(getPlugin(), editor);
     }
 
     @NotNull

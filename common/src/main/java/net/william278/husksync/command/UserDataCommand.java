@@ -187,9 +187,12 @@ public class UserDataCommand extends Command implements TabProvider {
 
                                 // Restore users with a minimum of one health (prevent restoring players with <=0 health)
                                 final DataSnapshot.Packed data = optionalData.get().copy();
-                                data.edit(plugin, (unpacked -> unpacked.getHealth().ifPresent(
-                                        status -> status.setHealth(Math.max(1, status.getHealth()))
-                                )));
+                                data.edit(plugin, (unpacked -> {
+                                    unpacked.getHealth().ifPresent(
+                                            status -> status.setHealth(Math.max(1, status.getHealth()))
+                                    );
+                                    return unpacked;
+                                }));
 
                                 // Set the user's data and send a message
                                 plugin.getDatabase().setUserData(user, data);
@@ -220,30 +223,29 @@ public class UserDataCommand extends Command implements TabProvider {
                 final String username = args[1];
                 try {
                     final UUID versionUuid = UUID.fromString(args[2]);
-                    plugin.getDatabase()
-                            .getUserByName(username.toLowerCase(Locale.ENGLISH)).ifPresentOrElse(
-                                    user -> plugin.getDatabase().getDataSnapshot(user, versionUuid).ifPresentOrElse(userData -> {
-                                        if (userData.isPinned()) {
-                                            plugin.getDatabase().unpinUserData(user, versionUuid);
-                                            plugin.getLocales().getLocale("data_unpinned",
-                                                            versionUuid.toString().split("-")[0],
-                                                            versionUuid.toString(),
-                                                            user.getUsername(),
-                                                            user.getUuid().toString())
-                                                    .ifPresent(executor::sendMessage);
-                                        } else {
-                                            plugin.getDatabase().pinUserData(user, versionUuid);
-                                            plugin.getLocales().getLocale("data_pinned",
-                                                            versionUuid.toString().split("-")[0],
-                                                            versionUuid.toString(),
-                                                            user.getUsername(),
-                                                            user.getUuid().toString())
-                                                    .ifPresent(executor::sendMessage);
-                                        }
-                                    }, () -> plugin.getLocales().getLocale("error_invalid_version_uuid")
-                                            .ifPresent(executor::sendMessage)),
-                                    () -> plugin.getLocales().getLocale("error_invalid_player")
-                                            .ifPresent(executor::sendMessage));
+                    plugin.getDatabase().getUserByName(username.toLowerCase(Locale.ENGLISH)).ifPresentOrElse(
+                            user -> plugin.getDatabase().getDataSnapshot(user, versionUuid).ifPresentOrElse(userData -> {
+                                if (userData.isPinned()) {
+                                    plugin.getDatabase().unpinUserData(user, versionUuid);
+                                    plugin.getLocales().getLocale("data_unpinned",
+                                                    versionUuid.toString().split("-")[0],
+                                                    versionUuid.toString(),
+                                                    user.getUsername(),
+                                                    user.getUuid().toString())
+                                            .ifPresent(executor::sendMessage);
+                                } else {
+                                    plugin.getDatabase().pinUserData(user, versionUuid);
+                                    plugin.getLocales().getLocale("data_pinned",
+                                                    versionUuid.toString().split("-")[0],
+                                                    versionUuid.toString(),
+                                                    user.getUsername(),
+                                                    user.getUuid().toString())
+                                            .ifPresent(executor::sendMessage);
+                                }
+                            }, () -> plugin.getLocales().getLocale("error_invalid_version_uuid")
+                                    .ifPresent(executor::sendMessage)),
+                            () -> plugin.getLocales().getLocale("error_invalid_player")
+                                    .ifPresent(executor::sendMessage));
                 } catch (IllegalArgumentException e) {
                     plugin.getLocales().getLocale("error_invalid_syntax",
                                     "/userdata pin <username> <version_uuid>")
