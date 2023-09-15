@@ -33,7 +33,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.function.Function;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
@@ -195,10 +195,11 @@ public class DataSnapshot {
         private Packed() {
         }
 
-        public void edit(@NotNull HuskSync plugin, @NotNull Function<Unpacked, Unpacked> editor) {
-            final Unpacked edited = editor.apply(unpack(plugin));
-            this.pinned = edited.isPinned();
-            this.data = edited.serializeData(plugin);
+        public void edit(@NotNull HuskSync plugin, @NotNull Consumer<Unpacked> editor) {
+            final Unpacked data = unpack(plugin);
+            editor.accept(data);
+            this.pinned = data.isPinned();
+            this.data = data.serializeData(plugin);
         }
 
         @NotNull

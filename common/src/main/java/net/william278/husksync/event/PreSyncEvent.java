@@ -24,7 +24,7 @@ import net.william278.husksync.data.DataSnapshot;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.function.Function;
+import java.util.function.Consumer;
 
 @SuppressWarnings("unused")
 public interface PreSyncEvent extends PlayerEvent {
@@ -32,7 +32,7 @@ public interface PreSyncEvent extends PlayerEvent {
     @NotNull
     DataSnapshot.Packed getData();
 
-    default void editData(@NotNull Function<DataSnapshot.Unpacked, DataSnapshot.Unpacked> editor) {
+    default void editData(@NotNull Consumer<DataSnapshot.Unpacked> editor) {
         getData().edit(getPlugin(), editor);
     }
 

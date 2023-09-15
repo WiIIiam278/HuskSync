@@ -170,10 +170,7 @@ public abstract class EventListener {
         }
 
         final DataSnapshot.Packed snapshot = user.createSnapshot(DataSnapshot.SaveCause.DEATH);
-        snapshot.edit(plugin, (data -> {
-            data.getInventory().ifPresent(inventory -> inventory.setContents(drops));
-            return data;
-        }));
+        snapshot.edit(plugin, (data -> data.getInventory().ifPresent(inventory -> inventory.setContents(drops))));
         plugin.getDatabase().setUserData(user, snapshot);
     }
 

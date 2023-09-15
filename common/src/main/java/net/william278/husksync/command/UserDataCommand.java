@@ -187,12 +187,9 @@ public class UserDataCommand extends Command implements TabProvider {
 
                                 // Restore users with a minimum of one health (prevent restoring players with <=0 health)
                                 final DataSnapshot.Packed data = optionalData.get().copy();
-                                data.edit(plugin, (unpacked -> {
-                                    unpacked.getHealth().ifPresent(
-                                            status -> status.setHealth(Math.max(1, status.getHealth()))
-                                    );
-                                    return unpacked;
-                                }));
+                                data.edit(plugin, (unpacked -> unpacked.getHealth().ifPresent(
+                                        status -> status.setHealth(Math.max(1, status.getHealth()))
+                                )));
 
                                 // Set the user's data and send a message
                                 plugin.getDatabase().setUserData(user, data);
