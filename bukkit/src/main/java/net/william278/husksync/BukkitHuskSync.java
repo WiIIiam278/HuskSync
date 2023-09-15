@@ -162,9 +162,12 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
 
     @Override
     public void onDisable() {
+        // Handle shutdown
         if (this.eventListener != null) {
             this.eventListener.handlePluginDisable();
         }
+        this.cancelTasks();
+
         log(Level.INFO, "Successfully disabled HuskSync v" + getPluginVersion());
     }
 

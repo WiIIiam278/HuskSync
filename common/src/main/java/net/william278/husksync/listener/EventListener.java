@@ -95,7 +95,7 @@ public abstract class EventListener {
                     user.applySnapshot(redisData);
                 });
             };
-            task.set(plugin.getRepeatingTask(runnable, 4));
+            task.set(plugin.getRepeatingTask(runnable, 10));
             task.get().run();
 
         }, Math.max(0, plugin.getSettings().getNetworkLatencyMilliseconds() / 50L));

@@ -524,36 +524,50 @@ public abstract class BukkitData implements Data {
         }
 
         @NotNull
-        public static BukkitData.Statistics from(@NotNull StatisticsSet stats) {
+        public static BukkitData.Statistics from(@NotNull StatisticsMap stats) {
             return new BukkitData.Statistics(
                     stats.genericStats().entrySet().stream().collect(Collectors.toMap(
-                            entry -> Statistic.valueOf(entry.getKey()),
+                            entry -> matchStatistic(entry.getKey()),
                             Map.Entry::getValue
                     )),
                     stats.blockStats().entrySet().stream().collect(Collectors.toMap(
-                            entry -> Statistic.valueOf(entry.getKey()),
+                            entry -> matchStatistic(entry.getKey()),
                             entry -> entry.getValue().entrySet().stream().collect(Collectors.toMap(
                                     blockEntry -> Material.matchMaterial(blockEntry.getKey()),
                                     Map.Entry::getValue
                             ))
                     )),
                     stats.itemStats().entrySet().stream().collect(Collectors.toMap(
-                            entry -> Statistic.valueOf(entry.getKey()),
+                            entry -> matchStatistic(entry.getKey()),
                             entry -> entry.getValue().entrySet().stream().collect(Collectors.toMap(
                                     itemEntry -> Material.matchMaterial(itemEntry.getKey()),
                                     Map.Entry::getValue
                             ))
                     )),
                     stats.entityStats().entrySet().stream().collect(Collectors.toMap(
-                            entry -> Statistic.valueOf(entry.getKey()),
+                            entry -> matchStatistic(entry.getKey()),
                             entry -> entry.getValue().entrySet().stream().collect(Collectors.toMap(
-                                    entityEntry -> Arrays.stream(EntityType.values()).filter(
-                                            e -> e.getKey().toString().equals(entityEntry.getKey())
-                                    ).findFirst().orElse(null),
+                                    entityEntry -> matchEntityType(entityEntry.getKey()),
                                     Map.Entry::getValue
                             ))
                     ))
             );
+        }
+
+        @NotNull
+        private static Statistic matchStatistic(@NotNull String key) {
+            return Arrays.stream(Statistic.values())
+                    .filter(stat -> stat.getKey().toString().equals(key))
+                    .findFirst()
+                    .orElseThrow(() -> new IllegalArgumentException(String.format("Invalid statistic key: %s", key)));
+        }
+
+        @NotNull
+        private static EntityType matchEntityType(@NotNull String key) {
+            return Arrays.stream(EntityType.values())
+                    .filter(entityType -> entityType.getKey().toString().equals(key))
+                    .findFirst()
+                    .orElseThrow(() -> new IllegalArgumentException(String.format("Invalid entity type key: %s", key)));
         }
 
         @Override
@@ -583,7 +597,7 @@ public abstract class BukkitData implements Data {
         public Map<String, Integer> getGenericStatistics() {
             return untypedStatistics.entrySet().stream().collect(
                     TreeMap::new,
-                    (m, e) -> m.put(e.getKey().toString(), e.getValue()), TreeMap::putAll
+                    (m, e) -> m.put(e.getKey().getKey().toString(), e.getValue()), TreeMap::putAll
             );
         }
 
@@ -592,7 +606,7 @@ public abstract class BukkitData implements Data {
         public Map<String, Map<String, Integer>> getBlockStatistics() {
             return blockStatistics.entrySet().stream().collect(
                     TreeMap::new,
-                    (m, e) -> m.put(e.getKey().toString(), e.getValue().entrySet().stream().collect(
+                    (m, e) -> m.put(e.getKey().getKey().toString(), e.getValue().entrySet().stream().collect(
                             TreeMap::new,
                             (m2, e2) -> m2.put(e2.getKey().getKey().toString(), e2.getValue()), TreeMap::putAll
                     )), TreeMap::putAll
@@ -604,7 +618,7 @@ public abstract class BukkitData implements Data {
         public Map<String, Map<String, Integer>> getItemStatistics() {
             return itemStatistics.entrySet().stream().collect(
                     TreeMap::new,
-                    (m, e) -> m.put(e.getKey().toString(), e.getValue().entrySet().stream().collect(
+                    (m, e) -> m.put(e.getKey().getKey().toString(), e.getValue().entrySet().stream().collect(
                             TreeMap::new,
                             (m2, e2) -> m2.put(e2.getKey().getKey().toString(), e2.getValue()), TreeMap::putAll
                     )), TreeMap::putAll
@@ -616,7 +630,7 @@ public abstract class BukkitData implements Data {
         public Map<String, Map<String, Integer>> getEntityStatistics() {
             return entityStatistics.entrySet().stream().collect(
                     TreeMap::new,
-                    (m, e) -> m.put(e.getKey().toString(), e.getValue().entrySet().stream().collect(
+                    (m, e) -> m.put(e.getKey().getKey().toString(), e.getValue().entrySet().stream().collect(
                             TreeMap::new,
                             (m2, e2) -> m2.put(e2.getKey().getKey().toString(), e2.getValue()), TreeMap::putAll
                     )), TreeMap::putAll
@@ -624,8 +638,8 @@ public abstract class BukkitData implements Data {
         }
 
         @NotNull
-        protected StatisticsSet getStatisticsSet() {
-            return new StatisticsSet(
+        protected StatisticsMap getStatisticsSet() {
+            return new StatisticsMap(
                     getGenericStatistics(),
                     getBlockStatistics(),
                     getItemStatistics(),
@@ -633,7 +647,7 @@ public abstract class BukkitData implements Data {
             );
         }
 
-        protected record StatisticsSet(
+        protected record StatisticsMap(
                 @SerializedName("generic") @NotNull Map<String, Integer> genericStats,
                 @SerializedName("blocks") @NotNull Map<String, Map<String, Integer>> blockStats,
                 @SerializedName("items") @NotNull Map<String, Map<String, Integer>> itemStats,

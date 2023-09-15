@@ -167,7 +167,7 @@ public class BukkitSerializer {
         public BukkitData.Statistics deserialize(@NotNull String serialized) throws DeserializationException {
             return BukkitData.Statistics.from(plugin.getGson().fromJson(
                     serialized,
-                    BukkitData.Statistics.StatisticsSet.class
+                    BukkitData.Statistics.StatisticsMap.class
             ));
         }
 

@@ -267,7 +267,6 @@ public class DataSnapshot {
         @NotNull
         private Map<String, String> serializeData(@NotNull HuskSync plugin) {
             return deserialized.entrySet().stream()
-                    .peek((data) -> plugin.debug(String.format("Serializing %s data...", data.getKey())))
                     .map((entry) -> Map.entry(entry.getKey().toString(),
                             Objects.requireNonNull(
                                     plugin.getSerializers().get(entry.getKey()),
