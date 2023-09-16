@@ -205,13 +205,14 @@ public abstract class Database {
      * @param time The time to check against
      * @return The UUID of the snapshot to replace, if it exists
      */
+    //todo test?
     private Optional<UUID> getSnapshotToOverwrite(@NotNull User user, @NotNull OffsetDateTime time) {
         final int backupFrequency = plugin.getSettings().getSnapshotBackupFrequency();
         if (backupFrequency <= 0) {
             return Optional.empty();
         }
         return getLatestUnpinnedDataSnapshot(user).flatMap(
-                latest -> latest.getTimestamp().plusHours(backupFrequency).isBefore(time)
+                latest -> time.minusHours(backupFrequency).isBefore(latest.getTimestamp())
                         ? Optional.of(latest.getId()) : Optional.empty()
         );
     }
