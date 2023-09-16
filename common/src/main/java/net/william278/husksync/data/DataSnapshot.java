@@ -157,8 +157,13 @@ public class DataSnapshot {
         this.pinned = pinned;
     }
 
+    @NotNull
     public SaveCause getSaveCause() {
         return saveCause;
+    }
+
+    public void setSaveCause(SaveCause saveCause) {
+        this.saveCause = saveCause;
     }
 
     @NotNull
@@ -199,6 +204,7 @@ public class DataSnapshot {
             final Unpacked data = unpack(plugin);
             editor.accept(data);
             this.pinned = data.isPinned();
+            this.saveCause = data.getSaveCause();
             this.data = data.serializeData(plugin);
         }
 

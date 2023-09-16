@@ -20,20 +20,27 @@
 package net.william278.husksync.player;
 
 import de.themoep.minedown.adventure.MineDown;
+import dev.triumphteam.gui.builder.gui.StorageBuilder;
+import dev.triumphteam.gui.guis.Gui;
+import dev.triumphteam.gui.guis.StorageGui;
 import net.kyori.adventure.audience.Audience;
 import net.roxeez.advancement.display.FrameType;
 import net.william278.andjam.Toast;
 import net.william278.husksync.BukkitHuskSync;
 import net.william278.husksync.HuskSync;
+import net.william278.husksync.data.BukkitData;
 import net.william278.husksync.data.BukkitPlayerDataHolder;
 import net.william278.husksync.data.Data;
 import net.william278.husksync.data.Identifier;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 
 /**
@@ -87,6 +94,23 @@ public class BukkitUser extends OnlineUser implements BukkitPlayerDataHolder {
         } catch (Throwable e) {
             plugin.log(Level.WARNING, "Failed to send toast to player " + player.getName(), e);
         }
+    }
+
+    @Override
+    public void showGui(@NotNull Data.Items items, @NotNull MineDown title, boolean editable, int size,
+                        @NotNull Consumer<Data.Items> onClose) {
+        final ItemStack[] contents = ((BukkitData.Items) items).getContents();
+        final StorageBuilder builder = Gui.storage().rows((int) Math.ceil(size / 9.0d));
+        if (!editable) {
+            builder.disableAllInteractions();
+        }
+        final StorageGui gui = builder.enableOtherActions()
+                .apply(a -> a.getInventory().setContents(contents))
+                .title(title.toComponent()).create();
+        gui.setCloseGuiAction((close) -> onClose.accept(BukkitData.Items.ItemArray.adapt(
+                Arrays.stream(close.getInventory().getContents()).limit(size).toArray(ItemStack[]::new)
+        )));
+        plugin.runSync(() -> gui.open(player));
     }
 
     @Override

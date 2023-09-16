@@ -54,7 +54,9 @@ public abstract class BukkitData implements Data {
         private final ItemStack[] contents;
 
         private Items(@NotNull ItemStack[] contents) {
-            this.contents = contents;
+            this.contents = Arrays.stream(contents)
+                    .map(i -> i == null || i.getType() == Material.AIR ? null : i)
+                    .toArray(ItemStack[]::new);
         }
 
         @NotNull
@@ -98,6 +100,14 @@ public abstract class BukkitData implements Data {
             return contents;
         }
 
+        @Override
+        public boolean equals(Object obj) {
+            if (obj instanceof BukkitData.Items items) {
+                return Arrays.equals(contents, items.getContents());
+            }
+            return false;
+        }
+
         public static class Inventory extends BukkitData.Items implements Items.Inventory {
 
             public static final int INVENTORY_SLOT_COUNT = 41;
@@ -116,6 +126,11 @@ public abstract class BukkitData implements Data {
             @NotNull
             public static BukkitData.Items.Inventory empty() {
                 return new BukkitData.Items.Inventory(new ItemStack[INVENTORY_SLOT_COUNT], 0);
+            }
+
+            @Override
+            public int getSlotCount() {
+                return INVENTORY_SLOT_COUNT;
             }
 
             @Override
@@ -174,22 +189,29 @@ public abstract class BukkitData implements Data {
 
         }
 
-        public static class DeathDrops extends BukkitData.Items implements Items {
+        public static class ItemArray extends BukkitData.Items implements Items {
 
-            private DeathDrops(@NotNull ItemStack[] contents) {
+            private ItemArray(@NotNull ItemStack[] contents) {
                 super(contents);
             }
 
             @NotNull
-            public static DeathDrops adapt(@NotNull List<ItemStack> drops) {
-                return new BukkitData.Items.DeathDrops(drops.toArray(ItemStack[]::new));
+            public static ItemArray adapt(@NotNull Collection<ItemStack> drops) {
+                return new ItemArray(drops.toArray(ItemStack[]::new));
+            }
+
+            @NotNull
+            public static ItemArray adapt(@NotNull ItemStack[] drops) {
+                return new ItemArray(drops);
             }
 
             @Override
             public void apply(@NotNull PlayerDataHolder user, @NotNull HuskSync plugin) throws IllegalStateException {
-                throw new NotImplementedException("Death drops cannot be applied to a player");
+                throw new NotImplementedException("A generic item array cannot be applied to a player");
             }
+
         }
+
     }
 
     public static class PotionEffects implements Data.PotionEffects, Adaptable {

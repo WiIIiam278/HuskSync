@@ -24,11 +24,13 @@ import de.themoep.minedown.adventure.MineDownParser;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.william278.husksync.HuskSync;
+import net.william278.husksync.data.Data;
 import net.william278.husksync.data.DataSnapshot;
 import net.william278.husksync.data.PlayerDataHolder;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
+import java.util.function.Consumer;
 
 /**
  * Represents a logged-in {@link User}
@@ -97,6 +99,18 @@ public abstract class OnlineUser extends User implements CommandUser, PlayerData
                                    @NotNull String iconMaterial, @NotNull String backgroundType);
 
     /**
+     * Show a GUI chest menu to the user
+     *
+     * @param items    the items to fill the menu with
+     * @param title    the title of the menu
+     * @param editable whether the menu is editable (items can be removed or added)
+     * @param size     the size of the menu
+     * @param onClose  the action to perform when the menu is closed
+     */
+    public abstract void showGui(@NotNull Data.Items.Items items, @NotNull MineDown title, boolean editable, int size,
+                                 @NotNull Consumer<Data.Items.Items> onClose);
+
+    /**
      * Returns if the player has the permission node
      *
      * @param node The permission node string
@@ -126,7 +140,6 @@ public abstract class OnlineUser extends User implements CommandUser, PlayerData
             }
         });
     }
-
 
     /**
      * Handle a player's synchronization completion

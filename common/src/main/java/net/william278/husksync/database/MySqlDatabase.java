@@ -341,13 +341,14 @@ public class MySqlDatabase extends Database {
         try (Connection connection = getConnection()) {
             try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
                     UPDATE `%user_data_table%`
-                    SET `pinned`=?,`data`=?
+                    SET `pinned`=?,`save_cause`=?,`data`=?
                     WHERE `player_uuid`=? AND `version_uuid`=?
                     LIMIT 1;"""))) {
                 statement.setBoolean(1, data.isPinned());
-                statement.setBlob(2, new ByteArrayInputStream(data.asBytes(plugin)));
-                statement.setString(3, user.getUuid().toString());
-                statement.setString(4, versionUuid.toString());
+                statement.setString(2, data.getSaveCause().name());
+                statement.setBlob(3, new ByteArrayInputStream(data.asBytes(plugin)));
+                statement.setString(4, user.getUuid().toString());
+                statement.setString(5, versionUuid.toString());
                 statement.executeUpdate();
             }
         } catch (SQLException e) {

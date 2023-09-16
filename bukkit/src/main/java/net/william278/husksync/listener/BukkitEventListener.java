@@ -100,7 +100,7 @@ public class BukkitEventListener extends EventListener implements BukkitJoinEven
         if (event.getDrops().size() > maxInventorySize) {
             event.getDrops().subList(maxInventorySize, event.getDrops().size()).clear();
         }
-        super.saveOnPlayerDeath(user, BukkitData.Items.DeathDrops.adapt(event.getDrops()));
+        super.saveOnPlayerDeath(user, BukkitData.Items.ItemArray.adapt(event.getDrops()));
     }
 
     @EventHandler(ignoreCancelled = true)

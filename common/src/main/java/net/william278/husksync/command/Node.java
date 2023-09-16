@@ -25,6 +25,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 import java.util.Optional;
 import java.util.StringJoiner;
+import java.util.UUID;
 
 public abstract class Node implements Executable {
 
@@ -73,11 +74,21 @@ public abstract class Node implements Executable {
         this.operatorCommand = operatorCommand;
     }
 
-    protected Optional<String> parseStringArg(@NotNull String[] args) {
-        if (args.length > 0) {
-            return Optional.of(args[0]);
+    protected Optional<String> parseStringArg(@NotNull String[] args, int index) {
+        if (args.length > index) {
+            return Optional.of(args[index]);
         }
         return Optional.empty();
+    }
+
+    protected Optional<UUID> parseUUIDArg(@NotNull String[] args, int index) {
+        return parseStringArg(args, index).flatMap(arg -> {
+            try {
+                return Optional.of(UUID.fromString(arg));
+            } catch (IllegalArgumentException e) {
+                return Optional.empty();
+            }
+        });
     }
 
 
