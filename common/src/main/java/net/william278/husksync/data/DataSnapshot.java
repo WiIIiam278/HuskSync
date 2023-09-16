@@ -93,7 +93,7 @@ public class DataSnapshot {
                                              @NotNull Map<Identifier, Data> data,
                                              @NotNull SaveCause saveCause) {
         return new Unpacked(
-                UUID.randomUUID(), false, OffsetDateTime.now(), saveCause, data,
+                UUID.randomUUID(), plugin.getSettings().doAutoPin(saveCause), OffsetDateTime.now(), saveCause, data,
                 plugin.getMinecraftVersion(), plugin.getPlatformType(), DataSnapshot.CURRENT_FORMAT_VERSION
         ).pack(plugin);
     }
@@ -101,10 +101,7 @@ public class DataSnapshot {
     @NotNull
     protected static DataSnapshot.Packed create(@NotNull HuskSync plugin, @NotNull PlayerDataHolder owner,
                                                 @NotNull SaveCause saveCause) {
-        return new DataSnapshot.Unpacked(
-                UUID.randomUUID(), false, OffsetDateTime.now(), saveCause, owner.getData(),
-                plugin.getMinecraftVersion(), plugin.getPlatformType(), CURRENT_FORMAT_VERSION
-        ).pack(plugin);
+        return create(plugin, owner.getData(), saveCause);
     }
 
     @NotNull

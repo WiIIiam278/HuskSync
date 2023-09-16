@@ -81,6 +81,7 @@ public class InventoryCommand extends ItemsCommand {
         // Create and pack the snapshot with the updated inventory
         final DataSnapshot.Packed snapshot = latestData.get().copy();
         snapshot.edit(plugin, (data) -> {
+            data.setPinned(plugin.getSettings().doAutoPin(DataSnapshot.SaveCause.INVENTORY_COMMAND));
             data.setSaveCause(DataSnapshot.SaveCause.INVENTORY_COMMAND);
             data.getInventory().ifPresent(inventory -> inventory.setContents(items));
         });

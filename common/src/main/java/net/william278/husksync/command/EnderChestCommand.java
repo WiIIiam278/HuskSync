@@ -81,6 +81,7 @@ public class EnderChestCommand extends ItemsCommand {
         // Create and pack the snapshot with the updated enderChest
         final DataSnapshot.Packed snapshot = latestData.get().copy();
         snapshot.edit(plugin, (data) -> {
+            data.setPinned(plugin.getSettings().doAutoPin(DataSnapshot.SaveCause.ENDERCHEST_COMMAND));
             data.setSaveCause(DataSnapshot.SaveCause.ENDERCHEST_COMMAND);
             data.getEnderChest().ifPresent(enderChest -> enderChest.setContents(items));
         });

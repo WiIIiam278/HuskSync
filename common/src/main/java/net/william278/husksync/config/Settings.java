@@ -22,6 +22,7 @@ package net.william278.husksync.config;
 import net.william278.annotaml.YamlComment;
 import net.william278.annotaml.YamlFile;
 import net.william278.annotaml.YamlKey;
+import net.william278.husksync.data.DataSnapshot;
 import net.william278.husksync.data.Identifier;
 import net.william278.husksync.database.Database;
 import net.william278.husksync.listener.EventListener;
@@ -38,22 +39,29 @@ import java.util.*;
         ┃    Developed by William278   ┃
         ┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
         ┣╸ Information: https://william278.net/project/husksync
+        ┣╸ Config Help: https://william278.net/docs/husksync/config-file/
         ┗╸ Documentation: https://william278.net/docs/husksync""")
 public class Settings {
 
     // Top-level settings
+    @YamlComment("Locale of the default language file to use. Docs: https://william278.net/docs/huskhomes/translations")
     @YamlKey("language")
     private String language = "en-gb";
 
+    @YamlComment("Whether to automatically check for plugin updates on startup")
     @YamlKey("check_for_updates")
     private boolean checkForUpdates = true;
 
+    @YamlComment("Specify a common ID for grouping servers running HuskSync. "
+            + "Don't modify this unless you know what you're doing!")
     @YamlKey("cluster_id")
     private String clusterId = "";
 
+    @YamlComment("Enable development debug logging")
     @YamlKey("debug_logging")
     private boolean debugLogging = false;
 
+    @YamlComment("Whether to provide modern, rich TAB suggestions for commands (if available)")
     @YamlKey("brigadier_tab_completion")
     private boolean brigadierTabCompletion = false;
 
@@ -63,7 +71,7 @@ public class Settings {
     @YamlKey("database.type")
     private Database.Type databaseType = Database.Type.MYSQL;
 
-    @YamlComment("Database connection settings")
+    @YamlComment("Specify credentials here for your MYSQL or MARIADB database")
     @YamlKey("database.credentials.host")
     private String mySqlHost = "localhost";
 
@@ -80,9 +88,13 @@ public class Settings {
     private String mySqlPassword = "pa55w0rd";
 
     @YamlKey("database.credentials.parameters")
-    private String mySqlConnectionParameters = "?autoReconnect=true&useSSL=false";
+    private String mySqlConnectionParameters = "?autoReconnect=true"
+            + "&useSSL=false"
+            + "&useUnicode=true"
+            + "&characterEncoding=UTF-8";
 
-    @YamlComment("MySQL connection pool properties")
+    @YamlComment("MYSQL / MARIADB database Hikari connection pool properties. "
+            + "Don't modify this unless you know what you're doing!")
     @YamlKey("database.connection_pool.maximum_pool_size")
     private int mySqlConnectionPoolSize = 10;
 
@@ -98,12 +110,13 @@ public class Settings {
     @YamlKey("database.connection_pool.connection_timeout")
     private long mySqlConnectionPoolTimeout = 5000;
 
+    @YamlComment("Names of tables to use on your database. Don't modify this unless you know what you're doing!")
     @YamlKey("database.table_names")
     private Map<String, String> tableNames = TableName.getDefaults();
 
 
     // Redis settings
-    @YamlComment("Redis connection settings")
+    @YamlComment("Specify the credentials of your Redis database here. Set \"password\" to '' if you don't have one")
     @YamlKey("redis.credentials.host")
     private String redisHost = "localhost";
 
@@ -118,43 +131,68 @@ public class Settings {
 
 
     // Synchronization settings
-    @YamlComment("Synchronization settings")
+    @YamlComment("The number of data snapshot backups that should be kept at once per user")
     @YamlKey("synchronization.max_user_data_snapshots")
     private int maxUserDataSnapshots = 16;
 
+    @YamlComment("The frequency, in hours, which snapshots will be backed up (set to 0 to constantly rotate snapshots)")
+    @YamlKey("synchronization.snapshot_backup_frequency")
+    private int snapshotBackupFrequency = 8;
+
+    @YamlComment("Whether to create a snapshot for users on a world when the server saves that world")
     @YamlKey("synchronization.save_on_world_save")
     private boolean saveOnWorldSave = true;
 
+    @YamlComment("Whether to create a snapshot for users when they die (containing their death drops)")
     @YamlKey("synchronization.save_on_death")
     private boolean saveOnDeath = false;
 
+    @YamlComment("Whether to save empty death drops for users when they die")
     @YamlKey("synchronization.save_empty_drops_on_death")
     private boolean saveEmptyDropsOnDeath = true;
 
+    @YamlComment("Whether to use the snappy data compression algorithm. Keep on unless you know what you're doing")
     @YamlKey("synchronization.compress_data")
     private boolean compressData = true;
+
+    @YamlComment("List of save cause IDs for which a snapshot will be automatically pinned (so it won't be rotated).")
+    @YamlKey("synchronization.auto_pinned_save_causes")
+    private List<DataSnapshot.SaveCause> autoPinnedSaveCauses = List.of(
+            DataSnapshot.SaveCause.INVENTORY_COMMAND,
+            DataSnapshot.SaveCause.ENDERCHEST_COMMAND,
+            DataSnapshot.SaveCause.BACKUP_RESTORE,
+            DataSnapshot.SaveCause.CONVERTED_FROM_V2,
+            DataSnapshot.SaveCause.LEGACY_MIGRATION,
+            DataSnapshot.SaveCause.MPDB_MIGRATION
+    );
 
     @YamlComment("Where to display sync notifications (ACTION_BAR, CHAT, TOAST or NONE)")
     @YamlKey("synchronization.notification_display_slot")
     private Locales.NotificationSlot notificationSlot = Locales.NotificationSlot.ACTION_BAR;
 
-    @YamlComment("(Experimental) Persist maps that have been locked in a cartography table. " +
-            "This allows them to be viewed on any server")
+    @YamlComment("(Experimental) Persist Cartography Table locked maps to let them be viewed on any server")
     @YamlKey("synchronization.persist_locked_maps")
     private boolean persistLockedMaps = false;
 
+    @YamlComment("Whether dead players who log out and log in to a different server should have their items saved. "
+            + "You may need to modify this if you're using the keepInventory gamerule.")
     @YamlKey("synchronization.synchronise_dead_players_changing_server")
     private boolean synchroniseDeadPlayersChangingServer = true;
 
+    @YamlComment("How long, in milliseconds, this server should wait for a response from the redis server before "
+            + "pulling data from the database instead (i.e. if the user did not change servers).")
     @YamlKey("synchronization.network_latency_milliseconds")
     private int networkLatencyMilliseconds = 500;
 
+    @YamlComment("Which data types to synchronise (Docs: https://william278.net/docs/husksync/sync-features)")
     @YamlKey("synchronization.features")
     private Map<String, Boolean> synchronizationFeatures = Identifier.getConfigMap();
 
+    @YamlComment("Commands which should be blocked before a player has finished syncing (Use * to block all commands)")
     @YamlKey("synchronization.blacklisted_commands_while_locked")
     private List<String> blacklistedCommandsWhileLocked = new ArrayList<>(List.of("*"));
 
+    @YamlComment("Event priorities for listeners (HIGHEST, NORMAL, LOWEST). Change if you encounter plugin conflicts")
     @YamlKey("synchronization.event_priorities")
     private Map<String, String> synchronizationEventPriorities = EventListener.ListenerType.getDefaults();
 
@@ -267,12 +305,14 @@ public class Settings {
         return maxUserDataSnapshots;
     }
 
-    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+    public int getSnapshotBackupFrequency() {
+        return snapshotBackupFrequency;
+    }
+
     public boolean doSaveOnWorldSave() {
         return saveOnWorldSave;
     }
 
-    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public boolean doSaveOnDeath() {
         return saveOnDeath;
     }
@@ -283,6 +323,10 @@ public class Settings {
 
     public boolean doCompressData() {
         return compressData;
+    }
+
+    public boolean doAutoPin(@NotNull DataSnapshot.SaveCause cause) {
+        return autoPinnedSaveCauses.contains(cause);
     }
 
     @NotNull

@@ -171,47 +171,48 @@ public class UserDataCommand extends Command implements TabProvider {
             }
             case "restore" -> {
                 // Get user data by specified uuid and username
-                if (args.length < 3) {
+                final Optional<String> optionalName = parseStringArg(args, 1);
+                final Optional<UUID> optionalUuid = parseUUIDArg(args, 2);
+                if (optionalUuid.isEmpty() || optionalName.isEmpty()) {
                     plugin.getLocales().getLocale("error_invalid_syntax",
                                     "/userdata restore <username> <version_uuid>")
                             .ifPresent(executor::sendMessage);
                     return;
                 }
-                final String username = args[1];
-                try {
-                    final UUID versionUuid = UUID.fromString(args[2]);
-                    plugin.getDatabase().getUserByName(username.toLowerCase(Locale.ENGLISH)).ifPresentOrElse(
-                            user -> {
-                                final Optional<DataSnapshot.Packed> optionalData = plugin.getDatabase().getDataSnapshot(user, versionUuid);
-                                if (optionalData.isEmpty()) {
-                                    plugin.getLocales().getLocale("error_invalid_version_uuid")
-                                            .ifPresent(executor::sendMessage);
-                                    return;
-                                }
 
-                                // Restore users with a minimum of one health (prevent restoring players with <=0 health)
-                                final DataSnapshot.Packed data = optionalData.get().copy();
-                                data.edit(plugin, (unpacked -> unpacked.getHealth().ifPresent(
-                                        status -> status.setHealth(Math.max(1, status.getHealth()))
-                                )));
-
-                                // Set the user's data and send a message
-                                plugin.getDatabase().setUserData(user, data);
-                                plugin.getRedisManager().sendUserDataUpdate(user, data);
-                                plugin.getLocales().getLocale("data_restored",
-                                                user.getUsername(),
-                                                user.getUuid().toString(),
-                                                versionUuid.toString().split("-")[0],
-                                                versionUuid.toString())
-                                        .ifPresent(executor::sendMessage);
-                            },
-                            () -> plugin.getLocales().getLocale("error_invalid_player")
-                                    .ifPresent(executor::sendMessage));
-                } catch (IllegalArgumentException e) {
-                    plugin.getLocales().getLocale("error_invalid_syntax",
-                                    "/userdata restore <username> <version_uuid>")
+                final Optional<User> optionalUser = plugin.getDatabase().getUserByName(optionalName.get());
+                if (optionalUser.isEmpty()) {
+                    plugin.getLocales().getLocale("error_invalid_player")
                             .ifPresent(executor::sendMessage);
+                    return;
                 }
+
+                final User user = optionalUser.get();
+                final UUID version = optionalUuid.get();
+                final Optional<DataSnapshot.Packed> optionalData = plugin.getDatabase().getDataSnapshot(user, version);
+                if (optionalData.isEmpty()) {
+                    plugin.getLocales().getLocale("error_invalid_version_uuid")
+                            .ifPresent(executor::sendMessage);
+                    return;
+                }
+
+                // Restore users with a minimum of one health (prevent restoring players with <=0 health)
+                final DataSnapshot.Packed data = optionalData.get().copy();
+                data.edit(plugin, (unpacked -> {
+                    unpacked.getHealth().ifPresent(status -> status.setHealth(Math.max(1, status.getHealth())));
+                    unpacked.setSaveCause(DataSnapshot.SaveCause.BACKUP_RESTORE);
+                    unpacked.setPinned(plugin.getSettings().doAutoPin(DataSnapshot.SaveCause.BACKUP_RESTORE));
+                }));
+
+                // Set the user's data and send a message
+                plugin.getDatabase().setUserData(user, data);
+                plugin.getRedisManager().sendUserDataUpdate(user, data);
+                plugin.getLocales().getLocale("data_restored",
+                                user.getUsername(),
+                                user.getUuid().toString(),
+                                version.toString().split("-")[0],
+                                version.toString())
+                        .ifPresent(executor::sendMessage);
             }
             case "pin" -> {
                 if (args.length < 3) {
