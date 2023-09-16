@@ -202,12 +202,37 @@ public class MySqlDatabase extends Database {
     }
 
     @Override
-    public Optional<DataSnapshot.Packed> getCurrentUserData(@NotNull User user) {
+    public Optional<DataSnapshot.Packed> getLatestDataSnapshot(@NotNull User user) {
         try (Connection connection = getConnection()) {
             try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
                     SELECT `version_uuid`, `timestamp`, `save_cause`, `pinned`, `data`
                     FROM `%user_data_table%`
                     WHERE `player_uuid`=?
+                    ORDER BY `timestamp` DESC
+                    LIMIT 1;"""))) {
+                statement.setString(1, user.getUuid().toString());
+                final ResultSet resultSet = statement.executeQuery();
+                if (resultSet.next()) {
+                    final Blob blob = resultSet.getBlob("data");
+                    final byte[] dataByteArray = blob.getBytes(1, (int) blob.length());
+                    blob.free();
+                    return Optional.of(DataSnapshot.deserialize(plugin, dataByteArray));
+                }
+            }
+        } catch (SQLException | DataAdapter.AdaptionException e) {
+            plugin.log(Level.SEVERE, "Failed to fetch a user's current user data from the database", e);
+        }
+        return Optional.empty();
+    }
+
+    @Override
+    public Optional<DataSnapshot.Packed> getLatestUnpinnedDataSnapshot(@NotNull User user) {
+        try (Connection connection = getConnection()) {
+            try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
+                    SELECT `version_uuid`, `timestamp`, `save_cause`, `pinned`, `data`
+                    FROM `%user_data_table%`
+                    WHERE `player_uuid`=?
+                    AND `pinned` IS FALSE
                     ORDER BY `timestamp` DESC
                     LIMIT 1;"""))) {
                 statement.setString(1, user.getUuid().toString());
@@ -273,7 +298,6 @@ public class MySqlDatabase extends Database {
         } catch (SQLException | DataAdapter.AdaptionException e) {
             plugin.log(Level.SEVERE, "Failed to fetch specific user data by UUID from the database", e);
         }
-        plugin.debug(String.format("No data found for user uuid: %s for ID %s", user.getUuid().toString(), versionUuid.toString()));
         return Optional.empty();
     }
 
@@ -317,7 +341,7 @@ public class MySqlDatabase extends Database {
     }
 
     @Override
-    protected void saveDataSnapshot(@NotNull User user, @NotNull DataSnapshot.Packed data) {
+    protected void createDataSnapshot(@NotNull User user, @NotNull DataSnapshot.Packed data) {
         try (Connection connection = getConnection()) {
             try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
                     INSERT INTO `%user_data_table%`
@@ -333,7 +357,6 @@ public class MySqlDatabase extends Database {
         } catch (SQLException | DataAdapter.AdaptionException e) {
             plugin.log(Level.SEVERE, "Failed to set user data in the database", e);
         }
-        this.rotateUserData(user);
     }
 
     @Override

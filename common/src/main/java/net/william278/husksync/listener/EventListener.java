@@ -107,7 +107,7 @@ public abstract class EventListener {
      * @param user The user to set the data for
      */
     private void setUserFromDatabase(@NotNull OnlineUser user) {
-        plugin.getDatabase().getCurrentUserData(user).ifPresentOrElse(
+        plugin.getDatabase().getLatestDataSnapshot(user).ifPresentOrElse(
                 user::applySnapshot, () -> user.completeSync(true, plugin)
         );
     }

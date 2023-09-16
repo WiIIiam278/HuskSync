@@ -26,11 +26,11 @@ import net.william278.husksync.data.DataSnapshot.SaveCause;
 import net.william278.husksync.data.PlayerDataHolder;
 import net.william278.husksync.migrator.Migrator;
 import net.william278.husksync.player.User;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -64,9 +64,9 @@ public abstract class Database {
     }
 
     /**
-     * Format all table name placeholder strings in a SQL statement
+     * Format all table name placeholder strings in an SQL statement
      *
-     * @param sql the SQL statement with un-formatted table name placeholders
+     * @param sql the SQL statement with unformatted table name placeholders
      * @return the formatted statement, with table placeholders replaced with the correct names
      */
     @NotNull
@@ -105,13 +105,22 @@ public abstract class Database {
      */
     public abstract Optional<User> getUserByName(@NotNull String username);
 
+
     /**
-     * Get the current uniquely versioned user data for a given user, if it exists.
+     * Get the latest data snapshot for a user.
      *
-     * @param user the user to get data for
+     * @param user The user to get data for
      * @return an optional containing the {@link DataSnapshot}, if it exists, or an empty optional if it does not
      */
-    public abstract Optional<DataSnapshot.Packed> getCurrentUserData(@NotNull User user);
+    public abstract Optional<DataSnapshot.Packed> getLatestDataSnapshot(@NotNull User user);
+
+    /**
+     * Get the latest data snapshot for a user that is not pinned.
+     *
+     * @param user The user to get data for
+     * @return an optional containing the {@link DataSnapshot}, if it exists, or an empty optional if it does not
+     */
+    public abstract Optional<DataSnapshot.Packed> getLatestUnpinnedDataSnapshot(@NotNull User user);
 
     /**
      * Get all {@link DataSnapshot} entries for a user from the database.
@@ -170,13 +179,50 @@ public abstract class Database {
     }
 
     /**
+     * <b>Internal</b> - Save user data to the database. This will:
+     * <ol>
+     *     <li>Determine the snapshot to replace, if needed</li>
+     *     <li>Create the snapshot</li>
+     *     <li>Delete the snapshot to replace, if needed</li>
+     *     <li>Rotate snapshot backups</li>
+     * </ol>
+     *
+     * @param user     The user to add data for
+     * @param snapshot The {@link DataSnapshot} to set.
+     */
+    private void saveDataSnapshot(@NotNull User user, @NotNull DataSnapshot.Packed snapshot) {
+        final Optional<UUID> toDelete = getSnapshotToOverwrite(user, snapshot.getTimestamp());
+        this.createDataSnapshot(user, snapshot);
+        toDelete.ifPresent(uuid -> this.deleteUserData(user, uuid));
+        this.rotateUserData(user);
+    }
+
+    /**
+     * Returns the ID of the latest snapshot that should be replaced, provided the backup frequency is greater than 0,
+     * and the new snapshot is older than the latest snapshot by the backup frequency.
+     *
+     * @param user The user who owns the snapshot
+     * @param time The time to check against
+     * @return The UUID of the snapshot to replace, if it exists
+     */
+    private Optional<UUID> getSnapshotToOverwrite(@NotNull User user, @NotNull OffsetDateTime time) {
+        final int backupFrequency = plugin.getSettings().getSnapshotBackupFrequency();
+        if (backupFrequency <= 0) {
+            return Optional.empty();
+        }
+        return getLatestUnpinnedDataSnapshot(user).flatMap(
+                latest -> latest.getTimestamp().plusHours(backupFrequency).isBefore(time)
+                        ? Optional.of(latest.getId()) : Optional.empty()
+        );
+    }
+
+    /**
      * <b>Internal</b> - Create user data in the database
      *
      * @param user The user to add data for
      * @param data The {@link DataSnapshot} to set.
      */
-    @ApiStatus.Internal
-    protected abstract void saveDataSnapshot(@NotNull User user, @NotNull DataSnapshot.Packed data);
+    protected abstract void createDataSnapshot(@NotNull User user, @NotNull DataSnapshot.Packed data);
 
     /**
      * Update a saved {@link DataSnapshot} by given version UUID

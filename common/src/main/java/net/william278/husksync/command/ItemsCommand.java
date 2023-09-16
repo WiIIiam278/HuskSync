@@ -69,7 +69,7 @@ public abstract class ItemsCommand extends Command implements TabProvider {
 
     // View (and edit) the latest user data
     private void showLatestItems(@NotNull OnlineUser viewer, @NotNull User user) {
-        plugin.getDatabase().getCurrentUserData(user)
+        plugin.getDatabase().getLatestDataSnapshot(user)
                 .ifPresentOrElse(
                         snapshot -> this.showGui(
                                 viewer, snapshot.unpack(plugin), user,

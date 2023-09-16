@@ -90,7 +90,7 @@ public class UserDataCommand extends Command implements TabProvider {
                 } else {
                     plugin.getDatabase()
                             .getUserByName(username.toLowerCase(Locale.ENGLISH))
-                            .ifPresentOrElse(user -> plugin.getDatabase().getCurrentUserData(user).ifPresentOrElse(
+                            .ifPresentOrElse(user -> plugin.getDatabase().getLatestDataSnapshot(user).ifPresentOrElse(
                                             data -> DataSnapshotOverview.of(
                                                     data.unpack(plugin), data.getFileSize(plugin), user, plugin
                                             ).show(executor),

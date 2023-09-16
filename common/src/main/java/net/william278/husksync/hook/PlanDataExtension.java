@@ -85,7 +85,7 @@ public class PlanDataExtension implements DataExtension {
     // Get the user's latest data snapshot
     private Optional<DataSnapshot.Unpacked> getLatestSnapshot(@NotNull UUID uuid) {
         return plugin.getDatabase().getUser(uuid)
-                .flatMap(user -> plugin.getDatabase().getCurrentUserData(user))
+                .flatMap(user -> plugin.getDatabase().getLatestDataSnapshot(user))
                 .map(snapshot -> snapshot.unpack(plugin));
     }
 
