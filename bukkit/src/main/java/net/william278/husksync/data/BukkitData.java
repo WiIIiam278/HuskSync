@@ -41,6 +41,7 @@ import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.potion.PotionEffect;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -586,6 +587,8 @@ public abstract class BukkitData implements Data {
             return new BukkitData.Statistics(genericStats, blockStats, itemStats, entityStats);
         }
 
+        @NotNull
+        @ApiStatus.Internal
         public static StatisticsMap createStatisticsMap(@NotNull Map<String, Integer> genericStats,
                                                         @NotNull Map<String, Map<String, Integer>> blockStats,
                                                         @NotNull Map<String, Map<String, Integer>> itemStats,
@@ -686,7 +689,7 @@ public abstract class BukkitData implements Data {
             );
         }
 
-        protected record StatisticsMap(
+        public record StatisticsMap(
                 @SerializedName("generic") @NotNull Map<String, Integer> genericStats,
                 @SerializedName("blocks") @NotNull Map<String, Map<String, Integer>> blockStats,
                 @SerializedName("items") @NotNull Map<String, Map<String, Integer>> itemStats,
