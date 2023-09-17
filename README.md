@@ -26,12 +26,12 @@
 </p>
 <br/>
 
-**HuskSync** is a modern, cross-server player data synchronisation system that enables the comprehensive synchronisation of your user's data across multiple proxied servers. It does this by making use of Redis and MySQL to optimally cache data while players change servers.
+**HuskSync** is a modern, cross-server player data synchronization system that enables the comprehensive synchronization of your user's data across multiple proxied servers. It does this by making use of Redis and MySQL to optimally cache data while players change servers.
 
 ## Features
-**⭐ Seamless synchronisation** &mdash; Utilises optimised Redis caching when players change server to sync player data super quickly for a seamless experience.
+**⭐ Seamless synchronization** &mdash; Utilises optimised Redis caching when players change server to sync player data super quickly for a seamless experience.
 
-**⭐ Complete player synchronisation** &mdash; Sync inventories, Ender Chests, health, hunger, effects, advancements, statistics, locked maps & [more](https://william278.net/docs/husksync/sync-features)—no data left behind!
+**⭐ Complete player synchronization** &mdash; Sync inventories, Ender Chests, health, hunger, effects, advancements, statistics, locked maps & [more](https://william278.net/docs/husksync/sync-features)—no data left behind!
 
 **⭐ Backup, restore & rotate** &mdash; Something gone wrong? Restore players back to a previous data state. Rotate and manage data snapshots in-game!
 

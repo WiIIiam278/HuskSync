@@ -62,7 +62,7 @@ public interface BukkitPlayerDataHolder extends PlayerDataHolder {
     @NotNull
     @Override
     default Optional<Data.Items.Inventory> getInventory() {
-        if ((getBukkitPlayer().isDead() && !getPlugin().getSettings().doSynchroniseDeadPlayersChangingServer())) {
+        if ((isDead() && !getPlugin().getSettings().doSynchronizeDeadPlayersChangingServer())) {
             return Optional.of(BukkitData.Items.Inventory.empty());
         }
         final PlayerInventory inventory = getBukkitPlayer().getInventory();
@@ -133,6 +133,8 @@ public interface BukkitPlayerDataHolder extends PlayerDataHolder {
     default Optional<Data.PersistentData> getPersistentData() {
         return Optional.of(BukkitData.PersistentData.adapt(getBukkitPlayer().getPersistentDataContainer()));
     }
+
+    boolean isDead();
 
     @NotNull
     Player getBukkitPlayer();

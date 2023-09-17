@@ -92,7 +92,7 @@ public abstract class EventListener {
 
                 plugin.getRedisManager().getUserData(user).ifPresent(redisData -> {
                     task.get().cancel();
-                    user.applySnapshot(redisData);
+                    user.applySnapshot(redisData, DataSnapshot.UpdateCause.SYNCHRONIZED);
                 });
             };
             task.set(plugin.getRepeatingTask(runnable, 10));
@@ -108,7 +108,8 @@ public abstract class EventListener {
      */
     private void setUserFromDatabase(@NotNull OnlineUser user) {
         plugin.getDatabase().getLatestSnapshot(user).ifPresentOrElse(
-                user::applySnapshot, () -> user.completeSync(true, plugin)
+                snapshot -> user.applySnapshot(snapshot, DataSnapshot.UpdateCause.SYNCHRONIZED),
+                () -> user.completeSync(true, DataSnapshot.UpdateCause.NEW_USER, plugin)
         );
     }
 

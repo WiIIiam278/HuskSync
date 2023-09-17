@@ -62,29 +62,30 @@ public abstract class ItemsCommand extends Command implements TabProvider {
         // Show the user data
         final User user = optionalUser.get();
         parseUUIDArg(args, 1).ifPresentOrElse(
-                version -> this.showGui(player, user, version),
+                version -> this.showSnapshotItems(player, user, version),
                 () -> this.showLatestItems(player, user)
         );
     }
 
     // View (and edit) the latest user data
     private void showLatestItems(@NotNull OnlineUser viewer, @NotNull User user) {
-        plugin.getDatabase().getLatestSnapshot(user)
+        plugin.getRedisManager().getUserData(user.getUuid(), user).thenAccept(data -> data
+                .or(() -> plugin.getDatabase().getLatestSnapshot(user))
                 .ifPresentOrElse(
-                        snapshot -> this.showGui(
+                        snapshot -> this.showSnapshotItems(
                                 viewer, snapshot.unpack(plugin), user,
                                 viewer.hasPermission(getPermission("edit"))
                         ),
                         () -> plugin.getLocales().getLocale("error_no_data_to_display")
                                 .ifPresent(viewer::sendMessage)
-                );
+                ));
     }
 
     // View a specific version of the user data
-    private void showGui(@NotNull OnlineUser viewer, @NotNull User user, @NotNull UUID version) {
+    private void showSnapshotItems(@NotNull OnlineUser viewer, @NotNull User user, @NotNull UUID version) {
         plugin.getDatabase().getSnapshot(user, version)
                 .ifPresentOrElse(
-                        snapshot -> this.showGui(
+                        snapshot -> this.showSnapshotItems(
                                 viewer, snapshot.unpack(plugin), user, false
                         ),
                         () -> plugin.getLocales().getLocale("error_invalid_version_uuid")
@@ -93,8 +94,8 @@ public abstract class ItemsCommand extends Command implements TabProvider {
     }
 
     // Show a GUI menu with the correct item data from the snapshot
-    protected abstract void showGui(@NotNull OnlineUser viewer, @NotNull DataSnapshot.Unpacked snapshot,
-                                    @NotNull User user, boolean allowEdit);
+    protected abstract void showSnapshotItems(@NotNull OnlineUser viewer, @NotNull DataSnapshot.Unpacked snapshot,
+                                              @NotNull User user, boolean allowEdit);
 
     @Nullable
     @Override

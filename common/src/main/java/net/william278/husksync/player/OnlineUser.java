@@ -131,11 +131,11 @@ public abstract class OnlineUser extends User implements CommandUser, PlayerData
      *
      * @param snapshot The {@link DataSnapshot} to set the player's status from
      */
-    public void applySnapshot(@NotNull DataSnapshot.Packed snapshot) {
+    public void applySnapshot(@NotNull DataSnapshot.Packed snapshot, @NotNull DataSnapshot.UpdateCause cause) {
         getPlugin().fireEvent(getPlugin().getPreSyncEvent(this, snapshot), (event) -> {
             if (!isOffline()) {
                 PlayerDataHolder.super.applySnapshot(
-                        event.getData(), (owner) -> completeSync(true, getPlugin())
+                        event.getData(), (owner) -> completeSync(true, cause, getPlugin())
                 );
             }
         });
@@ -147,22 +147,27 @@ public abstract class OnlineUser extends User implements CommandUser, PlayerData
      * @param succeeded Whether the synchronization succeeded
      * @param plugin    The plugin instance
      */
-    public void completeSync(boolean succeeded, @NotNull HuskSync plugin) {
+    public void completeSync(boolean succeeded, @NotNull DataSnapshot.UpdateCause cause, @NotNull HuskSync plugin) {
         if (succeeded) {
             switch (plugin.getSettings().getNotificationDisplaySlot()) {
-                case CHAT -> plugin.getLocales().getLocale("synchronisation_complete")
-                        .ifPresent(this::sendMessage);
-                case ACTION_BAR -> plugin.getLocales().getLocale("synchronisation_complete")
-                        .ifPresent(this::sendActionBar);
-                case TOAST -> plugin.getLocales().getLocale("synchronisation_complete")
-                        .ifPresent(locale -> this.sendToast(locale, new MineDown(""),
-                                "minecraft:bell", "TASK"));
+                case CHAT -> cause.getCompletedLocale(plugin).ifPresent(this::sendMessage);
+                case ACTION_BAR -> cause.getCompletedLocale(plugin).ifPresent(this::sendActionBar);
+                case TOAST -> cause.getCompletedLocale(plugin)
+                        .ifPresent(locale -> this.sendToast(
+                                locale, new MineDown(""),
+                                "minecraft:bell",
+                                "TASK"
+                        ));
             }
-            plugin.fireEvent(plugin.getSyncCompleteEvent(this), (event) -> plugin.getLockedPlayers().remove(getUuid()));
+            plugin.fireEvent(
+                    plugin.getSyncCompleteEvent(this),
+                    (event) -> plugin.getLockedPlayers().remove(getUuid())
+            );
         } else {
-            plugin.getLocales().getLocale("synchronisation_failed")
-                    .ifPresent(this::sendMessage);
+            cause.getFailedLocale(plugin).ifPresent(this::sendMessage);
         }
+
+        // Ensure the user is in the database
         plugin.getDatabase().ensureUser(this);
     }
 

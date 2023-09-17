@@ -27,21 +27,23 @@ import java.util.Optional;
 
 public enum RedisMessageType {
 
-    UPDATE_USER_DATA;
+    UPDATE_USER_DATA,
+    REQUEST_USER_DATA,
+    RETURN_USER_DATA;
 
     @NotNull
-    public String getMessageChannel() {
+    public String getMessageChannel(@NotNull String clusterId) {
         return String.format(
                 "%s:%s:%s",
                 RedisManager.KEY_NAMESPACE.toLowerCase(Locale.ENGLISH),
-                RedisManager.clusterId.toLowerCase(Locale.ENGLISH),
+                clusterId.toLowerCase(Locale.ENGLISH),
                 name().toLowerCase(Locale.ENGLISH)
         );
     }
 
-    public static Optional<RedisMessageType> getTypeFromChannel(@NotNull String messageChannel) {
+    public static Optional<RedisMessageType> getTypeFromChannel(@NotNull String channel, @NotNull String clusterId) {
         return Arrays.stream(values())
-                .filter(messageType -> messageType.getMessageChannel().equalsIgnoreCase(messageChannel))
+                .filter(messageType -> messageType.getMessageChannel(clusterId).equalsIgnoreCase(channel))
                 .findFirst();
     }
 

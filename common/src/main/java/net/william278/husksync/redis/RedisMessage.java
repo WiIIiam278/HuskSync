@@ -42,7 +42,8 @@ public class RedisMessage implements Adaptable {
 
     public void dispatch(@NotNull HuskSync plugin, @NotNull RedisMessageType type) {
         plugin.runAsync(() -> plugin.getRedisManager().sendMessage(
-                type.getMessageChannel(), plugin.getGson().toJson(this)
+                type.getMessageChannel(plugin.getSettings().getClusterId()),
+                plugin.getGson().toJson(this)
         ));
     }
 

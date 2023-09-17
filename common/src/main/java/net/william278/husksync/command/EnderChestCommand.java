@@ -38,8 +38,8 @@ public class EnderChestCommand extends ItemsCommand {
     }
 
     @Override
-    protected void showGui(@NotNull OnlineUser viewer, @NotNull DataSnapshot.Unpacked snapshot,
-                           @NotNull User user, boolean allowEdit) {
+    protected void showSnapshotItems(@NotNull OnlineUser viewer, @NotNull DataSnapshot.Unpacked snapshot,
+                                     @NotNull User user, boolean allowEdit) {
         final Optional<Data.Items.EnderChest> optionalEnderChest = snapshot.getEnderChest();
         if (optionalEnderChest.isEmpty()) {
             plugin.getLocales().getLocale("error_no_data_to_display")

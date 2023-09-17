@@ -19,7 +19,7 @@ This will walk you through installing HuskSync on your network of Spigot servers
 - Under `credentials` in the `redis` section, enter the credentails of your Redis Database. If your Redis server doesn't have a password, leave the password blank as it is.
 - Unless you want to have multiple clusters of servers within your network, each with separate user data, do not change the value of `cluster_id`.
 ### 4. Start every server again
-- Provided your MySQL and Redis credentials were correct, synchronisation should begin as soon as you start your servers again.
+- Provided your MySQL and Redis credentials were correct, synchronization should begin as soon as you start your servers again.
 - If you need to import data from HuskSync v1.x or MySQLPlayerDataBridge, please see the guides below:
   - [[Legacy Migration]]
   - [[MPDB Migration]]

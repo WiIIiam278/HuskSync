@@ -35,8 +35,13 @@ public enum RedisKeyType {
     }
 
     @NotNull
-    public String getKeyPrefix() {
-        return RedisManager.KEY_NAMESPACE.toLowerCase(Locale.ENGLISH) + ":" + RedisManager.clusterId.toLowerCase(Locale.ENGLISH) + ":" + name().toLowerCase(Locale.ENGLISH);
+    public String getKeyPrefix(@NotNull String clusterId) {
+        return String.format(
+                "%s:%s:%s",
+                RedisManager.KEY_NAMESPACE.toLowerCase(Locale.ENGLISH),
+                clusterId.toLowerCase(Locale.ENGLISH),
+                name().toLowerCase(Locale.ENGLISH)
+        );
     }
 
     public int getTimeToLive() {

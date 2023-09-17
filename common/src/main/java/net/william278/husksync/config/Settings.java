@@ -176,15 +176,15 @@ public class Settings {
 
     @YamlComment("Whether dead players who log out and log in to a different server should have their items saved. "
             + "You may need to modify this if you're using the keepInventory gamerule.")
-    @YamlKey("synchronization.synchronise_dead_players_changing_server")
-    private boolean synchroniseDeadPlayersChangingServer = true;
+    @YamlKey("synchronization.synchronize_dead_players_changing_server")
+    private boolean synchronizeDeadPlayersChangingServer = true;
 
     @YamlComment("How long, in milliseconds, this server should wait for a response from the redis server before "
             + "pulling data from the database instead (i.e. if the user did not change servers).")
     @YamlKey("synchronization.network_latency_milliseconds")
     private int networkLatencyMilliseconds = 500;
 
-    @YamlComment("Which data types to synchronise (Docs: https://william278.net/docs/husksync/sync-features)")
+    @YamlComment("Which data types to synchronize (Docs: https://william278.net/docs/husksync/sync-features)")
     @YamlKey("synchronization.features")
     private Map<String, Boolean> synchronizationFeatures = Identifier.getConfigMap();
 
@@ -297,7 +297,7 @@ public class Settings {
         return redisPassword;
     }
 
-    public boolean isRedisUseSsl() {
+    public boolean redisUseSsl() {
         return redisUseSsl;
     }
 
@@ -338,8 +338,8 @@ public class Settings {
         return persistLockedMaps;
     }
 
-    public boolean doSynchroniseDeadPlayersChangingServer() {
-        return synchroniseDeadPlayersChangingServer;
+    public boolean doSynchronizeDeadPlayersChangingServer() {
+        return synchronizeDeadPlayersChangingServer;
     }
 
     public int getNetworkLatencyMilliseconds() {

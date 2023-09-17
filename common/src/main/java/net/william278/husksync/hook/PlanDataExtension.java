@@ -91,7 +91,7 @@ public class PlanDataExtension implements DataExtension {
 
     @BooleanProvider(
             text = "Has Synced",
-            description = "Whether this user has saved, synchronised data.",
+            description = "Whether this user has saved, synchronized data.",
             iconName = "exchange-alt",
             iconFamily = Family.SOLID,
             conditionName = "hasSynced",

@@ -50,7 +50,7 @@ synchronization:
   save_empty_drops_on_death: true
   compress_data: true
   notification_display_slot: ACTION_BAR
-  synchronise_dead_players_changing_server: true
+  synchronize_dead_players_changing_server: true
   network_latency_milliseconds: 500
   features:
     health: true

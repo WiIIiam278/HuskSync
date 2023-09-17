@@ -317,7 +317,7 @@ public interface HuskSync extends Task.Supplier, EventDispatcher {
     static final class FailedToLoadException extends IllegalStateException {
 
         private static final String FORMAT = """
-                HuskSync has failed to load! The plugin will not be enabled and no data will be synchronised.
+                HuskSync has failed to load! The plugin will not be enabled and no data will be synchronized.
                 Please make sure the plugin has been setup correctly (https://william278.net/docs/husksync/setup):
                                 
                 1) Make sure you've entered your MySQL or MariaDB database details correctly in config.yml

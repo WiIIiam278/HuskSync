@@ -21,18 +21,17 @@ package net.william278.husksync.data;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
+import de.themoep.minedown.adventure.MineDown;
 import net.william278.desertwell.util.Version;
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.adapter.Adaptable;
 import net.william278.husksync.adapter.DataAdapter;
 import net.william278.husksync.config.Locales;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.time.OffsetDateTime;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -375,7 +374,54 @@ public class DataSnapshot {
         @NotNull
         public String getDisplayName() {
             return Locales.truncate(name().toLowerCase(Locale.ENGLISH)
-                    .replaceAll("_", " "), 20);
+                    .replaceAll("_", " "), 18);
+        }
+
+    }
+
+    /**
+     * Represents the cause of a player having their data updated.
+     */
+    public enum UpdateCause {
+        /**
+         * Indicates the data was updated by a synchronization process
+         *
+         * @since 3.0
+         */
+        SYNCHRONIZED("synchronization_complete", "synchronization_failed"),
+        /**
+         * Indicates the data was updated by a user joining the server
+         *
+         * @since 3.0
+         */
+        NEW_USER("user_registration_complete", null),
+        /**
+         * Indicates the data was updated by a data update process (management command, API, etc.)
+         *
+         * @since 3.0
+         */
+        UPDATED("data_update_complete", "data_update_failed");
+
+        private final String completedLocale;
+        private final String failureLocale;
+
+        UpdateCause(@Nullable String completedLocale, @Nullable String failureLocale) {
+            this.completedLocale = completedLocale;
+            this.failureLocale = failureLocale;
+        }
+
+        public Optional<MineDown> getCompletedLocale(@NotNull HuskSync plugin) {
+            if (completedLocale != null) {
+                return plugin.getLocales().getLocale(completedLocale);
+            }
+            return Optional.empty();
+        }
+
+        public Optional<MineDown> getFailedLocale(@NotNull HuskSync plugin) {
+            if (failureLocale != null) {
+                return plugin.getLocales().getLocale(failureLocale);
+            }
+            return Optional.empty();
         }
 
     }
