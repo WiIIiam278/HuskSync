@@ -314,7 +314,7 @@ public interface HuskSync extends Task.Supplier, EventDispatcher {
     /**
      * An exception indicating the plugin has been accessed before it has been registered.
      */
-    static final class FailedToLoadException extends IllegalStateException {
+    final class FailedToLoadException extends IllegalStateException {
 
         private static final String FORMAT = """
                 HuskSync has failed to load! The plugin will not be enabled and no data will be synchronized.
