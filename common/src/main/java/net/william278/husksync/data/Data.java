@@ -39,7 +39,7 @@ public interface Data {
      * @param user   the user to apply this element to
      * @param plugin the plugin instance
      */
-    void apply(@NotNull PlayerDataHolder user, @NotNull HuskSync plugin) throws IllegalStateException;
+    void apply(@NotNull UserDataHolder user, @NotNull HuskSync plugin) throws IllegalStateException;
 
     /**
      * A data container holding data for:

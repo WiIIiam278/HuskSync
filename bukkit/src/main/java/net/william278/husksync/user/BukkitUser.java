@@ -29,7 +29,7 @@ import net.william278.andjam.Toast;
 import net.william278.husksync.BukkitHuskSync;
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.data.BukkitData;
-import net.william278.husksync.data.BukkitPlayerDataHolder;
+import net.william278.husksync.data.BukkitUserDataHolder;
 import net.william278.husksync.data.Data;
 import net.william278.husksync.data.Identifier;
 import org.bukkit.Material;
@@ -46,7 +46,7 @@ import java.util.logging.Level;
 /**
  * Bukkit platform implementation of an {@link OnlineUser}
  */
-public class BukkitUser extends OnlineUser implements BukkitPlayerDataHolder {
+public class BukkitUser extends OnlineUser implements BukkitUserDataHolder {
 
     private final HuskSync plugin;
     private final Map<Identifier, Data> customDataStore;

@@ -31,7 +31,7 @@ import java.util.logging.Level;
 /**
  * A holder of data in the form of {@link Data}s, which can be synced
  */
-public interface PlayerDataHolder extends DataHolder {
+public interface UserDataHolder extends DataHolder {
 
     /**
      * Get the data that is enabled for syncing in the config
@@ -78,7 +78,7 @@ public interface PlayerDataHolder extends DataHolder {
      * @param runAfter the function to run asynchronously after the snapshot has been applied
      * @since 3.0
      */
-    default void applySnapshot(@NotNull DataSnapshot.Packed snapshot, @NotNull ThrowingConsumer<PlayerDataHolder> runAfter) {
+    default void applySnapshot(@NotNull DataSnapshot.Packed snapshot, @NotNull ThrowingConsumer<UserDataHolder> runAfter) {
         final HuskSync plugin = getPlugin();
         final DataSnapshot.Unpacked unpacked = snapshot.unpack(plugin);
         plugin.runSync(() -> {

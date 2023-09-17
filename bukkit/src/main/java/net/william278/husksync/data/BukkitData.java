@@ -134,7 +134,7 @@ public abstract class BukkitData implements Data {
             }
 
             @Override
-            public void apply(@NotNull PlayerDataHolder user, @NotNull HuskSync plugin) throws IllegalStateException {
+            public void apply(@NotNull UserDataHolder user, @NotNull HuskSync plugin) throws IllegalStateException {
                 final Player player = ((BukkitUser) user).getPlayer();
                 this.clearInventoryCraftingSlots(player);
                 player.setItemOnCursor(null);
@@ -181,7 +181,7 @@ public abstract class BukkitData implements Data {
             }
 
             @Override
-            public void apply(@NotNull PlayerDataHolder user, @NotNull HuskSync plugin) throws IllegalStateException {
+            public void apply(@NotNull UserDataHolder user, @NotNull HuskSync plugin) throws IllegalStateException {
                 ((BukkitUser) user).getPlayer().getEnderChest().setContents(
                         ((BukkitHuskSync) plugin).setMapViews(getContents())
                 );
@@ -206,7 +206,7 @@ public abstract class BukkitData implements Data {
             }
 
             @Override
-            public void apply(@NotNull PlayerDataHolder user, @NotNull HuskSync plugin) throws IllegalStateException {
+            public void apply(@NotNull UserDataHolder user, @NotNull HuskSync plugin) throws IllegalStateException {
                 throw new NotImplementedException("A generic item array cannot be applied to a player");
             }
 
@@ -228,7 +228,7 @@ public abstract class BukkitData implements Data {
         }
 
         @Override
-        public void apply(@NotNull PlayerDataHolder user, @NotNull HuskSync plugin) throws IllegalStateException {
+        public void apply(@NotNull UserDataHolder user, @NotNull HuskSync plugin) throws IllegalStateException {
             final Player player = ((BukkitUser) user).getPlayer();
             player.getActivePotionEffects().forEach(potionEffect -> player.removePotionEffect(potionEffect.getType()));
             player.addPotionEffects(effects);
@@ -290,7 +290,7 @@ public abstract class BukkitData implements Data {
         }
 
         @Override
-        public void apply(@NotNull PlayerDataHolder user, @NotNull HuskSync plugin) throws IllegalStateException {
+        public void apply(@NotNull UserDataHolder user, @NotNull HuskSync plugin) throws IllegalStateException {
             plugin.runAsync(() -> forEachAdvancement(advancement -> {
                 final Player player = ((BukkitUser) user).getPlayer();
                 final AdvancementProgress progress = player.getAdvancementProgress(advancement);
@@ -408,7 +408,7 @@ public abstract class BukkitData implements Data {
         }
 
         @Override
-        public void apply(@NotNull PlayerDataHolder user, @NotNull HuskSync plugin) throws IllegalStateException {
+        public void apply(@NotNull UserDataHolder user, @NotNull HuskSync plugin) throws IllegalStateException {
             try {
                 final org.bukkit.Location location = new org.bukkit.Location(
                         Bukkit.getWorld(world.name()), x, y, z, yaw, pitch
@@ -610,14 +610,14 @@ public abstract class BukkitData implements Data {
         }
 
         @Override
-        public void apply(@NotNull PlayerDataHolder user, @NotNull HuskSync plugin) throws IllegalStateException {
+        public void apply(@NotNull UserDataHolder user, @NotNull HuskSync plugin) throws IllegalStateException {
             untypedStatistics.forEach((stat, value) -> applyStat(user, stat, null, value));
             blockStatistics.forEach((stat, m) -> m.forEach((block, value) -> applyStat(user, stat, block, value)));
             itemStatistics.forEach((stat, m) -> m.forEach((item, value) -> applyStat(user, stat, item, value)));
             entityStatistics.forEach((stat, m) -> m.forEach((entity, value) -> applyStat(user, stat, entity, value)));
         }
 
-        private void applyStat(@NotNull PlayerDataHolder user, @NotNull Statistic stat, @Nullable Object type, int value) {
+        private void applyStat(@NotNull UserDataHolder user, @NotNull Statistic stat, @Nullable Object type, int value) {
             try {
                 final Player player = ((BukkitUser) user).getPlayer();
                 if (type == null) {
@@ -714,7 +714,7 @@ public abstract class BukkitData implements Data {
         }
 
         @Override
-        public void apply(@NotNull PlayerDataHolder user, @NotNull HuskSync plugin) throws IllegalStateException {
+        public void apply(@NotNull UserDataHolder user, @NotNull HuskSync plugin) throws IllegalStateException {
             final NBTPersistentDataContainer container = new NBTPersistentDataContainer(
                     ((BukkitUser) user).getPlayer().getPersistentDataContainer()
             );
@@ -763,7 +763,7 @@ public abstract class BukkitData implements Data {
         }
 
         @Override
-        public void apply(@NotNull PlayerDataHolder user, @NotNull HuskSync plugin) throws IllegalStateException {
+        public void apply(@NotNull UserDataHolder user, @NotNull HuskSync plugin) throws IllegalStateException {
             final Player player = ((BukkitUser) user).getPlayer();
 
             // Set base max health
@@ -861,7 +861,7 @@ public abstract class BukkitData implements Data {
         }
 
         @Override
-        public void apply(@NotNull PlayerDataHolder user, @NotNull HuskSync plugin) throws IllegalStateException {
+        public void apply(@NotNull UserDataHolder user, @NotNull HuskSync plugin) throws IllegalStateException {
             final Player player = ((BukkitUser) user).getPlayer();
             player.setFoodLevel(foodLevel);
             player.setSaturation(saturation);
@@ -931,7 +931,7 @@ public abstract class BukkitData implements Data {
         }
 
         @Override
-        public void apply(@NotNull PlayerDataHolder user, @NotNull HuskSync plugin) throws IllegalStateException {
+        public void apply(@NotNull UserDataHolder user, @NotNull HuskSync plugin) throws IllegalStateException {
             final Player player = ((BukkitUser) user).getPlayer();
             player.setTotalExperience(totalExperience);
             player.setLevel(expLevel);
@@ -996,7 +996,7 @@ public abstract class BukkitData implements Data {
         }
 
         @Override
-        public void apply(@NotNull PlayerDataHolder user, @NotNull HuskSync plugin) throws IllegalStateException {
+        public void apply(@NotNull UserDataHolder user, @NotNull HuskSync plugin) throws IllegalStateException {
             final Player player = ((BukkitUser) user).getPlayer();
             player.setGameMode(org.bukkit.GameMode.valueOf(gameMode));
             player.setAllowFlight(allowFlight);

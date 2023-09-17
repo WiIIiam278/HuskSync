@@ -28,7 +28,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Map;
 import java.util.Optional;
 
-public interface BukkitPlayerDataHolder extends PlayerDataHolder {
+public interface BukkitUserDataHolder extends UserDataHolder {
 
     @Override
     default Optional<? extends Data> getData(@NotNull Identifier identifier) {
@@ -56,7 +56,7 @@ public interface BukkitPlayerDataHolder extends PlayerDataHolder {
         if (!identifier.getKeyNamespace().equals("husksync")) {
             getCustomDataStore().put(identifier, data);
         }
-        PlayerDataHolder.super.setData(identifier, data);
+        UserDataHolder.super.setData(identifier, data);
     }
 
     @NotNull

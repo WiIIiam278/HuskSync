@@ -26,7 +26,7 @@ import net.kyori.adventure.text.Component;
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.data.Data;
 import net.william278.husksync.data.DataSnapshot;
-import net.william278.husksync.data.PlayerDataHolder;
+import net.william278.husksync.data.UserDataHolder;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
@@ -35,7 +35,7 @@ import java.util.function.Consumer;
 /**
  * Represents a logged-in {@link User}
  */
-public abstract class OnlineUser extends User implements CommandUser, PlayerDataHolder {
+public abstract class OnlineUser extends User implements CommandUser, UserDataHolder {
 
     public OnlineUser(@NotNull UUID uuid, @NotNull String username) {
         super(uuid, username);
@@ -120,13 +120,6 @@ public abstract class OnlineUser extends User implements CommandUser, PlayerData
 
 
     /**
-     * Returns true if the player is dead
-     *
-     * @return true if the player is dead
-     */
-    public abstract boolean isDead();
-
-    /**
      * Set a player's status from a {@link DataSnapshot}
      *
      * @param snapshot The {@link DataSnapshot} to set the player's status from
@@ -134,7 +127,7 @@ public abstract class OnlineUser extends User implements CommandUser, PlayerData
     public void applySnapshot(@NotNull DataSnapshot.Packed snapshot, @NotNull DataSnapshot.UpdateCause cause) {
         getPlugin().fireEvent(getPlugin().getPreSyncEvent(this, snapshot), (event) -> {
             if (!isOffline()) {
-                PlayerDataHolder.super.applySnapshot(
+                UserDataHolder.super.applySnapshot(
                         event.getData(), (owner) -> completeSync(true, cause, getPlugin())
                 );
             }

@@ -98,7 +98,7 @@ public class DataSnapshot {
     }
 
     @NotNull
-    protected static DataSnapshot.Packed create(@NotNull HuskSync plugin, @NotNull PlayerDataHolder owner,
+    protected static DataSnapshot.Packed create(@NotNull HuskSync plugin, @NotNull UserDataHolder owner,
                                                 @NotNull SaveCause saveCause) {
         return create(plugin, owner.getData(), saveCause);
     }
