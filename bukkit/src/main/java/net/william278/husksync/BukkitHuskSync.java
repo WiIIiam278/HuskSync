@@ -152,7 +152,7 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
 
         // Register plugin hooks
         initialize("hooks", (plugin) -> {
-            if (isDependencyLoaded("Plan")) {
+            if (isDependencyLoaded("Plan") && getSettings().usePlanHook()) {
                 new PlanHook(this).hookIntoPlan();
             }
         });

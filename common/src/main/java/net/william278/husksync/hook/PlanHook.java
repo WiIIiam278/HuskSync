@@ -50,6 +50,7 @@ public class PlanHook {
     private void registerDataExtension() {
         try {
             ExtensionService.getInstance().register(new PlanDataExtension(plugin));
+            plugin.log(Level.INFO, "Registered HuskSync Plan data extension");
         } catch (IllegalStateException | IllegalArgumentException e) {
             plugin.log(Level.WARNING, "Failed to register Plan data extension: " + e.getMessage(), e);
         }

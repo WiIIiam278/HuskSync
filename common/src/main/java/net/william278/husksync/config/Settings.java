@@ -65,6 +65,10 @@ public class Settings {
     @YamlKey("brigadier_tab_completion")
     private boolean brigadierTabCompletion = false;
 
+    @YamlComment("Whether to enable the Player Analytics hook. Docs: https://william278.net/docs/husksync/plan-hook")
+    @YamlKey("enable_plan_hook")
+    private boolean enablePlanHook = true;
+
 
     // Database settings
     @YamlComment("Type of database to use (MYSQL, MARIADB)")
@@ -222,6 +226,10 @@ public class Settings {
 
     public boolean doBrigadierTabCompletion() {
         return brigadierTabCompletion;
+    }
+
+    public boolean usePlanHook() {
+        return enablePlanHook;
     }
 
     @NotNull
