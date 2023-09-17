@@ -29,7 +29,6 @@ import net.william278.husksync.util.DataSnapshotOverview;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.IOException;
 import java.util.*;
 import java.util.logging.Level;
 
@@ -46,7 +45,7 @@ public class UserDataCommand extends Command implements TabProvider {
 
     public UserDataCommand(@NotNull HuskSync plugin) {
         super("userdata", List.of("playerdata"), String.format(
-                "<%s> <username> [version_uuid]", String.join("/", SUB_COMMANDS.keySet())
+                "<%s> [username] [version_uuid]", String.join("/", SUB_COMMANDS.keySet())
         ), plugin);
         setOperatorCommand(true);
         addAdditionalPermissions(SUB_COMMANDS);
@@ -54,142 +53,88 @@ public class UserDataCommand extends Command implements TabProvider {
 
     @Override
     public void execute(@NotNull CommandUser executor, @NotNull String[] args) {
-        if (args.length < 1) {
-            plugin.getLocales().getLocale("error_invalid_syntax", getUsage())
+        final String subCommand = parseStringArg(args, 0).orElse("view").toLowerCase(Locale.ENGLISH);
+        final Optional<User> optionalUser = parseStringArg(args, 1)
+                .flatMap(name -> plugin.getDatabase().getUserByName(name))
+                .or(() -> parseStringArg(args, 0).flatMap(name -> plugin.getDatabase().getUserByName(name)))
+                .or(() -> executor instanceof User userExecutor ? Optional.of(userExecutor) : Optional.empty());
+        final Optional<UUID> optionalUuid = parseUUIDArg(args, 2).or(() -> parseUUIDArg(args, 1));
+        if (optionalUser.isEmpty()) {
+            plugin.getLocales().getLocale("error_invalid_player")
                     .ifPresent(executor::sendMessage);
             return;
         }
 
-        switch (args[0].toLowerCase(Locale.ENGLISH)) {
-            case "view" -> {
-                if (args.length < 2) {
-                    plugin.getLocales().getLocale("error_invalid_syntax",
-                                    "/userdata view <username> [version_uuid]")
-                            .ifPresent(executor::sendMessage);
-                    return;
-                }
-                final String username = args[1];
-                if (args.length >= 3) {
-                    try {
-                        final UUID versionUuid = UUID.fromString(args[2]);
-                        plugin.getDatabase()
-                                .getUserByName(username.toLowerCase(Locale.ENGLISH))
-                                .ifPresentOrElse(user -> plugin.getDatabase().getSnapshot(user, versionUuid).ifPresentOrElse(
-                                                data -> DataSnapshotOverview.of(
-                                                        data.unpack(plugin), data.getFileSize(plugin), user, plugin
-                                                ).show(executor),
-                                                () -> plugin.getLocales().getLocale("error_invalid_version_uuid")
-                                                        .ifPresent(executor::sendMessage)),
-                                        () -> plugin.getLocales().getLocale("error_invalid_player")
-                                                .ifPresent(executor::sendMessage));
-                    } catch (IllegalArgumentException e) {
-                        plugin.getLocales().getLocale("error_invalid_syntax",
-                                        "/userdata view <username> [version_uuid]")
-                                .ifPresent(executor::sendMessage);
-                    }
-                } else {
-                    plugin.getDatabase()
-                            .getUserByName(username.toLowerCase(Locale.ENGLISH))
-                            .ifPresentOrElse(user -> plugin.getDatabase().getLatestSnapshot(user).ifPresentOrElse(
-                                            data -> DataSnapshotOverview.of(
-                                                    data.unpack(plugin), data.getFileSize(plugin), user, plugin
-                                            ).show(executor),
-                                            () -> plugin.getLocales().getLocale("error_no_data_to_display")
-                                                    .ifPresent(executor::sendMessage)),
-                                    () -> plugin.getLocales().getLocale("error_invalid_player")
-                                            .ifPresent(executor::sendMessage));
-                }
-            }
+        final User user = optionalUser.get();
+        switch (subCommand) {
+            case "view" -> optionalUuid.ifPresentOrElse(
+                    // Show the specified snapshot
+                    version -> plugin.getDatabase().getSnapshot(user, version).ifPresentOrElse(
+                            data -> DataSnapshotOverview.of(
+                                    data.unpack(plugin), data.getFileSize(plugin), user, plugin
+                            ).show(executor),
+                            () -> plugin.getLocales().getLocale("error_invalid_version_uuid")
+                                    .ifPresent(executor::sendMessage)),
+
+                    // Show the latest snapshot
+                    () -> plugin.getDatabase().getLatestSnapshot(user).ifPresentOrElse(
+                            data -> DataSnapshotOverview.of(
+                                    data.unpack(plugin), data.getFileSize(plugin), user, plugin
+                            ).show(executor),
+                            () -> plugin.getLocales().getLocale("error_no_data_to_display")
+                                    .ifPresent(executor::sendMessage))
+            );
+
             case "list" -> {
-                if (args.length < 2) {
-                    plugin.getLocales().getLocale("error_invalid_syntax",
-                                    "/userdata list <username> [page]")
+                // Check if there is data to display
+                final List<DataSnapshot.Packed> dataList = plugin.getDatabase().getAllSnapshots(user);
+                if (dataList.isEmpty()) {
+                    plugin.getLocales().getLocale("error_no_data_to_display")
                             .ifPresent(executor::sendMessage);
                     return;
                 }
-                final String username = args[1];
-                plugin.getDatabase().getUserByName(username.toLowerCase(Locale.ENGLISH)).ifPresentOrElse(
-                        (user) -> {
-                            // Check if there is data to display
-                            final List<DataSnapshot.Packed> dataList = plugin.getDatabase().getAllSnapshots(user);
-                            if (dataList.isEmpty()) {
-                                plugin.getLocales().getLocale("error_no_data_to_display")
-                                        .ifPresent(executor::sendMessage);
-                                return;
-                            }
 
-                            // Determine page to display
-                            int page = 1;
-                            if (args.length >= 3) {
-                                try {
-                                    page = Integer.parseInt(args[2]);
-                                } catch (NumberFormatException e) {
-                                    plugin.getLocales().getLocale("error_invalid_syntax",
-                                                    "/userdata list <username> [page]")
-                                            .ifPresent(executor::sendMessage);
-                                    return;
-                                }
-                            }
-
-                            // Show the list to the player
-                            DataSnapshotList.create(dataList, user, plugin).displayPage(executor, page);
-                        },
-                        () -> plugin.getLocales().getLocale("error_invalid_player")
-                                .ifPresent(executor::sendMessage));
+                // Show the list to the player
+                DataSnapshotList.create(dataList, user, plugin).displayPage(
+                        executor,
+                        parseIntArg(args, 2).or(() -> parseIntArg(args, 1)).orElse(1)
+                );
             }
+
             case "delete" -> {
+                if (optionalUuid.isEmpty()) {
+                    plugin.getLocales().getLocale("error_invalid_syntax",
+                                    "/userdata delete <username> <version_uuid>")
+                            .ifPresent(executor::sendMessage);
+                    return;
+                }
+
                 // Delete user data by specified UUID
-                if (args.length < 3) {
-                    plugin.getLocales().getLocale("error_invalid_syntax",
-                                    "/userdata delete <username> <version_uuid>")
-                            .ifPresent(executor::sendMessage);
-                    return;
-                }
-                final String username = args[1];
-                try {
-                    final UUID versionUuid = UUID.fromString(args[2]);
-                    plugin.getDatabase().getUserByName(username.toLowerCase(Locale.ENGLISH)).ifPresentOrElse(user -> {
-                                if (plugin.getDatabase().deleteSnapshot(user, versionUuid)) {
-                                    plugin.getLocales().getLocale("data_deleted",
-                                                    versionUuid.toString().split("-")[0],
-                                                    versionUuid.toString(),
-                                                    user.getUsername(),
-                                                    user.getUuid().toString())
-                                            .ifPresent(executor::sendMessage);
-                                } else {
-                                    plugin.getLocales().getLocale("error_invalid_version_uuid")
-                                            .ifPresent(executor::sendMessage);
-                                }
-                            },
-                            () -> plugin.getLocales().getLocale("error_invalid_player")
-                                    .ifPresent(executor::sendMessage));
-                } catch (IllegalArgumentException e) {
-                    plugin.getLocales().getLocale("error_invalid_syntax",
-                                    "/userdata delete <username> <version_uuid>")
-                            .ifPresent(executor::sendMessage);
-                }
-            }
-            case "restore" -> {
-                // Get user data by specified uuid and username
-                final Optional<String> optionalName = parseStringArg(args, 1);
-                final Optional<UUID> optionalUuid = parseUUIDArg(args, 2);
-                if (optionalUuid.isEmpty() || optionalName.isEmpty()) {
-                    plugin.getLocales().getLocale("error_invalid_syntax",
-                                    "/userdata restore <username> <version_uuid>")
-                            .ifPresent(executor::sendMessage);
-                    return;
-                }
-
-                final Optional<User> optionalUser = plugin.getDatabase().getUserByName(optionalName.get());
-                if (optionalUser.isEmpty()) {
-                    plugin.getLocales().getLocale("error_invalid_player")
-                            .ifPresent(executor::sendMessage);
-                    return;
-                }
-
-                final User user = optionalUser.get();
                 final UUID version = optionalUuid.get();
-                final Optional<DataSnapshot.Packed> optionalData = plugin.getDatabase().getSnapshot(user, version);
+                if (!plugin.getDatabase().deleteSnapshot(user, version)) {
+                    plugin.getLocales().getLocale("error_invalid_version_uuid")
+                            .ifPresent(executor::sendMessage);
+                    return;
+                }
+
+                plugin.getLocales().getLocale("data_deleted",
+                                version.toString().split("-")[0],
+                                version.toString(),
+                                user.getUsername(),
+                                user.getUuid().toString())
+                        .ifPresent(executor::sendMessage);
+            }
+
+            case "restore" -> {
+                if (optionalUuid.isEmpty()) {
+                    plugin.getLocales().getLocale("error_invalid_syntax",
+                                    "/userdata delete <username> <version_uuid>")
+                            .ifPresent(executor::sendMessage);
+                    return;
+                }
+
+                // Restore user data by specified UUID
+                final Optional<DataSnapshot.Packed> optionalData = plugin.getDatabase().getSnapshot(user, optionalUuid.get());
                 if (optionalData.isEmpty()) {
                     plugin.getLocales().getLocale("error_invalid_version_uuid")
                             .ifPresent(executor::sendMessage);
@@ -207,89 +152,68 @@ public class UserDataCommand extends Command implements TabProvider {
                 // Set the user's data and send a message
                 plugin.getDatabase().setSnapshot(user, data);
                 plugin.getRedisManager().sendUserDataUpdate(user, data);
-                plugin.getLocales().getLocale("data_restored",
-                                user.getUsername(),
-                                user.getUuid().toString(),
-                                version.toString().split("-")[0],
-                                version.toString())
+                plugin.getLocales().getLocale("data_restored", user.getUsername(), user.getUuid().toString(),
+                        data.getShortId(), data.getId().toString()).ifPresent(executor::sendMessage);
+            }
+
+            case "pin" -> {
+                if (optionalUuid.isEmpty()) {
+                    plugin.getLocales().getLocale("error_invalid_syntax",
+                                    "/userdata delete <username> <version_uuid>")
+                            .ifPresent(executor::sendMessage);
+                    return;
+                }
+
+                // Check that the data exists
+                final Optional<DataSnapshot.Packed> optionalData = plugin.getDatabase().getSnapshot(user, optionalUuid.get());
+                if (optionalData.isEmpty()) {
+                    plugin.getLocales().getLocale("error_invalid_version_uuid")
+                            .ifPresent(executor::sendMessage);
+                    return;
+                }
+
+                // Pin or unpin the data
+                final DataSnapshot.Packed data = optionalData.get();
+                if (data.isPinned()) {
+                    plugin.getDatabase().unpinSnapshot(user, data.getId());
+                } else {
+                    plugin.getDatabase().pinSnapshot(user, data.getId());
+                }
+                plugin.getLocales().getLocale(data.isPinned() ? "data_unpinned" : "data_pinned", data.getShortId(),
+                                data.getId().toString(), user.getUsername(), user.getUuid().toString())
                         .ifPresent(executor::sendMessage);
             }
-            case "pin" -> {
-                if (args.length < 3) {
-                    plugin.getLocales().getLocale("error_invalid_syntax",
-                                    "/userdata pin <username> <version_uuid>")
-                            .ifPresent(executor::sendMessage);
-                    return;
-                }
 
-                final String username = args[1];
-                try {
-                    final UUID versionUuid = UUID.fromString(args[2]);
-                    plugin.getDatabase().getUserByName(username.toLowerCase(Locale.ENGLISH)).ifPresentOrElse(
-                            user -> plugin.getDatabase().getSnapshot(user, versionUuid).ifPresentOrElse(userData -> {
-                                if (userData.isPinned()) {
-                                    plugin.getDatabase().unpinSnapshot(user, versionUuid);
-                                    plugin.getLocales().getLocale("data_unpinned",
-                                                    versionUuid.toString().split("-")[0],
-                                                    versionUuid.toString(),
-                                                    user.getUsername(),
-                                                    user.getUuid().toString())
-                                            .ifPresent(executor::sendMessage);
-                                } else {
-                                    plugin.getDatabase().pinSnapshot(user, versionUuid);
-                                    plugin.getLocales().getLocale("data_pinned",
-                                                    versionUuid.toString().split("-")[0],
-                                                    versionUuid.toString(),
-                                                    user.getUsername(),
-                                                    user.getUuid().toString())
-                                            .ifPresent(executor::sendMessage);
-                                }
-                            }, () -> plugin.getLocales().getLocale("error_invalid_version_uuid")
-                                    .ifPresent(executor::sendMessage)),
-                            () -> plugin.getLocales().getLocale("error_invalid_player")
-                                    .ifPresent(executor::sendMessage));
-                } catch (IllegalArgumentException e) {
-                    plugin.getLocales().getLocale("error_invalid_syntax",
-                                    "/userdata pin <username> <version_uuid>")
-                            .ifPresent(executor::sendMessage);
-                }
-            }
             case "dump" -> {
-                if (args.length < 3) {
+                if (optionalUuid.isEmpty()) {
                     plugin.getLocales().getLocale("error_invalid_syntax",
-                                    "/userdata dump <username> <version_uuid>")
+                                    "/userdata delete <username> <version_uuid>")
                             .ifPresent(executor::sendMessage);
                     return;
                 }
 
-                final boolean toWeb = args.length > 3 && args[3].equalsIgnoreCase("web");
-                final String username = args[1];
-                try {
-                    final UUID versionUuid = UUID.fromString(args[2]);
-                    plugin.getDatabase()
-                            .getUserByName(username.toLowerCase(Locale.ENGLISH))
-                            .ifPresentOrElse(
-                                    user -> plugin.getDatabase().getSnapshot(user, versionUuid).ifPresentOrElse(userData -> {
-                                        try {
-                                            final DataDumper dumper = DataDumper.create(userData, user, plugin);
-                                            final String result = toWeb ? dumper.toWeb() : dumper.toFile();
-                                            plugin.getLocales().getLocale("data_dumped", versionUuid.toString()
-                                                            .split("-")[0], user.getUsername(), result)
-                                                    .ifPresent(executor::sendMessage);
-                                        } catch (IOException e) {
-                                            plugin.log(Level.SEVERE, "Failed to dump user data", e);
-                                        }
-                                    }, () -> plugin.getLocales().getLocale("error_invalid_version_uuid")
-                                            .ifPresent(executor::sendMessage)),
-                                    () -> plugin.getLocales().getLocale("error_invalid_player")
-                                            .ifPresent(executor::sendMessage));
-                } catch (IllegalArgumentException e) {
-                    plugin.getLocales().getLocale("error_invalid_syntax",
-                                    "/userdata dump <username> <version_uuid>")
+                // Determine dump type
+                final boolean webDump = parseStringArg(args, 3)
+                        .map(arg -> arg.equalsIgnoreCase("web"))
+                        .orElse(false);
+                final Optional<DataSnapshot.Packed> data = plugin.getDatabase().getSnapshot(user, optionalUuid.get());
+                if (data.isEmpty()) {
+                    plugin.getLocales().getLocale("error_invalid_version_uuid")
                             .ifPresent(executor::sendMessage);
+                    return;
+                }
+
+                // Dump the data
+                final DataSnapshot.Packed userData = data.get();
+                final DataDumper dumper = DataDumper.create(userData, user, plugin);
+                try {
+                    plugin.getLocales().getLocale("data_dumped", userData.getShortId(), user.getUsername(),
+                            (webDump ? dumper.toWeb() : dumper.toFile())).ifPresent(executor::sendMessage);
+                } catch (Throwable e) {
                     plugin.log(Level.SEVERE, "Failed to dump user data", e);
                 }
             }
+
             default -> plugin.getLocales().getLocale("error_invalid_syntax", getUsage())
                     .ifPresent(executor::sendMessage);
         }
@@ -301,6 +225,9 @@ public class UserDataCommand extends Command implements TabProvider {
         return switch (args.length) {
             case 0, 1 -> SUB_COMMANDS.keySet().stream().sorted().toList();
             case 2 -> plugin.getOnlineUsers().stream().map(User::getUsername).toList();
+            case 4 -> parseStringArg(args, 0)
+                    .map(arg -> arg.equalsIgnoreCase("dump") ? List.of("web", "file") : null)
+                    .orElse(null);
             default -> null;
         };
     }

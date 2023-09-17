@@ -31,12 +31,12 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.io.BukkitObjectInputStream;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.yaml.snakeyaml.external.biz.base64Coder.Base64Coder;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -225,6 +225,7 @@ public class BukkitLegacyConverter extends LegacyConverter {
         return BukkitData.Statistics.from(genericStats, blockStats, itemStats, entityStats);
     }
 
+    // Deserialize a legacy item stack array
     @NotNull
     public ItemStack[] deserializeLegacyItemStacks(@NotNull String items) {
         // Return an empty array if there is no inventory data (set the player as having an empty inventory)
@@ -235,12 +236,31 @@ public class BukkitLegacyConverter extends LegacyConverter {
         // Create a byte input stream to read the serialized data
         try (ByteArrayInputStream byteInputStream = new ByteArrayInputStream(Base64Coder.decodeLines(items))) {
             try (BukkitObjectInputStream bukkitInputStream = new BukkitObjectInputStream(byteInputStream)) {
-                return new ItemStack[bukkitInputStream.readInt()];
+                // Read the length of the Bukkit input stream and set the length of the array to this value
+                final ItemStack[] inventoryContents = new ItemStack[bukkitInputStream.readInt()];
+
+                // Set the ItemStacks in the array from deserialized ItemStack data
+                int slotIndex = 0;
+                for (ItemStack ignored : inventoryContents) {
+                    final ItemStack deserialized = deserializeLegacyItemStack(bukkitInputStream.readObject());
+                    inventoryContents[slotIndex] = deserialized;
+                    slotIndex++;
+                }
+
+                // Return the converted contents
+                return inventoryContents;
             }
-        } catch (IOException e) {
+        } catch (Throwable e) {
             throw new DataAdapter.AdaptionException("Failed to deserialize legacy item stack data", e);
         }
     }
+
+    // Deserialize a single legacy item stack
+    @Nullable
+    private static ItemStack deserializeLegacyItemStack(@Nullable Object serializedItemStack) {
+        return serializedItemStack != null ? ItemStack.deserialize((Map<String, Object>) serializedItemStack) : null;
+    }
+
 
     private boolean shouldImport(@NotNull Identifier type) {
         return plugin.getSettings().getSynchronizationFeature(type);
