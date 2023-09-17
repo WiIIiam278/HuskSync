@@ -24,7 +24,6 @@ import net.william278.husksync.BukkitHuskSync;
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.data.BukkitData;
 import net.william278.husksync.data.DataSnapshot;
-import net.william278.husksync.data.Identifier;
 import net.william278.husksync.user.User;
 import net.william278.mpdbconverter.MPDBConverter;
 import org.bukkit.Bukkit;
@@ -301,25 +300,16 @@ public class MpdbMigrator extends Migrator {
             for (int i = 36; i < 36 + armor.length; i++) {
                 inventory.setItem(i, armor[i - 36]);
             }
+            final ItemStack[] enderChest = converter.getItemStackFromSerializedData(serializedEnderChest);
 
             // Create user data record
-            return DataSnapshot.Packed.create(plugin,
-                    Map.of(
-                            Identifier.EXPERIENCE, BukkitData.Experience.from(
-                                    totalExp, expLevel, expProgress
-                            ),
-                            Identifier.GAME_MODE, BukkitData.GameMode.from(
-                                    "SURVIVAL", false, false
-                            ),
-                            Identifier.INVENTORY, BukkitData.Items.Inventory.from(
-                                    inventory.getContents(), 0
-                            ),
-                            Identifier.ENDER_CHEST, BukkitData.Items.EnderChest.adapt(
-                                    converter.getItemStackFromSerializedData(serializedEnderChest)
-                            )
-                    ),
-                    DataSnapshot.SaveCause.MPDB_MIGRATION
-            );
+            return DataSnapshot.builder(plugin)
+                    .inventory(BukkitData.Items.Inventory.from(inventory.getContents(), 0))
+                    .enderChest(BukkitData.Items.EnderChest.adapt(enderChest))
+                    .experience(BukkitData.Experience.from(totalExp, expLevel, expProgress))
+                    .gameMode(BukkitData.GameMode.from("SURVIVAL", false, false))
+                    .saveCause(DataSnapshot.SaveCause.MPDB_MIGRATION)
+                    .buildAndPack();
         }
 
     }

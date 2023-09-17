@@ -63,7 +63,7 @@ public interface UserDataHolder extends DataHolder {
      */
     @NotNull
     default DataSnapshot.Packed createSnapshot(@NotNull DataSnapshot.SaveCause saveCause) {
-        return DataSnapshot.create(getPlugin(), this, saveCause);
+        return DataSnapshot.builder(getPlugin()).data(this.getData()).saveCause(saveCause).buildAndPack();
     }
 
     /**

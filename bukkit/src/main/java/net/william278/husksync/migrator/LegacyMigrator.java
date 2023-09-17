@@ -26,7 +26,6 @@ import net.william278.husksync.HuskSync;
 import net.william278.husksync.data.BukkitData;
 import net.william278.husksync.data.Data;
 import net.william278.husksync.data.DataSnapshot;
-import net.william278.husksync.data.Identifier;
 import net.william278.husksync.user.User;
 import net.william278.husksync.util.BukkitLegacyConverter;
 import org.bukkit.Material;
@@ -285,43 +284,54 @@ public class LegacyMigrator extends Migrator {
                 final DataSerializer.PlayerLocation loc = converter.deserializePlayerLocationData(serializedLocation);
                 final BukkitLegacyConverter adapter = (BukkitLegacyConverter) plugin.getLegacyConverter()
                         .orElseThrow(() -> new IllegalStateException("Legacy converter not present"));
-                return DataSnapshot.create(plugin,
-                        Map.of(
-                                Identifier.INVENTORY, BukkitData.Items.Inventory.from(
-                                        adapter.deserializeLegacyItemStacks(serializedInventory),
-                                        selectedSlot
-                                ),
-                                Identifier.ENDER_CHEST, BukkitData.Items.EnderChest.adapt(
-                                        adapter.deserializeLegacyItemStacks(serializedEnderChest)
-                                ),
-                                Identifier.LOCATION, BukkitData.Location.from(
-                                        loc == null ? 0d : loc.x(),
-                                        loc == null ? 64d : loc.y(),
-                                        loc == null ? 0d : loc.z(),
-                                        loc == null ? 90f : loc.yaw(),
-                                        loc == null ? 180f : loc.pitch(),
-                                        new Data.Location.World(
-                                                loc == null ? "world" : loc.worldName(),
-                                                UUID.randomUUID(), "NORMAL"
-                                        )),
-                                Identifier.ADVANCEMENTS, BukkitData.Advancements.from(converter
-                                        .deserializeAdvancementData(serializedAdvancements).stream()
-                                        .map(data -> Data.Advancements.Advancement.adapt(data.key(), data.criteriaMap()))
-                                        .toList()),
-                                Identifier.STATISTICS, BukkitData.Statistics.from(
-                                        BukkitData.Statistics.createStatisticsMap(
-                                                convertStatisticMap(stats.untypedStatisticValues()),
-                                                convertMaterialStatisticMap(stats.blockStatisticValues()),
-                                                convertMaterialStatisticMap(stats.itemStatisticValues()),
-                                                convertEntityStatisticMap(stats.entityStatisticValues())
-                                        )),
-                                Identifier.HEALTH, BukkitData.Health.from(health, maxHealth, healthScale),
-                                Identifier.HUNGER, BukkitData.Hunger.from(hunger, saturation, saturationExhaustion),
-                                Identifier.EXPERIENCE, BukkitData.Experience.from(totalExp, expLevel, expProgress),
-                                Identifier.GAME_MODE, BukkitData.GameMode.from(gameMode, isFlying, isFlying)
-                        ),
-                        DataSnapshot.SaveCause.LEGACY_MIGRATION
-                );
+
+                return DataSnapshot.builder(plugin)
+                        // Inventory
+                        .inventory(BukkitData.Items.Inventory.from(
+                                adapter.deserializeLegacyItemStacks(serializedInventory),
+                                selectedSlot
+                        ))
+
+                        // Ender chest
+                        .enderChest(BukkitData.Items.EnderChest.adapt(
+                                adapter.deserializeLegacyItemStacks(serializedEnderChest)
+                        ))
+
+                        // Location
+                        .location(BukkitData.Location.from(
+                                loc == null ? 0d : loc.x(),
+                                loc == null ? 64d : loc.y(),
+                                loc == null ? 0d : loc.z(),
+                                loc == null ? 90f : loc.yaw(),
+                                loc == null ? 180f : loc.pitch(),
+                                new Data.Location.World(
+                                        loc == null ? "world" : loc.worldName(),
+                                        UUID.randomUUID(), "NORMAL"
+                                )))
+
+                        // Advancements
+                        .advancements(BukkitData.Advancements.from(converter
+                                .deserializeAdvancementData(serializedAdvancements).stream()
+                                .map(data -> Data.Advancements.Advancement.adapt(data.key(), data.criteriaMap()))
+                                .toList()))
+
+                        // Stats
+                        .statistics(BukkitData.Statistics.from(
+                                BukkitData.Statistics.createStatisticsMap(
+                                        convertStatisticMap(stats.untypedStatisticValues()),
+                                        convertMaterialStatisticMap(stats.blockStatisticValues()),
+                                        convertMaterialStatisticMap(stats.itemStatisticValues()),
+                                        convertEntityStatisticMap(stats.entityStatisticValues())
+                                )))
+
+                        // Health, hunger, experience & game mode
+                        .health(BukkitData.Health.from(health, maxHealth, healthScale))
+                        .hunger(BukkitData.Hunger.from(hunger, saturation, saturationExhaustion))
+                        .experience(BukkitData.Experience.from(totalExp, expLevel, expProgress))
+                        .gameMode(BukkitData.GameMode.from(gameMode, isFlying, isFlying))
+
+                        // Build & pack into new format
+                        .saveCause(DataSnapshot.SaveCause.LEGACY_MIGRATION).buildAndPack();
             } catch (Throwable e) {
                 throw new IllegalStateException(e);
             }

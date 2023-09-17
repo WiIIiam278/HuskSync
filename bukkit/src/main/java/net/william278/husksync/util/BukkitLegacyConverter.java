@@ -60,14 +60,15 @@ public class BukkitLegacyConverter extends LegacyConverter {
         }
 
         // Read legacy data from the JSON object
-        final Map<Identifier, Data> containers = new LinkedHashMap<>(readStatusData(object));
-        readInventory(object).ifPresent(i -> containers.put(Identifier.INVENTORY, i));
-        readEnderChest(object).ifPresent(e -> containers.put(Identifier.ENDER_CHEST, e));
-        readLocation(object).ifPresent(l -> containers.put(Identifier.LOCATION, l));
-        readAdvancements(object).ifPresent(a -> containers.put(Identifier.ADVANCEMENTS, a));
-        readStatistics(object).ifPresent(s -> containers.put(Identifier.STATISTICS, s));
-
-        return DataSnapshot.create(plugin, containers, DataSnapshot.SaveCause.CONVERTED_FROM_V2);
+        final DataSnapshot.Builder builder = DataSnapshot.builder(plugin)
+                .saveCause(DataSnapshot.SaveCause.CONVERTED_FROM_V2)
+                .data(readStatusData(object));
+        readInventory(object).ifPresent(builder::inventory);
+        readEnderChest(object).ifPresent(builder::enderChest);
+        readLocation(object).ifPresent(builder::location);
+        readAdvancements(object).ifPresent(builder::advancements);
+        readStatistics(object).ifPresent(builder::statistics);
+        return builder.buildAndPack();
     }
 
     @NotNull
@@ -110,7 +111,7 @@ public class BukkitLegacyConverter extends LegacyConverter {
     }
 
     @NotNull
-    private Optional<Data.Items> readInventory(@NotNull JSONObject object) {
+    private Optional<Data.Items.Inventory> readInventory(@NotNull JSONObject object) {
         if (!object.has("inventory") || !shouldImport(Identifier.INVENTORY)) {
             return Optional.empty();
         }
@@ -122,7 +123,7 @@ public class BukkitLegacyConverter extends LegacyConverter {
     }
 
     @NotNull
-    private Optional<Data.Items> readEnderChest(@NotNull JSONObject object) {
+    private Optional<Data.Items.EnderChest> readEnderChest(@NotNull JSONObject object) {
         if (!object.has("ender_chest") || !shouldImport(Identifier.ENDER_CHEST)) {
             return Optional.empty();
         }

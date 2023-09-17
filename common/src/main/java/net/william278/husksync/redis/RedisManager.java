@@ -141,12 +141,12 @@ public class RedisManager extends JedisPubSub {
         });
     }
 
-    public CompletableFuture<Optional<DataSnapshot.Packed>> getUserData(@NotNull UUID requester, @NotNull User user) {
+    public CompletableFuture<Optional<DataSnapshot.Packed>> getUserData(@NotNull UUID requestId, @NotNull User user) {
         return plugin.getOnlineUser(user.getUuid())
                 .map(online -> CompletableFuture.completedFuture(
                         Optional.of(online.createSnapshot(DataSnapshot.SaveCause.API)))
                 )
-                .orElse(requestData(requester, user));
+                .orElse(requestData(requestId, user));
     }
 
     private CompletableFuture<Optional<DataSnapshot.Packed>> requestData(@NotNull UUID requester, @NotNull User user) {

@@ -27,6 +27,7 @@ import net.william278.husksync.HuskSync;
 import net.william278.husksync.adapter.Adaptable;
 import net.william278.husksync.adapter.DataAdapter;
 import net.william278.husksync.config.Locales;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -37,6 +38,8 @@ import java.util.stream.Collectors;
 
 /**
  * A snapshot of a {@link DataHolder} at a given time.
+ *
+ * @since 3.0
  */
 public class DataSnapshot {
 
@@ -88,22 +91,13 @@ public class DataSnapshot {
     }
 
     @NotNull
-    public static DataSnapshot.Packed create(@NotNull HuskSync plugin,
-                                             @NotNull Map<Identifier, Data> data,
-                                             @NotNull SaveCause saveCause) {
-        return new Unpacked(
-                UUID.randomUUID(), plugin.getSettings().doAutoPin(saveCause), OffsetDateTime.now(), saveCause, data,
-                plugin.getMinecraftVersion(), plugin.getPlatformType(), DataSnapshot.CURRENT_FORMAT_VERSION
-        ).pack(plugin);
+    @ApiStatus.Internal
+    public static DataSnapshot.Builder builder(@NotNull HuskSync plugin) {
+        return new Builder(plugin);
     }
 
     @NotNull
-    protected static DataSnapshot.Packed create(@NotNull HuskSync plugin, @NotNull UserDataHolder owner,
-                                                @NotNull SaveCause saveCause) {
-        return create(plugin, owner.getData(), saveCause);
-    }
-
-    @NotNull
+    @ApiStatus.Internal
     public static DataSnapshot.Packed deserialize(@NotNull HuskSync plugin, byte[] data) throws IllegalStateException {
         final DataSnapshot.Packed snapshot = plugin.getDataAdapter().fromBytes(data, DataSnapshot.Packed.class);
         if (snapshot.getMinecraftVersion().compareTo(plugin.getMinecraftVersion()) > 0) {
@@ -135,54 +129,122 @@ public class DataSnapshot {
         return snapshot;
     }
 
+    /**
+     * Return the ID of the snapshot
+     *
+     * @return The snapshot ID
+     * @since 3.0
+     */
     @NotNull
     public UUID getId() {
         return id;
     }
 
+    /**
+     * Get the short display ID of the snapshot
+     *
+     * @return The short display ID
+     * @since 3.0
+     */
     @NotNull
     public String getShortId() {
         return id.toString().substring(0, 8);
     }
 
+    /**
+     * Get whether the snapshot is pinned
+     *
+     * @return Whether the snapshot is pinned
+     * @since 3.0
+     */
     public boolean isPinned() {
         return pinned;
     }
 
+    /**
+     * Set whether the snapshot is pinned
+     *
+     * @param pinned Whether the snapshot is pinned
+     * @since 3.0
+     */
     public void setPinned(boolean pinned) {
         this.pinned = pinned;
     }
 
+    /**
+     * Get why the snapshot was created
+     *
+     * @return The {@link SaveCause data save cause} of the snapshot
+     * @since 3.0
+     */
     @NotNull
     public SaveCause getSaveCause() {
         return saveCause;
     }
 
+    /**
+     * Set why the snapshot was created
+     *
+     * @param saveCause The {@link SaveCause data save cause} of the snapshot
+     * @since 3.0
+     */
     public void setSaveCause(SaveCause saveCause) {
         this.saveCause = saveCause;
     }
 
+    /**
+     * Get when the snapshot was created
+     *
+     * @return The {@link OffsetDateTime timestamp} of the snapshot
+     * @since 3.0
+     */
     @NotNull
     public OffsetDateTime getTimestamp() {
         return timestamp;
     }
 
+    /**
+     * Get the Minecraft version of the server when the Snapshot was created
+     *
+     * @return The Minecraft version of the server when the Snapshot was created
+     * @since 3.0
+     */
     @NotNull
     public Version getMinecraftVersion() {
         return Version.fromString(minecraftVersion);
     }
 
+    /**
+     * Get the platform type of the server when the Snapshot was created
+     *
+     * @return The platform type of the server when the Snapshot was created (e.g. {@code "bukkit"})
+     * @since 3.0
+     */
     @NotNull
     public String getPlatformType() {
         return platformType;
     }
 
+    /**
+     * Get the format version of the snapshot (indicating the version of HuskSync that created it)
+     * <ul>
+     *     <li>1: HuskSync v1.0+</li>
+     *     <li>2: HuskSync v1.5+</li>
+     *     <li>3: HuskSync v2.0+</li>
+     *     <li>4: HuskSync v3.0+</li>
+     * </ul>
+     *
+     * @return The format version of the snapshot
+     * @since 3.0
+     */
     public int getFormatVersion() {
         return formatVersion;
     }
 
     /**
      * A packed {@link DataSnapshot} that has not been deserialized.
+     *
+     * @since 3.0
      */
     public static class Packed extends DataSnapshot implements Adaptable {
 
@@ -196,6 +258,7 @@ public class DataSnapshot {
         private Packed() {
         }
 
+        @ApiStatus.Internal
         public void edit(@NotNull HuskSync plugin, @NotNull Consumer<Unpacked> editor) {
             final Unpacked data = unpack(plugin);
             editor.accept(data);
@@ -204,6 +267,11 @@ public class DataSnapshot {
             this.data = data.serializeData(plugin);
         }
 
+        /**
+         * Create a copy of this snapshot at the current system timestamp with a new ID
+         *
+         * @return The copied snapshot (with a new ID, with a timestamp of the current system time)
+         */
         @NotNull
         public Packed copy() {
             return new Packed(
@@ -213,15 +281,18 @@ public class DataSnapshot {
         }
 
         @NotNull
+        @ApiStatus.Internal
         public byte[] asBytes(@NotNull HuskSync plugin) throws DataAdapter.AdaptionException {
             return plugin.getDataAdapter().toBytes(this);
         }
 
         @NotNull
+        @ApiStatus.Internal
         public String asJson(@NotNull HuskSync plugin) throws DataAdapter.AdaptionException {
             return plugin.getDataAdapter().toJson(this);
         }
 
+        @ApiStatus.Internal
         public int getFileSize(@NotNull HuskSync plugin) {
             return asBytes(plugin).length;
         }
@@ -238,6 +309,8 @@ public class DataSnapshot {
 
     /**
      * An unpacked {@link DataSnapshot}.
+     *
+     * @since 3.0
      */
     public static class Unpacked extends DataSnapshot implements DataHolder {
 
@@ -260,6 +333,7 @@ public class DataSnapshot {
         }
 
         @NotNull
+        @ApiStatus.Internal
         private Map<Identifier, Data> deserializeData(@NotNull HuskSync plugin) {
             return data.entrySet().stream()
                     .map((entry) -> plugin.getIdentifier(entry.getKey()).map(id -> Map.entry(
@@ -270,6 +344,7 @@ public class DataSnapshot {
         }
 
         @NotNull
+        @ApiStatus.Internal
         private Map<String, String> serializeData(@NotNull HuskSync plugin) {
             return deserialized.entrySet().stream()
                     .map((entry) -> Map.entry(entry.getKey().toString(),
@@ -280,17 +355,305 @@ public class DataSnapshot {
                     .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
         }
 
+        /**
+         * Get the data the snapshot is holding
+         *
+         * @return The data map
+         * @since 3.0
+         */
         @NotNull
         public Map<Identifier, Data> getData() {
             return deserialized;
         }
 
+        /**
+         * Pack the {@link DataSnapshot} into a {@link DataSnapshot.Packed packed} snapshot
+         *
+         * @param plugin The HuskSync plugin instance
+         * @return The packed snapshot
+         * @since 3.0
+         */
         @NotNull
+        @ApiStatus.Internal
         public DataSnapshot.Packed pack(@NotNull HuskSync plugin) {
             return new DataSnapshot.Packed(
                     id, pinned, timestamp, saveCause, serializeData(plugin),
                     getMinecraftVersion(), platformType, formatVersion
             );
+        }
+
+    }
+
+    /**
+     * A builder for {@link DataSnapshot}s.
+     *
+     * @since 3.0
+     */
+    @SuppressWarnings("unused")
+    public static class Builder {
+
+        private final HuskSync plugin;
+        private SaveCause saveCause;
+        private boolean pinned;
+        private final Map<Identifier, Data> data;
+
+        private Builder(@NotNull HuskSync plugin) {
+            this.plugin = plugin;
+            this.saveCause = SaveCause.API;
+            this.pinned = false;
+            this.data = new HashMap<>();
+        }
+
+        /**
+         * Set the cause of the data save
+         *
+         * @param saveCause The cause of the data save
+         * @return The builder
+         * @apiNote If the {@link SaveCause data save cause} specified is configured to auto-pin, then the value of
+         * {@link #pinned(boolean)} will be ignored
+         * @since 3.0
+         */
+        @NotNull
+        public Builder saveCause(@NotNull SaveCause saveCause) {
+            this.saveCause = saveCause;
+            return this;
+        }
+
+        /**
+         * Set whether the data should be pinned
+         *
+         * @param pinned Whether the data should be pinned
+         * @return The builder
+         * @apiNote If the {@link SaveCause data save cause} specified is configured to auto-pin, this will be ignored
+         * @since 3.0
+         */
+        @NotNull
+        public Builder pinned(boolean pinned) {
+            this.pinned = pinned;
+            return this;
+        }
+
+        /**
+         * Set the data for a given identifier
+         *
+         * @param identifier The identifier
+         * @param data       The data
+         * @return The builder
+         * @since 3.0
+         */
+        @NotNull
+        public Builder data(@NotNull Identifier identifier, @NotNull Data data) {
+            this.data.put(identifier, data);
+            return this;
+        }
+
+        /**
+         * Set a map of data to the snapshot
+         *
+         * @param data The data
+         * @return The builder
+         * @since 3.0
+         */
+        @NotNull
+        public Builder data(@NotNull Map<Identifier, Data> data) {
+            this.data.putAll(data);
+            return this;
+        }
+
+        /**
+         * Set the inventory contents of the snapshot
+         * <p>
+         * Equivalent to {@code data(Identifier.INVENTORY, inventory)}
+         * </p>
+         *
+         * @param inventory The inventory contents
+         * @return The builder
+         * @since 3.0
+         */
+        @NotNull
+        public Builder inventory(@NotNull Data.Items.Inventory inventory) {
+            return data(Identifier.INVENTORY, inventory);
+        }
+
+        /**
+         * Set the Ender Chest contents of the snapshot
+         * <p>
+         * Equivalent to {@code data(Identifier.ENDER_CHEST, inventory)}
+         * </p>
+         *
+         * @param enderChest The Ender Chest contents
+         * @return The builder
+         * @since 3.0
+         */
+        @NotNull
+        public Builder enderChest(@NotNull Data.Items.EnderChest enderChest) {
+            return data(Identifier.ENDER_CHEST, enderChest);
+        }
+
+        /**
+         * Set the potion effects of the snapshot
+         * <p>
+         * Equivalent to {@code data(Identifier.POTION_EFFECTS, potionEffects)}
+         * </p>
+         *
+         * @param potionEffects The potion effects
+         * @return The builder
+         * @since 3.0
+         */
+        @NotNull
+        public Builder potionEffects(@NotNull Data.PotionEffects potionEffects) {
+            return data(Identifier.POTION_EFFECTS, potionEffects);
+        }
+
+        /**
+         * Set the advancements of the snapshot
+         * <p>
+         * Equivalent to {@code data(Identifier.ADVANCEMENTS, advancements)}
+         * </p>
+         *
+         * @param advancements The advancements
+         * @return The builder
+         * @since 3.0
+         */
+        @NotNull
+        public Builder advancements(@NotNull Data.Advancements advancements) {
+            return data(Identifier.ADVANCEMENTS, advancements);
+        }
+
+        /**
+         * Set the location of the snapshot
+         * <p>
+         * Equivalent to {@code data(Identifier.LOCATION, location)}
+         * </p>
+         *
+         * @param location The location
+         * @return The builder
+         * @since 3.0
+         */
+        @NotNull
+        public Builder location(@NotNull Data.Location location) {
+            return data(Identifier.LOCATION, location);
+        }
+
+        /**
+         * Set the statistics of the snapshot
+         * <p>
+         * Equivalent to {@code data(Identifier.STATISTICS, statistics)}
+         * </p>
+         *
+         * @param statistics The statistics
+         * @return The builder
+         * @since 3.0
+         */
+        @NotNull
+        public Builder statistics(@NotNull Data.Statistics statistics) {
+            return data(Identifier.STATISTICS, statistics);
+        }
+
+        /**
+         * Set the health of the snapshot
+         * <p>
+         * Equivalent to {@code data(Identifier.HEALTH, health)}
+         * </p>
+         *
+         * @param health The health
+         * @return The builder
+         * @since 3.0
+         */
+        @NotNull
+        public Builder health(@NotNull Data.Health health) {
+            return data(Identifier.HEALTH, health);
+        }
+
+        /**
+         * Set the hunger of the snapshot
+         * <p>
+         * Equivalent to {@code data(Identifier.HUNGER, hunger)}
+         * </p>
+         *
+         * @param hunger The hunger
+         * @return The builder
+         * @since 3.0
+         */
+        @NotNull
+        public Builder hunger(@NotNull Data.Hunger hunger) {
+            return data(Identifier.HUNGER, hunger);
+        }
+
+        /**
+         * Set the experience of the snapshot
+         * <p>
+         * Equivalent to {@code data(Identifier.EXPERIENCE, experience)}
+         * </p>
+         *
+         * @param experience The experience
+         * @return The builder
+         * @since 3.0
+         */
+        @NotNull
+        public Builder experience(@NotNull Data.Experience experience) {
+            return data(Identifier.EXPERIENCE, experience);
+        }
+
+        /**
+         * Set the game mode of the snapshot
+         * <p>
+         * Equivalent to {@code data(Identifier.GAME_MODE, gameMode)}
+         * </p>
+         *
+         * @param gameMode The game mode
+         * @return The builder
+         * @since 3.0
+         */
+        @NotNull
+        public Builder gameMode(@NotNull Data.GameMode gameMode) {
+            return data(Identifier.GAME_MODE, gameMode);
+        }
+
+        /**
+         * Set the persistent data container of the snapshot
+         * <p>
+         * Equivalent to {@code data(Identifier.PERSISTENT_DATA, persistentData)}
+         * </p>
+         *
+         * @param persistentData The persistent data container data
+         * @return The builder
+         * @since 3.0
+         */
+        @NotNull
+        public Builder persistentData(@NotNull Data.PersistentData persistentData) {
+            return data(Identifier.PERSISTENT_DATA, persistentData);
+        }
+
+        /**
+         * Build the {@link DataSnapshot}
+         *
+         * @return The {@link DataSnapshot.Unpacked snapshot}
+         * @since 3.0
+         */
+        @NotNull
+        public DataSnapshot.Unpacked build() {
+            return new Unpacked(
+                    UUID.randomUUID(),
+                    pinned || plugin.getSettings().doAutoPin(saveCause),
+                    OffsetDateTime.now(),
+                    saveCause,
+                    data,
+                    plugin.getMinecraftVersion(),
+                    plugin.getPlatformType(),
+                    DataSnapshot.CURRENT_FORMAT_VERSION
+            );
+        }
+
+        /**
+         * Build and pack the {@link DataSnapshot}
+         *
+         * @return The {@link DataSnapshot.Packed snapshot}
+         * @since 3.0
+         */
+        @NotNull
+        public DataSnapshot.Packed buildAndPack() {
+            return build().pack(plugin);
         }
 
     }
