@@ -60,7 +60,10 @@ public class BukkitCommand extends org.bukkit.command.Command {
             return List.of();
         }
         final CommandUser user = sender instanceof Player p ? BukkitUser.adapt(p, plugin) : plugin.getConsole();
-        return provider.getSuggestions(user, args);
+        if (getPermission() == null || user.hasPermission(getPermission())) {
+            return provider.getSuggestions(user, args);
+        }
+        return List.of();
     }
 
     public void register() {
