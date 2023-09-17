@@ -38,8 +38,8 @@ public class InventoryCommand extends ItemsCommand {
     }
 
     @Override
-    protected void showSnapshotItems(@NotNull OnlineUser viewer, @NotNull DataSnapshot.Unpacked snapshot,
-                                     @NotNull User user, boolean allowEdit) {
+    protected void showItems(@NotNull OnlineUser viewer, @NotNull DataSnapshot.Unpacked snapshot,
+                             @NotNull User user, boolean allowEdit) {
         final Optional<Data.Items.Inventory> optionalInventory = snapshot.getInventory();
         if (optionalInventory.isEmpty()) {
             plugin.getLocales().getLocale("error_no_data_to_display")

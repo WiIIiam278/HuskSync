@@ -72,7 +72,7 @@ public abstract class ItemsCommand extends Command implements TabProvider {
         plugin.getRedisManager().getUserData(user.getUuid(), user).thenAccept(data -> data
                 .or(() -> plugin.getDatabase().getLatestSnapshot(user))
                 .ifPresentOrElse(
-                        snapshot -> this.showSnapshotItems(
+                        snapshot -> this.showItems(
                                 viewer, snapshot.unpack(plugin), user,
                                 viewer.hasPermission(getPermission("edit"))
                         ),
@@ -85,7 +85,7 @@ public abstract class ItemsCommand extends Command implements TabProvider {
     private void showSnapshotItems(@NotNull OnlineUser viewer, @NotNull User user, @NotNull UUID version) {
         plugin.getDatabase().getSnapshot(user, version)
                 .ifPresentOrElse(
-                        snapshot -> this.showSnapshotItems(
+                        snapshot -> this.showItems(
                                 viewer, snapshot.unpack(plugin), user, false
                         ),
                         () -> plugin.getLocales().getLocale("error_invalid_version_uuid")
@@ -94,8 +94,8 @@ public abstract class ItemsCommand extends Command implements TabProvider {
     }
 
     // Show a GUI menu with the correct item data from the snapshot
-    protected abstract void showSnapshotItems(@NotNull OnlineUser viewer, @NotNull DataSnapshot.Unpacked snapshot,
-                                              @NotNull User user, boolean allowEdit);
+    protected abstract void showItems(@NotNull OnlineUser viewer, @NotNull DataSnapshot.Unpacked snapshot,
+                                      @NotNull User user, boolean allowEdit);
 
     @Nullable
     @Override
