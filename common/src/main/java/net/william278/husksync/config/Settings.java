@@ -194,7 +194,7 @@ public class Settings {
 
     @YamlComment("Event priorities for listeners (HIGHEST, NORMAL, LOWEST). Change if you encounter plugin conflicts")
     @YamlKey("synchronization.event_priorities")
-    private Map<String, String> synchronizationEventPriorities = EventListener.ListenerType.getDefaults();
+    private Map<String, String> syncEventPriorities = EventListener.ListenerType.getDefaults();
 
 
     // Zero-args constructor for instantiation via Annotaml
@@ -361,11 +361,10 @@ public class Settings {
     }
 
     @NotNull
-    public EventListener.Priority getEventPriority(@NotNull EventListener.ListenerType listenerType) {
+    public EventListener.Priority getEventPriority(@NotNull EventListener.ListenerType type) {
         try {
-            return EventListener.Priority.valueOf(synchronizationEventPriorities.get(listenerType.name().toLowerCase(Locale.ENGLISH)));
+            return EventListener.Priority.valueOf(syncEventPriorities.get(type.name().toLowerCase(Locale.ENGLISH)));
         } catch (IllegalArgumentException e) {
-            e.printStackTrace();
             return EventListener.Priority.NORMAL;
         }
     }
