@@ -31,6 +31,7 @@ import java.util.stream.Collectors;
 /**
  * A piece of data, held by a {@link DataHolder}
  */
+@SuppressWarnings("unused")
 public interface Data {
 
     /**
