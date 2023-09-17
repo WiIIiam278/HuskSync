@@ -45,7 +45,7 @@ public class SnappyGsonAdapter extends GsonAdapter {
     @Override
     public <A extends Adaptable> A fromBytes(@NotNull byte[] data, @NotNull Class<A> type) throws AdaptionException {
         try {
-            return super.fromBytes(, type);
+            return super.fromBytes(decompressBytes(data), type);
         } catch (IOException e) {
             throw new AdaptionException("Failed to decompress data through Snappy", e);
         }

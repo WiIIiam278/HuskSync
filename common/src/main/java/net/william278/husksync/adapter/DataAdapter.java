@@ -52,20 +52,6 @@ public interface DataAdapter {
     <A extends Adaptable> byte[] toBytes(@NotNull A data) throws AdaptionException;
 
     /**
-     * Converts a string to an {@link Adaptable}.
-     *
-     * @param data The string to adapt.
-     * @param type The class type of the {@link Adaptable} to adapt to.
-     * @param <A>  The type of the {@link Adaptable}
-     * @return The {@link Adaptable}
-     * @throws AdaptionException If an error occurred during adaptation.
-     */
-    @NotNull
-    default <A extends Adaptable> A fromString(@NotNull String data, @NotNull Class<A> type) throws AdaptionException {
-        return this.fromBytes(data.getBytes(StandardCharsets.UTF_8), type);
-    }
-
-    /**
      * Converts a JSON string to an {@link Adaptable}.
      *
      * @param data The JSON string to adapt.
@@ -108,7 +94,7 @@ public interface DataAdapter {
     @NotNull
     String bytesToString(byte[] bytes);
 
-    static final class AdaptionException extends IllegalStateException {
+    final class AdaptionException extends IllegalStateException {
         static final String FORMAT = "An exception occurred when adapting serialized/deserialized data: %s";
 
         public AdaptionException(@NotNull String message, @NotNull Throwable cause) {
