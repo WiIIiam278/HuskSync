@@ -37,7 +37,6 @@ import org.yaml.snakeyaml.external.biz.base64Coder.Base64Coder;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -51,7 +50,7 @@ public class BukkitLegacyConverter extends LegacyConverter {
     @NotNull
     @Override
     public DataSnapshot.Packed convert(@NotNull byte[] data) throws DataAdapter.AdaptionException {
-        final JSONObject object = new JSONObject(new String(data, StandardCharsets.UTF_8));
+        final JSONObject object = new JSONObject(plugin.getDataAdapter().bytesToString(data));
         final int version = object.getInt("format_version");
         if (version != 3) {
             throw new DataAdapter.AdaptionException(String.format(

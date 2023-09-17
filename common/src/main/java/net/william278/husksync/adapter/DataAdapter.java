@@ -99,6 +99,15 @@ public interface DataAdapter {
      */
     <A extends Adaptable> A fromBytes(@NotNull byte[] data, @NotNull Class<A> type) throws AdaptionException;
 
+    /**
+     * Converts a byte array to a string, including decompression if required.
+     *
+     * @param bytes The byte array to convert
+     * @return the string form of the bytes
+     */
+    @NotNull
+    String bytesToString(byte[] bytes);
+
     static final class AdaptionException extends IllegalStateException {
         static final String FORMAT = "An exception occurred when adapting serialized/deserialized data: %s";
 

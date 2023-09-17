@@ -53,6 +53,12 @@ public class GsonAdapter implements DataAdapter {
         return this.fromJson(new String(data, StandardCharsets.UTF_8), type);
     }
 
+    @NotNull
+    @Override
+    public String bytesToString(byte[] bytes) {
+        return new String(bytes, StandardCharsets.UTF_8);
+    }
+
     @Override
     @NotNull
     public <A extends Adaptable> A fromJson(@NotNull String data, @NotNull Class<A> type) throws AdaptionException {
