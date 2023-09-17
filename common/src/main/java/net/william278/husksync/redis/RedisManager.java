@@ -80,7 +80,9 @@ public class RedisManager extends JedisPubSub {
             throw new IllegalStateException("Failed to establish connection with the Redis server. "
                     + "Please check the supplied credentials in the config file", e);
         }
-        plugin.runAsync(this::subscribe);
+
+        // Subscribe using a thread (rather than a task)
+        new Thread(this::subscribe, "husksync:redis_subscriber").start();
     }
 
     private void subscribe() {
@@ -269,6 +271,7 @@ public class RedisManager extends JedisPubSub {
                 jedisPool.close();
             }
         }
+        this.unsubscribe();
     }
 
     private static byte[] getKey(@NotNull RedisKeyType keyType, @NotNull UUID uuid, @NotNull String clusterId) {
