@@ -24,7 +24,6 @@ import net.william278.husksync.config.Settings;
 import net.william278.husksync.data.DataSnapshot;
 import net.william278.husksync.data.DataSnapshot.SaveCause;
 import net.william278.husksync.data.PlayerDataHolder;
-import net.william278.husksync.migrator.Migrator;
 import net.william278.husksync.player.User;
 import org.jetbrains.annotations.NotNull;
 
@@ -93,7 +92,7 @@ public abstract class Database {
      * Get a player by their Minecraft account {@link UUID}
      *
      * @param uuid Minecraft account {@link UUID} of the {@link User} to get
-     * @return A future returning an optional with the {@link User} present if they exist
+     * @return An optional with the {@link User} present if they exist
      */
     public abstract Optional<User> getUser(@NotNull UUID uuid);
 
@@ -101,7 +100,7 @@ public abstract class Database {
      * Get a user by their username (<i>case-insensitive</i>)
      *
      * @param username Username of the {@link User} to get (<i>case-insensitive</i>)
-     * @return A future returning an optional with the {@link User} present if they exist
+     * @return An optional with the {@link User} present if they exist
      */
     public abstract Optional<User> getUserByName(@NotNull String username);
 
@@ -112,33 +111,25 @@ public abstract class Database {
      * @param user The user to get data for
      * @return an optional containing the {@link DataSnapshot}, if it exists, or an empty optional if it does not
      */
-    public abstract Optional<DataSnapshot.Packed> getLatestDataSnapshot(@NotNull User user);
-
-    /**
-     * Get the latest data snapshot for a user that is not pinned.
-     *
-     * @param user The user to get data for
-     * @return an optional containing the {@link DataSnapshot}, if it exists, or an empty optional if it does not
-     */
-    public abstract Optional<DataSnapshot.Packed> getLatestUnpinnedDataSnapshot(@NotNull User user);
+    public abstract Optional<DataSnapshot.Packed> getLatestSnapshot(@NotNull User user);
 
     /**
      * Get all {@link DataSnapshot} entries for a user from the database.
      *
      * @param user The user to get data for
-     * @return A future returning a list of a user's {@link DataSnapshot} entries
+     * @return The list of a user's {@link DataSnapshot} entries
      */
     @NotNull
-    public abstract List<DataSnapshot.Packed> getDataSnapshots(@NotNull User user);
+    public abstract List<DataSnapshot.Packed> getAllSnapshots(@NotNull User user);
 
     /**
      * Gets a specific {@link DataSnapshot} entry for a user from the database, by its UUID.
      *
      * @param user        The user to get data for
      * @param versionUuid The UUID of the {@link DataSnapshot} entry to get
-     * @return A future returning an optional containing the {@link DataSnapshot}, if it exists, or an empty optional if it does not
+     * @return An optional containing the {@link DataSnapshot}, if it exists
      */
-    public abstract Optional<DataSnapshot.Packed> getDataSnapshot(@NotNull User user, @NotNull UUID versionUuid);
+    public abstract Optional<DataSnapshot.Packed> getSnapshot(@NotNull User user, @NotNull UUID versionUuid);
 
     /**
      * <b>(Internal)</b> Prune user data for a given user to the maximum value as configured.
@@ -146,7 +137,7 @@ public abstract class Database {
      * @param user The user to prune data for
      * @implNote Data snapshots marked as {@code pinned} are exempt from rotation
      */
-    protected abstract void rotateUserData(@NotNull User user);
+    protected abstract void rotateSnapshots(@NotNull User user);
 
     /**
      * Deletes a specific {@link DataSnapshot} entry for a user from the database, by its UUID.
@@ -154,7 +145,7 @@ public abstract class Database {
      * @param user        The user to get data for
      * @param versionUuid The UUID of the {@link DataSnapshot} entry to delete
      */
-    public abstract boolean deleteUserData(@NotNull User user, @NotNull UUID versionUuid);
+    public abstract boolean deleteSnapshot(@NotNull User user, @NotNull UUID versionUuid);
 
     /**
      * Save user data to the database
@@ -166,7 +157,7 @@ public abstract class Database {
      *                 The implementation should version it with a random UUID and the current timestamp during insertion.
      * @see PlayerDataHolder#createSnapshot(SaveCause)
      */
-    public void setUserData(@NotNull User user, @NotNull DataSnapshot.Packed snapshot) {
+    public void setSnapshot(@NotNull User user, @NotNull DataSnapshot.Packed snapshot) {
         if (snapshot.getSaveCause() != SaveCause.SERVER_SHUTDOWN) {
             plugin.fireEvent(
                     plugin.getDataSaveEvent(user, snapshot),
@@ -181,9 +172,8 @@ public abstract class Database {
     /**
      * <b>Internal</b> - Save user data to the database. This will:
      * <ol>
-     *     <li>Determine the snapshot to replace, if needed</li>
+     *     <li>Delete their most recent snapshot, if it was created before the backup frequency time</li>
      *     <li>Create the snapshot</li>
-     *     <li>Delete the snapshot to replace, if needed</li>
      *     <li>Rotate snapshot backups</li>
      * </ol>
      *
@@ -191,31 +181,23 @@ public abstract class Database {
      * @param snapshot The {@link DataSnapshot} to set.
      */
     private void saveDataSnapshot(@NotNull User user, @NotNull DataSnapshot.Packed snapshot) {
-        final Optional<UUID> toDelete = getSnapshotToOverwrite(user, snapshot.getTimestamp());
-        this.createDataSnapshot(user, snapshot);
-        toDelete.ifPresent(uuid -> this.deleteUserData(user, uuid));
-        this.rotateUserData(user);
+        final int backupFrequency = plugin.getSettings().getBackupFrequency();
+        if (!snapshot.isPinned() && backupFrequency > 0) {
+            this.rotateLatestSnapshot(user, snapshot.getTimestamp().minusHours(backupFrequency));
+        }
+        this.createSnapshot(user, snapshot);
+        this.rotateSnapshots(user);
     }
 
     /**
-     * Returns the ID of the latest snapshot that should be replaced, provided the backup frequency is greater than 0,
-     * and the new snapshot is older than the latest snapshot by the backup frequency.
+     * Deletes the most recent data snapshot by the given {@link User user}
+     * The snapshot must have been created after {@link OffsetDateTime time} and NOT be pinned
+     * Facilities the backup frequency feature, reducing redundant snapshots from being saved longer than needed
      *
-     * @param user The user who owns the snapshot
-     * @param time The time to check against
-     * @return The UUID of the snapshot to replace, if it exists
+     * @param user   The user to delete a snapshot for
+     * @param within The time to delete a snapshot after
      */
-    //todo test?
-    private Optional<UUID> getSnapshotToOverwrite(@NotNull User user, @NotNull OffsetDateTime time) {
-        final int backupFrequency = plugin.getSettings().getSnapshotBackupFrequency();
-        if (backupFrequency <= 0) {
-            return Optional.empty();
-        }
-        return getLatestUnpinnedDataSnapshot(user).flatMap(
-                latest -> time.minusHours(backupFrequency).isBefore(latest.getTimestamp())
-                        ? Optional.of(latest.getId()) : Optional.empty()
-        );
-    }
+    protected abstract void rotateLatestSnapshot(@NotNull User user, @NotNull OffsetDateTime within);
 
     /**
      * <b>Internal</b> - Create user data in the database
@@ -223,7 +205,7 @@ public abstract class Database {
      * @param user The user to add data for
      * @param data The {@link DataSnapshot} to set.
      */
-    protected abstract void createDataSnapshot(@NotNull User user, @NotNull DataSnapshot.Packed data);
+    protected abstract void createSnapshot(@NotNull User user, @NotNull DataSnapshot.Packed data);
 
     /**
      * Update a saved {@link DataSnapshot} by given version UUID
@@ -232,7 +214,7 @@ public abstract class Database {
      * @param versionUuid The UUID of the user's {@link DataSnapshot} entry
      * @param snapshot    The {@link DataSnapshot} to update
      */
-    protected abstract void updateUserData(@NotNull User user, @NotNull UUID versionUuid,
+    protected abstract void updateSnapshot(@NotNull User user, @NotNull UUID versionUuid,
                                            @NotNull DataSnapshot.Packed snapshot);
 
     /**
@@ -242,10 +224,10 @@ public abstract class Database {
      * @param versionUuid The UUID of the user's {@link DataSnapshot} entry to unpin
      * @see DataSnapshot#isPinned()
      */
-    public final void unpinUserData(@NotNull User user, @NotNull UUID versionUuid) {
-        this.getDataSnapshot(user, versionUuid).ifPresent(data -> {
+    public final void unpinSnapshot(@NotNull User user, @NotNull UUID versionUuid) {
+        this.getSnapshot(user, versionUuid).ifPresent(data -> {
             data.edit(plugin, (snapshot) -> snapshot.setPinned(false));
-            this.updateUserData(user, versionUuid, data);
+            this.updateSnapshot(user, versionUuid, data);
         });
     }
 
@@ -255,18 +237,16 @@ public abstract class Database {
      * @param user        The user to pin the data for
      * @param versionUuid The UUID of the user's {@link DataSnapshot} entry to pin
      */
-    public final void pinUserData(@NotNull User user, @NotNull UUID versionUuid) {
-        this.getDataSnapshot(user, versionUuid).ifPresent(data -> {
+    public final void pinSnapshot(@NotNull User user, @NotNull UUID versionUuid) {
+        this.getSnapshot(user, versionUuid).ifPresent(data -> {
             data.edit(plugin, (snapshot) -> snapshot.setPinned(true));
-            this.updateUserData(user, versionUuid, data);
+            this.updateSnapshot(user, versionUuid, data);
         });
     }
 
     /**
      * Wipes <b>all</b> {@link User} entries from the database.
-     * <b>This should never be used</b>, except when preparing tables for migration.
-     *
-     * @see Migrator#start()
+     * <b>This should only be used when preparing tables for a data migration.</b>
      */
     public abstract void wipeDatabase();
 

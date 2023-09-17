@@ -85,7 +85,7 @@ public class PlanDataExtension implements DataExtension {
     // Get the user's latest data snapshot
     private Optional<DataSnapshot.Unpacked> getLatestSnapshot(@NotNull UUID uuid) {
         return plugin.getDatabase().getUser(uuid)
-                .flatMap(user -> plugin.getDatabase().getLatestDataSnapshot(user))
+                .flatMap(user -> plugin.getDatabase().getLatestSnapshot(user))
                 .map(snapshot -> snapshot.unpack(plugin));
     }
 
@@ -224,7 +224,7 @@ public class PlanDataExtension implements DataExtension {
                 .columnThree("Cause", new Icon(Family.SOLID, "flag", Color.NONE))
                 .columnFour("Pinned", new Icon(Family.SOLID, "thumbtack", Color.NONE));
         plugin.getDatabase().getUser(playerUUID).ifPresent(user ->
-                plugin.getDatabase().getDataSnapshots(user).forEach(snapshot -> dataSnapshotsTable.addRow(
+                plugin.getDatabase().getAllSnapshots(user).forEach(snapshot -> dataSnapshotsTable.addRow(
                         snapshot.getTimestamp().toEpochSecond(),
                         snapshot.getShortId(),
                         snapshot.getSaveCause().getDisplayName(),

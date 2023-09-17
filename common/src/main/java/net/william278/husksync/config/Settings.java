@@ -305,7 +305,7 @@ public class Settings {
         return maxUserDataSnapshots;
     }
 
-    public int getSnapshotBackupFrequency() {
+    public int getBackupFrequency() {
         return snapshotBackupFrequency;
     }
 

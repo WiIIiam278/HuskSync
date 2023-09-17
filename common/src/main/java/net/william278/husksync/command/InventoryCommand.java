@@ -71,7 +71,7 @@ public class InventoryCommand extends ItemsCommand {
     // Creates a new snapshot with the updated inventory
     @SuppressWarnings("DuplicatedCode")
     private void updateItems(@NotNull OnlineUser viewer, @NotNull Data.Items.Items items, @NotNull User user) {
-        final Optional<DataSnapshot.Packed> latestData = plugin.getDatabase().getLatestDataSnapshot(user);
+        final Optional<DataSnapshot.Packed> latestData = plugin.getDatabase().getLatestSnapshot(user);
         if (latestData.isEmpty()) {
             plugin.getLocales().getLocale("error_no_data_to_display")
                     .ifPresent(viewer::sendMessage);
@@ -81,11 +81,11 @@ public class InventoryCommand extends ItemsCommand {
         // Create and pack the snapshot with the updated inventory
         final DataSnapshot.Packed snapshot = latestData.get().copy();
         snapshot.edit(plugin, (data) -> {
-            data.setPinned(plugin.getSettings().doAutoPin(DataSnapshot.SaveCause.INVENTORY_COMMAND));
             data.setSaveCause(DataSnapshot.SaveCause.INVENTORY_COMMAND);
+            data.setPinned(plugin.getSettings().doAutoPin(DataSnapshot.SaveCause.INVENTORY_COMMAND));
             data.getInventory().ifPresent(inventory -> inventory.setContents(items));
         });
-        plugin.getDatabase().setUserData(user, snapshot);
+        plugin.getDatabase().setSnapshot(user, snapshot);
         plugin.getRedisManager().sendUserDataUpdate(user, snapshot);
     }
 

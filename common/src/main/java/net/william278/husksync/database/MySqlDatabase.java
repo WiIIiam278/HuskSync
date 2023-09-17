@@ -29,6 +29,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.sql.*;
+import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.logging.Level;
 
@@ -202,37 +203,12 @@ public class MySqlDatabase extends Database {
     }
 
     @Override
-    public Optional<DataSnapshot.Packed> getLatestDataSnapshot(@NotNull User user) {
+    public Optional<DataSnapshot.Packed> getLatestSnapshot(@NotNull User user) {
         try (Connection connection = getConnection()) {
             try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
                     SELECT `version_uuid`, `timestamp`, `save_cause`, `pinned`, `data`
                     FROM `%user_data_table%`
                     WHERE `player_uuid`=?
-                    ORDER BY `timestamp` DESC
-                    LIMIT 1;"""))) {
-                statement.setString(1, user.getUuid().toString());
-                final ResultSet resultSet = statement.executeQuery();
-                if (resultSet.next()) {
-                    final Blob blob = resultSet.getBlob("data");
-                    final byte[] dataByteArray = blob.getBytes(1, (int) blob.length());
-                    blob.free();
-                    return Optional.of(DataSnapshot.deserialize(plugin, dataByteArray));
-                }
-            }
-        } catch (SQLException | DataAdapter.AdaptionException e) {
-            plugin.log(Level.SEVERE, "Failed to fetch a user's current user data from the database", e);
-        }
-        return Optional.empty();
-    }
-
-    @Override
-    public Optional<DataSnapshot.Packed> getLatestUnpinnedDataSnapshot(@NotNull User user) {
-        try (Connection connection = getConnection()) {
-            try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
-                    SELECT `version_uuid`, `timestamp`, `save_cause`, `pinned`, `data`
-                    FROM `%user_data_table%`
-                    WHERE `player_uuid`=?
-                    AND `pinned` IS FALSE
                     ORDER BY `timestamp` DESC
                     LIMIT 1;"""))) {
                 statement.setString(1, user.getUuid().toString());
@@ -252,7 +228,7 @@ public class MySqlDatabase extends Database {
 
     @Override
     @NotNull
-    public List<DataSnapshot.Packed> getDataSnapshots(@NotNull User user) {
+    public List<DataSnapshot.Packed> getAllSnapshots(@NotNull User user) {
         final List<DataSnapshot.Packed> retrievedData = new ArrayList<>();
         try (Connection connection = getConnection()) {
             try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
@@ -277,7 +253,7 @@ public class MySqlDatabase extends Database {
     }
 
     @Override
-    public Optional<DataSnapshot.Packed> getDataSnapshot(@NotNull User user, @NotNull UUID versionUuid) {
+    public Optional<DataSnapshot.Packed> getSnapshot(@NotNull User user, @NotNull UUID versionUuid) {
         try (Connection connection = getConnection()) {
             try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
                     SELECT `version_uuid`, `timestamp`, `save_cause`, `pinned`, `data`
@@ -302,8 +278,8 @@ public class MySqlDatabase extends Database {
     }
 
     @Override
-    protected void rotateUserData(@NotNull User user) {
-        final List<DataSnapshot.Packed> unpinnedUserData = getDataSnapshots(user).stream()
+    protected void rotateSnapshots(@NotNull User user) {
+        final List<DataSnapshot.Packed> unpinnedUserData = getAllSnapshots(user).stream()
                 .filter(dataSnapshot -> !dataSnapshot.isPinned()).toList();
         if (unpinnedUserData.size() > plugin.getSettings().getMaxUserDataSnapshots()) {
             try (Connection connection = getConnection()) {
@@ -324,7 +300,7 @@ public class MySqlDatabase extends Database {
     }
 
     @Override
-    public boolean deleteUserData(@NotNull User user, @NotNull UUID versionUuid) {
+    public boolean deleteSnapshot(@NotNull User user, @NotNull UUID versionUuid) {
         try (Connection connection = getConnection()) {
             try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
                     DELETE FROM `%user_data_table%`
@@ -341,17 +317,35 @@ public class MySqlDatabase extends Database {
     }
 
     @Override
-    protected void createDataSnapshot(@NotNull User user, @NotNull DataSnapshot.Packed data) {
+    protected void rotateLatestSnapshot(@NotNull User user, @NotNull OffsetDateTime within) {
+        try (Connection connection = getConnection()) {
+            try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
+                    DELETE FROM `%user_data_table%`
+                    WHERE `player_uuid`=? AND `timestamp`>? AND `pinned` IS FALSE
+                    ORDER BY `timestamp` ASC
+                    LIMIT 1;"""))) {
+                statement.setString(1, user.getUuid().toString());
+                statement.setTimestamp(2, Timestamp.from(within.toInstant()));
+                statement.executeUpdate();
+            }
+        } catch (SQLException e) {
+            plugin.log(Level.SEVERE, "Failed to delete a user's data from the database", e);
+        }
+    }
+
+    @Override
+    protected void createSnapshot(@NotNull User user, @NotNull DataSnapshot.Packed data) {
         try (Connection connection = getConnection()) {
             try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
                     INSERT INTO `%user_data_table%`
-                    (`player_uuid`,`version_uuid`,`timestamp`,`save_cause`,`data`)
-                    VALUES (?,?,?,?,?);"""))) {
+                    (`player_uuid`,`version_uuid`,`timestamp`,`save_cause`,`pinned`,`data`)
+                    VALUES (?,?,?,?,?,?);"""))) {
                 statement.setString(1, user.getUuid().toString());
                 statement.setString(2, data.getId().toString());
                 statement.setTimestamp(3, Timestamp.from(data.getTimestamp().toInstant()));
                 statement.setString(4, data.getSaveCause().name());
-                statement.setBlob(5, new ByteArrayInputStream(data.asBytes(plugin)));
+                statement.setBoolean(5, data.isPinned());
+                statement.setBlob(6, new ByteArrayInputStream(data.asBytes(plugin)));
                 statement.executeUpdate();
             }
         } catch (SQLException | DataAdapter.AdaptionException e) {
@@ -360,15 +354,15 @@ public class MySqlDatabase extends Database {
     }
 
     @Override
-    public void updateUserData(@NotNull User user, @NotNull UUID versionUuid, @NotNull DataSnapshot.Packed data) {
+    public void updateSnapshot(@NotNull User user, @NotNull UUID versionUuid, @NotNull DataSnapshot.Packed data) {
         try (Connection connection = getConnection()) {
             try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
                     UPDATE `%user_data_table%`
-                    SET `pinned`=?,`save_cause`=?,`data`=?
+                    SET `save_cause`=?,`pinned`=?,`data`=?
                     WHERE `player_uuid`=? AND `version_uuid`=?
                     LIMIT 1;"""))) {
-                statement.setBoolean(1, data.isPinned());
-                statement.setString(2, data.getSaveCause().name());
+                statement.setString(1, data.getSaveCause().name());
+                statement.setBoolean(2, data.isPinned());
                 statement.setBlob(3, new ByteArrayInputStream(data.asBytes(plugin)));
                 statement.setString(4, user.getUuid().toString());
                 statement.setString(5, versionUuid.toString());

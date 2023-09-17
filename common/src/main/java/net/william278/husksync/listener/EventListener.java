@@ -107,7 +107,7 @@ public abstract class EventListener {
      * @param user The user to set the data for
      */
     private void setUserFromDatabase(@NotNull OnlineUser user) {
-        plugin.getDatabase().getLatestDataSnapshot(user).ifPresentOrElse(
+        plugin.getDatabase().getLatestSnapshot(user).ifPresentOrElse(
                 user::applySnapshot, () -> user.completeSync(true, plugin)
         );
     }
@@ -134,7 +134,7 @@ public abstract class EventListener {
             plugin.getRedisManager().setUserServerSwitch(user).thenRun(() -> {
                 final DataSnapshot.Packed data = user.createSnapshot(DataSnapshot.SaveCause.DISCONNECT);
                 plugin.getRedisManager().setUserData(user, data);
-                plugin.getDatabase().setUserData(user, data);
+                plugin.getDatabase().setSnapshot(user, data);
             });
         } catch (Throwable e) {
             plugin.log(Level.SEVERE, "An exception occurred handling a player disconnection", e);
@@ -152,7 +152,7 @@ public abstract class EventListener {
         }
         usersInWorld.stream()
                 .filter(user -> !lockedPlayers.contains(user.getUuid()) && !user.isNpc())
-                .forEach(user -> plugin.getDatabase().setUserData(
+                .forEach(user -> plugin.getDatabase().setSnapshot(
                         user, user.createSnapshot(DataSnapshot.SaveCause.WORLD_SAVE)
                 ));
     }
@@ -171,7 +171,7 @@ public abstract class EventListener {
 
         final DataSnapshot.Packed snapshot = user.createSnapshot(DataSnapshot.SaveCause.DEATH);
         snapshot.edit(plugin, (data -> data.getInventory().ifPresent(inventory -> inventory.setContents(drops))));
-        plugin.getDatabase().setUserData(user, snapshot);
+        plugin.getDatabase().setSnapshot(user, snapshot);
     }
 
     /**
@@ -195,7 +195,7 @@ public abstract class EventListener {
                 .filter(user -> !lockedPlayers.contains(user.getUuid()) && !user.isNpc())
                 .forEach(user -> {
                     lockedPlayers.add(user.getUuid());
-                    plugin.getDatabase().setUserData(user, user.createSnapshot(DataSnapshot.SaveCause.SERVER_SHUTDOWN));
+                    plugin.getDatabase().setSnapshot(user, user.createSnapshot(DataSnapshot.SaveCause.SERVER_SHUTDOWN));
                 });
 
         // Close outstanding connections

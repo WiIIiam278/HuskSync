@@ -74,7 +74,7 @@ public class UserDataCommand extends Command implements TabProvider {
                         final UUID versionUuid = UUID.fromString(args[2]);
                         plugin.getDatabase()
                                 .getUserByName(username.toLowerCase(Locale.ENGLISH))
-                                .ifPresentOrElse(user -> plugin.getDatabase().getDataSnapshot(user, versionUuid).ifPresentOrElse(
+                                .ifPresentOrElse(user -> plugin.getDatabase().getSnapshot(user, versionUuid).ifPresentOrElse(
                                                 data -> DataSnapshotOverview.of(
                                                         data.unpack(plugin), data.getFileSize(plugin), user, plugin
                                                 ).show(executor),
@@ -90,7 +90,7 @@ public class UserDataCommand extends Command implements TabProvider {
                 } else {
                     plugin.getDatabase()
                             .getUserByName(username.toLowerCase(Locale.ENGLISH))
-                            .ifPresentOrElse(user -> plugin.getDatabase().getLatestDataSnapshot(user).ifPresentOrElse(
+                            .ifPresentOrElse(user -> plugin.getDatabase().getLatestSnapshot(user).ifPresentOrElse(
                                             data -> DataSnapshotOverview.of(
                                                     data.unpack(plugin), data.getFileSize(plugin), user, plugin
                                             ).show(executor),
@@ -111,7 +111,7 @@ public class UserDataCommand extends Command implements TabProvider {
                 plugin.getDatabase().getUserByName(username.toLowerCase(Locale.ENGLISH)).ifPresentOrElse(
                         (user) -> {
                             // Check if there is data to display
-                            final List<DataSnapshot.Packed> dataList = plugin.getDatabase().getDataSnapshots(user);
+                            final List<DataSnapshot.Packed> dataList = plugin.getDatabase().getAllSnapshots(user);
                             if (dataList.isEmpty()) {
                                 plugin.getLocales().getLocale("error_no_data_to_display")
                                         .ifPresent(executor::sendMessage);
@@ -149,7 +149,7 @@ public class UserDataCommand extends Command implements TabProvider {
                 try {
                     final UUID versionUuid = UUID.fromString(args[2]);
                     plugin.getDatabase().getUserByName(username.toLowerCase(Locale.ENGLISH)).ifPresentOrElse(user -> {
-                                if (plugin.getDatabase().deleteUserData(user, versionUuid)) {
+                                if (plugin.getDatabase().deleteSnapshot(user, versionUuid)) {
                                     plugin.getLocales().getLocale("data_deleted",
                                                     versionUuid.toString().split("-")[0],
                                                     versionUuid.toString(),
@@ -189,7 +189,7 @@ public class UserDataCommand extends Command implements TabProvider {
 
                 final User user = optionalUser.get();
                 final UUID version = optionalUuid.get();
-                final Optional<DataSnapshot.Packed> optionalData = plugin.getDatabase().getDataSnapshot(user, version);
+                final Optional<DataSnapshot.Packed> optionalData = plugin.getDatabase().getSnapshot(user, version);
                 if (optionalData.isEmpty()) {
                     plugin.getLocales().getLocale("error_invalid_version_uuid")
                             .ifPresent(executor::sendMessage);
@@ -205,7 +205,7 @@ public class UserDataCommand extends Command implements TabProvider {
                 }));
 
                 // Set the user's data and send a message
-                plugin.getDatabase().setUserData(user, data);
+                plugin.getDatabase().setSnapshot(user, data);
                 plugin.getRedisManager().sendUserDataUpdate(user, data);
                 plugin.getLocales().getLocale("data_restored",
                                 user.getUsername(),
@@ -226,9 +226,9 @@ public class UserDataCommand extends Command implements TabProvider {
                 try {
                     final UUID versionUuid = UUID.fromString(args[2]);
                     plugin.getDatabase().getUserByName(username.toLowerCase(Locale.ENGLISH)).ifPresentOrElse(
-                            user -> plugin.getDatabase().getDataSnapshot(user, versionUuid).ifPresentOrElse(userData -> {
+                            user -> plugin.getDatabase().getSnapshot(user, versionUuid).ifPresentOrElse(userData -> {
                                 if (userData.isPinned()) {
-                                    plugin.getDatabase().unpinUserData(user, versionUuid);
+                                    plugin.getDatabase().unpinSnapshot(user, versionUuid);
                                     plugin.getLocales().getLocale("data_unpinned",
                                                     versionUuid.toString().split("-")[0],
                                                     versionUuid.toString(),
@@ -236,7 +236,7 @@ public class UserDataCommand extends Command implements TabProvider {
                                                     user.getUuid().toString())
                                             .ifPresent(executor::sendMessage);
                                 } else {
-                                    plugin.getDatabase().pinUserData(user, versionUuid);
+                                    plugin.getDatabase().pinSnapshot(user, versionUuid);
                                     plugin.getLocales().getLocale("data_pinned",
                                                     versionUuid.toString().split("-")[0],
                                                     versionUuid.toString(),
@@ -269,7 +269,7 @@ public class UserDataCommand extends Command implements TabProvider {
                     plugin.getDatabase()
                             .getUserByName(username.toLowerCase(Locale.ENGLISH))
                             .ifPresentOrElse(
-                                    user -> plugin.getDatabase().getDataSnapshot(user, versionUuid).ifPresentOrElse(userData -> {
+                                    user -> plugin.getDatabase().getSnapshot(user, versionUuid).ifPresentOrElse(userData -> {
                                         try {
                                             final DataDumper dumper = DataDumper.create(userData, user, plugin);
                                             final String result = toWeb ? dumper.toWeb() : dumper.toFile();
