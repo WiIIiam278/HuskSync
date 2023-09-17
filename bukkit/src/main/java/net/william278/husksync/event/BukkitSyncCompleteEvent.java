@@ -20,7 +20,7 @@
 package net.william278.husksync.event;
 
 import net.william278.husksync.HuskSync;
-import net.william278.husksync.player.OnlineUser;
+import net.william278.husksync.user.OnlineUser;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
 

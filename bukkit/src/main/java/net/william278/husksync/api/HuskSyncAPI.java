@@ -20,9 +20,9 @@
 package net.william278.husksync.api;
 
 import net.william278.husksync.BukkitHuskSync;
-import net.william278.husksync.player.BukkitUser;
-import net.william278.husksync.player.OnlineUser;
-import net.william278.husksync.player.User;
+import net.william278.husksync.user.BukkitUser;
+import net.william278.husksync.user.OnlineUser;
+import net.william278.husksync.user.User;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;

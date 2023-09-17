@@ -21,8 +21,8 @@ package net.william278.husksync.command;
 
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.data.DataSnapshot;
-import net.william278.husksync.player.CommandUser;
-import net.william278.husksync.player.User;
+import net.william278.husksync.user.CommandUser;
+import net.william278.husksync.user.User;
 import net.william278.husksync.util.DataDumper;
 import net.william278.husksync.util.DataSnapshotList;
 import net.william278.husksync.util.DataSnapshotOverview;

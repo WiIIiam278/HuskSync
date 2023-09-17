@@ -21,8 +21,8 @@ package net.william278.husksync.event;
 
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.data.DataSnapshot;
-import net.william278.husksync.player.OnlineUser;
-import net.william278.husksync.player.User;
+import net.william278.husksync.user.OnlineUser;
+import net.william278.husksync.user.User;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

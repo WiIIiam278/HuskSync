@@ -20,7 +20,7 @@
 package net.william278.husksync.listener;
 
 import net.william278.husksync.HuskSync;
-import net.william278.husksync.player.BukkitUser;
+import net.william278.husksync.user.BukkitUser;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;

@@ -26,8 +26,8 @@ import net.william278.desertwell.about.AboutMenu;
 import net.william278.desertwell.util.UpdateChecker;
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.migrator.Migrator;
-import net.william278.husksync.player.CommandUser;
-import net.william278.husksync.player.OnlineUser;
+import net.william278.husksync.user.CommandUser;
+import net.william278.husksync.user.OnlineUser;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

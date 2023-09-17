@@ -23,8 +23,8 @@ import net.william278.husksync.HuskSync;
 import net.william278.husksync.config.Locales;
 import net.william278.husksync.data.Data;
 import net.william278.husksync.data.DataSnapshot;
-import net.william278.husksync.player.CommandUser;
-import net.william278.husksync.player.User;
+import net.william278.husksync.user.CommandUser;
+import net.william278.husksync.user.User;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.format.DateTimeFormatter;

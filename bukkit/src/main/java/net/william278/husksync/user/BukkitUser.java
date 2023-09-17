@@ -17,7 +17,7 @@
  *  limitations under the License.
  */
 
-package net.william278.husksync.player;
+package net.william278.husksync.user;
 
 import de.themoep.minedown.adventure.MineDown;
 import dev.triumphteam.gui.builder.gui.StorageBuilder;

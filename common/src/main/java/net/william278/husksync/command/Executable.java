@@ -19,7 +19,7 @@
 
 package net.william278.husksync.command;
 
-import net.william278.husksync.player.CommandUser;
+import net.william278.husksync.user.CommandUser;
 import org.jetbrains.annotations.NotNull;
 
 public interface Executable {

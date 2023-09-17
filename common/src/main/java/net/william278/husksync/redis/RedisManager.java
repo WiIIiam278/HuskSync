@@ -21,7 +21,7 @@ package net.william278.husksync.redis;
 
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.data.DataSnapshot;
-import net.william278.husksync.player.User;
+import net.william278.husksync.user.User;
 import org.jetbrains.annotations.NotNull;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;

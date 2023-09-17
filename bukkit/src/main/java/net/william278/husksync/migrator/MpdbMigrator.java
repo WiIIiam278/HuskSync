@@ -25,7 +25,7 @@ import net.william278.husksync.HuskSync;
 import net.william278.husksync.data.BukkitData;
 import net.william278.husksync.data.DataSnapshot;
 import net.william278.husksync.data.Identifier;
-import net.william278.husksync.player.User;
+import net.william278.husksync.user.User;
 import net.william278.mpdbconverter.MPDBConverter;
 import org.bukkit.Bukkit;
 import org.bukkit.event.inventory.InventoryType;

@@ -26,7 +26,7 @@ import net.william278.desertwell.util.ThrowingConsumer;
 import net.william278.husksync.BukkitHuskSync;
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.adapter.Adaptable;
-import net.william278.husksync.player.BukkitUser;
+import net.william278.husksync.user.BukkitUser;
 import org.apache.commons.lang.NotImplementedException;
 import org.bukkit.Bukkit;
 import org.bukkit.GameRule;

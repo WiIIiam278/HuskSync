@@ -19,7 +19,7 @@
 
 package net.william278.husksync.event;
 
-import net.william278.husksync.player.OnlineUser;
+import net.william278.husksync.user.OnlineUser;
 import org.jetbrains.annotations.NotNull;
 
 public interface PlayerEvent extends Event {

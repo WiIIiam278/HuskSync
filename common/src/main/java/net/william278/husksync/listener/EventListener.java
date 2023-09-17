@@ -22,7 +22,7 @@ package net.william278.husksync.listener;
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.data.Data;
 import net.william278.husksync.data.DataSnapshot;
-import net.william278.husksync.player.OnlineUser;
+import net.william278.husksync.user.OnlineUser;
 import net.william278.husksync.util.Task;
 import org.jetbrains.annotations.NotNull;
 

@@ -22,8 +22,8 @@ package net.william278.husksync.command;
 
 import me.lucko.commodore.CommodoreProvider;
 import net.william278.husksync.BukkitHuskSync;
-import net.william278.husksync.player.BukkitUser;
-import net.william278.husksync.player.CommandUser;
+import net.william278.husksync.user.BukkitUser;
+import net.william278.husksync.user.CommandUser;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.permissions.Permission;

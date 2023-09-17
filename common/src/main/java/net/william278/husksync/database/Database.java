@@ -24,7 +24,7 @@ import net.william278.husksync.config.Settings;
 import net.william278.husksync.data.DataSnapshot;
 import net.william278.husksync.data.DataSnapshot.SaveCause;
 import net.william278.husksync.data.PlayerDataHolder;
-import net.william278.husksync.player.User;
+import net.william278.husksync.user.User;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;

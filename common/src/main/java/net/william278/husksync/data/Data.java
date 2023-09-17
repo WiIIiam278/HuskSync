@@ -21,7 +21,7 @@ package net.william278.husksync.data;
 
 import com.google.gson.annotations.SerializedName;
 import net.william278.husksync.HuskSync;
-import net.william278.husksync.player.OnlineUser;
+import net.william278.husksync.user.OnlineUser;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
