@@ -159,7 +159,7 @@ public class UserDataCommand extends Command implements TabProvider {
             case "pin" -> {
                 if (optionalUuid.isEmpty()) {
                     plugin.getLocales().getLocale("error_invalid_syntax",
-                                    "/userdata delete <username> <version_uuid>")
+                                    "/userdata pin <username> <version_uuid>")
                             .ifPresent(executor::sendMessage);
                     return;
                 }
@@ -187,7 +187,7 @@ public class UserDataCommand extends Command implements TabProvider {
             case "dump" -> {
                 if (optionalUuid.isEmpty()) {
                     plugin.getLocales().getLocale("error_invalid_syntax",
-                                    "/userdata delete <username> <version_uuid>")
+                                    "/userdata dump <username> <version_uuid>")
                             .ifPresent(executor::sendMessage);
                     return;
                 }
