@@ -57,7 +57,8 @@ public class UserDataCommand extends Command implements TabProvider {
         final Optional<User> optionalUser = parseStringArg(args, 1)
                 .flatMap(name -> plugin.getDatabase().getUserByName(name))
                 .or(() -> parseStringArg(args, 0).flatMap(name -> plugin.getDatabase().getUserByName(name)))
-                .or(() -> executor instanceof User userExecutor ? Optional.of(userExecutor) : Optional.empty());
+                .or(() -> args.length < 2 && executor instanceof User userExecutor
+                        ? Optional.of(userExecutor) : Optional.empty());
         final Optional<UUID> optionalUuid = parseUUIDArg(args, 2).or(() -> parseUUIDArg(args, 1));
         if (optionalUser.isEmpty()) {
             plugin.getLocales().getLocale("error_invalid_player")

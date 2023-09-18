@@ -6,23 +6,26 @@ HuskSync creates what is known as "Snapshots" of a user's data whenever it saves
 Each user data snapshot has:
 - a unique ID
 - a timestamp (when it was created)
-- a save saveCause (why it was created)
+- a save cause (why it was created)
 - a flag to indicate if the snapshot has been pinned (preventing it from being rotated)
+- a map of saved data
 
-By default, HuskSync will store 5 user data snapshots about a user (including their latest snapshot). After that, when a new user snapshot is set, the oldest snapshot will automatically be deleted. You can change the number of snapshots to keep by changing the `max_user_data_snapshots` setting in the `config.yml` file (minimum 1).
+By default, HuskSync will automatically replace the user's current snapshot in the database if it has been less than 8 hours since the last snapshot was created. This can be changed in the `config.yml` file by changing the `snapshot_backup_frequency` setting under `synchronization`. Setting this to "0" will save a new snapshot each time data is saved.
 
-Pinned user data snapshots are exempt from being rotated and can only be deleted manually in-game.
+HuskSync will keep the 20 most recent data snapshots for each user (including their current data). After that, when a new user snapshot is set, the oldest snapshot will automatically be deleted. You can change the number of snapshots to keep by changing the `max_user_data_snapshots` setting (minimum 1).
+
+Pinned user data snapshots are exempt from being replaced/rotated and can only be deleted manually in-game.
 
 ## Viewing user data
 To view a list of a user's snapshots, use `/userdata list <username>`. Their most recent snapshots will be listed from the database, from newest to oldest. You can click the buttons to navigate through their pages.
 
-[![Data snapshot list](https://raw.githubusercontent.com/WiIIiam278/HuskSync/master/images/data-snapshot-list.png)](#)
+![Data snapshot list](https://raw.githubusercontent.com/WiIIiam278/HuskSync/master/images/data-snapshot-list.png)
 
 Snapshots marked with a star after the number have been pinned. Hover over it to view more information.
 
 You can then click on the items in the list in chat to view an overview of each snapshot. Alternatively, to view a user's most recent data snapshot, use `/userdata view <username>`.
 
-[![Data snapshot viewer](https://raw.githubusercontent.com/WiIIiam278/HuskSync/master/images/data-snapshot-viewer.png)](#)
+[Data snapshot viewer](https://raw.githubusercontent.com/WiIIiam278/HuskSync/master/images/data-snapshot-viewer.png)
 
 ## Managing user data
 You can use the "Manage" buttons to manage user data. These buttons will only appear if you have the userdata command manage permission. (See [[Commands]]) 

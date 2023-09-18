@@ -139,7 +139,7 @@ public class Settings {
     @YamlKey("synchronization.max_user_data_snapshots")
     private int maxUserDataSnapshots = 16;
 
-    @YamlComment("The frequency, in hours, which snapshots will be backed up (set to 0 to constantly rotate snapshots)")
+    @YamlComment("Number of hours between new snapshots being saved as backups (Use \"0\" to backup all snapshots)")
     @YamlKey("synchronization.snapshot_backup_frequency")
     private int snapshotBackupFrequency = 8;
 
