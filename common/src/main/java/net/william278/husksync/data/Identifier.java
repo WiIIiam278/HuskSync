@@ -99,7 +99,7 @@ public class Identifier {
     }
 
     public boolean isCustom() {
-        return getKeyNamespace().equals("husksync");
+        return !getKeyNamespace().equals("husksync");
     }
 
     @Override
