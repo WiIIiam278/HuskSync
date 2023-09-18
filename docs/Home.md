@@ -18,9 +18,11 @@ Welcome! This is the plugin documentation for HuskSync v2.x+. Please click throu
 * ☂️ [[Dumping UserData]]
 * 📋 [[Event Priorities]]
 * ⚔️ [[Keep Inventory]]
-* 📦 [[API]]
-  * 📝 [[UserData API]]
+* 📦 [[API]] v3
+  * 📝 [[Snapshot API]]
+  * 📝 [[Custom Data API]]
   * ❗ [[API Events]]
+* 🕸️ [[API v2]] _(Legacy)_
 
 ## Links
 * 💻 [GitHub](https://github.com/WiIIiam278/HuskSync)

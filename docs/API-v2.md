@@ -1,69 +1,18 @@
-HuskSync provides an API for fetching and retrieving `UserData`; a snapshot of a user's synchronization.
+> **Warning:** API v2 is no longer supported or compatible with HuskSync v3.0. See [[Data Snapshot API]] for the equivalent v3 API. 🚨
 
-This page assumes you've read the [[API]] introduction and have imported the HuskSync API into your repository.
+HuskSync v2.0 provides an API for fetching and retrieving `UserData`; a snapshot of a user's synchronization.
 
-## Table of contents
-1. Creating a class to interface with the API
-2. Checking if HuskSync is present and creating the hook
-3. Getting an instance of the API
-4. Getting a user by UUID
-5. Getting a user's data
-6. Getting a user's data
-7. Getting a user's inventory contents
-8. Updating a user's data
+This page assumes you've read the general [[API]] introduction and imported HuskSync (v2.x) into your project, and added it as a dependency.
 
-## 1. Creating a class to interface with the API
-- Unless your plugin completely relies on HuskSync, you shouldn't put HuskSync API calls into your main class, otherwise if HuskSync is not installed you'll encounter `ClassNotFoundException`s
+🚨 HuskSync API v2 only targets HuskSync v2.0-2.2.8. It is **not compatible with HuskSync v3.0+**. The equivalent API for HuskSync v3 is the [[Data Snapshot API]].
 
-```java
-public class HuskSyncAPIHook {
+## Table of Contents
+1. [Getting a user by UUID](#1-getting-a-user-by-uuid)
+2. [Getting a user's data](#2-getting-a-users-data)
+3. [Getting a user's inventory contents](#3-getting-a-users-inventory-contents)
+4. [Updating a user's data](#4-updating-a-users-data)
 
-    public HuskSyncAPIHook() {
-        // Ready to do stuff with the API
-    }
-
-}
-```
-## 2. Checking if HuskSync is present and creating the hook
-- Check to make sure the HuskSync plugin is present before instantiating the API hook class
-
-```java
-public class MyPlugin extends JavaPlugin {
-
-    public HuskSyncAPIHook huskSyncAPIHook;
-
-    @Override
-    public void onEnable() {
-        if (Bukkit.getPluginManager().getPlugin("HuskSync") != null) {
-            this.huskSyncAPIHook = new HuskSyncAPIHook();
-        }
-    }
-}
-```
-
-## 3. Getting an instance of the API
-- You can now get the API instance by calling `HuskSyncAPI#getInstance()`
-
-```java
-import net.william278.husksync.api.BukkitHuskSyncAPI;
-
-public class HuskSyncAPIHook {
-
-    private final HuskSyncAPI huskSyncAPI;
-
-    public HuskSyncAPIHook() {
-        this.huskSyncAPI = HuskSyncAPI.getInstance();
-    }
-
-}
-```
-
-## 4. CompletableFuture and Optional basics
-- HuskSync's API methods return `CompletableFuture`s and `Optional`s.
-- A `CompletableFuture` is an asynchronous callback mechanism. The method will be processed asynchronously and the data returned when it has been retrieved. While you can use `CompletableFuture#join()` to block the thread until the future has finished processing, it's smarter to use `CompletableFuture#thenAccept(data -> {})` to do what you want to do with the `data` you requested after it has asynchronously been retrieved, to prevent lag.
-- An `Optional` is a null-safe representation of data, or no data. You can check if the Optional is empty via `Optional#isEmpty()` (which will be returned by the API if no data could be found for the call you made). If the optional does contain data, you can get it via `Optional#get()`.
-
-## 5. Getting a user by UUID
+## 1. Getting a user by UUID
 - HuskSync has a `User` object, representing a user saved in the database. You can retrieve a user using `HuskSyncAPI#getUser(uuid)`
 - If you have an online `org.bukkit.Player` object, you can use `BukkitPlayer#adapt(player)` to get an `OnlineUser` (extends `User`), representing a logged-in user. 
 
@@ -94,7 +43,7 @@ public class HuskSyncAPIHook {
 }
 ```
 
-## 6. Getting a user's data
+## 2. Getting a user's data
 - With a `User` object, we can now call `HuskSyncAPI#getUserData()` to fetch their latest data
 - The `UserData` object contains eight data "modules", each holding certain parts of information. 
 - UserData does not have to contain any single data "module"; the modules contained in a given UserData object when user data is saved by the plugin are determined by the plugin config settings. 
@@ -139,7 +88,7 @@ public class HuskSyncAPIHook {
 }
 ```
 
-## 7. Getting a user's inventory contents
+## 3. Getting a user's inventory contents
 - The API provides methods for deserialzing `ItemData` used to hold Base 64 serialized inventory and ender chest `ItemStack` array contents into actual `ItemStack` array data.
 - For deserialziing inventories, use `HuskSyncAPI#deserializeInventory(serializedItems)`
 - For deserialziing ender chests, use `HuskSyncAPI#deserializeItemStackArray(serializedItems)`
@@ -212,7 +161,7 @@ private void printEnderChestItems(User user) {
 </details>
 
 
-## 8. Updating a user's data
+## 4. Updating a user's data
 - You can use `HuskSyncAPI#setUserData(user, userData)` to set a user's modified data to the database.
 - If you need to modify user data every time it's updated, you may want to look at listening to one of HuskSync's provided events instead.
 - You can use `HuskSyncAPI#serializeItemStackArray(itemStack[])` to serialize an array of ItemStacks into Base 64.
