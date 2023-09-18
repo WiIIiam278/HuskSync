@@ -146,23 +146,27 @@ public class RedisManager extends JedisPubSub {
                 .map(online -> CompletableFuture.completedFuture(
                         Optional.of(online.createSnapshot(DataSnapshot.SaveCause.API)))
                 )
-                .orElse(requestData(requestId, user));
+                .orElse(this.requestData(requestId, user));
     }
 
-    private CompletableFuture<Optional<DataSnapshot.Packed>> requestData(@NotNull UUID requester, @NotNull User user) {
+    private CompletableFuture<Optional<DataSnapshot.Packed>> requestData(@NotNull UUID requestId, @NotNull User user) {
         final CompletableFuture<Optional<DataSnapshot.Packed>> future = new CompletableFuture<>();
-        pendingRequests.put(requester, future);
+        pendingRequests.put(requestId, future);
         plugin.runAsync(() -> {
             final RedisMessage redisMessage = new RedisMessage(
                     user.getUuid(),
-                    requester.toString().getBytes(StandardCharsets.UTF_8)
+                    requestId.toString().getBytes(StandardCharsets.UTF_8)
             );
             redisMessage.dispatch(plugin, RedisMessageType.REQUEST_USER_DATA);
         });
-        future.orTimeout(
-                plugin.getSettings().getNetworkLatencyMilliseconds() * 2L, TimeUnit.MILLISECONDS
-        ).exceptionally(throwable -> Optional.empty());
-        return future;
+        return future.orTimeout(
+                        plugin.getSettings().getNetworkLatencyMilliseconds(),
+                        TimeUnit.MILLISECONDS
+                )
+                .exceptionally(throwable -> {
+                    pendingRequests.remove(requestId);
+                    return Optional.empty();
+                });
     }
 
     /**

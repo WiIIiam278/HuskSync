@@ -143,6 +143,18 @@ public class Settings {
     @YamlKey("synchronization.snapshot_backup_frequency")
     private int snapshotBackupFrequency = 8;
 
+    @YamlComment("List of save cause IDs for which a snapshot will be automatically pinned (so it won't be rotated)."
+            + " Docs: https://william278.net/docs/husksync/data-rotation#save-causes")
+    @YamlKey("synchronization.auto_pinned_save_causes")
+    private List<String> autoPinnedSaveCauses = List.of(
+            DataSnapshot.SaveCause.INVENTORY_COMMAND.name(),
+            DataSnapshot.SaveCause.ENDERCHEST_COMMAND.name(),
+            DataSnapshot.SaveCause.BACKUP_RESTORE.name(),
+            DataSnapshot.SaveCause.CONVERTED_FROM_V2.name(),
+            DataSnapshot.SaveCause.LEGACY_MIGRATION.name(),
+            DataSnapshot.SaveCause.MPDB_MIGRATION.name()
+    );
+
     @YamlComment("Whether to create a snapshot for users on a world when the server saves that world")
     @YamlKey("synchronization.save_on_world_save")
     private boolean saveOnWorldSave = true;
@@ -159,17 +171,6 @@ public class Settings {
     @YamlKey("synchronization.compress_data")
     private boolean compressData = true;
 
-    @YamlComment("List of save cause IDs for which a snapshot will be automatically pinned (so it won't be rotated).")
-    @YamlKey("synchronization.auto_pinned_save_causes")
-    private List<DataSnapshot.SaveCause> autoPinnedSaveCauses = List.of(
-            DataSnapshot.SaveCause.INVENTORY_COMMAND,
-            DataSnapshot.SaveCause.ENDERCHEST_COMMAND,
-            DataSnapshot.SaveCause.BACKUP_RESTORE,
-            DataSnapshot.SaveCause.CONVERTED_FROM_V2,
-            DataSnapshot.SaveCause.LEGACY_MIGRATION,
-            DataSnapshot.SaveCause.MPDB_MIGRATION
-    );
-
     @YamlComment("Where to display sync notifications (ACTION_BAR, CHAT, TOAST or NONE)")
     @YamlKey("synchronization.notification_display_slot")
     private Locales.NotificationSlot notificationSlot = Locales.NotificationSlot.ACTION_BAR;
@@ -184,7 +185,7 @@ public class Settings {
     private boolean synchronizeDeadPlayersChangingServer = true;
 
     @YamlComment("How long, in milliseconds, this server should wait for a response from the redis server before "
-            + "pulling data from the database instead (i.e. if the user did not change servers).")
+            + "pulling data from the database instead (i.e., if the user did not change servers).")
     @YamlKey("synchronization.network_latency_milliseconds")
     private int networkLatencyMilliseconds = 500;
 
@@ -334,7 +335,7 @@ public class Settings {
     }
 
     public boolean doAutoPin(@NotNull DataSnapshot.SaveCause cause) {
-        return autoPinnedSaveCauses.contains(cause);
+        return autoPinnedSaveCauses.contains(cause.name());
     }
 
     @NotNull

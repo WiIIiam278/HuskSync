@@ -9,4 +9,4 @@ Consult the Javadocs for more information -- and don't forget to register your l
 | `BukkitPreSync`           |      ✅     | Called before a player has their data updated from the cache or database, just after login  |
 | `BukkitSyncCompleteEvent` |      ❌     | Called once a player has completed their data synchronization on login successfully&dagger; |
 
-&dagger;This can also fire when a user's data is updated while the player is logged in; i.e. when an admin rolls back the user, updates their inventory or Ender Chest through the respective commands, or when an API call is made forcing the user to have their data updated.
+&dagger;This can also fire when a user's data is updated while the player is logged in; i.e., when an admin rolls back the user, updates their inventory or Ender Chest through the respective commands, or when an API call is made forcing the user to have their data updated.
