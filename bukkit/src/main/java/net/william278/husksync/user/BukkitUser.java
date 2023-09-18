@@ -35,6 +35,7 @@ import net.william278.husksync.data.Identifier;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
@@ -60,10 +61,18 @@ public class BukkitUser extends OnlineUser implements BukkitUserDataHolder {
     }
 
     @NotNull
+    @ApiStatus.Internal
     public static BukkitUser adapt(@NotNull Player player, @NotNull HuskSync plugin) {
         return new BukkitUser(player, plugin);
     }
 
+    /**
+     * Get the Bukkit {@link Player} instance of this user
+     *
+     * @return the {@link Player} instance
+     * @since 3.0
+     */
+    @NotNull
     public Player getPlayer() {
         return player;
     }
@@ -147,6 +156,7 @@ public class BukkitUser extends OnlineUser implements BukkitUserDataHolder {
 
     @NotNull
     @Override
+    @ApiStatus.Internal
     public HuskSync getPlugin() {
         return plugin;
     }

@@ -85,7 +85,7 @@ public class EnderChestCommand extends ItemsCommand {
             data.setPinned(plugin.getSettings().doAutoPin(DataSnapshot.SaveCause.ENDERCHEST_COMMAND));
             data.getEnderChest().ifPresent(enderChest -> enderChest.setContents(items));
         });
-        plugin.getDatabase().saveSnapshot(user, snapshot);
+        plugin.getDatabase().addSnapshot(user, snapshot);
         plugin.getRedisManager().sendUserDataUpdate(user, snapshot);
     }
 

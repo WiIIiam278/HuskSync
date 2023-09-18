@@ -87,9 +87,7 @@ public class BukkitSerializer {
         @Override
         public BukkitData.Items.EnderChest deserialize(@NotNull String serialized) throws DeserializationException {
             final ItemStack[] items = NBT.itemStackArrayFromNBT(NBT.parseNBT(serialized));
-            return BukkitData.Items.EnderChest.adapt(
-                    items == null ? new ItemStack[ENDER_CHEST_SLOT_COUNT] : items
-            );
+            return items == null ? BukkitData.Items.EnderChest.empty() : BukkitData.Items.EnderChest.adapt(items);
         }
 
         @NotNull

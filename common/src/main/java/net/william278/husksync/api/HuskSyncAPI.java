@@ -43,7 +43,7 @@ import java.util.function.Consumer;
  * @since 2.0
  */
 @SuppressWarnings("unused")
-public abstract class BaseHuskSyncAPI {
+public abstract class HuskSyncAPI {
 
     /**
      * <b>(Internal use only)</b> - Instance of the implementing plugin.
@@ -54,7 +54,7 @@ public abstract class BaseHuskSyncAPI {
      * <b>(Internal use only)</b> - Constructor, instantiating the base API class.
      */
     @ApiStatus.Internal
-    protected BaseHuskSyncAPI(@NotNull HuskSync plugin) {
+    protected HuskSyncAPI(@NotNull HuskSync plugin) {
         this.plugin = plugin;
     }
 
@@ -83,10 +83,10 @@ public abstract class BaseHuskSyncAPI {
     }
 
     /**
-     * Create a new data snapshot for a user
+     * Create a new data snapshot of an {@link OnlineUser}'s data.
      *
      * @param user The user to create the snapshot of
-     * @return The snapshot
+     * @return The snapshot of the user's data
      * @since 3.0
      */
     @NotNull
@@ -132,9 +132,26 @@ public abstract class BaseHuskSyncAPI {
         plugin.runAsync(() -> {
             final DataSnapshot.Packed packed = data instanceof DataSnapshot.Unpacked unpacked
                     ? unpacked.pack(plugin) : (DataSnapshot.Packed) data;
-            saveSnapshot(user, packed);
+            addSnapshot(user, packed);
             plugin.getRedisManager().sendUserDataUpdate(user, packed);
         });
+    }
+
+    /**
+     * Edit a user's current data.
+     * <p>
+     * This will update the user's data in the database (creating a new snapshot) and send a data update,
+     * updating the user if they are online.
+     *
+     * @param user   The user to edit the data of
+     * @param editor The editor function
+     * @since 3.0
+     */
+    public void editCurrentData(@NotNull User user, @NotNull Consumer<DataSnapshot.Unpacked> editor) {
+        plugin.runAsync(() -> getCurrentData(user).thenAccept(optional -> optional.ifPresent(data -> {
+            editor.accept(data);
+            setCurrentData(user, data);
+        })));
     }
 
     /**
@@ -182,7 +199,7 @@ public abstract class BaseHuskSyncAPI {
         plugin.runAsync(() -> plugin.getDatabase().getSnapshot(user, versionId).ifPresent(snapshot -> {
             final DataSnapshot.Unpacked unpacked = snapshot.unpack(plugin);
             editor.accept(unpacked);
-            plugin.getDatabase().saveSnapshot(user, unpacked.pack(plugin));
+            plugin.getDatabase().updateSnapshot(user, unpacked.pack(plugin));
         }));
     }
 
@@ -214,22 +231,60 @@ public abstract class BaseHuskSyncAPI {
         plugin.runAsync(() -> plugin.getDatabase().getLatestSnapshot(user).ifPresent(snapshot -> {
             final DataSnapshot.Unpacked unpacked = snapshot.unpack(plugin);
             editor.accept(unpacked);
-            plugin.getDatabase().saveSnapshot(user, unpacked.pack(plugin));
+            plugin.getDatabase().updateSnapshot(user, unpacked.pack(plugin));
         }));
     }
 
     /**
-     * Saves a data snapshot to the database
+     * Adds a data snapshot to the database
      *
      * @param user     The user to save the data for
      * @param snapshot The snapshot to save
      * @since 3.0
      */
-    public void saveSnapshot(@NotNull User user, @NotNull DataSnapshot snapshot) {
-        plugin.runAsync(() -> plugin.getDatabase().saveSnapshot(
+    public void addSnapshot(@NotNull User user, @NotNull DataSnapshot snapshot) {
+        plugin.runAsync(() -> plugin.getDatabase().addSnapshot(
                 user, snapshot instanceof DataSnapshot.Unpacked unpacked
                         ? unpacked.pack(plugin) : (DataSnapshot.Packed) snapshot
         ));
+    }
+
+    /**
+     * Update an <i>existing</i> data snapshot in the database.
+     * Not to be confused with {@link #addSnapshot(User, DataSnapshot)}, which will add a new snapshot if one
+     * snapshot doesn't exist.
+     *
+     * @param user     The user to update the snapshot of
+     * @param snapshot The snapshot to update
+     * @since 3.0
+     */
+    public void updateSnapshot(@NotNull User user, @NotNull DataSnapshot snapshot) {
+        plugin.runAsync(() -> plugin.getDatabase().updateSnapshot(
+                user, snapshot instanceof DataSnapshot.Unpacked unpacked
+                        ? unpacked.pack(plugin) : (DataSnapshot.Packed) snapshot
+        ));
+    }
+
+    /**
+     * Pin a data snapshot, preventing it from being rotated
+     *
+     * @param user            The user to pin the snapshot of
+     * @param snapshotVersion The version ID of the snapshot to pin
+     * @since 3.0
+     */
+    public void pinSnapshot(@NotNull User user, @NotNull UUID snapshotVersion) {
+        plugin.runAsync(() -> plugin.getDatabase().pinSnapshot(user, snapshotVersion));
+    }
+
+    /**
+     * Unpin a data snapshot, allowing it to be rotated
+     *
+     * @param user            The user to unpin the snapshot of
+     * @param snapshotVersion The version ID of the snapshot to unpin
+     * @since 3.0
+     */
+    public void unpinSnapshot(@NotNull User user, @NotNull UUID snapshotVersion) {
+        plugin.runAsync(() -> plugin.getDatabase().unpinSnapshot(user, snapshotVersion));
     }
 
     /**
@@ -239,6 +294,7 @@ public abstract class BaseHuskSyncAPI {
      * @param versionId The version ID of the snapshot to delete
      * @return A future which will complete with true if the snapshot was deleted, or false if it wasn't
      * (e.g., if the snapshot didn't exist)
+     * @since 3.0
      */
     public CompletableFuture<Boolean> deleteSnapshot(@NotNull User user, @NotNull UUID versionId) {
         return plugin.supplyAsync(() -> plugin.getDatabase().deleteSnapshot(user, versionId));
@@ -263,6 +319,30 @@ public abstract class BaseHuskSyncAPI {
     public <T extends Data> void registerDataSerializer(@NotNull Identifier identifier,
                                                         @NotNull Serializer<T> serializer) {
         plugin.registerSerializer(identifier, serializer);
+    }
+
+    /**
+     * Get a {@link DataSnapshot.Unpacked} from a {@link DataSnapshot.Packed}
+     *
+     * @param unpacked The unpacked snapshot
+     * @return The packed snapshot
+     * @since 3.0
+     */
+    @NotNull
+    public DataSnapshot.Packed packSnapshot(@NotNull DataSnapshot.Unpacked unpacked) {
+        return unpacked.pack(plugin);
+    }
+
+    /**
+     * Get a {@link DataSnapshot.Unpacked} from a {@link DataSnapshot.Packed}
+     *
+     * @param packed The packed snapshot
+     * @return The unpacked snapshot
+     * @since 3.0
+     */
+    @NotNull
+    public DataSnapshot.Unpacked unpackSnapshot(@NotNull DataSnapshot.Packed packed) {
+        return packed.unpack(plugin);
     }
 
     /**

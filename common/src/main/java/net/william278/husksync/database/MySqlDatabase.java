@@ -354,7 +354,7 @@ public class MySqlDatabase extends Database {
     }
 
     @Override
-    public void updateSnapshot(@NotNull User user, @NotNull UUID versionUuid, @NotNull DataSnapshot.Packed data) {
+    public void updateSnapshot(@NotNull User user, @NotNull DataSnapshot.Packed data) {
         try (Connection connection = getConnection()) {
             try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
                     UPDATE `%user_data_table%`
@@ -365,7 +365,7 @@ public class MySqlDatabase extends Database {
                 statement.setBoolean(2, data.isPinned());
                 statement.setBlob(3, new ByteArrayInputStream(data.asBytes(plugin)));
                 statement.setString(4, user.getUuid().toString());
-                statement.setString(5, versionUuid.toString());
+                statement.setString(5, data.getId().toString());
                 statement.executeUpdate();
             }
         } catch (SQLException e) {

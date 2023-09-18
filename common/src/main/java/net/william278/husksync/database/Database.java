@@ -157,16 +157,16 @@ public abstract class Database {
      *                 The implementation should version it with a random UUID and the current timestamp during insertion.
      * @see UserDataHolder#createSnapshot(SaveCause)
      */
-    public void saveSnapshot(@NotNull User user, @NotNull DataSnapshot.Packed snapshot) {
+    public void addSnapshot(@NotNull User user, @NotNull DataSnapshot.Packed snapshot) {
         if (snapshot.getSaveCause() != SaveCause.SERVER_SHUTDOWN) {
             plugin.fireEvent(
                     plugin.getDataSaveEvent(user, snapshot),
-                    (event) -> this.createAndRotateSnapshot(user, snapshot)
+                    (event) -> this.addAndRotateSnapshot(user, snapshot)
             );
             return;
         }
 
-        this.createAndRotateSnapshot(user, snapshot);
+        this.addAndRotateSnapshot(user, snapshot);
     }
 
     /**
@@ -180,7 +180,7 @@ public abstract class Database {
      * @param user     The user to add data for
      * @param snapshot The {@link DataSnapshot} to set.
      */
-    private void createAndRotateSnapshot(@NotNull User user, @NotNull DataSnapshot.Packed snapshot) {
+    private void addAndRotateSnapshot(@NotNull User user, @NotNull DataSnapshot.Packed snapshot) {
         final int backupFrequency = plugin.getSettings().getBackupFrequency();
         if (!snapshot.isPinned() && backupFrequency > 0) {
             this.rotateLatestSnapshot(user, snapshot.getTimestamp().minusHours(backupFrequency));
@@ -210,12 +210,10 @@ public abstract class Database {
     /**
      * Update a saved {@link DataSnapshot} by given version UUID
      *
-     * @param user        The user whose data snapshot
-     * @param versionUuid The UUID of the user's {@link DataSnapshot} entry
-     * @param snapshot    The {@link DataSnapshot} to update
+     * @param user     The user whose data snapshot
+     * @param snapshot The {@link DataSnapshot} to update
      */
-    protected abstract void updateSnapshot(@NotNull User user, @NotNull UUID versionUuid,
-                                           @NotNull DataSnapshot.Packed snapshot);
+    public abstract void updateSnapshot(@NotNull User user, @NotNull DataSnapshot.Packed snapshot);
 
     /**
      * Unpin a saved {@link DataSnapshot} by given version UUID, setting it's {@code pinned} state to {@code false}.
@@ -227,7 +225,7 @@ public abstract class Database {
     public final void unpinSnapshot(@NotNull User user, @NotNull UUID versionUuid) {
         this.getSnapshot(user, versionUuid).ifPresent(data -> {
             data.edit(plugin, (snapshot) -> snapshot.setPinned(false));
-            this.updateSnapshot(user, versionUuid, data);
+            this.updateSnapshot(user, data);
         });
     }
 
@@ -240,7 +238,7 @@ public abstract class Database {
     public final void pinSnapshot(@NotNull User user, @NotNull UUID versionUuid) {
         this.getSnapshot(user, versionUuid).ifPresent(data -> {
             data.edit(plugin, (snapshot) -> snapshot.setPinned(true));
-            this.updateSnapshot(user, versionUuid, data);
+            this.updateSnapshot(user, data);
         });
     }
 

@@ -22,6 +22,7 @@ package net.william278.husksync.data;
 import net.kyori.adventure.key.InvalidKeyException;
 import net.kyori.adventure.key.Key;
 import org.intellij.lang.annotations.Subst;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
@@ -32,17 +33,17 @@ import java.util.stream.Stream;
  */
 public class Identifier {
 
-    public static Identifier INVENTORY = from("inventory", true);
-    public static Identifier ENDER_CHEST = from("ender_chest", true);
-    public static Identifier POTION_EFFECTS = from("potion_effects", true);
-    public static Identifier ADVANCEMENTS = from("advancements", true);
-    public static Identifier LOCATION = from("location", false);
-    public static Identifier STATISTICS = from("statistics", true);
-    public static Identifier HEALTH = from("health", true);
-    public static Identifier HUNGER = from("hunger", true);
-    public static Identifier EXPERIENCE = from("experience", true);
-    public static Identifier GAME_MODE = from("game_mode", true);
-    public static Identifier PERSISTENT_DATA = from("persistent_data", true);
+    public static Identifier INVENTORY = huskSync("inventory", true);
+    public static Identifier ENDER_CHEST = huskSync("ender_chest", true);
+    public static Identifier POTION_EFFECTS = huskSync("potion_effects", true);
+    public static Identifier ADVANCEMENTS = huskSync("advancements", true);
+    public static Identifier LOCATION = huskSync("location", false);
+    public static Identifier STATISTICS = huskSync("statistics", true);
+    public static Identifier HEALTH = huskSync("health", true);
+    public static Identifier HUNGER = huskSync("hunger", true);
+    public static Identifier EXPERIENCE = huskSync("experience", true);
+    public static Identifier GAME_MODE = huskSync("game_mode", true);
+    public static Identifier PERSISTENT_DATA = huskSync("persistent_data", true);
 
     private final Key key;
     private final boolean configDefault;
@@ -53,18 +54,26 @@ public class Identifier {
     }
 
     @NotNull
-    private static Identifier from(@Subst("null") @NotNull String name, boolean configDefault) throws InvalidKeyException {
+    private static Identifier huskSync(@Subst("null") @NotNull String name,
+                                       boolean configDefault) throws InvalidKeyException {
         return new Identifier(Key.key("husksync", name), configDefault);
     }
 
     @NotNull
     @SuppressWarnings("unused")
     private static Identifier parse(@NotNull String key) throws InvalidKeyException {
-        return from(key, true);
+        return huskSync(key, true);
     }
 
+    /**
+     * Create an identifier from a {@link Key}
+     *
+     * @param key the key
+     * @return the identifier
+     * @since 3.0
+     */
     @NotNull
-    public static Identifier from(@NotNull Key key) {
+    public static Identifier huskSync(@NotNull Key key) {
         return new Identifier(key, false);
     }
 
@@ -78,7 +87,14 @@ public class Identifier {
         return Map.entry(getKeyValue(), configDefault);
     }
 
+    /**
+     * <b>(Internal use only)</b> - Get a map of the default config entries for all HuskSync identifiers
+     *
+     * @return a map of all the config entries
+     * @since 3.0
+     */
     @NotNull
+    @ApiStatus.Internal
     public static Map<String, Boolean> getConfigMap() {
         return Map.ofEntries(Stream.of(
                         INVENTORY, ENDER_CHEST, POTION_EFFECTS, ADVANCEMENTS, LOCATION,
@@ -88,26 +104,52 @@ public class Identifier {
                 .toArray(Map.Entry[]::new));
     }
 
+    /**
+     * Get the namespace of the identifier
+     *
+     * @return the namespace
+     */
     @NotNull
     public String getKeyNamespace() {
         return key.namespace();
     }
 
+    /**
+     * Get the value of the identifier
+     *
+     * @return the value
+     */
     @NotNull
     public String getKeyValue() {
         return key.value();
     }
 
+    /**
+     * Returns {@code true} if the identifier is a custom (non-HuskSync) identifier
+     *
+     * @return {@code false} if {@link #getKeyNamespace()} returns "husksync"; {@code true} otherwise
+     */
     public boolean isCustom() {
         return !getKeyNamespace().equals("husksync");
     }
 
-    @Override
+    /**
+     * Returns the identifier as a string (the key)
+     *
+     * @return the identifier as a string
+     */
     @NotNull
+    @Override
     public String toString() {
         return key.asString();
     }
 
+    /**
+     * Returns {@code true} if the given object is an identifier with the same key as this identifier
+     *
+     * @param obj the object to compare
+     * @return {@code true} if the given object is an identifier with the same key as this identifier
+     */
     @Override
     public boolean equals(Object obj) {
         if (obj instanceof Identifier other) {

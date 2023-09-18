@@ -20,12 +20,18 @@
 package net.william278.husksync.api;
 
 import net.william278.husksync.BukkitHuskSync;
+import net.william278.husksync.data.BukkitData;
+import net.william278.husksync.data.DataHolder;
 import net.william278.husksync.user.BukkitUser;
 import net.william278.husksync.user.OnlineUser;
 import net.william278.husksync.user.User;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * The HuskSync API implementation for the Bukkit platform
@@ -33,7 +39,7 @@ import org.jetbrains.annotations.NotNull;
  * Retrieve an instance of the API class via {@link #getInstance()}.
  */
 @SuppressWarnings("unused")
-public class BukkitHuskSyncAPI extends BaseHuskSyncAPI {
+public class BukkitHuskSyncAPI extends HuskSyncAPI {
 
     // Instance of the plugin
     private static BukkitHuskSyncAPI instance;
@@ -50,6 +56,7 @@ public class BukkitHuskSyncAPI extends BaseHuskSyncAPI {
      * Entrypoint to the HuskSync API - returns an instance of the API
      *
      * @return instance of the HuskSync API
+     * @since 3.0
      */
     @NotNull
     public static BukkitHuskSyncAPI getInstance() {
@@ -63,6 +70,7 @@ public class BukkitHuskSyncAPI extends BaseHuskSyncAPI {
      * <b>(Internal use only)</b> - Register the API for this platform.
      *
      * @param plugin the plugin instance
+     * @since 3.0
      */
     @ApiStatus.Internal
     public static void register(@NotNull BukkitHuskSync plugin) {
@@ -78,16 +86,131 @@ public class BukkitHuskSyncAPI extends BaseHuskSyncAPI {
     }
 
     /**
-     * Returns a {@link User} instance for the given bukkit {@link Player}.
+     * Returns a {@link OnlineUser} instance for the given bukkit {@link Player}.
      *
-     * @param player the bukkit player to get the {@link User} instance for
-     * @return the {@link User} instance for the given bukkit {@link Player}
+     * @param player the bukkit player to get the {@link OnlineUser} instance for
+     * @return the {@link OnlineUser} instance for the given bukkit {@link Player}
      * @since 2.0
      */
     @NotNull
-    public OnlineUser getUser(@NotNull Player player) {
+    public BukkitUser getUser(@NotNull Player player) {
         return BukkitUser.adapt(player, plugin);
     }
 
+    /**
+     * Get the current {@link BukkitData.Items.Inventory} of the given {@link User}
+     *
+     * @param user the user to get the inventory of
+     * @return the {@link BukkitData.Items.Inventory} of the given {@link User}
+     * @since 3.0
+     */
+    public CompletableFuture<Optional<BukkitData.Items.Inventory>> getCurrentInventory(@NotNull User user) {
+        return getCurrentData(user).thenApply(data -> data.flatMap(DataHolder::getInventory)
+                .map(BukkitData.Items.Inventory.class::cast));
+    }
+
+    /**
+     * Get the current {@link BukkitData.Items.Inventory} of the given {@link Player}
+     *
+     * @param user the user to get the inventory of
+     * @return the {@link BukkitData.Items.Inventory} of the given {@link Player}
+     * @since 3.0
+     */
+    public CompletableFuture<Optional<ItemStack[]>> getCurrentInventoryContents(@NotNull User user) {
+        return getCurrentInventory(user)
+                .thenApply(inventory -> inventory.map(BukkitData.Items.Inventory::getContents));
+    }
+
+    /**
+     * Set the current {@link BukkitData.Items.Inventory} of the given {@link User}
+     *
+     * @param user     the user to set the inventory of
+     * @param contents the contents to set the inventory to
+     * @since 3.0
+     */
+    public void setCurrentInventory(@NotNull User user, @NotNull BukkitData.Items.Inventory contents) {
+        editCurrentData(user, dataHolder -> dataHolder.setInventory(contents));
+    }
+
+    /**
+     * Set the current {@link BukkitData.Items.Inventory} of the given {@link User}
+     *
+     * @param user     the user to set the inventory of
+     * @param contents the contents to set the inventory to
+     * @since 3.0
+     */
+    public void setCurrentInventoryContents(@NotNull User user, @NotNull ItemStack[] contents) {
+        editCurrentData(
+                user,
+                dataHolder -> dataHolder.getInventory().ifPresent(
+                        inv -> inv.setContents(adaptItems(contents))
+                )
+        );
+    }
+
+    /**
+     * Get the current {@link BukkitData.Items.EnderChest} of the given {@link User}
+     *
+     * @param user the user to get the ender chest of
+     * @return the {@link BukkitData.Items.EnderChest} of the given {@link User}, or {@link Optional#empty()} if the
+     * user data could not be found
+     * @since 3.0
+     */
+    public CompletableFuture<Optional<BukkitData.Items.EnderChest>> getCurrentEnderChest(@NotNull User user) {
+        return getCurrentData(user).thenApply(data -> data.flatMap(DataHolder::getEnderChest)
+                .map(BukkitData.Items.EnderChest.class::cast));
+    }
+
+    /**
+     * Get the current {@link BukkitData.Items.EnderChest} of the given {@link Player}
+     *
+     * @param user the user to get the ender chest of
+     * @return the {@link BukkitData.Items.EnderChest} of the given {@link Player}, or {@link Optional#empty()} if the
+     * user data could not be found
+     * @since 3.0
+     */
+    public CompletableFuture<Optional<ItemStack[]>> getCurrentEnderChestContents(@NotNull User user) {
+        return getCurrentEnderChest(user)
+                .thenApply(enderChest -> enderChest.map(BukkitData.Items.EnderChest::getContents));
+    }
+
+    /**
+     * Set the current {@link BukkitData.Items.EnderChest} of the given {@link User}
+     *
+     * @param user     the user to set the ender chest of
+     * @param contents the contents to set the ender chest to
+     * @since 3.0
+     */
+    public void setCurrentEnderChest(@NotNull User user, @NotNull BukkitData.Items.EnderChest contents) {
+        editCurrentData(user, dataHolder -> dataHolder.setEnderChest(contents));
+    }
+
+    /**
+     * Set the current {@link BukkitData.Items.EnderChest} of the given {@link User}
+     *
+     * @param user     the user to set the ender chest of
+     * @param contents the contents to set the ender chest to
+     * @since 3.0
+     */
+    public void setCurrentEnderChestContents(@NotNull User user, @NotNull ItemStack[] contents) {
+        editCurrentData(
+                user,
+                dataHolder -> dataHolder.getEnderChest().ifPresent(
+                        enderChest -> enderChest.setContents(adaptItems(contents))
+                )
+        );
+    }
+
+    /**
+     * Adapts an array of {@link ItemStack} to a {@link BukkitData.Items} instance
+     *
+     * @param contents the contents to adapt
+     * @return the adapted {@link BukkitData.Items} instance
+     * @since 3.0
+     */
+    @NotNull
+    public BukkitData.Items adaptItems(@NotNull ItemStack[] contents) {
+        return BukkitData.Items.ItemArray.adapt(contents);
+    }
 
 }

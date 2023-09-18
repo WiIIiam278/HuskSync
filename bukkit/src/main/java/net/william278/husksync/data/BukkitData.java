@@ -182,6 +182,11 @@ public abstract class BukkitData implements Data {
                 return new BukkitData.Items.EnderChest(items);
             }
 
+            @NotNull
+            public static BukkitData.Items.EnderChest empty() {
+                return new BukkitData.Items.EnderChest(new ItemStack[ENDER_CHEST_SLOT_COUNT]);
+            }
+
             @Override
             public void apply(@NotNull UserDataHolder user, @NotNull HuskSync plugin) throws IllegalStateException {
                 ((BukkitUser) user).getPlayer().getEnderChest().setContents(

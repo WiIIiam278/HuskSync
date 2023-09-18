@@ -25,6 +25,7 @@ import net.william278.desertwell.util.Version;
 import net.william278.husksync.adapter.DataAdapter;
 import net.william278.husksync.adapter.GsonAdapter;
 import net.william278.husksync.adapter.SnappyGsonAdapter;
+import net.william278.husksync.api.BukkitHuskSyncAPI;
 import net.william278.husksync.command.BukkitCommand;
 import net.william278.husksync.config.Locales;
 import net.william278.husksync.config.Settings;
@@ -162,6 +163,9 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
             }
         });
 
+        // Register API
+        initialize("api", (plugin) -> BukkitHuskSyncAPI.register(this));
+
         // Hook into bStats and check for updates
         initialize("metrics", (plugin) -> this.registerMetrics(METRICS_ID));
         this.checkForUpdates();
@@ -173,8 +177,12 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
         if (this.eventListener != null) {
             this.eventListener.handlePluginDisable();
         }
+
+        // Unregister API and cancel tasks
+        BukkitHuskSyncAPI.unregister();
         this.cancelTasks();
 
+        // Complete shutdown
         log(Level.INFO, "Successfully disabled HuskSync v" + getPluginVersion());
     }
 
