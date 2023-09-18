@@ -42,7 +42,7 @@ public class Identifier {
     public static Identifier HUNGER = from("hunger", true);
     public static Identifier EXPERIENCE = from("experience", true);
     public static Identifier GAME_MODE = from("game_mode", true);
-    public static Identifier PERSISTENT_DATA = from("persistent_data", false);
+    public static Identifier PERSISTENT_DATA = from("persistent_data", true);
 
     private final Key key;
     private final boolean configDefault;

@@ -18,7 +18,7 @@ You can customise how much data HuskSync saves about a player by [turning each s
 | Game modes                | Player's current game mode                                  |      ✅       |
 | Statistics                | Player's in-game stats (ESC -> Statistics)                  |      ✅       |
 | Location                  | Player's current coordinate positon and world&dagger;       |      ✅       |
-| Persistent Data Container | Custom plugin persistent data key map                       |      ⚠️      |
+| Persistent Data Container | Custom plugin persistent data key map                       |      ✅️      |
 | Locked maps               | Maps/treasure maps locked in a cartography table            |      ⚠️      |
 | Unlocked maps             | Regular, unlocked maps/treasure maps ([why?](#map-syncing)) |      ❌       |
 | Economy balances          | Vault economy balance. ([why?](#economy-syncing))           |      ❌       |
@@ -29,16 +29,8 @@ What about modded items? Or custom item plugins such as MMOItems or SlimeFun? Th
 
 &dagger;This is intended for servers that have mirrorred worlds across instances (such as RPG servers). With this option enabled, players will be placed at the same coordinates when changing servers.
 
-### PersistentDataContainer tags
-The player [PersistentDataContainer](https://blog.jeff-media.com/persistent-data-container-the-better-alternative-to-nbt-tags/) is a part of the Spigot API that enables plugins to set custom data tags to players, entities & items and have them persist. HuskSync will synchronize this data cross-server. Plugins that use legacy or proprietary forms of saving data, such as by modifying NBT directly, may not correctly synchronize.
-
-### Custom enchantments
-Plugins that add custom enchantments by registering them to ItemStacks through setting them via the [EnchantmentStorageMeta](https://hub.spigotmc.org/javadocs/spigot/org/bukkit/inventory/meta/EnchantmentStorageMeta.html) will work, but note that the plugin _must_ be lower on the load order than HuskSync; in other words, HuskSync should be on the plugin's `loadbefore:`. This is because Spigot's item serialization API requires that the plugin that registered the enchantment be online to serialize it due to how it reads from the enchantment registry and so if the plugin does not load before (and thus does not shut down after) HuskSync, it won't be able to serialize the custom enchantments in the event of a server shutdown with players online.
-
 ### Map syncing
-Map items are a special case, as their data is not stored in the item itself, but rather in the game world files. In addition to this, their data is dynamic and changes based on the updating of the world, something which can't be tracked across multiple instances. As a result, it's not possible to sync unlocked map items. 
-
-However, experimental support for synchronising locked map items&mdash;that is, maps that have been locked in a cartography table&mdash;is currently available in development builds. This works by serializing its' map canvas pixel grid to the map item's persistent data container.
+Map items are a special case, as their data is not stored in the item itself, but rather in the game world files. In addition to this, their data is dynamic and changes based on the updating of the world, something which can't be tracked across multiple instances. As a result, it's not possible to sync unlocked map items. Locked maps, however, are supported. This works by saving the pixel canvas grid to the map NBT itself, and generating virtual maps on the other servers.
 
 ### Economy syncing
 Although it's a common request, HuskSync doesn't synchronize economy data for a number of reasons!
