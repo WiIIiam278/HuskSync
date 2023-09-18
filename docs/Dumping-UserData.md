@@ -3,11 +3,11 @@ It's possible to dump user data snapshots to `json` objects as of HuskSync v2.1,
 This can be useful in debugging synchronization problems or for manually inspecting data.
 
 ## How-to guide
-1. Grant yourself the special `husksync.command.userdata.dump` permission node. This is not set by default, even for operators.
+1. Ensure you have the `husksync.command.userdata.dump` permission node. This is not set by default, even for operators.
 2. Use the `/userdata list <user>` command to view a list of user data entries for a user.
 3. Click on one of the user data entries for your chosen user. The data snapshot preview menu should appear, along with two new buttons at the bottom.
 
-[![Data dumping buttons](https://raw.githubusercontent.com/WiIIiam278/HuskSync/master/images/data-dumping.png)](#)
+![Data dumping buttons](https://raw.githubusercontent.com/WiIIiam278/HuskSync/master/images/data-dumping.png)
 
 ### Dumping to a file
 After clicking the "File Dump..." button (equivalent to `/userdata dump <user> <snapshot-id> file`), a dump of this user data entry will be output in `~/plugins/HuskSync/dumps/`.
