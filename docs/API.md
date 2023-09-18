@@ -5,9 +5,10 @@ The HuskSync API provides methods for retrieving and updating user data, as well
 
 The HuskSync API shares version numbering with the plugin itself for consistency and convenience. Please note minor and patch plugin releases may make API additions and deprecations, but will not introduce breaking changes without notice.
 
-| API Version |  HuskSync Versions  | Supported |
+| API Version |  HuskSync Versions   | Supported |
 |:-----------:|:--------------------:|:---------:|
-|    v2.x     | _v2.0&mdash;Current_ |     ✅     |
+|    v3.x     | _v3.0&mdash;Current_ |     ✅     |
+|    v2.x     | _v2.0&mdash;v2.2.8_  |     ❌     |
 |    v1.x     | _v1.0&mdash;v1.4.1_  |    ❌️     |
 
 <details>

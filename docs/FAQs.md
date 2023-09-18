@@ -17,9 +17,9 @@ Modded items are not supported.
 </details>
 
 <details>
-<summary>&nbsp;<b>Are MMOItems / SlimeFun items supported?</b></summary>
+<summary>&nbsp;<b>Are MMOItems / SlimeFun / ItemsAdder items supported?</b></summary>
 
-No. MMOItems and SlimeFun are not compatible with HuskSync due to the way they inject data directly into item NBT rather than the Spigot API's plugin-agnostic PersistentDataContainer.
+These plugins, which provide custom items, should be supported as of HuskSync v3.x; but do note we cannot guarantee compatibility with all methods of injecting custom data to create custom items. Be sure to test thoroughly before deploying on production!
 
 </details>
 
@@ -37,7 +37,7 @@ HuskSync requires Redis to operate (for reasons demonstrated below). Redis is an
 
 HuskSync makes use of both MySQL and Redis for optimal data synchronization.
 
-When a user changes servers, in addition to data being saved to MySQL, it is also cached via the Redis server with a temproary expiry key. When changing servers, the receiving server detects the key and sets the user data from Redis. When a player rejoins the network, the system fetches the last-saved data snapshot from the MySQL Database.
+When a user changes servers, in addition to data being saved to MySQL, it is also cached via the Redis server with a temporary expiry key. When changing servers, the receiving server detects the key and sets the user data from Redis. When a player rejoins the network, the system fetches the last-saved data snapshot from the MySQL Database.
 
 This approach is able to dramatically improve both synchronization performance and reliability. A few other techniques are used to optimize this process, such as compressing the serialized user data json using Snappy.
 
