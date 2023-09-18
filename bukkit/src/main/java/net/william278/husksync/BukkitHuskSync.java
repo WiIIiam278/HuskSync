@@ -46,9 +46,9 @@ import net.william278.husksync.user.BukkitUser;
 import net.william278.husksync.user.ConsoleUser;
 import net.william278.husksync.user.OnlineUser;
 import net.william278.husksync.util.BukkitLegacyConverter;
+import net.william278.husksync.util.BukkitMapPersister;
 import net.william278.husksync.util.BukkitTask;
 import net.william278.husksync.util.LegacyConverter;
-import net.william278.husksync.util.BukkitMapPersister;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -57,7 +57,9 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import space.arim.morepaperlib.MorePaperLib;
 import space.arim.morepaperlib.commands.CommandRegistration;
+import space.arim.morepaperlib.scheduling.AsynchronousScheduler;
 import space.arim.morepaperlib.scheduling.GracefulScheduling;
+import space.arim.morepaperlib.scheduling.RegionalScheduler;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -85,6 +87,8 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
     private Map<Integer, MapView> mapViews;
     private BukkitAudiences audiences;
     private MorePaperLib paperLib;
+    private AsynchronousScheduler asyncScheduler;
+    private RegionalScheduler regionalScheduler;
     private Gson gson;
 
     @Override
@@ -321,6 +325,18 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
     @NotNull
     public GracefulScheduling getScheduler() {
         return paperLib.scheduling();
+    }
+
+    @NotNull
+    public AsynchronousScheduler getAsyncScheduler() {
+        return asyncScheduler == null
+                ? asyncScheduler = getScheduler().asyncScheduler() : asyncScheduler;
+    }
+
+    @NotNull
+    public RegionalScheduler getRegionalScheduler() {
+        return regionalScheduler == null
+                ? regionalScheduler = getScheduler().globalRegionalScheduler() : regionalScheduler;
     }
 
     @NotNull

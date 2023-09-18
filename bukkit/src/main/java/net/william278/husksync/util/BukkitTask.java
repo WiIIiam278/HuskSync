@@ -22,7 +22,8 @@ package net.william278.husksync.util;
 import net.william278.husksync.BukkitHuskSync;
 import net.william278.husksync.HuskSync;
 import org.jetbrains.annotations.NotNull;
-import space.arim.morepaperlib.scheduling.GracefulScheduling;
+import space.arim.morepaperlib.scheduling.AsynchronousScheduler;
+import space.arim.morepaperlib.scheduling.RegionalScheduler;
 import space.arim.morepaperlib.scheduling.ScheduledTask;
 
 import java.time.Duration;
@@ -56,10 +57,11 @@ public interface BukkitTask extends Task {
                 return;
             }
 
+            final RegionalScheduler scheduler = ((BukkitHuskSync) getPlugin()).getRegionalScheduler();
             if (delayTicks > 0) {
-                this.task = getScheduler().globalRegionalScheduler().runDelayed(runnable, delayTicks);
+                this.task = scheduler.runDelayed(runnable, delayTicks);
             } else {
-                this.task = getScheduler().globalRegionalScheduler().run(runnable);
+                this.task = scheduler.run(runnable);
             }
         }
     }
@@ -90,14 +92,15 @@ public interface BukkitTask extends Task {
                 return;
             }
 
+            final AsynchronousScheduler scheduler = ((BukkitHuskSync) getPlugin()).getAsyncScheduler();
             if (delayTicks > 0) {
                 plugin.debug("Running async task with delay of " + delayTicks + " ticks");
-                this.task = getScheduler().asyncScheduler().runDelayed(
+                this.task = scheduler.runDelayed(
                         runnable,
                         Duration.of(delayTicks * 50L, ChronoUnit.MILLIS)
                 );
             } else {
-                this.task = getScheduler().asyncScheduler().run(runnable);
+                this.task = scheduler.run(runnable);
             }
         }
     }
@@ -125,7 +128,8 @@ public interface BukkitTask extends Task {
             }
 
             if (!cancelled) {
-                this.task = getScheduler().asyncScheduler().runAtFixedRate(
+                final AsynchronousScheduler scheduler = ((BukkitHuskSync) getPlugin()).getAsyncScheduler();
+                this.task = scheduler.runAtFixedRate(
                         runnable, Duration.ZERO,
                         Duration.of(repeatingTicks * 50L, ChronoUnit.MILLIS)
                 );
@@ -163,11 +167,6 @@ public interface BukkitTask extends Task {
             ((BukkitHuskSync) getPlugin()).getScheduler().cancelGlobalTasks();
         }
 
-    }
-
-    @NotNull
-    default GracefulScheduling getScheduler() {
-        return ((BukkitHuskSync) getPlugin()).getScheduler();
     }
 
 }
