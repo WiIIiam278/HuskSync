@@ -41,26 +41,24 @@ I strongly recommend making use of economy plugins that have cross-server econom
 All synchronization features, except location and locked map synchronising, are enabled by default. To toggle a feature, navigate to the `features:` section in the `synchronization:` part of your `config.yml` file, and change the option to `true`/`false` respectively.
 
 <details>
-  <summary>Example in config.yml</summary>
+<summary>Example in config.yml</summary>
   
-  ```yaml
-  synchronization:
-    # ...
-    features:
-      inventories: true
-      ender_chests: true
-      health: true
-      max_health: true
-      hunger: true
-      experience: true
-      potion_effects: true
-      advancements: true
-      game_mode: true
-      statistics: true
-      persistent_data_container: false
-      locked_maps: true
-      location: false
-    #...
-  ```
+```yaml
+synchronization:
+  # ...
+  features:
+    health: true
+    statistics: true
+    location: false
+    potion_effects: true
+    ender_chest: true
+    experience: true
+    advancements: true
+    game_mode: true
+    inventory: true
+    persistent_data: true
+    hunger: true
+  #...
+```
 
 </details>
