@@ -20,7 +20,7 @@
 package net.william278.husksync.data;
 
 import net.william278.husksync.BukkitHuskSync;
-import net.william278.husksync.util.MapPersister;
+import net.william278.husksync.util.BukkitMapPersister;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.PlayerInventory;
 import org.jetbrains.annotations.NotNull;
@@ -143,7 +143,7 @@ public interface BukkitUserDataHolder extends UserDataHolder {
     Map<Identifier, Data> getCustomDataStore();
 
     @NotNull
-    default MapPersister getMapPersister() {
+    default BukkitMapPersister getMapPersister() {
         return (BukkitHuskSync) getPlugin();
     }
 

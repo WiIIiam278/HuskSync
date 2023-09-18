@@ -33,16 +33,16 @@ import org.jetbrains.annotations.NotNull;
  * Retrieve an instance of the API class via {@link #getInstance()}.
  */
 @SuppressWarnings("unused")
-public class HuskSyncAPI extends BaseHuskSyncAPI {
+public class BukkitHuskSyncAPI extends BaseHuskSyncAPI {
 
     // Instance of the plugin
-    private static HuskSyncAPI instance;
+    private static BukkitHuskSyncAPI instance;
 
     /**
      * <b>(Internal use only)</b> - Constructor, instantiating the API.
      */
     @ApiStatus.Internal
-    private HuskSyncAPI(@NotNull BukkitHuskSync plugin) {
+    private BukkitHuskSyncAPI(@NotNull BukkitHuskSync plugin) {
         super(plugin);
     }
 
@@ -52,7 +52,7 @@ public class HuskSyncAPI extends BaseHuskSyncAPI {
      * @return instance of the HuskSync API
      */
     @NotNull
-    public static HuskSyncAPI getInstance() {
+    public static BukkitHuskSyncAPI getInstance() {
         if (instance == null) {
             throw new NotRegisteredException();
         }
@@ -66,7 +66,7 @@ public class HuskSyncAPI extends BaseHuskSyncAPI {
      */
     @ApiStatus.Internal
     public static void register(@NotNull BukkitHuskSync plugin) {
-        instance = new HuskSyncAPI(plugin);
+        instance = new BukkitHuskSyncAPI(plugin);
     }
 
     /**

@@ -20,7 +20,10 @@
 package net.william278.husksync.api;
 
 import net.william278.husksync.HuskSync;
+import net.william278.husksync.data.Data;
 import net.william278.husksync.data.DataSnapshot;
+import net.william278.husksync.data.Identifier;
+import net.william278.husksync.data.Serializer;
 import net.william278.husksync.user.OnlineUser;
 import net.william278.husksync.user.User;
 import org.jetbrains.annotations.ApiStatus;
@@ -36,6 +39,8 @@ import java.util.function.Consumer;
  * The base implementation of the HuskSync API, containing cross-platform API calls.
  * </p>
  * This class should not be used directly, but rather through platform-specific extending API classes.
+ *
+ * @since 2.0
  */
 @SuppressWarnings("unused")
 public abstract class BaseHuskSyncAPI {
@@ -51,6 +56,30 @@ public abstract class BaseHuskSyncAPI {
     @ApiStatus.Internal
     protected BaseHuskSyncAPI(@NotNull HuskSync plugin) {
         this.plugin = plugin;
+    }
+
+    /**
+     * Get a {@link User} by their UUID
+     *
+     * @param uuid The UUID of the user to get
+     * @return A future containing the user, or an empty optional if the user doesn't exist
+     * @since 3.0
+     */
+    @NotNull
+    public CompletableFuture<Optional<User>> getUser(@NotNull UUID uuid) {
+        return plugin.supplyAsync(() -> plugin.getDatabase().getUser(uuid));
+    }
+
+    /**
+     * Get a {@link User} by their username
+     *
+     * @param username The username of the user to get
+     * @return A future containing the user, or an empty optional if the user doesn't exist
+     * @since 3.0
+     */
+    @NotNull
+    public CompletableFuture<Optional<User>> getUser(@NotNull String username) {
+        return plugin.supplyAsync(() -> plugin.getDatabase().getUserByName(username));
     }
 
     /**
@@ -89,6 +118,16 @@ public abstract class BaseHuskSyncAPI {
         return future;
     }
 
+    /**
+     * Set a user's current data.
+     * <p>
+     * This will update the user's data in the database (creating a new snapshot) and send a data update,
+     * updating the user if they are online.
+     *
+     * @param user The user to set the data of
+     * @param data The data to set
+     * @since 3.0
+     */
     public void setCurrentData(@NotNull User user, @NotNull DataSnapshot data) {
         plugin.runAsync(() -> {
             final DataSnapshot.Packed packed = data instanceof DataSnapshot.Unpacked unpacked
@@ -203,6 +242,27 @@ public abstract class BaseHuskSyncAPI {
      */
     public CompletableFuture<Boolean> deleteSnapshot(@NotNull User user, @NotNull UUID versionId) {
         return plugin.supplyAsync(() -> plugin.getDatabase().deleteSnapshot(user, versionId));
+    }
+
+    /**
+     * Registers a new custom data type serializer.
+     * <p>
+     * This allows for custom {@link Data} types to be persisted in {@link DataSnapshot}s. To register
+     * a new data type, you must provide a {@link Serializer} for serializing and deserializing the data type
+     * and invoke this method.
+     * </p>
+     * You'll need to do this on every server you wish to sync data between. On servers where the registered
+     * data type is not present, the data will be ignored and snapshots created on that server will not
+     * contain the data.
+     *
+     * @param identifier The identifier of the data type to register.
+     *                   Create one using {@code Identifier.from(Key.of("your_plugin_name", "key"))}
+     * @param serializer An implementation of {@link Serializer} for serializing and deserializing the {@link Data}
+     * @param <T>        A type extending {@link Data}; this will represent the data being held.
+     */
+    public <T extends Data> void registerDataSerializer(@NotNull Identifier identifier,
+                                                        @NotNull Serializer<T> serializer) {
+        plugin.registerSerializer(identifier, serializer);
     }
 
     /**

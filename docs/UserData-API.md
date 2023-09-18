@@ -45,7 +45,7 @@ public class MyPlugin extends JavaPlugin {
 - You can now get the API instance by calling `HuskSyncAPI#getInstance()`
 
 ```java
-import net.william278.husksync.api.HuskSyncAPI;
+import net.william278.husksync.api.BukkitHuskSyncAPI;
 
 public class HuskSyncAPIHook {
 

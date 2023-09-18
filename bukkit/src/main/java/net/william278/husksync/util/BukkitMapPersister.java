@@ -41,7 +41,7 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.logging.Level;
 
-public interface MapPersister {
+public interface BukkitMapPersister {
 
     // The map used to store HuskSync data in ItemStack NBT
     String MAP_DATA_KEY = "husksync:persisted_locked_map";
