@@ -360,8 +360,8 @@ public class Settings {
         return synchronizationFeatures;
     }
 
-    public boolean getSynchronizationFeature(@NotNull Identifier feature) {
-        return getSynchronizationFeatures().getOrDefault(feature.toString(), feature.isEnabledByDefault());
+    public boolean isSyncFeatureEnabled(@NotNull Identifier id) {
+        return id.isCustom() || getSynchronizationFeatures().getOrDefault(id.getKeyValue(), id.isEnabledByDefault());
     }
 
     @NotNull

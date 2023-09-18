@@ -58,6 +58,7 @@ public class Identifier {
     }
 
     @NotNull
+    @SuppressWarnings("unused")
     private static Identifier parse(@NotNull String key) throws InvalidKeyException {
         return from(key, true);
     }
@@ -95,6 +96,10 @@ public class Identifier {
     @NotNull
     public String getKeyValue() {
         return key.value();
+    }
+
+    public boolean isCustom() {
+        return getKeyNamespace().equals("husksync");
     }
 
     @Override

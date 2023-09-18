@@ -31,9 +31,9 @@ import java.util.Optional;
 public interface BukkitUserDataHolder extends UserDataHolder {
 
     @Override
-    default Optional<? extends Data> getData(@NotNull Identifier identifier) {
-        if (identifier.getKeyNamespace().equals("husksync")) {
-            return switch (identifier.getKeyValue()) {
+    default Optional<? extends Data> getData(@NotNull Identifier id) {
+        if (!id.isCustom()) {
+            return switch (id.getKeyValue()) {
                 case "inventory" -> getInventory();
                 case "ender_chest" -> getEnderChest();
                 case "potion_effects" -> getPotionEffects();
@@ -45,18 +45,18 @@ public interface BukkitUserDataHolder extends UserDataHolder {
                 case "experience" -> getExperience();
                 case "game_mode" -> getGameMode();
                 case "persistent_data" -> getPersistentData();
-                default -> throw new IllegalStateException(String.format("Unexpected data type: %s", identifier));
+                default -> throw new IllegalStateException(String.format("Unexpected data type: %s", id));
             };
         }
-        return Optional.ofNullable(getCustomDataStore().get(identifier));
+        return Optional.ofNullable(getCustomDataStore().get(id));
     }
 
     @Override
-    default void setData(@NotNull Identifier identifier, @NotNull Data data) {
-        if (!identifier.getKeyNamespace().equals("husksync")) {
-            getCustomDataStore().put(identifier, data);
+    default void setData(@NotNull Identifier id, @NotNull Data data) {
+        if (id.isCustom()) {
+            getCustomDataStore().put(id, data);
         }
-        UserDataHolder.super.setData(identifier, data);
+        UserDataHolder.super.setData(id, data);
     }
 
     @NotNull

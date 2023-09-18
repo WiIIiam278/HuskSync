@@ -43,7 +43,7 @@ public interface UserDataHolder extends DataHolder {
     @NotNull
     default Map<Identifier, Data> getData() {
         return getPlugin().getRegisteredDataTypes().stream()
-                .filter(type -> getPlugin().getSettings().getSynchronizationFeature(type))
+                .filter(type -> type.isCustom() || getPlugin().getSettings().isSyncFeatureEnabled(type))
                 .map(id -> Map.entry(id, getData(id)))
                 .filter(data -> data.getValue().isPresent())
                 .collect(HashMap::new, (map, data) -> map.put(data.getKey(), data.getValue().get()), HashMap::putAll);
@@ -84,7 +84,7 @@ public interface UserDataHolder extends DataHolder {
         plugin.runSync(() -> {
             try {
                 unpacked.getData().forEach((type, data) -> {
-                    if (plugin.getSettings().getSynchronizationFeature(type)) {
+                    if (plugin.getSettings().isSyncFeatureEnabled(type)) {
                         data.apply(this, plugin);
                     }
                 });
