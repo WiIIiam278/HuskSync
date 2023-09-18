@@ -27,10 +27,10 @@ What about modded items? Or custom item plugins such as MMOItems or SlimeFun? Th
 
 &midast;Purpur's custom ender chest resizing feature is also supported.
 
-&dagger;This is intended for servers that have mirrorred worlds across instances (such as RPG servers). With this option enabled, players will be placed at the same coordinates when changing servers.
+&dagger;This is intended for servers that have mirrored worlds across instances (such as RPG servers). With this option enabled, players will be placed at the same coordinates when changing servers.
 
 ### Map syncing
-Map items are a special case, as their data is not stored in the item itself, but rather in the game world files. In addition to this, their data is dynamic and changes based on the updating of the world, something which can't be tracked across multiple instances. As a result, it's not possible to sync unlocked map items. Locked maps, however, are supported. This works by saving the pixel canvas grid to the map NBT itself, and generating virtual maps on the other servers.
+Map items are a special case, as their data is not stored in the item itself, but rather in the game world files. In addition to this, their data is dynamic and changes based on the updating of the world, something that can't be tracked across multiple instances. As a result, it's not possible to sync unlocked map items. Locked maps, however, are supported. This works by saving the pixel canvas grid to the map NBT itself, and generating virtual maps on the other servers.
 
 ### Economy syncing
 Although it's a common request, HuskSync doesn't synchronize economy data for a number of reasons!
