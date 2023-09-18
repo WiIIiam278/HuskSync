@@ -83,7 +83,7 @@ public interface BukkitUserDataHolder extends UserDataHolder {
     @NotNull
     @Override
     default Optional<Data.PotionEffects> getPotionEffects() {
-        return Optional.of(BukkitData.PotionEffects.adapt(getBukkitPlayer().getActivePotionEffects()));
+        return Optional.of(BukkitData.PotionEffects.from(getBukkitPlayer().getActivePotionEffects()));
     }
 
     @NotNull

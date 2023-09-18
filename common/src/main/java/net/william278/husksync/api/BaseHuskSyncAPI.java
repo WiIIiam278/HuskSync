@@ -70,11 +70,11 @@ public abstract class BaseHuskSyncAPI {
      * <p>
      * If the user is online, this will create a new snapshot of their data with the {@code API} data save cause.
      * </p>
-     * If the user is offline, this will return the latest snapshot of their data, if that exists (an empty optional
-     * will be returned otherwise).
+     * If the user is offline, this will return the latest snapshot of their data if that exists
+     * (an empty optional will be returned otherwise).
      *
      * @param user The user to get the data of
-     * @return The user's current data in a future, or an empty optional if the user has no data
+     * @return A future containing the user's current data, or an empty optional if the user has no data
      * @since 3.0
      */
     public CompletableFuture<Optional<DataSnapshot.Unpacked>> getCurrentData(@NotNull User user) {
@@ -87,6 +87,15 @@ public abstract class BaseHuskSyncAPI {
                         .thenAccept(future::complete)
         );
         return future;
+    }
+
+    public void setCurrentData(@NotNull User user, @NotNull DataSnapshot data) {
+        plugin.runAsync(() -> {
+            final DataSnapshot.Packed packed = data instanceof DataSnapshot.Unpacked unpacked
+                    ? unpacked.pack(plugin) : (DataSnapshot.Packed) data;
+            saveSnapshot(user, packed);
+            plugin.getRedisManager().sendUserDataUpdate(user, packed);
+        });
     }
 
     /**
@@ -134,7 +143,7 @@ public abstract class BaseHuskSyncAPI {
         plugin.runAsync(() -> plugin.getDatabase().getSnapshot(user, versionId).ifPresent(snapshot -> {
             final DataSnapshot.Unpacked unpacked = snapshot.unpack(plugin);
             editor.accept(unpacked);
-            plugin.getDatabase().setSnapshot(user, unpacked.pack(plugin));
+            plugin.getDatabase().saveSnapshot(user, unpacked.pack(plugin));
         }));
     }
 
@@ -166,7 +175,7 @@ public abstract class BaseHuskSyncAPI {
         plugin.runAsync(() -> plugin.getDatabase().getLatestSnapshot(user).ifPresent(snapshot -> {
             final DataSnapshot.Unpacked unpacked = snapshot.unpack(plugin);
             editor.accept(unpacked);
-            plugin.getDatabase().setSnapshot(user, unpacked.pack(plugin));
+            plugin.getDatabase().saveSnapshot(user, unpacked.pack(plugin));
         }));
     }
 
@@ -177,8 +186,8 @@ public abstract class BaseHuskSyncAPI {
      * @param snapshot The snapshot to save
      * @since 3.0
      */
-    public void setSnapshot(@NotNull User user, @NotNull DataSnapshot snapshot) {
-        plugin.runAsync(() -> plugin.getDatabase().setSnapshot(
+    public void saveSnapshot(@NotNull User user, @NotNull DataSnapshot snapshot) {
+        plugin.runAsync(() -> plugin.getDatabase().saveSnapshot(
                 user, snapshot instanceof DataSnapshot.Unpacked unpacked
                         ? unpacked.pack(plugin) : (DataSnapshot.Packed) snapshot
         ));
@@ -204,7 +213,7 @@ public abstract class BaseHuskSyncAPI {
      */
     @NotNull
     public DataSnapshot.Builder snapshotBuilder() {
-        return DataSnapshot.builder(plugin);
+        return DataSnapshot.builder(plugin).saveCause(DataSnapshot.SaveCause.API);
     }
 
     /**

@@ -135,7 +135,7 @@ public abstract class EventListener {
             plugin.getRedisManager().setUserServerSwitch(user).thenRun(() -> {
                 final DataSnapshot.Packed data = user.createSnapshot(DataSnapshot.SaveCause.DISCONNECT);
                 plugin.getRedisManager().setUserData(user, data);
-                plugin.getDatabase().setSnapshot(user, data);
+                plugin.getDatabase().saveSnapshot(user, data);
             });
         } catch (Throwable e) {
             plugin.log(Level.SEVERE, "An exception occurred handling a player disconnection", e);
@@ -153,7 +153,7 @@ public abstract class EventListener {
         }
         usersInWorld.stream()
                 .filter(user -> !lockedPlayers.contains(user.getUuid()) && !user.isNpc())
-                .forEach(user -> plugin.getDatabase().setSnapshot(
+                .forEach(user -> plugin.getDatabase().saveSnapshot(
                         user, user.createSnapshot(DataSnapshot.SaveCause.WORLD_SAVE)
                 ));
     }
@@ -172,7 +172,7 @@ public abstract class EventListener {
 
         final DataSnapshot.Packed snapshot = user.createSnapshot(DataSnapshot.SaveCause.DEATH);
         snapshot.edit(plugin, (data -> data.getInventory().ifPresent(inventory -> inventory.setContents(drops))));
-        plugin.getDatabase().setSnapshot(user, snapshot);
+        plugin.getDatabase().saveSnapshot(user, snapshot);
     }
 
     /**
@@ -196,7 +196,7 @@ public abstract class EventListener {
                 .filter(user -> !lockedPlayers.contains(user.getUuid()) && !user.isNpc())
                 .forEach(user -> {
                     lockedPlayers.add(user.getUuid());
-                    plugin.getDatabase().setSnapshot(user, user.createSnapshot(DataSnapshot.SaveCause.SERVER_SHUTDOWN));
+                    plugin.getDatabase().saveSnapshot(user, user.createSnapshot(DataSnapshot.SaveCause.SERVER_SHUTDOWN));
                 });
 
         // Close outstanding connections

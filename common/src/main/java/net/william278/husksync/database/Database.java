@@ -157,16 +157,16 @@ public abstract class Database {
      *                 The implementation should version it with a random UUID and the current timestamp during insertion.
      * @see UserDataHolder#createSnapshot(SaveCause)
      */
-    public void setSnapshot(@NotNull User user, @NotNull DataSnapshot.Packed snapshot) {
+    public void saveSnapshot(@NotNull User user, @NotNull DataSnapshot.Packed snapshot) {
         if (snapshot.getSaveCause() != SaveCause.SERVER_SHUTDOWN) {
             plugin.fireEvent(
                     plugin.getDataSaveEvent(user, snapshot),
-                    (event) -> this.saveDataSnapshot(user, snapshot)
+                    (event) -> this.createAndRotateSnapshot(user, snapshot)
             );
             return;
         }
 
-        this.saveDataSnapshot(user, snapshot);
+        this.createAndRotateSnapshot(user, snapshot);
     }
 
     /**
@@ -180,7 +180,7 @@ public abstract class Database {
      * @param user     The user to add data for
      * @param snapshot The {@link DataSnapshot} to set.
      */
-    private void saveDataSnapshot(@NotNull User user, @NotNull DataSnapshot.Packed snapshot) {
+    private void createAndRotateSnapshot(@NotNull User user, @NotNull DataSnapshot.Packed snapshot) {
         final int backupFrequency = plugin.getSettings().getBackupFrequency();
         if (!snapshot.isPinned() && backupFrequency > 0) {
             this.rotateLatestSnapshot(user, snapshot.getTimestamp().minusHours(backupFrequency));

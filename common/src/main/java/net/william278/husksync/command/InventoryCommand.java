@@ -85,7 +85,7 @@ public class InventoryCommand extends ItemsCommand {
             data.setPinned(plugin.getSettings().doAutoPin(DataSnapshot.SaveCause.INVENTORY_COMMAND));
             data.getInventory().ifPresent(inventory -> inventory.setContents(items));
         });
-        plugin.getDatabase().setSnapshot(user, snapshot);
+        plugin.getDatabase().saveSnapshot(user, snapshot);
         plugin.getRedisManager().sendUserDataUpdate(user, snapshot);
     }
 

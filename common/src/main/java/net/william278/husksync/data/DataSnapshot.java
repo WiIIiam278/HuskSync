@@ -399,7 +399,6 @@ public class DataSnapshot {
 
         private Builder(@NotNull HuskSync plugin) {
             this.plugin = plugin;
-            this.saveCause = SaveCause.API;
             this.pinned = false;
             this.data = new HashMap<>();
         }
@@ -629,10 +628,14 @@ public class DataSnapshot {
          * Build the {@link DataSnapshot}
          *
          * @return The {@link DataSnapshot.Unpacked snapshot}
+         * @throws IllegalStateException If no save cause is specified
          * @since 3.0
          */
         @NotNull
-        public DataSnapshot.Unpacked build() {
+        public DataSnapshot.Unpacked build() throws IllegalStateException {
+            if (saveCause == null) {
+                throw new IllegalStateException("Cannot build DataSnapshot without a save cause");
+            }
             return new Unpacked(
                     UUID.randomUUID(),
                     pinned || plugin.getSettings().doAutoPin(saveCause),
@@ -649,10 +652,11 @@ public class DataSnapshot {
          * Build and pack the {@link DataSnapshot}
          *
          * @return The {@link DataSnapshot.Packed snapshot}
+         * @throws IllegalStateException If no save cause is specified
          * @since 3.0
          */
         @NotNull
-        public DataSnapshot.Packed buildAndPack() {
+        public DataSnapshot.Packed buildAndPack() throws IllegalStateException {
             return build().pack(plugin);
         }
 

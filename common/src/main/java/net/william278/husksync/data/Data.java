@@ -52,14 +52,14 @@ public interface Data {
     interface Items extends Data {
 
         @NotNull
-        StackPreview[] getPreview();
+        Stack[] getPreview();
 
         default int getSlotCount() {
             return getPreview().length;
         }
 
-        record StackPreview(@NotNull String material, int amount, @Nullable String name,
-                            @Nullable List<String> lore, @NotNull List<String> enchantments) {
+        record Stack(@NotNull String material, int amount, @Nullable String name,
+                     @Nullable List<String> lore, @NotNull List<String> enchantments) {
 
         }
 
@@ -80,23 +80,23 @@ public interface Data {
 
             void setHeldItemSlot(int heldItemSlot) throws IllegalArgumentException;
 
-            default Optional<StackPreview> getHelmet() {
+            default Optional<Stack> getHelmet() {
                 return Optional.ofNullable(getPreview()[39]);
             }
 
-            default Optional<StackPreview> getChestplate() {
+            default Optional<Stack> getChestplate() {
                 return Optional.ofNullable(getPreview()[38]);
             }
 
-            default Optional<StackPreview> getLeggings() {
+            default Optional<Stack> getLeggings() {
                 return Optional.ofNullable(getPreview()[37]);
             }
 
-            default Optional<StackPreview> getBoots() {
+            default Optional<Stack> getBoots() {
                 return Optional.ofNullable(getPreview()[36]);
             }
 
-            default Optional<StackPreview> getOffHand() {
+            default Optional<Stack> getOffHand() {
                 return Optional.ofNullable(getPreview()[40]);
             }
         }

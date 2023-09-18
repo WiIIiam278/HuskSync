@@ -41,6 +41,7 @@ import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -62,9 +63,9 @@ public abstract class BukkitData implements Data {
 
         @NotNull
         @Override
-        public StackPreview[] getPreview() {
+        public Stack[] getPreview() {
             return Arrays.stream(contents)
-                    .map(stack -> stack != null ? new StackPreview(
+                    .map(stack -> stack != null ? new Stack(
                             stack.getType().getKey().toString(),
                             stack.getAmount(),
                             stack.hasItemMeta() ? (Objects.requireNonNull(
@@ -79,7 +80,7 @@ public abstract class BukkitData implements Data {
                                             .toList()
                                     : List.of()
                     ) : null)
-                    .toArray(StackPreview[]::new);
+                    .toArray(Stack[]::new);
         }
 
         @Override
@@ -215,7 +216,7 @@ public abstract class BukkitData implements Data {
 
     }
 
-    public static class PotionEffects implements Data.PotionEffects, Adaptable {
+    public static class PotionEffects implements Data.PotionEffects {
 
         private final Collection<PotionEffect> effects;
 
@@ -224,8 +225,33 @@ public abstract class BukkitData implements Data {
         }
 
         @NotNull
-        public static BukkitData.PotionEffects adapt(@NotNull Collection<PotionEffect> effects) {
+        public static BukkitData.PotionEffects from(@NotNull Collection<PotionEffect> effects) {
             return new BukkitData.PotionEffects(effects);
+        }
+
+        @NotNull
+        public static BukkitData.PotionEffects adapt(@NotNull Collection<Effect> effects) {
+            return from(
+                    effects.stream()
+                            .map(effect -> new PotionEffect(
+                                    Objects.requireNonNull(
+                                            PotionEffectType.getByName(effect.type()),
+                                            "Invalid potion effect type"
+                                    ),
+                                    effect.duration(),
+                                    effect.amplifier(),
+                                    effect.isAmbient(),
+                                    effect.showParticles(),
+                                    effect.hasIcon()
+                            ))
+                            .toList()
+            );
+        }
+
+        @NotNull
+        @SuppressWarnings("unused")
+        public static BukkitData.PotionEffects empty() {
+            return new BukkitData.PotionEffects(List.of());
         }
 
         @Override
