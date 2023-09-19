@@ -19,6 +19,7 @@
 
 package net.william278.husksync.api;
 
+import net.william278.desertwell.util.ThrowingConsumer;
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.data.Data;
 import net.william278.husksync.data.DataSnapshot;
@@ -33,7 +34,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Consumer;
 
 /**
  * The base implementation of the HuskSync API, containing cross-platform API calls.
@@ -142,11 +142,11 @@ public abstract class HuskSyncAPI {
      * @param editor The editor function
      * @since 3.0
      */
-    public void editCurrentData(@NotNull User user, @NotNull Consumer<DataSnapshot.Unpacked> editor) {
-        plugin.runAsync(() -> getCurrentData(user).thenAccept(optional -> optional.ifPresent(data -> {
+    public void editCurrentData(@NotNull User user, @NotNull ThrowingConsumer<DataSnapshot.Unpacked> editor) {
+        getCurrentData(user).thenAccept(optional -> optional.ifPresent(data -> {
             editor.accept(data);
             setCurrentData(user, data);
-        })));
+        }));
     }
 
     /**
@@ -190,7 +190,7 @@ public abstract class HuskSyncAPI {
      * @since 3.0
      */
     public void editSnapshot(@NotNull User user, @NotNull UUID versionId,
-                             @NotNull Consumer<DataSnapshot.Unpacked> editor) {
+                             @NotNull ThrowingConsumer<DataSnapshot.Unpacked> editor) {
         plugin.runAsync(() -> plugin.getDatabase().getSnapshot(user, versionId).ifPresent(snapshot -> {
             final DataSnapshot.Unpacked unpacked = snapshot.unpack(plugin);
             editor.accept(unpacked);
@@ -222,7 +222,7 @@ public abstract class HuskSyncAPI {
      * @param editor The editor function
      * @since 3.0
      */
-    public void editLatestSnapshot(@NotNull User user, @NotNull Consumer<DataSnapshot.Unpacked> editor) {
+    public void editLatestSnapshot(@NotNull User user, @NotNull ThrowingConsumer<DataSnapshot.Unpacked> editor) {
         plugin.runAsync(() -> plugin.getDatabase().getLatestSnapshot(user).ifPresent(snapshot -> {
             final DataSnapshot.Unpacked unpacked = snapshot.unpack(plugin);
             editor.accept(unpacked);
