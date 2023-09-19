@@ -108,24 +108,25 @@ public class RedisManager extends JedisPubSub {
 
         final RedisMessage redisMessage = RedisMessage.fromJson(plugin, message);
         switch (messageType) {
-            case UPDATE_USER_DATA -> plugin.getOnlineUser(redisMessage.targetUserUuid).ifPresent(
+            case UPDATE_USER_DATA -> plugin.getOnlineUser(redisMessage.getTargetUuid()).ifPresent(
                     user -> user.applySnapshot(
-                            DataSnapshot.deserialize(plugin, redisMessage.data),
+                            DataSnapshot.deserialize(plugin, redisMessage.getPayload()),
                             DataSnapshot.UpdateCause.UPDATED
                     )
             );
-            case REQUEST_USER_DATA -> plugin.getOnlineUser(redisMessage.targetUserUuid).ifPresent(
-                    user -> new RedisMessage(
-                            UUID.fromString(new String(redisMessage.data, StandardCharsets.UTF_8)),
+            case REQUEST_USER_DATA -> plugin.getOnlineUser(redisMessage.getTargetUuid()).ifPresent(
+                    user -> RedisMessage.create(
+                            UUID.fromString(new String(redisMessage.getPayload(), StandardCharsets.UTF_8)),
                             user.createSnapshot(DataSnapshot.SaveCause.INVENTORY_COMMAND).asBytes(plugin)
                     ).dispatch(plugin, RedisMessageType.RETURN_USER_DATA)
             );
             case RETURN_USER_DATA -> {
                 final CompletableFuture<Optional<DataSnapshot.Packed>> future = pendingRequests.get(
-                        redisMessage.targetUserUuid
+                        redisMessage.getTargetUuid()
                 );
                 if (future != null) {
-                    future.complete(Optional.of(DataSnapshot.deserialize(plugin, redisMessage.data)));
+                    future.complete(Optional.of(DataSnapshot.deserialize(plugin, redisMessage.getPayload())));
+                    pendingRequests.remove(redisMessage.getTargetUuid());
                 }
             }
         }
@@ -140,7 +141,7 @@ public class RedisManager extends JedisPubSub {
 
     public void sendUserDataUpdate(@NotNull User user, @NotNull DataSnapshot.Packed data) {
         plugin.runAsync(() -> {
-            final RedisMessage redisMessage = new RedisMessage(user.getUuid(), data.asBytes(plugin));
+            final RedisMessage redisMessage = RedisMessage.create(user.getUuid(), data.asBytes(plugin));
             redisMessage.dispatch(plugin, RedisMessageType.UPDATE_USER_DATA);
         });
     }
@@ -157,7 +158,7 @@ public class RedisManager extends JedisPubSub {
         final CompletableFuture<Optional<DataSnapshot.Packed>> future = new CompletableFuture<>();
         pendingRequests.put(requestId, future);
         plugin.runAsync(() -> {
-            final RedisMessage redisMessage = new RedisMessage(
+            final RedisMessage redisMessage = RedisMessage.create(
                     user.getUuid(),
                     requestId.toString().getBytes(StandardCharsets.UTF_8)
             );

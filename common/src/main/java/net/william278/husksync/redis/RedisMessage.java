@@ -20,6 +20,7 @@
 package net.william278.husksync.redis;
 
 import com.google.gson.JsonSyntaxException;
+import com.google.gson.annotations.SerializedName;
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.adapter.Adaptable;
 import org.jetbrains.annotations.NotNull;
@@ -28,16 +29,28 @@ import java.util.UUID;
 
 public class RedisMessage implements Adaptable {
 
-    public UUID targetUserUuid;
-    public byte[] data;
+    @SerializedName("target_uuid")
+    private UUID targetUuid;
+    @SerializedName("payload")
+    private byte[] payload;
 
-    public RedisMessage(@NotNull UUID targetUserUuid, byte[] message) {
-        this.targetUserUuid = targetUserUuid;
-        this.data = message;
+    private RedisMessage(@NotNull UUID targetUuid, byte[] message) {
+        this.setTargetUuid(targetUuid);
+        this.setPayload(message);
     }
 
     @SuppressWarnings("unused")
     public RedisMessage() {
+    }
+
+    @NotNull
+    public static RedisMessage create(@NotNull UUID targetUuid, byte[] message) {
+        return new RedisMessage(targetUuid, message);
+    }
+
+    @NotNull
+    public static RedisMessage fromJson(@NotNull HuskSync plugin, @NotNull String json) throws JsonSyntaxException {
+        return plugin.getGson().fromJson(json, RedisMessage.class);
     }
 
     public void dispatch(@NotNull HuskSync plugin, @NotNull RedisMessageType type) {
@@ -48,8 +61,20 @@ public class RedisMessage implements Adaptable {
     }
 
     @NotNull
-    public static RedisMessage fromJson(@NotNull HuskSync plugin, @NotNull String json) throws JsonSyntaxException {
-        return plugin.getGson().fromJson(json, RedisMessage.class);
+    public UUID getTargetUuid() {
+        return targetUuid;
+    }
+
+    public void setTargetUuid(@NotNull UUID targetUuid) {
+        this.targetUuid = targetUuid;
+    }
+
+    public byte[] getPayload() {
+        return payload;
+    }
+
+    public void setPayload(byte[] payload) {
+        this.payload = payload;
     }
 
 }
