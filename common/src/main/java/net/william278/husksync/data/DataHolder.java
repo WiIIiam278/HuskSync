@@ -24,6 +24,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Map;
 import java.util.Optional;
 
+@SuppressWarnings("unused")
 public interface DataHolder {
 
     @NotNull

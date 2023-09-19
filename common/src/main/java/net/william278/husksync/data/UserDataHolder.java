@@ -49,9 +49,18 @@ public interface UserDataHolder extends DataHolder {
                 .collect(HashMap::new, (map, data) -> map.put(data.getKey(), data.getValue().get()), HashMap::putAll);
     }
 
+    /**
+     * Apply the data for the given {@link Identifier} to the holder.
+     * <p>
+     * This will be performed synchronously on the main server thread; it will not happen instantly.
+     *
+     * @param identifier the {@link Identifier} to set the data for
+     * @param data       the {@link Data} to set
+     * @since 3.0
+     */
     @Override
     default void setData(@NotNull Identifier identifier, @NotNull Data data) {
-        data.apply(this, getPlugin());
+        getPlugin().runSync(() -> data.apply(this, getPlugin()));
     }
 
     /**
@@ -85,6 +94,9 @@ public interface UserDataHolder extends DataHolder {
             try {
                 unpacked.getData().forEach((type, data) -> {
                     if (plugin.getSettings().isSyncFeatureEnabled(type)) {
+                        if (type.isCustom()) {
+                            getCustomDataStore().put(type, data);
+                        }
                         data.apply(this, plugin);
                     }
                 });
@@ -99,57 +111,57 @@ public interface UserDataHolder extends DataHolder {
 
     @Override
     default void setInventory(@NotNull Data.Items.Inventory inventory) {
-        inventory.apply(this, getPlugin());
+        this.setData(Identifier.INVENTORY, inventory);
     }
 
     @Override
     default void setEnderChest(@NotNull Data.Items.EnderChest enderChest) {
-        enderChest.apply(this, getPlugin());
+        this.setData(Identifier.ENDER_CHEST, enderChest);
     }
 
     @Override
     default void setPotionEffects(@NotNull Data.PotionEffects potionEffects) {
-        potionEffects.apply(this, getPlugin());
+        this.setData(Identifier.POTION_EFFECTS, potionEffects);
     }
 
     @Override
     default void setAdvancements(@NotNull Data.Advancements advancements) {
-        advancements.apply(this, getPlugin());
+        this.setData(Identifier.ADVANCEMENTS, advancements);
     }
 
     @Override
     default void setLocation(@NotNull Data.Location location) {
-        location.apply(this, getPlugin());
+        this.setData(Identifier.LOCATION, location);
     }
 
     @Override
     default void setStatistics(@NotNull Data.Statistics statistics) {
-        statistics.apply(this, getPlugin());
+        this.setData(Identifier.STATISTICS, statistics);
     }
 
     @Override
     default void setHealth(@NotNull Data.Health health) {
-        health.apply(this, getPlugin());
+        this.setData(Identifier.HEALTH, health);
     }
 
     @Override
     default void setHunger(@NotNull Data.Hunger hunger) {
-        hunger.apply(this, getPlugin());
+        this.setData(Identifier.HUNGER, hunger);
     }
 
     @Override
     default void setExperience(@NotNull Data.Experience experience) {
-        experience.apply(this, getPlugin());
+        this.setData(Identifier.EXPERIENCE, experience);
     }
 
     @Override
     default void setGameMode(@NotNull Data.GameMode gameMode) {
-        gameMode.apply(this, getPlugin());
+        this.setData(Identifier.GAME_MODE, gameMode);
     }
 
     @Override
     default void setPersistentData(@NotNull Data.PersistentData persistentData) {
-        persistentData.apply(this, getPlugin());
+        this.setData(Identifier.PERSISTENT_DATA, persistentData);
     }
 
     @NotNull

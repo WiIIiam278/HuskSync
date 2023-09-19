@@ -113,7 +113,9 @@ public class BukkitSerializer {
 
         @Override
         public BukkitData.PotionEffects deserialize(@NotNull String serialized) throws DeserializationException {
-            return BukkitData.PotionEffects.adapt(plugin.getGson().fromJson(serialized, TYPE.getType()));
+            return BukkitData.PotionEffects.from(
+                    plugin.getGson().fromJson(serialized, TYPE.getType())
+            );
         }
 
         @NotNull
