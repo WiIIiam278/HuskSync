@@ -335,7 +335,7 @@ public abstract class BukkitData implements Data {
         @Override
         public void apply(@NotNull BukkitUser user, @NotNull BukkitHuskSync plugin) throws IllegalStateException {
             plugin.runAsync(() -> forEachAdvancement(advancement -> {
-                final Player player = ((BukkitUser) user).getPlayer();
+                final Player player = user.getPlayer();
                 final AdvancementProgress progress = player.getAdvancementProgress(advancement);
                 final Optional<Advancement> record = completed.stream()
                         .filter(r -> r.getKey().equals(advancement.getKey().toString()))

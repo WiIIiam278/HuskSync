@@ -42,6 +42,7 @@ public class BukkitSerializer {
         this.plugin = plugin;
     }
 
+    @SuppressWarnings("unused")
     public BukkitSerializer(@NotNull HuskSyncAPI api) {
         this.plugin = api.getPlugin();
     }
