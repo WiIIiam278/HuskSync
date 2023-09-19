@@ -53,6 +53,18 @@ public class Identifier {
         this.configDefault = configDefault;
     }
 
+    /**
+     * Create an identifier from a {@link Key}
+     *
+     * @param key the key
+     * @return the identifier
+     * @since 3.0
+     */
+    @NotNull
+    public static Identifier from(@NotNull Key key) {
+        return new Identifier(key, false);
+    }
+
     @NotNull
     private static Identifier huskSync(@Subst("null") @NotNull String name,
                                        boolean configDefault) throws InvalidKeyException {
@@ -64,19 +76,6 @@ public class Identifier {
     private static Identifier parse(@NotNull String key) throws InvalidKeyException {
         return huskSync(key, true);
     }
-
-    /**
-     * Create an identifier from a {@link Key}
-     *
-     * @param key the key
-     * @return the identifier
-     * @since 3.0
-     */
-    @NotNull
-    public static Identifier huskSync(@NotNull Key key) {
-        return new Identifier(key, false);
-    }
-
 
     public boolean isEnabledByDefault() {
         return configDefault;

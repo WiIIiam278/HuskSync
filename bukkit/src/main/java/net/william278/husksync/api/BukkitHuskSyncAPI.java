@@ -19,6 +19,7 @@
 
 package net.william278.husksync.api;
 
+import net.william278.desertwell.util.ThrowingConsumer;
 import net.william278.husksync.BukkitHuskSync;
 import net.william278.husksync.data.BukkitData;
 import net.william278.husksync.data.DataHolder;
@@ -32,6 +33,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 
 /**
  * The HuskSync API implementation for the Bukkit platform
@@ -149,6 +151,32 @@ public class BukkitHuskSyncAPI extends HuskSyncAPI {
     }
 
     /**
+     * Edit the current {@link BukkitData.Items.Inventory} of the given {@link User}
+     *
+     * @param user   the user to edit the inventory of
+     * @param editor the editor to apply to the inventory
+     * @since 3.0
+     */
+    public void editCurrentInventory(@NotNull User user, ThrowingConsumer<BukkitData.Items.Inventory> editor) {
+        editCurrentData(user, dataHolder -> dataHolder.getInventory()
+                .map(BukkitData.Items.Inventory.class::cast)
+                .ifPresent(editor));
+    }
+
+    /**
+     * Edit the current {@link BukkitData.Items.Inventory} of the given {@link User}
+     *
+     * @param user   the user to edit the inventory of
+     * @param editor the editor to apply to the inventory
+     * @since 3.0
+     */
+    public void editCurrentInventoryContents(@NotNull User user, ThrowingConsumer<ItemStack[]> editor) {
+        editCurrentData(user, dataHolder -> dataHolder.getInventory()
+                .map(BukkitData.Items.Inventory.class::cast)
+                .ifPresent(inventory -> editor.accept(inventory.getContents())));
+    }
+
+    /**
      * Get the current {@link BukkitData.Items.EnderChest} of the given {@link User}
      *
      * @param user the user to get the ender chest of
@@ -199,6 +227,32 @@ public class BukkitHuskSyncAPI extends HuskSyncAPI {
                         enderChest -> enderChest.setContents(adaptItems(contents))
                 )
         );
+    }
+
+    /**
+     * Edit the current {@link BukkitData.Items.EnderChest} of the given {@link User}
+     *
+     * @param user   the user to edit the ender chest of
+     * @param editor the editor to apply to the ender chest
+     * @since 3.0
+     */
+    public void editCurrentEnderChest(@NotNull User user, Consumer<BukkitData.Items.EnderChest> editor) {
+        editCurrentData(user, dataHolder -> dataHolder.getEnderChest()
+                .map(BukkitData.Items.EnderChest.class::cast)
+                .ifPresent(editor));
+    }
+
+    /**
+     * Edit the current {@link BukkitData.Items.EnderChest} of the given {@link User}
+     *
+     * @param user   the user to edit the ender chest of
+     * @param editor the editor to apply to the ender chest
+     * @since 3.0
+     */
+    public void editCurrentEnderChestContents(@NotNull User user, Consumer<ItemStack[]> editor) {
+        editCurrentData(user, dataHolder -> dataHolder.getEnderChest()
+                .map(BukkitData.Items.EnderChest.class::cast)
+                .ifPresent(enderChest -> editor.accept(enderChest.getContents())));
     }
 
     /**

@@ -24,6 +24,7 @@ import net.william278.husksync.HuskSync;
 import net.william278.husksync.adapter.DataAdapter;
 import net.william278.husksync.data.DataSnapshot;
 import net.william278.husksync.user.User;
+import org.jetbrains.annotations.Blocking;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.ByteArrayInputStream;
@@ -53,12 +54,18 @@ public class MySqlDatabase extends Database {
      * @return The {@link Connection} to the MySQL database
      * @throws SQLException if the connection fails for some reason
      */
+    @Blocking
+    @NotNull
     private Connection getConnection() throws SQLException {
+        if (dataSource == null) {
+            throw new IllegalStateException("The database has not been initialized");
+        }
         return dataSource.getConnection();
     }
 
+    @Blocking
     @Override
-    public void initialize() throws HuskSync.FailedToLoadException {
+    public void initialize() throws IllegalStateException {
         // Initialize the Hikari pooled connection
         dataSource = new HikariDataSource();
         dataSource.setDriverClassName(driverClass);
@@ -119,6 +126,7 @@ public class MySqlDatabase extends Database {
         }
     }
 
+    @Blocking
     @Override
     public void ensureUser(@NotNull User user) {
         getUser(user.getUuid()).ifPresentOrElse(
@@ -159,6 +167,7 @@ public class MySqlDatabase extends Database {
         );
     }
 
+    @Blocking
     @Override
     public Optional<User> getUser(@NotNull UUID uuid) {
         try (Connection connection = getConnection()) {
@@ -181,6 +190,7 @@ public class MySqlDatabase extends Database {
         return Optional.empty();
     }
 
+    @Blocking
     @Override
     public Optional<User> getUserByName(@NotNull String username) {
         try (Connection connection = getConnection()) {
@@ -202,6 +212,7 @@ public class MySqlDatabase extends Database {
         return Optional.empty();
     }
 
+    @Blocking
     @Override
     public Optional<DataSnapshot.Packed> getLatestSnapshot(@NotNull User user) {
         try (Connection connection = getConnection()) {
@@ -226,6 +237,7 @@ public class MySqlDatabase extends Database {
         return Optional.empty();
     }
 
+    @Blocking
     @Override
     @NotNull
     public List<DataSnapshot.Packed> getAllSnapshots(@NotNull User user) {
@@ -252,6 +264,7 @@ public class MySqlDatabase extends Database {
         return retrievedData;
     }
 
+    @Blocking
     @Override
     public Optional<DataSnapshot.Packed> getSnapshot(@NotNull User user, @NotNull UUID versionUuid) {
         try (Connection connection = getConnection()) {
@@ -277,6 +290,7 @@ public class MySqlDatabase extends Database {
         return Optional.empty();
     }
 
+    @Blocking
     @Override
     protected void rotateSnapshots(@NotNull User user) {
         final List<DataSnapshot.Packed> unpinnedUserData = getAllSnapshots(user).stream()
@@ -299,6 +313,7 @@ public class MySqlDatabase extends Database {
         }
     }
 
+    @Blocking
     @Override
     public boolean deleteSnapshot(@NotNull User user, @NotNull UUID versionUuid) {
         try (Connection connection = getConnection()) {
@@ -316,6 +331,7 @@ public class MySqlDatabase extends Database {
         return false;
     }
 
+    @Blocking
     @Override
     protected void rotateLatestSnapshot(@NotNull User user, @NotNull OffsetDateTime within) {
         try (Connection connection = getConnection()) {
@@ -333,6 +349,7 @@ public class MySqlDatabase extends Database {
         }
     }
 
+    @Blocking
     @Override
     protected void createSnapshot(@NotNull User user, @NotNull DataSnapshot.Packed data) {
         try (Connection connection = getConnection()) {
@@ -353,6 +370,7 @@ public class MySqlDatabase extends Database {
         }
     }
 
+    @Blocking
     @Override
     public void updateSnapshot(@NotNull User user, @NotNull DataSnapshot.Packed data) {
         try (Connection connection = getConnection()) {

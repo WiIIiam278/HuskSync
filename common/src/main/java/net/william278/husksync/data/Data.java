@@ -52,10 +52,10 @@ public interface Data {
     interface Items extends Data {
 
         @NotNull
-        Stack[] getPreview();
+        Stack[] getStack();
 
         default int getSlotCount() {
-            return getPreview().length;
+            return getStack().length;
         }
 
         record Stack(@NotNull String material, int amount, @Nullable String name,
@@ -64,7 +64,7 @@ public interface Data {
         }
 
         default boolean isEmpty() {
-            return Arrays.stream(getPreview()).allMatch(Objects::isNull) || getPreview().length == 0;
+            return Arrays.stream(getStack()).allMatch(Objects::isNull) || getStack().length == 0;
         }
 
         void clear();
@@ -81,23 +81,23 @@ public interface Data {
             void setHeldItemSlot(int heldItemSlot) throws IllegalArgumentException;
 
             default Optional<Stack> getHelmet() {
-                return Optional.ofNullable(getPreview()[39]);
+                return Optional.ofNullable(getStack()[39]);
             }
 
             default Optional<Stack> getChestplate() {
-                return Optional.ofNullable(getPreview()[38]);
+                return Optional.ofNullable(getStack()[38]);
             }
 
             default Optional<Stack> getLeggings() {
-                return Optional.ofNullable(getPreview()[37]);
+                return Optional.ofNullable(getStack()[37]);
             }
 
             default Optional<Stack> getBoots() {
-                return Optional.ofNullable(getPreview()[36]);
+                return Optional.ofNullable(getStack()[36]);
             }
 
             default Optional<Stack> getOffHand() {
-                return Optional.ofNullable(getPreview()[40]);
+                return Optional.ofNullable(getStack()[40]);
             }
         }
 

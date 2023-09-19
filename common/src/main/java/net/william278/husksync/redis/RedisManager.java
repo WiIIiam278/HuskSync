@@ -22,6 +22,7 @@ package net.william278.husksync.redis;
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.data.DataSnapshot;
 import net.william278.husksync.user.User;
+import org.jetbrains.annotations.Blocking;
 import org.jetbrains.annotations.NotNull;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
@@ -58,6 +59,7 @@ public class RedisManager extends JedisPubSub {
     /**
      * Initialize the redis connection pool
      */
+    @Blocking
     public void initialize() throws IllegalStateException {
         final String password = plugin.getSettings().getRedisPassword();
         final String host = plugin.getSettings().getRedisHost();
@@ -85,6 +87,7 @@ public class RedisManager extends JedisPubSub {
         new Thread(this::subscribe, "husksync:redis_subscriber").start();
     }
 
+    @Blocking
     private void subscribe() {
         try (Jedis jedis = jedisPool.getResource()) {
             jedis.subscribe(
@@ -128,6 +131,7 @@ public class RedisManager extends JedisPubSub {
         }
     }
 
+    @Blocking
     protected void sendMessage(@NotNull String channel, @NotNull String message) {
         try (Jedis jedis = jedisPool.getResource()) {
             jedis.publish(channel, message);

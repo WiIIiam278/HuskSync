@@ -63,7 +63,7 @@ public abstract class BukkitData implements Data {
 
         @NotNull
         @Override
-        public Stack[] getPreview() {
+        public Stack[] getStack() {
             return Arrays.stream(contents)
                     .map(stack -> stack != null ? new Stack(
                             stack.getType().getKey().toString(),

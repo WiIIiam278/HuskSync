@@ -25,6 +25,7 @@ import net.william278.husksync.data.DataSnapshot;
 import net.william278.husksync.data.DataSnapshot.SaveCause;
 import net.william278.husksync.data.UserDataHolder;
 import net.william278.husksync.user.User;
+import org.jetbrains.annotations.Blocking;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -79,6 +80,7 @@ public abstract class Database {
      *
      * @throws IllegalStateException if the database could not be initialized
      */
+    @Blocking
     public abstract void initialize() throws IllegalStateException;
 
     /**
@@ -86,6 +88,7 @@ public abstract class Database {
      *
      * @param user The {@link User} to ensure
      */
+    @Blocking
     public abstract void ensureUser(@NotNull User user);
 
     /**
@@ -94,6 +97,7 @@ public abstract class Database {
      * @param uuid Minecraft account {@link UUID} of the {@link User} to get
      * @return An optional with the {@link User} present if they exist
      */
+    @Blocking
     public abstract Optional<User> getUser(@NotNull UUID uuid);
 
     /**
@@ -102,6 +106,7 @@ public abstract class Database {
      * @param username Username of the {@link User} to get (<i>case-insensitive</i>)
      * @return An optional with the {@link User} present if they exist
      */
+    @Blocking
     public abstract Optional<User> getUserByName(@NotNull String username);
 
 
@@ -111,6 +116,7 @@ public abstract class Database {
      * @param user The user to get data for
      * @return an optional containing the {@link DataSnapshot}, if it exists, or an empty optional if it does not
      */
+    @Blocking
     public abstract Optional<DataSnapshot.Packed> getLatestSnapshot(@NotNull User user);
 
     /**
@@ -119,6 +125,7 @@ public abstract class Database {
      * @param user The user to get data for
      * @return The list of a user's {@link DataSnapshot} entries
      */
+    @Blocking
     @NotNull
     public abstract List<DataSnapshot.Packed> getAllSnapshots(@NotNull User user);
 
@@ -129,6 +136,7 @@ public abstract class Database {
      * @param versionUuid The UUID of the {@link DataSnapshot} entry to get
      * @return An optional containing the {@link DataSnapshot}, if it exists
      */
+    @Blocking
     public abstract Optional<DataSnapshot.Packed> getSnapshot(@NotNull User user, @NotNull UUID versionUuid);
 
     /**
@@ -137,6 +145,7 @@ public abstract class Database {
      * @param user The user to prune data for
      * @implNote Data snapshots marked as {@code pinned} are exempt from rotation
      */
+    @Blocking
     protected abstract void rotateSnapshots(@NotNull User user);
 
     /**
@@ -145,6 +154,7 @@ public abstract class Database {
      * @param user        The user to get data for
      * @param versionUuid The UUID of the {@link DataSnapshot} entry to delete
      */
+    @Blocking
     public abstract boolean deleteSnapshot(@NotNull User user, @NotNull UUID versionUuid);
 
     /**
@@ -157,6 +167,7 @@ public abstract class Database {
      *                 The implementation should version it with a random UUID and the current timestamp during insertion.
      * @see UserDataHolder#createSnapshot(SaveCause)
      */
+    @Blocking
     public void addSnapshot(@NotNull User user, @NotNull DataSnapshot.Packed snapshot) {
         if (snapshot.getSaveCause() != SaveCause.SERVER_SHUTDOWN) {
             plugin.fireEvent(
@@ -180,6 +191,7 @@ public abstract class Database {
      * @param user     The user to add data for
      * @param snapshot The {@link DataSnapshot} to set.
      */
+    @Blocking
     private void addAndRotateSnapshot(@NotNull User user, @NotNull DataSnapshot.Packed snapshot) {
         final int backupFrequency = plugin.getSettings().getBackupFrequency();
         if (!snapshot.isPinned() && backupFrequency > 0) {
@@ -197,6 +209,7 @@ public abstract class Database {
      * @param user   The user to delete a snapshot for
      * @param within The time to delete a snapshot after
      */
+    @Blocking
     protected abstract void rotateLatestSnapshot(@NotNull User user, @NotNull OffsetDateTime within);
 
     /**
@@ -205,6 +218,7 @@ public abstract class Database {
      * @param user The user to add data for
      * @param data The {@link DataSnapshot} to set.
      */
+    @Blocking
     protected abstract void createSnapshot(@NotNull User user, @NotNull DataSnapshot.Packed data);
 
     /**
@@ -213,6 +227,7 @@ public abstract class Database {
      * @param user     The user whose data snapshot
      * @param snapshot The {@link DataSnapshot} to update
      */
+    @Blocking
     public abstract void updateSnapshot(@NotNull User user, @NotNull DataSnapshot.Packed snapshot);
 
     /**
@@ -222,6 +237,7 @@ public abstract class Database {
      * @param versionUuid The UUID of the user's {@link DataSnapshot} entry to unpin
      * @see DataSnapshot#isPinned()
      */
+    @Blocking
     public final void unpinSnapshot(@NotNull User user, @NotNull UUID versionUuid) {
         this.getSnapshot(user, versionUuid).ifPresent(data -> {
             data.edit(plugin, (snapshot) -> snapshot.setPinned(false));
@@ -235,6 +251,7 @@ public abstract class Database {
      * @param user        The user to pin the data for
      * @param versionUuid The UUID of the user's {@link DataSnapshot} entry to pin
      */
+    @Blocking
     public final void pinSnapshot(@NotNull User user, @NotNull UUID versionUuid) {
         this.getSnapshot(user, versionUuid).ifPresent(data -> {
             data.edit(plugin, (snapshot) -> snapshot.setPinned(true));
@@ -246,6 +263,7 @@ public abstract class Database {
      * Wipes <b>all</b> {@link User} entries from the database.
      * <b>This should only be used when preparing tables for a data migration.</b>
      */
+    @Blocking
     public abstract void wipeDatabase();
 
     /**
