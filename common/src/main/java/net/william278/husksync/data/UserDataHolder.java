@@ -153,6 +153,9 @@ public interface UserDataHolder extends DataHolder {
     }
 
     @NotNull
+    Map<Identifier, Data> getCustomDataStore();
+
+    @NotNull
     @ApiStatus.Internal
     HuskSync getPlugin();
 

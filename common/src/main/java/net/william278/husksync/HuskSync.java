@@ -135,6 +135,8 @@ public interface HuskSync extends Task.Supplier, EventDispatcher {
     @NotNull
     List<Migrator> getAvailableMigrators();
 
+    @NotNull
+    Map<Identifier, Data> getPlayerCustomDataStore(@NotNull OnlineUser user);
 
     /**
      * Initialize a faucet of the plugin.

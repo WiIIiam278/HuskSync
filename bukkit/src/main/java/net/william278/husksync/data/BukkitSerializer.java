@@ -25,6 +25,7 @@ import de.tr7zw.changeme.nbtapi.NBTContainer;
 import de.tr7zw.changeme.nbtapi.iface.ReadWriteNBT;
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.adapter.Adaptable;
+import net.william278.husksync.api.HuskSyncAPI;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -37,8 +38,12 @@ public class BukkitSerializer {
 
     protected final HuskSync plugin;
 
-    public BukkitSerializer(@NotNull HuskSync plugin) {
+    private BukkitSerializer(@NotNull HuskSync plugin) {
         this.plugin = plugin;
+    }
+
+    public BukkitSerializer(@NotNull HuskSyncAPI api) {
+        this.plugin = api.getPlugin();
     }
 
     @ApiStatus.Internal

@@ -81,6 +81,7 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
     private EventListener eventListener;
     private DataAdapter dataAdapter;
     private Map<Identifier, Serializer<? extends Data>> serializers;
+    private Map<UUID, Map<Identifier, Data>> playerCustomDataStore;
     private Settings settings;
     private Locales locales;
     private List<Migrator> availableMigrators;
@@ -100,6 +101,7 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
         this.paperLib = new MorePaperLib(this);
         this.availableMigrators = new ArrayList<>();
         this.serializers = new ConcurrentHashMap<>();
+        this.playerCustomDataStore = new ConcurrentHashMap<>();
         this.mapViews = new ConcurrentHashMap<>();
 
         // Load settings and locales
@@ -233,6 +235,17 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
     @Override
     public List<Migrator> getAvailableMigrators() {
         return availableMigrators;
+    }
+
+    @NotNull
+    @Override
+    public Map<Identifier, Data> getPlayerCustomDataStore(@NotNull OnlineUser user) {
+        if (playerCustomDataStore.containsKey(user.getUuid())) {
+            return playerCustomDataStore.get(user.getUuid());
+        }
+        final Map<Identifier, Data> data = new HashMap<>();
+        playerCustomDataStore.put(user.getUuid(), data);
+        return data;
     }
 
     @Override

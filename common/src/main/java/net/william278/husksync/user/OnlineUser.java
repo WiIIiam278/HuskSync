@@ -26,9 +26,11 @@ import net.kyori.adventure.text.Component;
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.data.Data;
 import net.william278.husksync.data.DataSnapshot;
+import net.william278.husksync.data.Identifier;
 import net.william278.husksync.data.UserDataHolder;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Map;
 import java.util.UUID;
 import java.util.function.Consumer;
 
@@ -162,6 +164,12 @@ public abstract class OnlineUser extends User implements CommandUser, UserDataHo
 
         // Ensure the user is in the database
         plugin.getDatabase().ensureUser(this);
+    }
+
+    @NotNull
+    @Override
+    public Map<Identifier, Data> getCustomDataStore() {
+        return getPlugin().getPlayerCustomDataStore(this);
     }
 
     /**

@@ -21,6 +21,7 @@ package net.william278.husksync.api;
 
 import net.william278.desertwell.util.ThrowingConsumer;
 import net.william278.husksync.HuskSync;
+import net.william278.husksync.adapter.Adaptable;
 import net.william278.husksync.data.Data;
 import net.william278.husksync.data.DataSnapshot;
 import net.william278.husksync.data.Identifier;
@@ -393,6 +394,45 @@ public abstract class HuskSyncAPI {
     @NotNull
     public DataSnapshot.Builder snapshotBuilder() {
         return DataSnapshot.builder(plugin).saveCause(DataSnapshot.SaveCause.API);
+    }
+
+    /**
+     * Deserialize a JSON string to an {@link Adaptable}
+     *
+     * @param serialized The serialized JSON string
+     * @param type       The type of the element
+     * @param <T>        The type of the element
+     * @return The deserialized element
+     * @throws Serializer.DeserializationException If the element could not be deserialized
+     */
+    @NotNull
+    public <T extends Adaptable> T deserializeData(@NotNull String serialized, Class<T> type)
+            throws Serializer.DeserializationException {
+        return plugin.getDataAdapter().fromJson(serialized, type);
+    }
+
+    /**
+     * Serialize an {@link Adaptable} to a JSON string
+     *
+     * @param element The element to serialize
+     * @param <T>     The type of the element
+     * @return The serialized JSON string
+     * @throws Serializer.SerializationException If the element could not be serialized
+     */
+    @NotNull
+    public <T extends Adaptable> String serializeData(@NotNull T element)
+            throws Serializer.SerializationException {
+        return plugin.getDataAdapter().toJson(element);
+    }
+
+    /**
+     * <b>(Internal use only)</b> - Get the plugin instance
+     *
+     * @return The plugin instance
+     */
+    @ApiStatus.Internal
+    public HuskSync getPlugin() {
+        return plugin;
     }
 
     /**

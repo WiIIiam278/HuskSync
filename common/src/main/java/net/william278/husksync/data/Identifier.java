@@ -62,7 +62,23 @@ public class Identifier {
      */
     @NotNull
     public static Identifier from(@NotNull Key key) {
-        return new Identifier(key, false);
+        if (key.namespace().equals("husksync")) {
+            throw new IllegalArgumentException("You cannot register a key with \"husksync\" as the namespace!");
+        }
+        return new Identifier(key, true);
+    }
+
+    /**
+     * Create an identifier from a namespace and value
+     *
+     * @param plugin the namespace
+     * @param name   the value
+     * @return the identifier
+     * @since 3.0
+     */
+    @NotNull
+    public static Identifier from(@Subst("plugin") @NotNull String plugin, @Subst("data") @NotNull String name) {
+        return from(Key.key(plugin, name));
     }
 
     @NotNull
