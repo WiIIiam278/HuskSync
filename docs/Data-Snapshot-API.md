@@ -4,6 +4,21 @@ This page assumes you have read the general [[API]] introduction and that you ha
 
 ## Table of Contents
 1. [Getting a User](#1-getting-a-user)
+2. [Getting DataSnapshots for a User](#2-getting-datasnapshots-for-a-user)
+    1. [Getting a User's current data](#21-getting-a-users-current-data)
+    2. [Getting a User's latest saved DataSnapshot](#22-getting-a-users-latest-saved-datasnapshot)
+    3. [Getting a list of a User's saved DataSnapshots](#23-getting-a-list-of-a-users-saved-datasnapshots)
+3. [Packing and Unpacking DataSnapshots](#3-packing-and-unpacking-datasnapshots)
+4. [Getting and setting data in a DataSnapshot](#4-getting-and-setting-data-in-a-datasnapshot)
+    1. [Data Types](#41-data-types)
+    2. [Editing Health, Hunger, Experience, and GameMode data](#42-editing-health-hunger-experience-and-gamemode-data)
+    3. [Editing Inventory and Ender Chest data](#43-editing-inventory-and-ender-chest-data)
+    4. [Editing Location data](#44-editing-location-data)
+    5. [Editing Advancement data](#45-editing-advancement-data)
+5. [Creating new DataSnapshots](#5-creating-new-datasnapshots)
+    1. [Creating a new snapshot from a player's current data](#51-creating-a-new-snapshot-from-a-players-current-data)
+    2. [Creating a new snapshot from scratch](#52-creating-a-new-snapshot-from-scratch)
+6. [Deleting DataSnapshots](#6-deleting-datasnapshots)
 
 ## 1. Getting a User
 * HuskSync has a `User` object, representing a user saved in the database. You can retrieve a user using `HuskSyncAPI#getUser(uuid)`
@@ -423,7 +438,7 @@ huskSyncAPI.addSnapshot(user, packed);
 ```
 </details>
 
-## 6.0 Deleting DataSnapshots
+## 6. Deleting DataSnapshots
 * You can delete a snapshot using `HuskSyncAPI#deleteSnapshot(User, UUID)`, which will delete a snapshot from the database by its UUID.
 * This method returns a CompletableFuture<Boolean> which will resolve to `true` if there was a snapshot with that UUID to delete, or `false` if there was no snapshot with that UUID to delete.
 
