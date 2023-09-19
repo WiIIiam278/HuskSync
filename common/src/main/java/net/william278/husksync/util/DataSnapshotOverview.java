@@ -94,10 +94,10 @@ public class DataSnapshotOverview {
         snapshot.getAdvancements()
                 .flatMap(advancementData -> snapshot.getStatistics()
                         .flatMap(statisticsData -> locales.getLocale("data_manager_advancements_statistics",
-                                Integer.toString(advancementData.getCompleted().size()),
-                                generateAdvancementPreview(advancementData.getCompleted(), locales),
+                                Integer.toString(advancementData.getCompletedExcludingRecipes().size()),
+                                generateAdvancementPreview(advancementData.getCompletedExcludingRecipes(), locales),
                                 String.format("%.2f", (((statisticsData.getGenericStatistics().getOrDefault(
-                                        "PLAY_ONE_MINUTE", 0)) / 20d) / 60d) / 60d))))
+                                        "minecraft:play_one_minute", 0)) / 20d) / 60d) / 60d))))
                 .ifPresent(user::sendMessage);
 
         if (user.hasPermission("husksync.command.inventory.edit")
@@ -116,19 +116,18 @@ public class DataSnapshotOverview {
     @NotNull
     private String generateAdvancementPreview(@NotNull List<Data.Advancements.Advancement> advancementData, @NotNull Locales locales) {
         final StringJoiner joiner = new StringJoiner("\n");
-        final List<Data.Advancements.Advancement> advancementsToPreview = advancementData.stream()
-                .filter(id -> !id.getKey().startsWith("minecraft:recipe")).toList();
         final int PREVIEW_SIZE = 8;
-        for (int i = 0; i < advancementsToPreview.size(); i++) {
-            joiner.add(advancementsToPreview.get(i).getKey());
+        for (int i = 0; i < advancementData.size(); i++) {
+            joiner.add(advancementData.get(i).getKey());
             if (i >= PREVIEW_SIZE) {
                 break;
             }
         }
-        final int remainingAdvancements = advancementsToPreview.size() - PREVIEW_SIZE;
-        if (remainingAdvancements > 0) {
+        final int remaining = advancementData.size() - PREVIEW_SIZE;
+        if (remaining > 0) {
             joiner.add(locales.getRawLocale("data_manager_advancements_preview_remaining",
-                    Integer.toString(remainingAdvancements)).orElse("+" + remainingAdvancements + "…"));
+                            Integer.toString(remaining))
+                    .orElse(String.format("+%s…", remaining)));
         }
         return joiner.toString();
     }

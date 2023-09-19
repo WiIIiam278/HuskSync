@@ -147,6 +147,13 @@ public interface Data {
         @NotNull
         List<Advancement> getCompleted();
 
+        @NotNull
+        default List<Advancement> getCompletedExcludingRecipes() {
+            return getCompleted().stream()
+                    .filter(advancement -> !advancement.getKey().startsWith("minecraft:recipe"))
+                    .collect(Collectors.toList());
+        }
+
         void setCompleted(@NotNull List<Advancement> completed);
 
         class Advancement {
