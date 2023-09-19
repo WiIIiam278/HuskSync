@@ -31,7 +31,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-import static net.william278.husksync.data.BukkitData.Items.EnderChest.ENDER_CHEST_SLOT_COUNT;
 import static net.william278.husksync.data.BukkitData.Items.Inventory.INVENTORY_SLOT_COUNT;
 
 public class BukkitSerializer {
