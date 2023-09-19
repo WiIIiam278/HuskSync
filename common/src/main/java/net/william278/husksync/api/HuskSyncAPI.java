@@ -107,15 +107,10 @@ public abstract class HuskSyncAPI {
      * @since 3.0
      */
     public CompletableFuture<Optional<DataSnapshot.Unpacked>> getCurrentData(@NotNull User user) {
-        final CompletableFuture<Optional<DataSnapshot.Unpacked>> future = new CompletableFuture<>();
-        plugin.runAsync(
-                () -> plugin.getRedisManager()
-                        .getUserData(UUID.randomUUID(), user)
-                        .thenApply(data -> data.or(() -> plugin.getDatabase().getLatestSnapshot(user)))
-                        .thenApply(data -> data.map(snapshot -> snapshot.unpack(plugin)))
-                        .thenAccept(future::complete)
-        );
-        return future;
+        return plugin.getRedisManager()
+                .getUserData(UUID.randomUUID(), user)
+                .thenApply(data -> data.or(() -> plugin.getDatabase().getLatestSnapshot(user)))
+                .thenApply(data -> data.map(snapshot -> snapshot.unpack(plugin)));
     }
 
     /**
