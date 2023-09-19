@@ -57,7 +57,7 @@ synchronization:
   # The number of data snapshot backups that should be kept at once per user
   max_user_data_snapshots: 16
   # Number of hours between new snapshots being saved as backups (Use "0" to backup all snapshots)
-  snapshot_backup_frequency: 8
+  snapshot_backup_frequency: 4
   # List of save cause IDs for which a snapshot will be automatically pinned (so it won't be rotated). Docs: https://william278.net/docs/husksync/data-rotation#save-causes
   auto_pinned_save_causes:
     - INVENTORY_COMMAND

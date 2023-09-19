@@ -21,6 +21,7 @@ package net.william278.husksync.data;
 
 import net.william278.desertwell.util.ThrowingConsumer;
 import net.william278.husksync.HuskSync;
+import net.william278.husksync.user.User;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
@@ -97,6 +98,7 @@ public interface UserDataHolder extends DataHolder {
                         if (type.isCustom()) {
                             getCustomDataStore().put(type, data);
                         }
+                        getPlugin().log(Level.INFO, "Applying data of type " + type.getKeyValue() + " to " + ((User) this).getUsername());
                         data.apply(this, plugin);
                     }
                 });

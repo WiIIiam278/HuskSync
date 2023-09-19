@@ -107,6 +107,9 @@ public interface HuskSync extends Task.Supplier, EventDispatcher {
      */
     default void registerSerializer(@NotNull Identifier identifier,
                                     @NotNull Serializer<? extends Data> serializer) {
+        if (identifier.isCustom()) {
+            log(Level.INFO, String.format("Registered custom data type: %s", identifier));
+        }
         getSerializers().put(identifier, (Serializer<Data>) serializer);
     }
 

@@ -10,9 +10,9 @@ Each user data snapshot has:
 - a flag to indicate if the snapshot has been pinned (preventing it from being rotated)
 - a map of saved data
 
-By default, HuskSync will automatically replace the user's current snapshot in the database if it has been less than 8 hours since the last snapshot was created. This can be changed in the `config.yml` file by changing the `snapshot_backup_frequency` setting under `synchronization`. Setting this to "0" will save a new snapshot each time data is saved.
+By default, HuskSync will automatically replace the user's current snapshot in the database if it has been less than 4 hours since the last snapshot was created. This can be changed in the `config.yml` file by changing the `snapshot_backup_frequency` setting under `synchronization`. Setting this to "0" will save a new snapshot each time data is saved.
 
-HuskSync will keep the 20 most recent data snapshots for each user (including their current data). After that, when a new user snapshot is set, the oldest snapshot will automatically be deleted. You can change the number of snapshots to keep by changing the `max_user_data_snapshots` setting (minimum 1).
+HuskSync will keep the 16 most recent data snapshots for each user (including their current data). After that, when a new user snapshot is set, the oldest snapshot will automatically be deleted. You can change the number of snapshots to keep by changing the `max_user_data_snapshots` setting (minimum 1).
 
 Pinned user data snapshots are exempt from being replaced/rotated and can only be deleted manually in-game.
 

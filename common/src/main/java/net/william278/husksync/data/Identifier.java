@@ -77,7 +77,7 @@ public class Identifier {
      * @since 3.0
      */
     @NotNull
-    public static Identifier from(@Subst("plugin") @NotNull String plugin, @Subst("data") @NotNull String name) {
+    public static Identifier from(@Subst("plugin") @NotNull String plugin, @Subst("null") @NotNull String name) {
         return from(Key.key(plugin, name));
     }
 

@@ -141,7 +141,7 @@ public class Settings {
 
     @YamlComment("Number of hours between new snapshots being saved as backups (Use \"0\" to backup all snapshots)")
     @YamlKey("synchronization.snapshot_backup_frequency")
-    private int snapshotBackupFrequency = 8;
+    private int snapshotBackupFrequency = 4;
 
     @YamlComment("List of save cause IDs for which a snapshot will be automatically pinned (so it won't be rotated)."
             + " Docs: https://william278.net/docs/husksync/data-rotation#save-causes")

@@ -100,7 +100,7 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
         this.audiences = BukkitAudiences.create(this);
         this.paperLib = new MorePaperLib(this);
         this.availableMigrators = new ArrayList<>();
-        this.serializers = new ConcurrentHashMap<>();
+        this.serializers = new LinkedHashMap<>();
         this.playerCustomDataStore = new ConcurrentHashMap<>();
         this.mapViews = new ConcurrentHashMap<>();
 
@@ -120,14 +120,14 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
         initialize("data serializers", (plugin) -> {
             registerSerializer(Identifier.INVENTORY, new BukkitSerializer.Inventory(this));
             registerSerializer(Identifier.ENDER_CHEST, new BukkitSerializer.EnderChest(this));
-            registerSerializer(Identifier.POTION_EFFECTS, new BukkitSerializer.PotionEffects(this));
             registerSerializer(Identifier.ADVANCEMENTS, new BukkitSerializer.Advancements(this));
             registerSerializer(Identifier.LOCATION, new BukkitSerializer.Location(this));
-            registerSerializer(Identifier.STATISTICS, new BukkitSerializer.Statistics(this));
             registerSerializer(Identifier.HEALTH, new BukkitSerializer.Health(this));
             registerSerializer(Identifier.HUNGER, new BukkitSerializer.Hunger(this));
-            registerSerializer(Identifier.EXPERIENCE, new BukkitSerializer.Experience(this));
             registerSerializer(Identifier.GAME_MODE, new BukkitSerializer.GameMode(this));
+            registerSerializer(Identifier.POTION_EFFECTS, new BukkitSerializer.PotionEffects(this));
+            registerSerializer(Identifier.STATISTICS, new BukkitSerializer.Statistics(this));
+            registerSerializer(Identifier.EXPERIENCE, new BukkitSerializer.Experience(this));
             registerSerializer(Identifier.PERSISTENT_DATA, new BukkitSerializer.PersistentData(this));
         });
 
@@ -226,7 +226,6 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
 
     @NotNull
     @Override
-    @SuppressWarnings("unchecked")
     public Map<Identifier, Serializer<? extends Data>> getSerializers() {
         return serializers;
     }

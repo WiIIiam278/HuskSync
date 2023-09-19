@@ -53,8 +53,14 @@ import java.util.stream.Collectors;
 public abstract class BukkitData implements Data {
 
     @Override
-    public final void apply(@NotNull UserDataHolder user, @NotNull HuskSync plugin) throws IllegalStateException {
-        this.apply((BukkitUser) user, (BukkitHuskSync) plugin);
+    public final void apply(@NotNull UserDataHolder dataHolder, @NotNull HuskSync plugin) {
+        final BukkitUser user = (BukkitUser) dataHolder;
+        try {
+            this.apply(user, (BukkitHuskSync) plugin);
+        } catch (Throwable e) {
+            plugin.log(Level.WARNING, String.format("[%s] Failed to apply %s data object; skipping",
+                    user.getUsername(), this.getClass().getSimpleName()), e);
+        }
     }
 
     public abstract void apply(@NotNull BukkitUser user, @NotNull BukkitHuskSync plugin) throws IllegalStateException;
@@ -273,8 +279,12 @@ public abstract class BukkitData implements Data {
         @Override
         public void apply(@NotNull BukkitUser user, @NotNull BukkitHuskSync plugin) throws IllegalStateException {
             final Player player = user.getPlayer();
-            player.getActivePotionEffects().forEach(potionEffect -> player.removePotionEffect(potionEffect.getType()));
-            player.addPotionEffects(effects);
+            for (PotionEffect effect : player.getActivePotionEffects()) {
+                player.removePotionEffect(effect.getType());
+            }
+            for (PotionEffect effect : this.getEffects()) {
+                player.addPotionEffect(effect); //todo something later on in the chain is removing the effects >:(
+            }
         }
 
         @NotNull
@@ -293,7 +303,6 @@ public abstract class BukkitData implements Data {
         }
 
         @NotNull
-        @SuppressWarnings("unused")
         public Collection<PotionEffect> getEffects() {
             return effects;
         }
