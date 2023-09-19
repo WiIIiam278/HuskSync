@@ -97,6 +97,11 @@ public abstract class BukkitData implements Data {
             );
         }
 
+        @SuppressWarnings("unused")
+        public void setContents(@NotNull ItemStack[] contents) {
+            System.arraycopy(contents, 0, this.contents, 0, this.contents.length);
+        }
+
         @NotNull
         public ItemStack[] getContents() {
             return contents;

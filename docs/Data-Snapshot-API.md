@@ -107,6 +107,7 @@ huskSyncAPI.getSnapshots(user).thenAccept(optionalSnapshots -> {
     - `DataSnapshot.Packed` is a snapshot that has had its data serialized into a byte map. This snapshot is ready to be saved in the database or set to Redis.
     - `DataSnapshot.Unpacked` is a snapshot that has been unpacked from a `DataSnapshot.Packed` object. You can get, set, and manipulate data from these snapshots.
 * Most of the time, you won't need to worry about this, as HuskSync typically deals with `Unpacked` snapshots. However, if you need to convert between the two (e.g., if you wish to copy the snapshot), you can use the `HuskSyncAPI#packSnapshot(DataSnapshot.Unpacked)` and `HuskSyncAPI#unpackSnapshot(DataSnapshot.Packed)` methods.
+* The editor method `HuskSyncAPI#editPackedSnapshot(DataSnapshot.Packed, Consumer<DataSnapshot.Unpacked>)` additionally provides a utility for unpacking, editing, then repacking a packed `DataSnapshot` object.
 
 <details>
 <summary>Code Example &mdash; Packing and unpacking snapshots</summary>
@@ -156,7 +157,7 @@ huskSyncAPI.getCurrentData(user).thenAccept(optionalSnapshot -> {
 * Plugin developers may supply their own `Data` classes for synchronisation & saving by implementing the `Data` interface and registering a `Serializer<>` for their class to an `Identifier`. See the [[Custom Data API]] page for more information.
 * You can only get data from snapshots where a serializer has been registered for it on this server and, in the case of the built-in data types, where the sync feature has been enabled in the [[Config File]]. If you try to get data from a snapshot where the data type is not supported, you will get an empty `Optional`.
 
-### 4.2 Getting and setting a player's Health
+### 4.2 Editing Health, Hunger, Experience, and GameMode data
 * `DataSnapshot.Unpacked#getHealth()` returns an `Optional<Data.Health>`, which you can then use to get the player's current and max health.
 * `DataSnapshot.Unpacked#setHealth(Data.Health)` sets the player's current and max health. You can create a `Health` instance to pass on the Bukkit platform through `BukkitData.Health.from(double, double, double)`.
 * Similar methods exist for Hunger, Experience, and GameMode data types
@@ -173,27 +174,33 @@ huskSyncAPI.getCurrentData(user).thenAccept(optionalSnapshot -> {
         return;
     }
     
-    // Get the snapshot
+    // Get the player's health and game mode from the snapshot
     DataSnapshot.Unpacked snapshot = optionalSnapshot.get();
-    
-    // Get the player's health
     Optional<Data.Health> healthOptional = snapshot.getHealth();
     if (healthOptional.isEmpty()) {
         System.out.println("User has no health data!");
         return;
     }
-    
+    Optional<Data.GameMode> gameModeOptional = snapshot.getGameMode();
+    if (gameModeOptional.isEmpty()) {
+        System.out.println("User has no game mode data!");
+        return;
+    }
+    // getExperience() and getHunger() work similarly
+        
     // Get the health data
     Data.Health health = healthOptional.get();
-    
-    // Get the player's current health
-    double currentHealth = health.getCurrentHealth();
-    
-    // Get the player's max health
-    double maxHealth = health.getMaxHealth();
-    
-    // Set the player's health
+    double currentHealth = health.getCurrentHealth(); // Current health
+    double maxHealth = health.getMaxHealth(); // Max health
+    double healthScale = health.getHealthScale(); // Health scale (e.g., 20 for 20 hearts)
     snapshot.setHealth(BukkitData.Health.from(20, 20, 20));
+    
+    // Get the game mode data
+    Data.GameMode gameMode = gameModeOptional.get();
+    String gameModeName = gameMode.getGameModeName(); // Game mode name (e.g., "SURVIVAL")
+    boolean isFlying = gameMode.isFlying(); // Whether the player is *currently* flying
+    boolean canFly = gameMode.canFly(); // Whether the player *can* fly
+    snapshot.setGameMode(BukkitData.GameMode.from("SURVIVAL", false, false));
     
     // Save the snapshot - This will update the player if online and save the snapshot to the database
     huskSyncAPI.setCurrentData(user, snapshot);
@@ -232,7 +239,7 @@ huskSyncAPI.editCurrentData(user, snapshot -> {
 ```
 </details>
 
-### 4.3 Getting and setting a player's Inventory
+### 4.3 Editing Inventory and Ender Chest data
 * We can get a player's inventory using `DataSnapshot.Unpacked#getInventory()`, which returns an `Optional<Data.Items.Inventory>`. You can also get the player's Ender Chest inventory using `DataSnapshot.Unpacked#getEnderChest()`.
 * `Data.Items.Inventory` provides methods for the player's inventory, armor, offhand, and ender chest items as platform-agnostic `Stack` objects, which lets you view basic Item information, but does not expose their full NBT data.
 * On Bukkit, simply cast a `Data.Items.(Inventory/EnderChest)` to a `BukkitData.Items.(Inventory/EnderChest)` to get access to the Bukkit `ItemStack[]` contents of the player's items, allowing you to edit the contents.
@@ -295,7 +302,7 @@ huskSyncAPI.editCurrentInventory(user, inventory -> {
 ```
 </details>
 
-### 4.4 Getting and setting a player's Location
+### 4.4 Editing Location data
 * HuskSync's support for player Locations is intended for mirrored world instances (such as RPG servers), and so is disabled by default in the plugin config.
 * We can get a player's location using `DataSnapshot.Unpacked#getLocation()`, which returns an `Optional<Data.Location>`.
 * `Data.Location` provides methods for getting and setting the player's location, pitch, and yaw. We can also use the aforementioned `BukkitData` classes to set this using a `org.bukkit.Location`, and speed things along using the `HuskSyncAPI#editCurrentData` method.
@@ -321,6 +328,116 @@ huskSyncAPI.editCurrentData(user, snapshot -> {
     
     // Set the player's location
     ((BukkitData.Location) location).setLocation(bukkitLocation);
+});
+```
+</details>
+
+### 4.5 Editing Advancement data
+* Advancements can be retrieved using `DataSnapshot.Unpacked#getAdvancements()`, which returns an `Optional<Data.Advancements>`.
+* `Data.Advancements` provides a wrapper for a list of `Data.Advancements.Advancement` objects, representing a map of a player's completed criteria when progressing to complete an advancement.
+* You can add and remove advancements from the list, and set the list of advancements using `Data.Advancements#setAdvancements(List<Data.Advancements.Advancement>)`.
+
+<details>
+<summary>Code Example &mdash; Editing a player's advancements</summary>
+
+```java
+// Edit a user's current data
+huskSyncAPI.editCurrentData(user, snapshot -> {
+    // Get the player's advancements
+    Optional<Data.Advancements> advancementsOptional = snapshot.getAdvancements();
+    if (advancementsOptional.isEmpty()) {
+        System.out.println("User has no advancements data!");
+        return;
+    }
+    
+    // Get the advancements data
+    Data.Advancements advancements = advancementsOptional.get();
+    
+    // Get the player's advancements
+    List<Data.Advancements.Advancement> playerAdvancements = new ArrayList<>(advancements.getAdvancements());
+    
+    // Advancement progress is represented by completed critera entries, mapped to when said criteria was completed
+    Map<String, Date> criteria = Map.of("criteria_item_1", new Date());
+    
+    // Add an advancement to the player's advancements
+    playerAdvancements.add(Data.Advancements.Advancement.adapt("foo:bar/baz", criteria));
+    
+    // Remove all "recipe" advancements from the player's advancements
+    playerAdvancements.removeIf(advancement -> advancement.getIdentifier().startsWith("minecraft:recipes/"));
+    
+    // Set the player's advancements
+    advancements.setAdvancements(playerAdvancements);
+});
+```
+</details>
+
+## 5. Creating new DataSnapshots
+* HuskSync provides methods for creating new snapshots; either by capturing a player's current data or by creating a new snapshot from scratch using a `DataSnapshot.Builder`.
+
+### 5.1 Creating a new snapshot from a player's current data
+* You can create a new snapshot from a player's current data using `HuskSyncAPI#createSnapshot(OnlineUser)`, which returns a `DataSnapshot.Packed` with a save cause of `SaveCause.API`.
+
+<details>
+<summary>Code Example &mdash; Capturing a player's current data into a Snapshot</summary>
+
+```java
+// Create a new snapshot from a player's current data
+final DataSnapshot.Packed data = huskSyncAPI.createSnapshot(user);
+
+// editPackedSnapshot() provides a utility for unpacking, editing, then repacking a DataSnapshot object
+final DataSnapshot.Packed edited = huskSyncAPI.editPackedSnapshot(data, (unpacked) -> {
+    unpacked.setHealth(BukkitData.Health.from(10, 20, 20)); // Example - sets the user's health to 10 (5 hearts)
+});
+
+// Save the snapshot - This will save the snapshot to the database
+huskSyncAPI.addSnapshot(edited);
+```
+</details>
+
+### 5.2 Creating a new snapshot from scratch
+* You can create a new snapshot from scratch using a `DataSnapshot.Builder`. This is useful if you want to create a custom snapshot with specific data and apply it to a user.
+* Get a new `DataSnapshot.Builder` using `HuskSyncAPI#snapshotBuilder()`.
+
+<details>
+<summary>Code Example &mdash; Creating a new snapshot from scratch</summary>
+
+```java
+// Create a new snapshot from scratch
+final DataSnapshot.Builder builder = huskSyncAPI.snapshotBuilder();
+
+// Create an empty inventory with a diamond sword in the first slot
+final BukkitData.Items.Inventory inventory = BukkitData.Items.Inventory.empty();
+inventory.setContents(new ItemStack[] { new ItemStack(Material.DIAMOND_SWORD) });
+inventory.setHeldItemSlot(0); // Set the player's held item slot to the first slot
+
+// Use the builder to create, then pack, a new snapshot
+final DataSnapshot.Packed packed = builder
+        .saveCause(SaveCause.API) // This is the default save cause, but you can change it if you want
+        .setTimestamp(OffsetDateTime.now().minusDays(3)) // Set the timestamp to 3 days ago
+        .setInventory(inventory) // Set the player's inventory
+        .setHealth(BukkitData.Health.from(10, 20, 20)) // Set the player to having 5 hearts
+        .buildAndPack(); // You can also call just #build() to get a DataSnapshot.Unpacked
+
+// Save the snapshot - This will save the snapshot to the database for a User
+huskSyncAPI.addSnapshot(user, packed);
+```
+</details>
+
+## 6.0 Deleting DataSnapshots
+* You can delete a snapshot using `HuskSyncAPI#deleteSnapshot(User, UUID)`, which will delete a snapshot from the database by its UUID.
+* This method returns a CompletableFuture<Boolean> which will resolve to `true` if there was a snapshot with that UUID to delete, or `false` if there was no snapshot with that UUID to delete.
+
+<details>
+<summary>Code Example &mdash; Deleting a snapshot</summary>
+
+```java
+// Delete a snapshot
+huskSyncAPI.deleteSnapshot(user, uuid).thenAccept(success -> {
+    if (success) {
+        System.out.println("Deleted snapshot with UUID %s", uuid);
+    } else {
+        System.out.println("No snapshot with UUID %s to delete", uuid);
+    }
 });
 ```
 </details>

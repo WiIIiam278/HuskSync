@@ -296,6 +296,19 @@ public abstract class HuskSyncAPI {
     }
 
     /**
+     * Delete a data snapshot from the database
+     *
+     * @param user     The user to delete the snapshot of
+     * @param snapshot The snapshot to delete
+     * @return A future which will complete with true if the snapshot was deleted, or false if it wasn't
+     * (e.g., if the snapshot hasn't been saved to the database yet)
+     * @since 3.0
+     */
+    public CompletableFuture<Boolean> deleteSnapshot(@NotNull User user, @NotNull DataSnapshot snapshot) {
+        return deleteSnapshot(user, snapshot.getId());
+    }
+
+    /**
      * Registers a new custom data type serializer.
      * <p>
      * This allows for custom {@link Data} types to be persisted in {@link DataSnapshot}s. To register
@@ -338,6 +351,37 @@ public abstract class HuskSyncAPI {
     @NotNull
     public DataSnapshot.Unpacked unpackSnapshot(@NotNull DataSnapshot.Packed packed) {
         return packed.unpack(plugin);
+    }
+
+    /**
+     * Unpack, edit, and repack a data snapshot.
+     * </p>
+     * This won't save the snapshot to the database; it'll just edit the data snapshot in place.
+     *
+     * @param packed The packed snapshot
+     * @param editor An editor function for editing the unpacked snapshot
+     * @return The edited packed snapshot
+     * @since 3.0
+     */
+    @NotNull
+    public DataSnapshot.Packed editPackedSnapshot(@NotNull DataSnapshot.Packed packed,
+                                                  @NotNull ThrowingConsumer<DataSnapshot.Unpacked> editor) {
+        final DataSnapshot.Unpacked unpacked = packed.unpack(plugin);
+        editor.accept(unpacked);
+        return unpacked.pack(plugin);
+    }
+
+    /**
+     * Get the estimated size of a {@link DataSnapshot} in bytes
+     *
+     * @param snapshot The snapshot to get the size of
+     * @return The size of the snapshot in bytes
+     * @since 3.0
+     */
+    public int getSnapshotFileSize(@NotNull DataSnapshot snapshot) {
+        return (snapshot instanceof DataSnapshot.Packed packed)
+                ? packed.getFileSize(plugin)
+                : ((DataSnapshot.Unpacked) snapshot).pack(plugin).getFileSize(plugin);
     }
 
     /**

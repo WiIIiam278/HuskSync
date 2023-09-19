@@ -395,12 +395,14 @@ public class DataSnapshot {
         private final HuskSync plugin;
         private SaveCause saveCause;
         private boolean pinned;
+        private OffsetDateTime timestamp;
         private final Map<Identifier, Data> data;
 
         private Builder(@NotNull HuskSync plugin) {
             this.plugin = plugin;
             this.pinned = false;
             this.data = new HashMap<>();
+            this.timestamp = OffsetDateTime.now();
         }
 
         /**
@@ -429,6 +431,28 @@ public class DataSnapshot {
         @NotNull
         public Builder pinned(boolean pinned) {
             this.pinned = pinned;
+            return this;
+        }
+
+        /**
+         * Set the timestamp of the snapshot.
+         * By default, this is the current server time.
+         * The timestamp passed to this method cannot be in the future.
+         * <p>
+         * Note that this will affect the rotation of data snapshots in the database if unpinned,
+         * as well as the order snapshots appear in the list.
+         *
+         * @param timestamp The timestamp
+         * @return The builder
+         * @throws IllegalArgumentException if the timestamp is in the future
+         * @since 3.0
+         */
+        @NotNull
+        public Builder timestamp(@NotNull OffsetDateTime timestamp) {
+            if (timestamp.isAfter(OffsetDateTime.now())) {
+                throw new IllegalArgumentException("Data snapshots cannot have a timestamp set in the future");
+            }
+            this.timestamp = timestamp;
             return this;
         }
 
@@ -639,7 +663,7 @@ public class DataSnapshot {
             return new Unpacked(
                     UUID.randomUUID(),
                     pinned || plugin.getSettings().doAutoPin(saveCause),
-                    OffsetDateTime.now(),
+                    timestamp,
                     saveCause,
                     data,
                     plugin.getMinecraftVersion(),
