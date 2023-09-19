@@ -1,15 +1,15 @@
-This guide will walk you through how to upgrade from HuskSync v1.4.x to HuskSync 2.x.
+This guide will walk you through how to upgrade from HuskSync v1.4.x to HuskSync v2.x or v3.x. Data from HuskSync v2.x will automatically be imported into HuskSync v3.x.
 
 ## Requirements
 - MySQL Database with HuskSync v1.4.x data
-  - Migration from SQLite is not supported, as HuskSync v2.x requires a MySQL database and does not support SQLite. Appologies for the inconvenience.
+  - Migration from SQLite is not supported, as HuskSync v2.x requires a MySQL database and does not support SQLite. Apologies for the inconvenience.
   - If you're running v1.3.x or older, follow the update instructions to 1.4.x first before updating to 2.x.
 
 ## Migration Instructions
 ### 1. Uninstall HuskSync v1.x from all servers
 - Switch off all servers and your proxy
-- Delete the jarfile from your `~/plugins/` folders on your Spigot servers
-- Also delete the jarfile from your `~/plugins/` folders on your Proxy. HuskSync v2.x no longer requires a proxy plugin.
+- Delete the .jar file from your `~/plugins/` folders on your Spigot servers
+- Also delete the .jar file from your `~/plugins/` folders on your Proxy. HuskSync v2.x no longer requires a proxy plugin.
 - Delete (or make a copy and delete) all HuskSync config data folders (`~/plugins/HuskSync/`). HuskSync 2.x has a new config and messages file.
 
 ### 2. Install HuskSync v2.x on all Spigot servers
