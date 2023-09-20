@@ -16,7 +16,7 @@
 * 📋 [[Event Priorities]]
 * ⚔️ [[Keep Inventory]]
 * 📦 [[API]] v3
-  * 📝 [[Snapshot API]]
+  * 📝 [[Data Snapshot API]]
   * 📝 [[Custom Data API]]
   * ❗ [[API Events]]
 * 🕸️ [[API v2]] _(Legacy)_

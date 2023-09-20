@@ -19,7 +19,7 @@ Welcome! This is the plugin documentation for HuskSync v3.x+. Please click throu
 * 📋 [[Event Priorities]]
 * ⚔️ [[Keep Inventory]]
 * 📦 [[API]] v3
-  * 📝 [[Snapshot API]]
+  * 📝 [[Data Snapshot API]]
   * 📝 [[Custom Data API]]
   * ❗ [[API Events]]
 * 🕸️ [[API v2]] _(Legacy)_
