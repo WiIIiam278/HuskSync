@@ -110,6 +110,7 @@ public class Identifier {
      */
     @NotNull
     @ApiStatus.Internal
+    @SuppressWarnings("unchecked")
     public static Map<String, Boolean> getConfigMap() {
         return Map.ofEntries(Stream.of(
                         INVENTORY, ENDER_CHEST, POTION_EFFECTS, ADVANCEMENTS, LOCATION,

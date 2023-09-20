@@ -203,6 +203,7 @@ public class Settings {
 
 
     // Zero-args constructor for instantiation via Annotaml
+    @SuppressWarnings("unused")
     public Settings() {
     }
 
