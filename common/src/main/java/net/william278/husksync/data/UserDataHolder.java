@@ -21,13 +21,11 @@ package net.william278.husksync.data;
 
 import net.william278.desertwell.util.ThrowingConsumer;
 import net.william278.husksync.HuskSync;
-import net.william278.husksync.user.User;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Level;
 
 /**
  * A holder of data in the form of {@link Data}s, which can be synced
@@ -92,21 +90,14 @@ public interface UserDataHolder extends DataHolder {
         final HuskSync plugin = getPlugin();
         final DataSnapshot.Unpacked unpacked = snapshot.unpack(plugin);
         plugin.runSync(() -> {
-            try {
-                unpacked.getData().forEach((type, data) -> {
-                    if (plugin.getSettings().isSyncFeatureEnabled(type)) {
-                        if (type.isCustom()) {
-                            getCustomDataStore().put(type, data);
-                        }
-                        getPlugin().log(Level.INFO, "Applying data of type " + type.getKeyValue() + " to " + ((User) this).getUsername());
-                        data.apply(this, plugin);
+            unpacked.getData().forEach((type, data) -> {
+                if (plugin.getSettings().isSyncFeatureEnabled(type)) {
+                    if (type.isCustom()) {
+                        getCustomDataStore().put(type, data);
                     }
-                });
-            } catch (Throwable e) {
-                plugin.log(Level.SEVERE, "An exception occurred applying data to a user", e);
-                return;
-            }
-
+                    data.apply(this, plugin);
+                }
+            });
             plugin.runAsync(() -> runAfter.accept(this));
         });
     }
