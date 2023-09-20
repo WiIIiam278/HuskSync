@@ -283,7 +283,7 @@ public abstract class BukkitData implements Data {
                 player.removePotionEffect(effect.getType());
             }
             for (PotionEffect effect : this.getEffects()) {
-                player.addPotionEffect(effect); //todo something later on in the chain is removing the effects >:(
+                player.addPotionEffect(effect);
             }
         }
 
@@ -293,8 +293,8 @@ public abstract class BukkitData implements Data {
             return effects.stream()
                     .map(potionEffect -> new Effect(
                             potionEffect.getType().getName().toLowerCase(Locale.ENGLISH),
-                            potionEffect.getDuration(),
                             potionEffect.getAmplifier(),
+                            potionEffect.getDuration(),
                             potionEffect.isAmbient(),
                             potionEffect.hasParticles(),
                             potionEffect.hasIcon()
