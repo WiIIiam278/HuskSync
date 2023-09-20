@@ -35,7 +35,7 @@ public class HuskSyncAPIHook {
                 return;
             }
             // The User object has two fields; uuid and username.
-            System.out.println("User name is: " + optionalUser.get().username);
+            System.out.println("User name is: %s", optionalUser.get().username);
         });
     }
 
@@ -78,7 +78,7 @@ public class HuskSyncAPIHook {
                 Optional<StatusData> statusData = optionalUserData.get().getStatus();
                 // Print the health from the fields, if the user has a status object
                 statusData.ifPresent(status -> {
-                    System.out.println(user.username + "'s health: " + status.health + "/" + status.maxHealth);
+                    System.out.println("%s's health: %d/%d", user.username, status.health, status.maxHealth);
                 });
             }
         });
@@ -181,7 +181,7 @@ public class HuskSyncAPIHook {
     
                 // This returns a CompletableFuture<Void> that will invoke #thenRun() when it has completed
                 huskSyncAPI.setUserData(user, data).thenRun(() -> {
-                    System.out.println("Healed " + user.username + "!");
+                    System.out.println("Healed %s!", user.username);
                 });
             }
         });
