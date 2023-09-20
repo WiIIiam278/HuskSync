@@ -24,7 +24,6 @@ public class HuskSyncAPIHook {
     public HuskSyncAPIHook() {
         this.huskSyncAPI = HuskSyncAPI.getInstance();
     }
-    
 
     public void logUserName(UUID uuid) {
         // getUser() returns a CompletableFuture supplying an Optional<User>

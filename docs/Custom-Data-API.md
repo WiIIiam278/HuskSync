@@ -4,6 +4,13 @@ To do this, you create and register an implementation of a platform `Data` class
 
 > **Note:** Before you begin, consider if this is what you'd like to do. For simpler/smaller data sync tasks you may wish to consider using the PersistentDataContainer API format instead, which is a bit more portable if you decide to exit the HuskSync ecosystem.
 
+## Table of Contents
+1. [Extending the BukkitData Class](#1-extending-the-bukkitdata-class)
+   1. [Implementing Adaptable](#11-implementing-adaptable) 
+2. [Extending the BukkitSerializer Class](#2-extending-the-bukkitserializer-class)
+3. [Identifiers and registering our Serializer](#3-identifiers--registering-our-serializer)
+4. [Setting and Getting our Data to/from a User](#4-setting-and-getting-our-data-tofrom-a-user)
+
 ## 1. Extending the BukkitData Class
 * HuskSync provides a `Data` interface that you must implement that will represent your custom data.
 * On the Bukkit platform, you should create a class that `extends` `BukkitData`. This class has method to implement: `#apply(BukkitUser, BukkitHuskSync)`, which will be called when the data needs to be applied to the player.
@@ -106,7 +113,7 @@ public static Identifier LOGIN_PARTICLES_ID = Identifier.from("myplugin", "login
 huskSyncAPI.registerSerializer(LOGIN_PARTICLES_ID, new LoginParticleSerializer(HuskSyncAPI.getInstance()));
 ```
 
-## 4. Setting and getting our Data to/from a user
+## 4. Setting and getting our Data to/from a User
 * Now that we've registered our `Data` and `Serializer` classes, we can set our data to a user, applying it to them.
 * To do this, we use the `OnlineUser#setData(Identifier, Data)` method.
   * This method will apply the data to the user, and store the data to the plugin player custom data map, to allow the data to be retrieved later and be saved to snapshots.
