@@ -19,14 +19,30 @@
 
 package net.william278.husksync.event;
 
-import net.william278.husksync.data.UserData;
+import net.william278.husksync.HuskSync;
+import net.william278.husksync.data.DataSnapshot;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
-public interface PreSyncEvent extends CancellableEvent {
+import java.util.function.Consumer;
+
+@SuppressWarnings("unused")
+public interface PreSyncEvent extends PlayerEvent {
 
     @NotNull
-    UserData getUserData();
+    DataSnapshot.Packed getData();
 
-    void setUserData(@NotNull UserData userData);
+    default void editData(@NotNull Consumer<DataSnapshot.Unpacked> editor) {
+        getData().edit(getPlugin(), editor);
+    }
+
+    @NotNull
+    default DataSnapshot.SaveCause getSaveCause() {
+        return getData().getSaveCause();
+    }
+
+    @NotNull
+    @ApiStatus.Internal
+    HuskSync getPlugin();
 
 }

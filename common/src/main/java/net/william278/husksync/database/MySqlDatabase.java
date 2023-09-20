@@ -21,20 +21,17 @@ package net.william278.husksync.database;
 
 import com.zaxxer.hikari.HikariDataSource;
 import net.william278.husksync.HuskSync;
-import net.william278.husksync.data.DataAdaptionException;
-import net.william278.husksync.data.DataSaveCause;
-import net.william278.husksync.data.UserData;
-import net.william278.husksync.data.UserDataSnapshot;
-import net.william278.husksync.event.DataSaveEvent;
-import net.william278.husksync.player.User;
+import net.william278.husksync.adapter.DataAdapter;
+import net.william278.husksync.data.DataSnapshot;
+import net.william278.husksync.user.User;
+import org.jetbrains.annotations.Blocking;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.sql.*;
-import java.util.Date;
+import java.time.OffsetDateTime;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 
 public class MySqlDatabase extends Database {
@@ -46,8 +43,7 @@ public class MySqlDatabase extends Database {
 
     public MySqlDatabase(@NotNull HuskSync plugin) {
         super(plugin);
-        this.flavor = plugin.getSettings().getDatabaseType() == Type.MARIADB
-                ? "mariadb" : "mysql";
+        this.flavor = plugin.getSettings().getDatabaseType().getProtocol();
         this.driverClass = plugin.getSettings().getDatabaseType() == Type.MARIADB
                 ? "org.mariadb.jdbc.Driver" : "com.mysql.cj.jdbc.Driver";
     }
@@ -58,10 +54,16 @@ public class MySqlDatabase extends Database {
      * @return The {@link Connection} to the MySQL database
      * @throws SQLException if the connection fails for some reason
      */
+    @Blocking
+    @NotNull
     private Connection getConnection() throws SQLException {
+        if (dataSource == null) {
+            throw new IllegalStateException("The database has not been initialized");
+        }
         return dataSource.getConnection();
     }
 
+    @Blocking
     @Override
     public void initialize() throws IllegalStateException {
         // Initialize the Hikari pooled connection
@@ -124,192 +126,175 @@ public class MySqlDatabase extends Database {
         }
     }
 
+    @Blocking
     @Override
-    public CompletableFuture<Void> ensureUser(@NotNull User user) {
-        return getUser(user.uuid).thenAccept(optionalUser ->
-                optionalUser.ifPresentOrElse(existingUser -> {
-                            if (!existingUser.username.equals(user.username)) {
-                                // Update a user's name if it has changed in the database
-                                try (Connection connection = getConnection()) {
-                                    try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
-                                            UPDATE `%users_table%`
-                                            SET `username`=?
-                                            WHERE `uuid`=?"""))) {
+    public void ensureUser(@NotNull User user) {
+        getUser(user.getUuid()).ifPresentOrElse(
+                existingUser -> {
+                    if (!existingUser.getUsername().equals(user.getUsername())) {
+                        // Update a user's name if it has changed in the database
+                        try (Connection connection = getConnection()) {
+                            try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
+                                    UPDATE `%users_table%`
+                                    SET `username`=?
+                                    WHERE `uuid`=?"""))) {
 
-                                        statement.setString(1, user.username);
-                                        statement.setString(2, existingUser.uuid.toString());
-                                        statement.executeUpdate();
-                                    }
-                                    plugin.log(Level.INFO, "Updated " + user.username + "'s name in the database (" + existingUser.username + " -> " + user.username + ")");
-                                } catch (SQLException e) {
-                                    plugin.log(Level.SEVERE, "Failed to update a user's name on the database", e);
-                                }
+                                statement.setString(1, user.getUsername());
+                                statement.setString(2, existingUser.getUuid().toString());
+                                statement.executeUpdate();
                             }
-                        },
-                        () -> {
-                            // Insert new player data into the database
-                            try (Connection connection = getConnection()) {
-                                try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
-                                        INSERT INTO `%users_table%` (`uuid`,`username`)
-                                        VALUES (?,?);"""))) {
+                            plugin.log(Level.INFO, "Updated " + user.getUsername() + "'s name in the database (" + existingUser.getUsername() + " -> " + user.getUsername() + ")");
+                        } catch (SQLException e) {
+                            plugin.log(Level.SEVERE, "Failed to update a user's name on the database", e);
+                        }
+                    }
+                },
+                () -> {
+                    // Insert new player data into the database
+                    try (Connection connection = getConnection()) {
+                        try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
+                                INSERT INTO `%users_table%` (`uuid`,`username`)
+                                VALUES (?,?);"""))) {
 
-                                    statement.setString(1, user.uuid.toString());
-                                    statement.setString(2, user.username);
-                                    statement.executeUpdate();
-                                }
-                            } catch (SQLException e) {
-                                plugin.log(Level.SEVERE, "Failed to insert a user into the database", e);
-                            }
-                        }));
-    }
-
-    @Override
-    public CompletableFuture<Optional<User>> getUser(@NotNull UUID uuid) {
-        return CompletableFuture.supplyAsync(() -> {
-            try (Connection connection = getConnection()) {
-                try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
-                        SELECT `uuid`, `username`
-                        FROM `%users_table%`
-                        WHERE `uuid`=?"""))) {
-
-                    statement.setString(1, uuid.toString());
-
-                    final ResultSet resultSet = statement.executeQuery();
-                    if (resultSet.next()) {
-                        return Optional.of(new User(UUID.fromString(resultSet.getString("uuid")),
-                                resultSet.getString("username")));
+                            statement.setString(1, user.getUuid().toString());
+                            statement.setString(2, user.getUsername());
+                            statement.executeUpdate();
+                        }
+                    } catch (SQLException e) {
+                        plugin.log(Level.SEVERE, "Failed to insert a user into the database", e);
                     }
                 }
-            } catch (SQLException e) {
-                plugin.log(Level.SEVERE, "Failed to fetch a user from uuid from the database", e);
-            }
-            return Optional.empty();
-        });
+        );
     }
 
+    @Blocking
     @Override
-    public CompletableFuture<Optional<User>> getUserByName(@NotNull String username) {
-        return CompletableFuture.supplyAsync(() -> {
-            try (Connection connection = getConnection()) {
-                try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
-                        SELECT `uuid`, `username`
-                        FROM `%users_table%`
-                        WHERE `username`=?"""))) {
-                    statement.setString(1, username);
+    public Optional<User> getUser(@NotNull UUID uuid) {
+        try (Connection connection = getConnection()) {
+            try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
+                    SELECT `uuid`, `username`
+                    FROM `%users_table%`
+                    WHERE `uuid`=?"""))) {
 
-                    final ResultSet resultSet = statement.executeQuery();
-                    if (resultSet.next()) {
-                        return Optional.of(new User(UUID.fromString(resultSet.getString("uuid")),
-                                resultSet.getString("username")));
-                    }
+                statement.setString(1, uuid.toString());
+
+                final ResultSet resultSet = statement.executeQuery();
+                if (resultSet.next()) {
+                    return Optional.of(new User(UUID.fromString(resultSet.getString("uuid")),
+                            resultSet.getString("username")));
                 }
-            } catch (SQLException e) {
-                plugin.log(Level.SEVERE, "Failed to fetch a user by name from the database", e);
             }
-            return Optional.empty();
-        });
+        } catch (SQLException e) {
+            plugin.log(Level.SEVERE, "Failed to fetch a user from uuid from the database", e);
+        }
+        return Optional.empty();
     }
 
+    @Blocking
     @Override
-    public CompletableFuture<Optional<UserDataSnapshot>> getCurrentUserData(@NotNull User user) {
-        return CompletableFuture.supplyAsync(() -> {
-            try (Connection connection = getConnection()) {
-                try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
-                        SELECT `version_uuid`, `timestamp`, `save_cause`, `pinned`, `data`
-                        FROM `%user_data_table%`
-                        WHERE `player_uuid`=?
-                        ORDER BY `timestamp` DESC
-                        LIMIT 1;"""))) {
-                    statement.setString(1, user.uuid.toString());
-                    final ResultSet resultSet = statement.executeQuery();
-                    if (resultSet.next()) {
-                        final Blob blob = resultSet.getBlob("data");
-                        final byte[] dataByteArray = blob.getBytes(1, (int) blob.length());
-                        blob.free();
-                        return Optional.of(new UserDataSnapshot(
-                                UUID.fromString(resultSet.getString("version_uuid")),
-                                Date.from(resultSet.getTimestamp("timestamp").toInstant()),
-                                DataSaveCause.getCauseByName(resultSet.getString("save_cause")),
-                                resultSet.getBoolean("pinned"),
-                                plugin.getDataAdapter().fromBytes(dataByteArray)));
-                    }
+    public Optional<User> getUserByName(@NotNull String username) {
+        try (Connection connection = getConnection()) {
+            try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
+                    SELECT `uuid`, `username`
+                    FROM `%users_table%`
+                    WHERE `username`=?"""))) {
+                statement.setString(1, username);
+
+                final ResultSet resultSet = statement.executeQuery();
+                if (resultSet.next()) {
+                    return Optional.of(new User(UUID.fromString(resultSet.getString("uuid")),
+                            resultSet.getString("username")));
                 }
-            } catch (SQLException | DataAdaptionException e) {
-                plugin.log(Level.SEVERE, "Failed to fetch a user's current user data from the database", e);
             }
-            return Optional.empty();
-        });
+        } catch (SQLException e) {
+            plugin.log(Level.SEVERE, "Failed to fetch a user by name from the database", e);
+        }
+        return Optional.empty();
     }
 
+    @Blocking
     @Override
-    public CompletableFuture<List<UserDataSnapshot>> getUserData(@NotNull User user) {
-        return CompletableFuture.supplyAsync(() -> {
-            final List<UserDataSnapshot> retrievedData = new ArrayList<>();
-            try (Connection connection = getConnection()) {
-                try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
-                        SELECT `version_uuid`, `timestamp`, `save_cause`, `pinned`, `data`
-                        FROM `%user_data_table%`
-                        WHERE `player_uuid`=?
-                        ORDER BY `timestamp` DESC;"""))) {
-                    statement.setString(1, user.uuid.toString());
-                    final ResultSet resultSet = statement.executeQuery();
-                    while (resultSet.next()) {
-                        final Blob blob = resultSet.getBlob("data");
-                        final byte[] dataByteArray = blob.getBytes(1, (int) blob.length());
-                        blob.free();
-                        final UserDataSnapshot data = new UserDataSnapshot(
-                                UUID.fromString(resultSet.getString("version_uuid")),
-                                Date.from(resultSet.getTimestamp("timestamp").toInstant()),
-                                DataSaveCause.getCauseByName(resultSet.getString("save_cause")),
-                                resultSet.getBoolean("pinned"),
-                                plugin.getDataAdapter().fromBytes(dataByteArray));
-                        retrievedData.add(data);
-                    }
-                    return retrievedData;
+    public Optional<DataSnapshot.Packed> getLatestSnapshot(@NotNull User user) {
+        try (Connection connection = getConnection()) {
+            try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
+                    SELECT `version_uuid`, `timestamp`, `save_cause`, `pinned`, `data`
+                    FROM `%user_data_table%`
+                    WHERE `player_uuid`=?
+                    ORDER BY `timestamp` DESC
+                    LIMIT 1;"""))) {
+                statement.setString(1, user.getUuid().toString());
+                final ResultSet resultSet = statement.executeQuery();
+                if (resultSet.next()) {
+                    final Blob blob = resultSet.getBlob("data");
+                    final byte[] dataByteArray = blob.getBytes(1, (int) blob.length());
+                    blob.free();
+                    return Optional.of(DataSnapshot.deserialize(plugin, dataByteArray));
                 }
-            } catch (SQLException | DataAdaptionException e) {
-                plugin.log(Level.SEVERE, "Failed to fetch a user's current user data from the database", e);
             }
-            return retrievedData;
-        });
+        } catch (SQLException | DataAdapter.AdaptionException e) {
+            plugin.log(Level.SEVERE, "Failed to fetch a user's current user data from the database", e);
+        }
+        return Optional.empty();
     }
 
+    @Blocking
     @Override
-    public CompletableFuture<Optional<UserDataSnapshot>> getUserData(@NotNull User user, @NotNull UUID versionUuid) {
-        return CompletableFuture.supplyAsync(() -> {
-            try (Connection connection = getConnection()) {
-                try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
-                        SELECT `version_uuid`, `timestamp`, `save_cause`, `pinned`, `data`
-                        FROM `%user_data_table%`
-                        WHERE `player_uuid`=? AND `version_uuid`=?
-                        ORDER BY `timestamp` DESC
-                        LIMIT 1;"""))) {
-                    statement.setString(1, user.uuid.toString());
-                    statement.setString(2, versionUuid.toString());
-                    final ResultSet resultSet = statement.executeQuery();
-                    if (resultSet.next()) {
-                        final Blob blob = resultSet.getBlob("data");
-                        final byte[] dataByteArray = blob.getBytes(1, (int) blob.length());
-                        blob.free();
-                        return Optional.of(new UserDataSnapshot(
-                                UUID.fromString(resultSet.getString("version_uuid")),
-                                Date.from(resultSet.getTimestamp("timestamp").toInstant()),
-                                DataSaveCause.getCauseByName(resultSet.getString("save_cause")),
-                                resultSet.getBoolean("pinned"),
-                                plugin.getDataAdapter().fromBytes(dataByteArray)));
-                    }
+    @NotNull
+    public List<DataSnapshot.Packed> getAllSnapshots(@NotNull User user) {
+        final List<DataSnapshot.Packed> retrievedData = new ArrayList<>();
+        try (Connection connection = getConnection()) {
+            try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
+                    SELECT `version_uuid`, `timestamp`, `save_cause`, `pinned`, `data`
+                    FROM `%user_data_table%`
+                    WHERE `player_uuid`=?
+                    ORDER BY `timestamp` DESC;"""))) {
+                statement.setString(1, user.getUuid().toString());
+                final ResultSet resultSet = statement.executeQuery();
+                while (resultSet.next()) {
+                    final Blob blob = resultSet.getBlob("data");
+                    final byte[] dataByteArray = blob.getBytes(1, (int) blob.length());
+                    blob.free();
+                    retrievedData.add(DataSnapshot.deserialize(plugin, dataByteArray));
                 }
-            } catch (SQLException | DataAdaptionException e) {
-                plugin.log(Level.SEVERE, "Failed to fetch specific user data by UUID from the database", e);
+                return retrievedData;
             }
-            return Optional.empty();
-        });
+        } catch (SQLException | DataAdapter.AdaptionException e) {
+            plugin.log(Level.SEVERE, "Failed to fetch a user's current user data from the database", e);
+        }
+        return retrievedData;
     }
 
+    @Blocking
     @Override
-    protected void rotateUserData(@NotNull User user) {
-        final List<UserDataSnapshot> unpinnedUserData = getUserData(user).join().stream()
-                .filter(dataSnapshot -> !dataSnapshot.pinned()).toList();
+    public Optional<DataSnapshot.Packed> getSnapshot(@NotNull User user, @NotNull UUID versionUuid) {
+        try (Connection connection = getConnection()) {
+            try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
+                    SELECT `version_uuid`, `timestamp`, `save_cause`, `pinned`, `data`
+                    FROM `%user_data_table%`
+                    WHERE `player_uuid`=? AND `version_uuid`=?
+                    ORDER BY `timestamp` DESC
+                    LIMIT 1;"""))) {
+                statement.setString(1, user.getUuid().toString());
+                statement.setString(2, versionUuid.toString());
+                final ResultSet resultSet = statement.executeQuery();
+                if (resultSet.next()) {
+                    final Blob blob = resultSet.getBlob("data");
+                    final byte[] dataByteArray = blob.getBytes(1, (int) blob.length());
+                    blob.free();
+                    return Optional.of(DataSnapshot.deserialize(plugin, dataByteArray));
+                }
+            }
+        } catch (SQLException | DataAdapter.AdaptionException e) {
+            plugin.log(Level.SEVERE, "Failed to fetch specific user data by UUID from the database", e);
+        }
+        return Optional.empty();
+    }
+
+    @Blocking
+    @Override
+    protected void rotateSnapshots(@NotNull User user) {
+        final List<DataSnapshot.Packed> unpinnedUserData = getAllSnapshots(user).stream()
+                .filter(dataSnapshot -> !dataSnapshot.isPinned()).toList();
         if (unpinnedUserData.size() > plugin.getSettings().getMaxUserDataSnapshots()) {
             try (Connection connection = getConnection()) {
                 try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
@@ -319,7 +304,7 @@ public class MySqlDatabase extends Database {
                         ORDER BY `timestamp` ASC
                         LIMIT %entry_count%;""".replace("%entry_count%",
                         Integer.toString(unpinnedUserData.size() - plugin.getSettings().getMaxUserDataSnapshots()))))) {
-                    statement.setString(1, user.uuid.toString());
+                    statement.setString(1, user.getUuid().toString());
                     statement.executeUpdate();
                 }
             } catch (SQLException e) {
@@ -328,105 +313,97 @@ public class MySqlDatabase extends Database {
         }
     }
 
+    @Blocking
     @Override
-    public CompletableFuture<Boolean> deleteUserData(@NotNull User user, @NotNull UUID versionUuid) {
-        return CompletableFuture.supplyAsync(() -> {
-            try (Connection connection = getConnection()) {
-                try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
-                        DELETE FROM `%user_data_table%`
-                        WHERE `player_uuid`=? AND `version_uuid`=?
-                        LIMIT 1;"""))) {
-                    statement.setString(1, user.uuid.toString());
-                    statement.setString(2, versionUuid.toString());
-                    return statement.executeUpdate() > 0;
-                }
-            } catch (SQLException e) {
-                plugin.log(Level.SEVERE, "Failed to delete specific user data from the database", e);
+    public boolean deleteSnapshot(@NotNull User user, @NotNull UUID versionUuid) {
+        try (Connection connection = getConnection()) {
+            try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
+                    DELETE FROM `%user_data_table%`
+                    WHERE `player_uuid`=? AND `version_uuid`=?
+                    LIMIT 1;"""))) {
+                statement.setString(1, user.getUuid().toString());
+                statement.setString(2, versionUuid.toString());
+                return statement.executeUpdate() > 0;
             }
-            return false;
-        });
+        } catch (SQLException e) {
+            plugin.log(Level.SEVERE, "Failed to delete specific user data from the database", e);
+        }
+        return false;
+    }
+
+    @Blocking
+    @Override
+    protected void rotateLatestSnapshot(@NotNull User user, @NotNull OffsetDateTime within) {
+        try (Connection connection = getConnection()) {
+            try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
+                    DELETE FROM `%user_data_table%`
+                    WHERE `player_uuid`=? AND `timestamp`>? AND `pinned` IS FALSE
+                    ORDER BY `timestamp` ASC
+                    LIMIT 1;"""))) {
+                statement.setString(1, user.getUuid().toString());
+                statement.setTimestamp(2, Timestamp.from(within.toInstant()));
+                statement.executeUpdate();
+            }
+        } catch (SQLException e) {
+            plugin.log(Level.SEVERE, "Failed to delete a user's data from the database", e);
+        }
+    }
+
+    @Blocking
+    @Override
+    protected void createSnapshot(@NotNull User user, @NotNull DataSnapshot.Packed data) {
+        try (Connection connection = getConnection()) {
+            try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
+                    INSERT INTO `%user_data_table%`
+                    (`player_uuid`,`version_uuid`,`timestamp`,`save_cause`,`pinned`,`data`)
+                    VALUES (?,?,?,?,?,?);"""))) {
+                statement.setString(1, user.getUuid().toString());
+                statement.setString(2, data.getId().toString());
+                statement.setTimestamp(3, Timestamp.from(data.getTimestamp().toInstant()));
+                statement.setString(4, data.getSaveCause().name());
+                statement.setBoolean(5, data.isPinned());
+                statement.setBlob(6, new ByteArrayInputStream(data.asBytes(plugin)));
+                statement.executeUpdate();
+            }
+        } catch (SQLException | DataAdapter.AdaptionException e) {
+            plugin.log(Level.SEVERE, "Failed to set user data in the database", e);
+        }
+    }
+
+    @Blocking
+    @Override
+    public void updateSnapshot(@NotNull User user, @NotNull DataSnapshot.Packed data) {
+        try (Connection connection = getConnection()) {
+            try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
+                    UPDATE `%user_data_table%`
+                    SET `save_cause`=?,`pinned`=?,`data`=?
+                    WHERE `player_uuid`=? AND `version_uuid`=?
+                    LIMIT 1;"""))) {
+                statement.setString(1, data.getSaveCause().name());
+                statement.setBoolean(2, data.isPinned());
+                statement.setBlob(3, new ByteArrayInputStream(data.asBytes(plugin)));
+                statement.setString(4, user.getUuid().toString());
+                statement.setString(5, data.getId().toString());
+                statement.executeUpdate();
+            }
+        } catch (SQLException e) {
+            plugin.log(Level.SEVERE, "Failed to pin user data in the database", e);
+        }
     }
 
     @Override
-    public CompletableFuture<Void> setUserData(@NotNull User user, @NotNull UserData userData,
-                                               @NotNull DataSaveCause saveCause) {
-        return CompletableFuture.runAsync(() -> {
-            final DataSaveEvent dataSaveEvent = (DataSaveEvent) plugin.getEventCannon().fireDataSaveEvent(user,
-                    userData, saveCause).join();
-            if (!dataSaveEvent.isCancelled()) {
-                final UserData finalData = dataSaveEvent.getUserData();
-                try (Connection connection = getConnection()) {
-                    try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
-                            INSERT INTO `%user_data_table%`
-                            (`player_uuid`,`version_uuid`,`timestamp`,`save_cause`,`data`)
-                            VALUES (?,UUID(),NOW(),?,?);"""))) {
-                        statement.setString(1, user.uuid.toString());
-                        statement.setString(2, saveCause.name());
-                        statement.setBlob(3, new ByteArrayInputStream(
-                                plugin.getDataAdapter().toBytes(finalData)));
-                        statement.executeUpdate();
-                    }
-                } catch (SQLException | DataAdaptionException e) {
-                    plugin.log(Level.SEVERE, "Failed to set user data in the database", e);
-                }
+    public void wipeDatabase() {
+        try (Connection connection = getConnection()) {
+            try (Statement statement = connection.createStatement()) {
+                statement.executeUpdate(formatStatementTables("DELETE FROM `%user_data_table%`;"));
             }
-            this.rotateUserData(user);
-        });
+        } catch (SQLException e) {
+            plugin.log(Level.SEVERE, "Failed to wipe the database", e);
+        }
     }
 
     @Override
-    public CompletableFuture<Void> pinUserData(@NotNull User user, @NotNull UUID versionUuid) {
-        return CompletableFuture.runAsync(() -> {
-            try (Connection connection = getConnection()) {
-                try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
-                        UPDATE `%user_data_table%`
-                        SET `pinned`=TRUE
-                        WHERE `player_uuid`=? AND `version_uuid`=?
-                        LIMIT 1;"""))) {
-                    statement.setString(1, user.uuid.toString());
-                    statement.setString(2, versionUuid.toString());
-                    statement.executeUpdate();
-                }
-            } catch (SQLException e) {
-                plugin.log(Level.SEVERE, "Failed to pin user data in the database", e);
-            }
-        });
-    }
-
-    @Override
-    public CompletableFuture<Void> unpinUserData(@NotNull User user, @NotNull UUID versionUuid) {
-        return CompletableFuture.runAsync(() -> {
-            try (Connection connection = getConnection()) {
-                try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
-                        UPDATE `%user_data_table%`
-                        SET `pinned`=FALSE
-                        WHERE `player_uuid`=? AND `version_uuid`=?
-                        LIMIT 1;"""))) {
-                    statement.setString(1, user.uuid.toString());
-                    statement.setString(2, versionUuid.toString());
-                    statement.executeUpdate();
-                }
-            } catch (SQLException e) {
-                plugin.log(Level.SEVERE, "Failed to unpin user data in the database", e);
-            }
-        });
-    }
-
-    @Override
-    public CompletableFuture<Void> wipeDatabase() {
-        return CompletableFuture.runAsync(() -> {
-            try (Connection connection = getConnection()) {
-                try (Statement statement = connection.createStatement()) {
-                    statement.executeUpdate(formatStatementTables("DELETE FROM `%user_data_table%`;"));
-                }
-            } catch (SQLException e) {
-                plugin.log(Level.SEVERE, "Failed to wipe the database", e);
-            }
-        });
-    }
-
-    @Override
-    public void close() {
+    public void terminate() {
         if (dataSource != null) {
             if (!dataSource.isClosed()) {
                 dataSource.close();

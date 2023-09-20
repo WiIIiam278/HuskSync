@@ -21,20 +21,20 @@ package net.william278.husksync.database;
 
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.config.Settings;
-import net.william278.husksync.data.DataSaveCause;
-import net.william278.husksync.data.UserData;
-import net.william278.husksync.data.UserDataSnapshot;
-import net.william278.husksync.migrator.Migrator;
-import net.william278.husksync.player.User;
+import net.william278.husksync.data.DataSnapshot;
+import net.william278.husksync.data.DataSnapshot.SaveCause;
+import net.william278.husksync.data.UserDataHolder;
+import net.william278.husksync.user.User;
+import org.jetbrains.annotations.Blocking;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 
 /**
  * An abstract representation of the plugin database, storing player data.
@@ -57,17 +57,19 @@ public abstract class Database {
      * @throws IOException if the resource could not be read
      */
     @SuppressWarnings("SameParameterValue")
+    @NotNull
     protected final String[] getSchemaStatements(@NotNull String schemaFileName) throws IOException {
         return formatStatementTables(new String(Objects.requireNonNull(plugin.getResource(schemaFileName))
                 .readAllBytes(), StandardCharsets.UTF_8)).split(";");
     }
 
     /**
-     * Format all table name placeholder strings in a SQL statement
+     * Format all table name placeholder strings in an SQL statement
      *
-     * @param sql the SQL statement with un-formatted table name placeholders
+     * @param sql the SQL statement with unformatted table name placeholders
      * @return the formatted statement, with table placeholders replaced with the correct names
      */
+    @NotNull
     protected final String formatStatementTables(@NotNull String sql) {
         return sql.replaceAll("%users_table%", plugin.getSettings().getTableName(Settings.TableName.USERS))
                 .replaceAll("%user_data_table%", plugin.getSettings().getTableName(Settings.TableName.USER_DATA));
@@ -75,57 +77,67 @@ public abstract class Database {
 
     /**
      * Initialize the database and ensure tables are present; create tables if they do not exist.
+     *
+     * @throws IllegalStateException if the database could not be initialized
      */
-    public abstract void initialize();
+    @Blocking
+    public abstract void initialize() throws IllegalStateException;
 
     /**
      * Ensure a {@link User} has an entry in the database and that their username is up-to-date
      *
      * @param user The {@link User} to ensure
-     * @return A future returning void when complete
      */
-    public abstract CompletableFuture<Void> ensureUser(@NotNull User user);
+    @Blocking
+    public abstract void ensureUser(@NotNull User user);
 
     /**
      * Get a player by their Minecraft account {@link UUID}
      *
      * @param uuid Minecraft account {@link UUID} of the {@link User} to get
-     * @return A future returning an optional with the {@link User} present if they exist
+     * @return An optional with the {@link User} present if they exist
      */
-    public abstract CompletableFuture<Optional<User>> getUser(@NotNull UUID uuid);
+    @Blocking
+    public abstract Optional<User> getUser(@NotNull UUID uuid);
 
     /**
      * Get a user by their username (<i>case-insensitive</i>)
      *
      * @param username Username of the {@link User} to get (<i>case-insensitive</i>)
-     * @return A future returning an optional with the {@link User} present if they exist
+     * @return An optional with the {@link User} present if they exist
      */
-    public abstract CompletableFuture<Optional<User>> getUserByName(@NotNull String username);
+    @Blocking
+    public abstract Optional<User> getUserByName(@NotNull String username);
+
 
     /**
-     * Get the current uniquely versioned user data for a given user, if it exists.
-     *
-     * @param user the user to get data for
-     * @return an optional containing the {@link UserDataSnapshot}, if it exists, or an empty optional if it does not
-     */
-    public abstract CompletableFuture<Optional<UserDataSnapshot>> getCurrentUserData(@NotNull User user);
-
-    /**
-     * Get all {@link UserDataSnapshot} entries for a user from the database.
+     * Get the latest data snapshot for a user.
      *
      * @param user The user to get data for
-     * @return A future returning a list of a user's {@link UserDataSnapshot} entries
+     * @return an optional containing the {@link DataSnapshot}, if it exists, or an empty optional if it does not
      */
-    public abstract CompletableFuture<List<UserDataSnapshot>> getUserData(@NotNull User user);
+    @Blocking
+    public abstract Optional<DataSnapshot.Packed> getLatestSnapshot(@NotNull User user);
 
     /**
-     * Gets a specific {@link UserDataSnapshot} entry for a user from the database, by its UUID.
+     * Get all {@link DataSnapshot} entries for a user from the database.
+     *
+     * @param user The user to get data for
+     * @return The list of a user's {@link DataSnapshot} entries
+     */
+    @Blocking
+    @NotNull
+    public abstract List<DataSnapshot.Packed> getAllSnapshots(@NotNull User user);
+
+    /**
+     * Gets a specific {@link DataSnapshot} entry for a user from the database, by its UUID.
      *
      * @param user        The user to get data for
-     * @param versionUuid The UUID of the {@link UserDataSnapshot} entry to get
-     * @return A future returning an optional containing the {@link UserDataSnapshot}, if it exists, or an empty optional if it does not
+     * @param versionUuid The UUID of the {@link DataSnapshot} entry to get
+     * @return An optional containing the {@link DataSnapshot}, if it exists
      */
-    public abstract CompletableFuture<Optional<UserDataSnapshot>> getUserData(@NotNull User user, @NotNull UUID versionUuid);
+    @Blocking
+    public abstract Optional<DataSnapshot.Packed> getSnapshot(@NotNull User user, @NotNull UUID versionUuid);
 
     /**
      * <b>(Internal)</b> Prune user data for a given user to the maximum value as configured.
@@ -133,61 +145,131 @@ public abstract class Database {
      * @param user The user to prune data for
      * @implNote Data snapshots marked as {@code pinned} are exempt from rotation
      */
-    protected abstract void rotateUserData(@NotNull User user);
+    @Blocking
+    protected abstract void rotateSnapshots(@NotNull User user);
 
     /**
-     * Deletes a specific {@link UserDataSnapshot} entry for a user from the database, by its UUID.
+     * Deletes a specific {@link DataSnapshot} entry for a user from the database, by its UUID.
      *
      * @param user        The user to get data for
-     * @param versionUuid The UUID of the {@link UserDataSnapshot} entry to delete
-     * @return A future returning void when complete
+     * @param versionUuid The UUID of the {@link DataSnapshot} entry to delete
      */
-    public abstract CompletableFuture<Boolean> deleteUserData(@NotNull User user, @NotNull UUID versionUuid);
+    @Blocking
+    public abstract boolean deleteSnapshot(@NotNull User user, @NotNull UUID versionUuid);
 
     /**
-     * Save user data to the database<p>
+     * Save user data to the database
+     * </p>
      * This will remove the oldest data for the user if the amount of data exceeds the limit as configured
      *
      * @param user     The user to add data for
-     * @param userData The {@link UserData} to set. The implementation should version it with a random UUID and the current timestamp during insertion.
-     * @return A future returning void when complete
-     * @see UserDataSnapshot#create(UserData)
+     * @param snapshot The {@link DataSnapshot} to set.
+     *                 The implementation should version it with a random UUID and the current timestamp during insertion.
+     * @see UserDataHolder#createSnapshot(SaveCause)
      */
-    public abstract CompletableFuture<Void> setUserData(@NotNull User user, @NotNull UserData userData, @NotNull DataSaveCause dataSaveCause);
+    @Blocking
+    public void addSnapshot(@NotNull User user, @NotNull DataSnapshot.Packed snapshot) {
+        if (snapshot.getSaveCause() != SaveCause.SERVER_SHUTDOWN) {
+            plugin.fireEvent(
+                    plugin.getDataSaveEvent(user, snapshot),
+                    (event) -> this.addAndRotateSnapshot(user, snapshot)
+            );
+            return;
+        }
+
+        this.addAndRotateSnapshot(user, snapshot);
+    }
 
     /**
-     * Pin a saved {@link UserDataSnapshot} by given version UUID, setting it's {@code pinned} state to {@code true}.
+     * <b>Internal</b> - Save user data to the database. This will:
+     * <ol>
+     *     <li>Delete their most recent snapshot, if it was created before the backup frequency time</li>
+     *     <li>Create the snapshot</li>
+     *     <li>Rotate snapshot backups</li>
+     * </ol>
      *
-     * @param user        The user to pin the data for
-     * @param versionUuid The UUID of the user's {@link UserDataSnapshot} entry to pin
-     * @return A future returning a boolean; {@code true} if the operation completed successfully, {@code false} if it failed
-     * @see UserDataSnapshot#pinned()
+     * @param user     The user to add data for
+     * @param snapshot The {@link DataSnapshot} to set.
      */
-    public abstract CompletableFuture<Void> pinUserData(@NotNull User user, @NotNull UUID versionUuid);
+    @Blocking
+    private void addAndRotateSnapshot(@NotNull User user, @NotNull DataSnapshot.Packed snapshot) {
+        final int backupFrequency = plugin.getSettings().getBackupFrequency();
+        if (!snapshot.isPinned() && backupFrequency > 0) {
+            this.rotateLatestSnapshot(user, snapshot.getTimestamp().minusHours(backupFrequency));
+        }
+        this.createSnapshot(user, snapshot);
+        this.rotateSnapshots(user);
+    }
 
     /**
-     * Unpin a saved {@link UserDataSnapshot} by given version UUID, setting it's {@code pinned} state to {@code false}.
+     * Deletes the most recent data snapshot by the given {@link User user}
+     * The snapshot must have been created after {@link OffsetDateTime time} and NOT be pinned
+     * Facilities the backup frequency feature, reducing redundant snapshots from being saved longer than needed
+     *
+     * @param user   The user to delete a snapshot for
+     * @param within The time to delete a snapshot after
+     */
+    @Blocking
+    protected abstract void rotateLatestSnapshot(@NotNull User user, @NotNull OffsetDateTime within);
+
+    /**
+     * <b>Internal</b> - Create user data in the database
+     *
+     * @param user The user to add data for
+     * @param data The {@link DataSnapshot} to set.
+     */
+    @Blocking
+    protected abstract void createSnapshot(@NotNull User user, @NotNull DataSnapshot.Packed data);
+
+    /**
+     * Update a saved {@link DataSnapshot} by given version UUID
+     *
+     * @param user     The user whose data snapshot
+     * @param snapshot The {@link DataSnapshot} to update
+     */
+    @Blocking
+    public abstract void updateSnapshot(@NotNull User user, @NotNull DataSnapshot.Packed snapshot);
+
+    /**
+     * Unpin a saved {@link DataSnapshot} by given version UUID, setting it's {@code pinned} state to {@code false}.
      *
      * @param user        The user to unpin the data for
-     * @param versionUuid The UUID of the user's {@link UserDataSnapshot} entry to unpin
-     * @return A future returning a boolean; {@code true} if the operation completed successfully, {@code false} if it failed
-     * @see UserDataSnapshot#pinned()
+     * @param versionUuid The UUID of the user's {@link DataSnapshot} entry to unpin
+     * @see DataSnapshot#isPinned()
      */
-    public abstract CompletableFuture<Void> unpinUserData(@NotNull User user, @NotNull UUID versionUuid);
+    @Blocking
+    public final void unpinSnapshot(@NotNull User user, @NotNull UUID versionUuid) {
+        this.getSnapshot(user, versionUuid).ifPresent(data -> {
+            data.edit(plugin, (snapshot) -> snapshot.setPinned(false));
+            this.updateSnapshot(user, data);
+        });
+    }
 
     /**
-     * Wipes <b>all</b> {@link UserData} entries from the database.
-     * <b>This should never be used</b>, except when preparing tables for migration.
+     * Pin a saved {@link DataSnapshot} by given version UUID, setting it's {@code pinned} state to {@code true}.
      *
-     * @return A future returning void when complete
-     * @see Migrator#start()
+     * @param user        The user to pin the data for
+     * @param versionUuid The UUID of the user's {@link DataSnapshot} entry to pin
      */
-    public abstract CompletableFuture<Void> wipeDatabase();
+    @Blocking
+    public final void pinSnapshot(@NotNull User user, @NotNull UUID versionUuid) {
+        this.getSnapshot(user, versionUuid).ifPresent(data -> {
+            data.edit(plugin, (snapshot) -> snapshot.setPinned(true));
+            this.updateSnapshot(user, data);
+        });
+    }
+
+    /**
+     * Wipes <b>all</b> {@link User} entries from the database.
+     * <b>This should only be used when preparing tables for a data migration.</b>
+     */
+    @Blocking
+    public abstract void wipeDatabase();
 
     /**
      * Close the database connection
      */
-    public abstract void close();
+    public abstract void terminate();
 
     /**
      * Identifies types of databases

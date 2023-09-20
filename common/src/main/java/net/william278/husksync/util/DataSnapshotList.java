@@ -19,19 +19,19 @@
 
 package net.william278.husksync.util;
 
-import net.william278.husksync.config.Locales;
-import net.william278.husksync.data.UserDataSnapshot;
-import net.william278.husksync.player.OnlineUser;
-import net.william278.husksync.player.User;
+import net.william278.husksync.HuskSync;
+import net.william278.husksync.data.DataSnapshot;
+import net.william278.husksync.user.CommandUser;
+import net.william278.husksync.user.User;
 import net.william278.paginedown.PaginatedList;
 import org.jetbrains.annotations.NotNull;
 
-import java.text.SimpleDateFormat;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * Represents a chat-viewable paginated list of {@link UserDataSnapshot}s
+ * Represents a chat-viewable paginated list of {@link net.william278.husksync.data.DataSnapshot}s
  */
 public class DataSnapshotList {
 
@@ -41,46 +41,52 @@ public class DataSnapshotList {
     @NotNull
     private final PaginatedList paginatedList;
 
-    private DataSnapshotList(@NotNull List<UserDataSnapshot> snapshots, @NotNull User dataOwner,
-                             @NotNull Locales locales) {
+    private DataSnapshotList(@NotNull List<DataSnapshot.Packed> snapshots, @NotNull User dataOwner,
+                             @NotNull HuskSync plugin) {
         final AtomicInteger snapshotNumber = new AtomicInteger(1);
         this.paginatedList = PaginatedList.of(snapshots.stream()
-                        .map(snapshot -> locales.getRawLocale("data_list_item",
+                        .map(snapshot -> plugin.getLocales()
+                                .getRawLocale("data_list_item",
                                         getNumberIcon(snapshotNumber.getAndIncrement()),
-                                        new SimpleDateFormat("MMM dd yyyy, HH:mm:ss.sss")
-                                                .format(snapshot.versionTimestamp()),
-                                        snapshot.versionUUID().toString().split("-")[0],
-                                        snapshot.versionUUID().toString(),
-                                        snapshot.cause().getDisplayName(),
-                                        dataOwner.username,
-                                        snapshot.pinned() ? "※" : "  ")
-                                .orElse("• " + snapshot.versionUUID())).toList(),
-                locales.getBaseChatList(6)
-                        .setHeaderFormat(locales.getRawLocale("data_list_title", dataOwner.username,
+                                        dataOwner.getUsername(),
+                                        snapshot.getId().toString(),
+                                        snapshot.getShortId(),
+                                        snapshot.isPinned() ? "※" : "  ",
+                                        snapshot.getTimestamp().format(DateTimeFormatter
+                                                .ofPattern("dd/MM/yyyy, HH:mm")),
+                                        snapshot.getTimestamp().format(DateTimeFormatter
+                                                .ofPattern("MMM dd yyyy, HH:mm:ss.SSS")),
+                                        snapshot.getSaveCause().getDisplayName(),
+                                        String.format("%.2fKiB", snapshot.getFileSize(plugin) / 1024f))
+                                .orElse("• " + snapshot.getId())).toList(),
+                plugin.getLocales().getBaseChatList(6)
+                        .setHeaderFormat(plugin.getLocales()
+                                .getRawLocale("data_list_title", dataOwner.getUsername(),
                                         "%first_item_on_page_index%", "%last_item_on_page_index%", "%total_items%")
                                 .orElse(""))
-                        .setCommand("/husksync:userdata list " + dataOwner.username)
+                        .setCommand("/husksync:userdata list " + dataOwner.getUsername())
                         .build());
     }
 
     /**
-     * Create a new {@link DataSnapshotList} from a list of {@link UserDataSnapshot}s
+     * Create a new {@link DataSnapshotList} from a list of {@link DataSnapshot}s
      *
-     * @param snapshots The list of {@link UserDataSnapshot}s to display
-     * @param user      The {@link User} who owns the {@link UserDataSnapshot}s
-     * @param locales   The {@link Locales} instance
-     * @return A new {@link DataSnapshotList}, to be viewed with {@link #displayPage(OnlineUser, int)}
+     * @param snapshots The list of {@link DataSnapshot}s to display
+     * @param user      The {@link User} who owns the {@link DataSnapshot}s
+     * @param plugin    The instance of the plugin
+     * @return A new {@link DataSnapshotList}, to be viewed with {@link #displayPage(CommandUser, int)}
      */
-    public static DataSnapshotList create(@NotNull List<UserDataSnapshot> snapshots, @NotNull User user,
-                                          @NotNull Locales locales) {
-        return new DataSnapshotList(snapshots, user, locales);
+    @NotNull
+    public static DataSnapshotList create(@NotNull List<DataSnapshot.Packed> snapshots, @NotNull User user,
+                                          @NotNull HuskSync plugin) {
+        return new DataSnapshotList(snapshots, user, plugin);
     }
 
     /**
-     * Get an icon for the given snapshot number, via {@link #CIRCLED_NUMBER_ICONS}
+     * Get an hasIcon for the given snapshot number, via {@link #CIRCLED_NUMBER_ICONS}
      *
      * @param number the snapshot number
-     * @return the icon for the given snapshot number
+     * @return the hasIcon for the given snapshot number
      */
     private static String getNumberIcon(int number) {
         if (number < 1 || number > 20) {
@@ -90,12 +96,12 @@ public class DataSnapshotList {
     }
 
     /**
-     * Display a page of the list of {@link UserDataSnapshot} to the user
+     * Display a page of the list of {@link DataSnapshot} to the user
      *
      * @param onlineUser The online user to display the message to
      * @param page       The page number to display
      */
-    public void displayPage(@NotNull OnlineUser onlineUser, int page) {
+    public void displayPage(@NotNull CommandUser onlineUser, int page) {
         onlineUser.sendMessage(paginatedList.getNearestValidPage(page));
     }
 

@@ -118,3 +118,8 @@ run/
 !gradle-wrapper.jar
 /build-output-final/
 /target/
+
+# Don't include generated test suite files
+/test/servers/
+/test/HuskSync
+/test/config.yml

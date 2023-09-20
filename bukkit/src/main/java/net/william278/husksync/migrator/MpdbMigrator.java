@@ -21,30 +21,28 @@ package net.william278.husksync.migrator;
 
 import com.zaxxer.hikari.HikariDataSource;
 import net.william278.husksync.BukkitHuskSync;
-import net.william278.husksync.data.*;
-import net.william278.husksync.player.User;
+import net.william278.husksync.HuskSync;
+import net.william278.husksync.data.BukkitData;
+import net.william278.husksync.data.DataSnapshot;
+import net.william278.husksync.user.User;
 import net.william278.mpdbconverter.MPDBConverter;
 import org.bukkit.Bukkit;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
 
 /**
- * A migrator for migrating MySQLPlayerDataBridge data to HuskSync {@link UserData}
+ * A migrator for migrating MySQLPlayerDataBridge data to HuskSync {@link DataSnapshot}s
  */
 public class MpdbMigrator extends Migrator {
 
@@ -57,11 +55,13 @@ public class MpdbMigrator extends Migrator {
     private String sourceInventoryTable;
     private String sourceEnderChestTable;
     private String sourceExperienceTable;
-    private final String minecraftVersion;
 
-    public MpdbMigrator(@NotNull BukkitHuskSync plugin, @NotNull Plugin mySqlPlayerDataBridge) {
+    public MpdbMigrator(@NotNull BukkitHuskSync plugin) {
         super(plugin);
-        this.mpdbConverter = MPDBConverter.getInstance(mySqlPlayerDataBridge);
+        this.mpdbConverter = MPDBConverter.getInstance(Objects.requireNonNull(
+                Bukkit.getPluginManager().getPlugin("MySQLPlayerDataBridge"),
+                "MySQLPlayerDataBridge dependency not found!"
+        ));
         this.sourceHost = plugin.getSettings().getMySqlHost();
         this.sourcePort = plugin.getSettings().getMySqlPort();
         this.sourceUsername = plugin.getSettings().getMySqlUsername();
@@ -70,7 +70,6 @@ public class MpdbMigrator extends Migrator {
         this.sourceInventoryTable = "mpdb_inventory";
         this.sourceEnderChestTable = "mpdb_enderchest";
         this.sourceExperienceTable = "mpdb_experience";
-        this.minecraftVersion = plugin.getMinecraftVersion().toString();
 
     }
 
@@ -78,10 +77,10 @@ public class MpdbMigrator extends Migrator {
     public CompletableFuture<Boolean> start() {
         plugin.log(Level.INFO, "Starting migration from MySQLPlayerDataBridge to HuskSync...");
         final long startTime = System.currentTimeMillis();
-        return CompletableFuture.supplyAsync(() -> {
+        return plugin.supplyAsync(() -> {
             // Wipe the existing database, preparing it for data import
             plugin.log(Level.INFO, "Preparing existing database (wiping)...");
-            plugin.getDatabase().wipeDatabase().join();
+            plugin.getDatabase().wipeDatabase();
             plugin.log(Level.INFO, "Successfully wiped user data database (took " + (System.currentTimeMillis() - startTime) + "ms)");
 
             // Create jdbc driver connection url
@@ -133,18 +132,15 @@ public class MpdbMigrator extends Migrator {
                 plugin.log(Level.INFO, "Converting raw MySQLPlayerDataBridge data to HuskSync user data (this might take a while)...");
 
                 final AtomicInteger playersConverted = new AtomicInteger();
-                dataToMigrate.forEach(data -> data.toUserData(mpdbConverter, minecraftVersion).thenAccept(convertedData -> {
-                    plugin.getDatabase().ensureUser(data.user()).thenRun(() ->
-                                    plugin.getDatabase().setUserData(data.user(), convertedData, DataSaveCause.MPDB_MIGRATION))
-                            .exceptionally(exception -> {
-                                plugin.log(Level.SEVERE, "Failed to migrate MySQLPlayerDataBridge data for " + data.user().username + ": " + exception.getMessage());
-                                return null;
-                            }).join();
+                dataToMigrate.forEach(data -> {
+                    final DataSnapshot.Packed convertedData = data.toUserData(mpdbConverter, plugin);
+                    plugin.getDatabase().ensureUser(data.user());
+                    plugin.getDatabase().addSnapshot(data.user(), convertedData);
                     playersConverted.getAndIncrement();
                     if (playersConverted.get() % 50 == 0) {
                         plugin.log(Level.INFO, "Converted MySQLPlayerDataBridge data for " + playersConverted + " players...");
                     }
-                }).join());
+                });
                 plugin.log(Level.INFO, "Migration complete for " + dataToMigrate.size() + " users in " + ((System.currentTimeMillis() - startTime) / 1000) + " seconds!");
                 return true;
             } catch (Exception e) {
@@ -198,10 +194,10 @@ public class MpdbMigrator extends Migrator {
             }) {
                 plugin.log(Level.INFO, getHelpMenu());
                 plugin.log(Level.INFO, "Successfully set " + args[0] + " to " +
-                                                           obfuscateDataString(args[1]));
+                        obfuscateDataString(args[1]));
             } else {
                 plugin.log(Level.INFO, "Invalid operation, could not set " + args[0] + " to " +
-                                                           obfuscateDataString(args[1]) + " (is it a valid option?)");
+                        obfuscateDataString(args[1]) + " (is it a valid option?)");
             }
         } else {
             plugin.log(Level.INFO, getHelpMenu());
@@ -227,14 +223,14 @@ public class MpdbMigrator extends Migrator {
                 === MySQLPlayerDataBridge Migration Wizard ==========
                 This will migrate inventories, ender chests and XP
                 from the MySQLPlayerDataBridge plugin to HuskSync.
-                                
+
                 To prevent excessive migration times, other non-vital
                 data will not be transferred.
-                                
+
                 [!] Existing data in the database will be wiped. [!]
-                                
+
                 STEP 1] Please ensure no players are on any servers.
-                                
+
                 STEP 2] HuskSync will need to connect to the database
                 used to hold the source MySQLPlayerDataBridge data.
                 Please check these database parameters are OK:
@@ -250,12 +246,12 @@ public class MpdbMigrator extends Migrator {
                 using the command:
                 "husksync migrate mpdb set <parameter> <value>"
                 (e.g.: "husksync migrate mpdb set host 1.2.3.4")
-                                
+
                 STEP 3] HuskSync will migrate data into the database
                 tables configures in the config.yml file of this
                 server. Please make sure you're happy with this
                 before proceeding.
-                                
+
                 STEP 4] To start the migration, please run:
                 "husksync migrate mpdb start"
                 """.replaceAll(Pattern.quote("%source_host%"), obfuscateDataString(sourceHost))
@@ -279,38 +275,43 @@ public class MpdbMigrator extends Migrator {
      * @param expProgress          The player's current XP progress
      * @param totalExp             The player's total XP score
      */
-    private record MpdbData(@NotNull User user, @NotNull String serializedInventory,
-                            @NotNull String serializedArmor, @NotNull String serializedEnderChest,
-                            int expLevel, float expProgress, int totalExp) {
+    private record MpdbData(
+            @NotNull User user,
+            @NotNull String serializedInventory,
+            @NotNull String serializedArmor,
+            @NotNull String serializedEnderChest,
+            int expLevel,
+            float expProgress,
+            int totalExp
+    ) {
+
         /**
-         * Converts exported MySQLPlayerDataBridge data into HuskSync's {@link UserData} object format
+         * Converts exported MySQLPlayerDataBridge data into HuskSync's {@link DataSnapshot} object format
          *
          * @param converter The {@link MPDBConverter} to use for converting to {@link ItemStack}s
-         * @return A {@link CompletableFuture} that will resolve to the converted {@link UserData} object
+         * @return A {@link CompletableFuture} that will resolve to the converted {@link DataSnapshot} object
          */
         @NotNull
-        public CompletableFuture<UserData> toUserData(@NotNull MPDBConverter converter,
-                                                      @NotNull String minecraftVersion) {
-            return CompletableFuture.supplyAsync(() -> {
-                // Combine inventory and armour
-                final Inventory inventory = Bukkit.createInventory(null, InventoryType.PLAYER);
-                inventory.setContents(converter.getItemStackFromSerializedData(serializedInventory));
-                final ItemStack[] armor = converter.getItemStackFromSerializedData(serializedArmor).clone();
-                for (int i = 36; i < 36 + armor.length; i++) {
-                    inventory.setItem(i, armor[i - 36]);
-                }
+        public DataSnapshot.Packed toUserData(@NotNull MPDBConverter converter, @NotNull HuskSync plugin) {
+            // Combine inventory and armor
+            final Inventory inventory = Bukkit.createInventory(null, InventoryType.PLAYER);
+            inventory.setContents(converter.getItemStackFromSerializedData(serializedInventory));
+            final ItemStack[] armor = converter.getItemStackFromSerializedData(serializedArmor).clone();
+            for (int i = 36; i < 36 + armor.length; i++) {
+                inventory.setItem(i, armor[i - 36]);
+            }
+            final ItemStack[] enderChest = converter.getItemStackFromSerializedData(serializedEnderChest);
 
-                // Create user data record
-                return UserData.builder(minecraftVersion)
-                        .setStatus(new StatusData(20, 20, 0, 20, 10,
-                                1, 0, totalExp, expLevel, expProgress, "SURVIVAL",
-                                false))
-                        .setInventory(new ItemData(BukkitSerializer.serializeItemStackArray(inventory.getContents()).join()))
-                        .setEnderChest(new ItemData(BukkitSerializer.serializeItemStackArray(converter
-                                .getItemStackFromSerializedData(serializedEnderChest)).join()))
-                        .build();
-            });
+            // Create user data record
+            return DataSnapshot.builder(plugin)
+                    .inventory(BukkitData.Items.Inventory.from(inventory.getContents(), 0))
+                    .enderChest(BukkitData.Items.EnderChest.adapt(enderChest))
+                    .experience(BukkitData.Experience.from(totalExp, expLevel, expProgress))
+                    .gameMode(BukkitData.GameMode.from("SURVIVAL", false, false))
+                    .saveCause(DataSnapshot.SaveCause.MPDB_MIGRATION)
+                    .buildAndPack();
         }
+
     }
 
 }

@@ -23,14 +23,16 @@ import com.zaxxer.hikari.HikariDataSource;
 import me.william278.husksync.bukkit.data.DataSerializer;
 import net.william278.hslmigrator.HSLConverter;
 import net.william278.husksync.HuskSync;
-import net.william278.husksync.data.*;
-import net.william278.husksync.player.User;
+import net.william278.husksync.data.BukkitData;
+import net.william278.husksync.data.Data;
+import net.william278.husksync.data.DataSnapshot;
+import net.william278.husksync.user.User;
+import net.william278.husksync.util.BukkitLegacyConverter;
 import org.bukkit.Material;
 import org.bukkit.Statistic;
 import org.bukkit.entity.EntityType;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -51,8 +53,6 @@ public class LegacyMigrator extends Migrator {
     private String sourcePlayersTable;
     private String sourceDataTable;
 
-    private final String minecraftVersion;
-
     public LegacyMigrator(@NotNull HuskSync plugin) {
         super(plugin);
         this.hslConverter = HSLConverter.getInstance();
@@ -63,17 +63,16 @@ public class LegacyMigrator extends Migrator {
         this.sourceDatabase = plugin.getSettings().getMySqlDatabase();
         this.sourcePlayersTable = "husksync_players";
         this.sourceDataTable = "husksync_data";
-        this.minecraftVersion = plugin.getMinecraftVersion().toString();
     }
 
     @Override
     public CompletableFuture<Boolean> start() {
         plugin.log(Level.INFO, "Starting migration of legacy HuskSync v1.x data...");
         final long startTime = System.currentTimeMillis();
-        return CompletableFuture.supplyAsync(() -> {
+        return plugin.supplyAsync(() -> {
             // Wipe the existing database, preparing it for data import
             plugin.log(Level.INFO, "Preparing existing database (wiping)...");
-            plugin.getDatabase().wipeDatabase().join();
+            plugin.getDatabase().wipeDatabase();
             plugin.log(Level.INFO, "Successfully wiped user data database (took " + (System.currentTimeMillis() - startTime) + "ms)");
 
             // Create jdbc driver connection url
@@ -135,23 +134,25 @@ public class LegacyMigrator extends Migrator {
                 plugin.log(Level.INFO, "Converting HuskSync 1.x data to the new user data format (this might take a while)...");
 
                 final AtomicInteger playersConverted = new AtomicInteger();
-                dataToMigrate.forEach(data -> data.toUserData(hslConverter, minecraftVersion).thenAccept(convertedData -> {
-                    plugin.getDatabase().ensureUser(data.user()).thenRun(() ->
-                            plugin.getDatabase().setUserData(data.user(), convertedData, DataSaveCause.LEGACY_MIGRATION)
-                                    .exceptionally(exception -> {
-                                        plugin.log(Level.SEVERE, "Failed to migrate legacy data for " + data.user().username + ": " + exception.getMessage());
-                                        return null;
-                                    })).join();
+                dataToMigrate.forEach(data -> {
+                    final DataSnapshot.Packed convertedData = data.toUserData(hslConverter, plugin);
+                    plugin.getDatabase().ensureUser(data.user());
+                    try {
+                        plugin.getDatabase().addSnapshot(data.user(), convertedData);
+                    } catch (Throwable e) {
+                        plugin.log(Level.SEVERE, "Failed to migrate legacy data for " + data.user().getUsername() + ": " + e.getMessage());
+                        return;
+                    }
 
                     playersConverted.getAndIncrement();
                     if (playersConverted.get() % 50 == 0) {
                         plugin.log(Level.INFO, "Converted legacy data for " + playersConverted + " players...");
                     }
-                }).join());
+                });
                 plugin.log(Level.INFO, "Migration complete for " + dataToMigrate.size() + " users in " + ((System.currentTimeMillis() - startTime) / 1000) + " seconds!");
                 return true;
-            } catch (Exception e) {
-                plugin.log(Level.SEVERE, "Error while migrating legacy data: " + e.getMessage() + " - are your source database credentials correct?");
+            } catch (Throwable e) {
+                plugin.log(Level.SEVERE, "Error while migrating legacy data: " + e.getMessage() + " - are your source database credentials correct?", e);
                 return false;
             }
         });
@@ -197,10 +198,10 @@ public class LegacyMigrator extends Migrator {
             }) {
                 plugin.log(Level.INFO, getHelpMenu());
                 plugin.log(Level.INFO, "Successfully set " + args[0] + " to " +
-                                                           obfuscateDataString(args[1]));
+                        obfuscateDataString(args[1]));
             } else {
                 plugin.log(Level.INFO, "Invalid operation, could not set " + args[0] + " to " +
-                                                           obfuscateDataString(args[1]) + " (is it a valid option?)");
+                        obfuscateDataString(args[1]) + " (is it a valid option?)");
             }
         } else {
             plugin.log(Level.INFO, getHelpMenu());
@@ -227,11 +228,11 @@ public class LegacyMigrator extends Migrator {
                 This will migrate all user data from HuskSync v1.x to
                 HuskSync v2.x's new format. To perform the migration,
                 please follow the steps below carefully.
-                                
+
                 [!] Existing data in the database will be wiped. [!]
-                                
+
                 STEP 1] Please ensure no players are on any servers.
-                                
+
                 STEP 2] HuskSync will need to connect to the database
                 used to hold the existing, legacy HuskSync data.
                 If this is the same database as the one you are
@@ -251,12 +252,12 @@ public class LegacyMigrator extends Migrator {
                 using the command:
                 "husksync migrate legacy set <parameter> <value>"
                 (e.g.: "husksync migrate legacy set host 1.2.3.4")
-                                
+
                 STEP 3] HuskSync will migrate data into the database
                 tables configures in the config.yml file of this
                 server. Please make sure you're happy with this
                 before proceeding.
-                                
+
                 STEP 4] To start the migration, please run:
                 "husksync migrate legacy start"
                 """.replaceAll(Pattern.quote("%source_host%"), obfuscateDataString(sourceHost))
@@ -277,54 +278,69 @@ public class LegacyMigrator extends Migrator {
                               @NotNull String serializedAdvancements, @NotNull String serializedLocation) {
 
         @NotNull
-        public CompletableFuture<UserData> toUserData(@NotNull HSLConverter converter,
-                                                      @NotNull String minecraftVersion) {
-            return CompletableFuture.supplyAsync(() -> {
-                try {
-                    final DataSerializer.StatisticData legacyStatisticData = converter
-                            .deserializeStatisticData(serializedStatistics);
-                    final StatisticsData convertedStatisticData = new StatisticsData(
-                            convertStatisticMap(legacyStatisticData.untypedStatisticValues()),
-                            convertMaterialStatisticMap(legacyStatisticData.blockStatisticValues()),
-                            convertMaterialStatisticMap(legacyStatisticData.itemStatisticValues()),
-                            convertEntityStatisticMap(legacyStatisticData.entityStatisticValues()));
+        public DataSnapshot.Packed toUserData(@NotNull HSLConverter converter, @NotNull HuskSync plugin) {
+            try {
+                final DataSerializer.StatisticData stats = converter.deserializeStatisticData(serializedStatistics);
+                final DataSerializer.PlayerLocation loc = converter.deserializePlayerLocationData(serializedLocation);
+                final BukkitLegacyConverter adapter = (BukkitLegacyConverter) plugin.getLegacyConverter()
+                        .orElseThrow(() -> new IllegalStateException("Legacy converter not present"));
 
-                    final List<AdvancementData> convertedAdvancements = converter
-                            .deserializeAdvancementData(serializedAdvancements)
-                            .stream().map(data -> new AdvancementData(data.key(), data.criteriaMap())).toList();
+                return DataSnapshot.builder(plugin)
+                        // Inventory
+                        .inventory(BukkitData.Items.Inventory.from(
+                                adapter.deserializeLegacyItemStacks(serializedInventory),
+                                selectedSlot
+                        ))
 
-                    final DataSerializer.PlayerLocation legacyLocationData = converter
-                            .deserializePlayerLocationData(serializedLocation);
-                    final LocationData convertedLocationData = new LocationData(
-                            legacyLocationData == null ? "world" : legacyLocationData.worldName(),
-                            UUID.randomUUID(),
-                            "NORMAL",
-                            legacyLocationData == null ? 0d : legacyLocationData.x(),
-                            legacyLocationData == null ? 64d : legacyLocationData.y(),
-                            legacyLocationData == null ? 0d : legacyLocationData.z(),
-                            legacyLocationData == null ? 90f : legacyLocationData.yaw(),
-                            legacyLocationData == null ? 180f : legacyLocationData.pitch());
+                        // Ender chest
+                        .enderChest(BukkitData.Items.EnderChest.adapt(
+                                adapter.deserializeLegacyItemStacks(serializedEnderChest)
+                        ))
 
-                    return UserData.builder(minecraftVersion)
-                            .setStatus(new StatusData(health, maxHealth, healthScale, hunger, saturation,
-                                    saturationExhaustion, selectedSlot, totalExp, expLevel, expProgress, gameMode, isFlying))
-                            .setInventory(new ItemData(serializedInventory))
-                            .setEnderChest(new ItemData(serializedEnderChest))
-                            .setPotionEffects(new PotionEffectData(serializedPotionEffects))
-                            .setAdvancements(convertedAdvancements)
-                            .setStatistics(convertedStatisticData)
-                            .setLocation(convertedLocationData)
-                            .build();
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-            });
+                        // Location
+                        .location(BukkitData.Location.from(
+                                loc == null ? 0d : loc.x(),
+                                loc == null ? 64d : loc.y(),
+                                loc == null ? 0d : loc.z(),
+                                loc == null ? 90f : loc.yaw(),
+                                loc == null ? 180f : loc.pitch(),
+                                new Data.Location.World(
+                                        loc == null ? "world" : loc.worldName(),
+                                        UUID.randomUUID(), "NORMAL"
+                                )))
+
+                        // Advancements
+                        .advancements(BukkitData.Advancements.from(converter
+                                .deserializeAdvancementData(serializedAdvancements).stream()
+                                .map(data -> Data.Advancements.Advancement.adapt(data.key(), data.criteriaMap()))
+                                .toList()))
+
+                        // Stats
+                        .statistics(BukkitData.Statistics.from(
+                                BukkitData.Statistics.createStatisticsMap(
+                                        convertStatisticMap(stats.untypedStatisticValues()),
+                                        convertMaterialStatisticMap(stats.blockStatisticValues()),
+                                        convertMaterialStatisticMap(stats.itemStatisticValues()),
+                                        convertEntityStatisticMap(stats.entityStatisticValues())
+                                )))
+
+                        // Health, hunger, experience & game mode
+                        .health(BukkitData.Health.from(health, maxHealth, healthScale))
+                        .hunger(BukkitData.Hunger.from(hunger, saturation, saturationExhaustion))
+                        .experience(BukkitData.Experience.from(totalExp, expLevel, expProgress))
+                        .gameMode(BukkitData.GameMode.from(gameMode, isFlying, isFlying))
+
+                        // Build & pack into new format
+                        .saveCause(DataSnapshot.SaveCause.LEGACY_MIGRATION).buildAndPack();
+            } catch (Throwable e) {
+                throw new IllegalStateException(e);
+            }
         }
 
         private Map<String, Integer> convertStatisticMap(@NotNull HashMap<Statistic, Integer> rawMap) {
             final HashMap<String, Integer> convertedMap = new HashMap<>();
             for (Map.Entry<Statistic, Integer> entry : rawMap.entrySet()) {
-                convertedMap.put(entry.getKey().toString(), entry.getValue());
+                convertedMap.put(entry.getKey().getKey().toString(), entry.getValue());
             }
             return convertedMap;
         }
@@ -333,8 +349,8 @@ public class LegacyMigrator extends Migrator {
             final Map<String, Map<String, Integer>> convertedMap = new HashMap<>();
             for (Map.Entry<Statistic, HashMap<Material, Integer>> entry : rawMap.entrySet()) {
                 for (Map.Entry<Material, Integer> materialEntry : entry.getValue().entrySet()) {
-                    convertedMap.computeIfAbsent(entry.getKey().toString(), k -> new HashMap<>())
-                            .put(materialEntry.getKey().toString(), materialEntry.getValue());
+                    convertedMap.computeIfAbsent(entry.getKey().getKey().toString(), k -> new HashMap<>())
+                            .put(materialEntry.getKey().getKey().toString(), materialEntry.getValue());
                 }
             }
             return convertedMap;
@@ -344,8 +360,8 @@ public class LegacyMigrator extends Migrator {
             final Map<String, Map<String, Integer>> convertedMap = new HashMap<>();
             for (Map.Entry<Statistic, HashMap<EntityType, Integer>> entry : rawMap.entrySet()) {
                 for (Map.Entry<EntityType, Integer> materialEntry : entry.getValue().entrySet()) {
-                    convertedMap.computeIfAbsent(entry.getKey().toString(), k -> new HashMap<>())
-                            .put(materialEntry.getKey().toString(), materialEntry.getValue());
+                    convertedMap.computeIfAbsent(entry.getKey().getKey().toString(), k -> new HashMap<>())
+                            .put(materialEntry.getKey().getKey().toString(), materialEntry.getValue());
                 }
             }
             return convertedMap;

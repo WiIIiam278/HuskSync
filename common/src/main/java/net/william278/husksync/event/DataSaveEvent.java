@@ -19,21 +19,34 @@
 
 package net.william278.husksync.event;
 
-import net.william278.husksync.data.DataSaveCause;
-import net.william278.husksync.data.UserData;
-import net.william278.husksync.player.User;
+import net.william278.husksync.HuskSync;
+import net.william278.husksync.data.DataSnapshot;
+import net.william278.husksync.user.User;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
-public interface DataSaveEvent extends CancellableEvent {
+import java.util.function.Consumer;
+
+@SuppressWarnings("unused")
+public interface DataSaveEvent extends Cancellable {
 
     @NotNull
-    UserData getUserData();
-
-    void setUserData(@NotNull UserData userData);
-
-    @NotNull User getUser();
+    User getUser();
 
     @NotNull
-    DataSaveCause getSaveCause();
+    DataSnapshot.Packed getData();
+
+    default void editData(@NotNull Consumer<DataSnapshot.Unpacked> editor) {
+        getData().edit(getPlugin(), editor);
+    }
+
+    @NotNull
+    default DataSnapshot.SaveCause getSaveCause() {
+        return getData().getSaveCause();
+    }
+
+    @NotNull
+    @ApiStatus.Internal
+    HuskSync getPlugin();
 
 }

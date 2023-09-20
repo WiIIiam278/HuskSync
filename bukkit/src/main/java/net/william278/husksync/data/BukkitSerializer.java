@@ -19,235 +19,247 @@
 
 package net.william278.husksync.data;
 
-import net.william278.husksync.BukkitHuskSync;
-import net.william278.husksync.config.Settings;
+import com.google.gson.reflect.TypeToken;
+import de.tr7zw.changeme.nbtapi.NBT;
+import de.tr7zw.changeme.nbtapi.NBTContainer;
+import de.tr7zw.changeme.nbtapi.iface.ReadWriteNBT;
+import net.william278.husksync.HuskSync;
+import net.william278.husksync.adapter.Adaptable;
+import net.william278.husksync.api.HuskSyncAPI;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.potion.PotionEffect;
-import org.bukkit.util.io.BukkitObjectInputStream;
-import org.bukkit.util.io.BukkitObjectOutputStream;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.yaml.snakeyaml.external.biz.base64Coder.Base64Coder;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import java.util.logging.Level;
+import java.util.List;
+
+import static net.william278.husksync.data.BukkitData.Items.Inventory.INVENTORY_SLOT_COUNT;
 
 public class BukkitSerializer {
 
-    /**
-     * Returns a serialized array of {@link ItemStack}s
-     *
-     * @param inventoryContents The contents of the inventory
-     * @return The serialized inventory contents
-     */
-    public static CompletableFuture<String> serializeItemStackArray(@NotNull ItemStack[] inventoryContents)
-            throws DataSerializationException {
-        return CompletableFuture.supplyAsync(() -> {
-            // Return an empty string if there is no inventory item data to serialize
-            if (inventoryContents.length == 0) {
-                return "";
-            }
+    protected final HuskSync plugin;
 
-            // Create an output stream that will be encoded into base 64
-            ByteArrayOutputStream byteOutputStream = new ByteArrayOutputStream();
-
-            try (BukkitObjectOutputStream bukkitOutputStream = new BukkitObjectOutputStream(byteOutputStream)) {
-                // Define the length of the inventory array to serialize
-                bukkitOutputStream.writeInt(inventoryContents.length);
-
-                // Write each serialize each ItemStack to the output stream
-                final boolean persistLockedMaps = BukkitHuskSync.getInstance().getSettings().getSynchronizationFeature(Settings.SynchronizationFeature.LOCKED_MAPS);
-                for (ItemStack inventoryItem : inventoryContents) {
-                    if (persistLockedMaps) {
-                        BukkitMapHandler.persistMapData(inventoryItem);
-                    }
-                    bukkitOutputStream.writeObject(serializeItemStack(inventoryItem));
-                }
-
-                // Return encoded data, using the encoder from SnakeYaml to get a ByteArray conversion
-                return Base64Coder.encodeLines(byteOutputStream.toByteArray());
-            } catch (IOException e) {
-                BukkitHuskSync.getInstance().log(Level.SEVERE, "Failed to serialize item stack data", e);
-                throw new DataSerializationException("Failed to serialize item stack data", e);
-            }
-        });
+    private BukkitSerializer(@NotNull HuskSync plugin) {
+        this.plugin = plugin;
     }
 
-    /**
-     * Returns a {@link BukkitInventoryMap} from a serialized array of ItemStacks representing the contents of a player's inventory.
-     *
-     * @param serializedPlayerInventory The serialized {@link ItemStack} inventory array
-     * @return The deserialized ItemStacks, mapped for convenience as a {@link BukkitInventoryMap}
-     * @throws DataSerializationException If the serialized item stack array could not be deserialized
-     */
-    public static CompletableFuture<BukkitInventoryMap> deserializeInventory(@NotNull String serializedPlayerInventory)
-            throws DataSerializationException {
-        return CompletableFuture.supplyAsync(() -> new BukkitInventoryMap(deserializeItemStackArray(serializedPlayerInventory).join()));
+    @SuppressWarnings("unused")
+    public BukkitSerializer(@NotNull HuskSyncAPI api) {
+        this.plugin = api.getPlugin();
     }
 
-    /**
-     * Returns an array of ItemStacks from serialized inventory data.
-     *
-     * @param serializeItemStackArray The serialized {@link ItemStack} array
-     * @return The deserialized array of {@link ItemStack}s
-     * @throws DataSerializationException If the serialized item stack array could not be deserialized
-     * @implNote Empty slots will be represented by {@code null}
-     */
-    public static CompletableFuture<ItemStack[]> deserializeItemStackArray(@NotNull String serializeItemStackArray)
-            throws DataSerializationException {
-        return CompletableFuture.supplyAsync(() -> {
-            // Return empty array if there is no inventory data (set the player as having an empty inventory)
-            if (serializeItemStackArray.isEmpty()) {
-                return new ItemStack[0];
-            }
-
-            // Create a byte input stream to read the serialized data
-            try (ByteArrayInputStream byteInputStream = new ByteArrayInputStream(Base64Coder.decodeLines(serializeItemStackArray))) {
-                try (BukkitObjectInputStream bukkitInputStream = new BukkitObjectInputStream(byteInputStream)) {
-                    // Read the length of the Bukkit input stream and set the length of the array to this value
-                    ItemStack[] inventoryContents = new ItemStack[bukkitInputStream.readInt()];
-
-                    // Set the ItemStacks in the array from deserialized ItemStack data
-                    int slotIndex = 0;
-                    final boolean persistLockedMaps = BukkitHuskSync.getInstance().getSettings().getSynchronizationFeature(Settings.SynchronizationFeature.LOCKED_MAPS);
-                    for (ItemStack ignored : inventoryContents) {
-                        final ItemStack deserialized = deserializeItemStack(bukkitInputStream.readObject());
-                        if (persistLockedMaps) {
-                            BukkitMapHandler.setMapRenderer(deserialized);
-                        }
-                        inventoryContents[slotIndex] = deserialized;
-                        slotIndex++;
-                    }
-
-                    // Return the finished, serialized inventory contents
-                    return inventoryContents;
-                }
-            } catch (IOException | ClassNotFoundException e) {
-                BukkitHuskSync.getInstance().log(Level.SEVERE, "Failed to deserialize item stack data", e);
-                throw new DataSerializationException("Failed to deserialize item stack data", e);
-            }
-        });
+    @ApiStatus.Internal
+    @NotNull
+    public HuskSync getPlugin() {
+        return plugin;
     }
 
-    /**
-     * Returns the serialized version of an {@link ItemStack} as a string to object Map
-     *
-     * @param item The {@link ItemStack} to serialize
-     * @return The serialized {@link ItemStack}
-     */
-    @Nullable
-    private static Map<String, Object> serializeItemStack(@Nullable ItemStack item) {
-        return item != null ? item.serialize() : null;
+    public static class Inventory extends BukkitSerializer implements Serializer<BukkitData.Items.Inventory> {
+        private static final String ITEMS_TAG = "items";
+        private static final String HELD_ITEM_SLOT_TAG = "held_item_slot";
+
+        public Inventory(@NotNull HuskSync plugin) {
+            super(plugin);
+        }
+
+        @Override
+        public BukkitData.Items.Inventory deserialize(@NotNull String serialized) throws DeserializationException {
+            final ReadWriteNBT root = NBT.parseNBT(serialized);
+            final ItemStack[] items = root.getItemStackArray(ITEMS_TAG);
+            final int heldItemSlot = root.getInteger(HELD_ITEM_SLOT_TAG);
+            return BukkitData.Items.Inventory.from(
+                    items == null ? new ItemStack[INVENTORY_SLOT_COUNT] : items,
+                    heldItemSlot
+            );
+        }
+
+        @NotNull
+        @Override
+        public String serialize(@NotNull BukkitData.Items.Inventory data) throws SerializationException {
+            final ReadWriteNBT root = NBT.createNBTObject();
+            root.setItemStackArray(ITEMS_TAG, data.getContents());
+            root.setInteger(HELD_ITEM_SLOT_TAG, data.getHeldItemSlot());
+            return root.toString();
+        }
+
     }
 
-    /**
-     * Returns the deserialized {@link ItemStack} from the Object read from the {@link BukkitObjectInputStream}
-     *
-     * @param serializedItemStack The serialized item stack; a String-Object map
-     * @return The deserialized {@link ItemStack}
-     */
-    @SuppressWarnings("unchecked") // Ignore the "Unchecked cast" warning
-    @Nullable
-    private static ItemStack deserializeItemStack(@Nullable Object serializedItemStack) {
-        return serializedItemStack != null ? ItemStack.deserialize((Map<String, Object>) serializedItemStack) : null;
+    public static class EnderChest extends BukkitSerializer implements Serializer<BukkitData.Items.EnderChest> {
+
+        public EnderChest(@NotNull HuskSync plugin) {
+            super(plugin);
+        }
+
+        @Override
+        public BukkitData.Items.EnderChest deserialize(@NotNull String serialized) throws DeserializationException {
+            final ItemStack[] items = NBT.itemStackArrayFromNBT(NBT.parseNBT(serialized));
+            return items == null ? BukkitData.Items.EnderChest.empty() : BukkitData.Items.EnderChest.adapt(items);
+        }
+
+        @NotNull
+        @Override
+        public String serialize(@NotNull BukkitData.Items.EnderChest data) throws SerializationException {
+            return NBT.itemStackArrayToNBT(data.getContents()).toString();
+        }
     }
 
-    /**
-     * Returns a serialized array of {@link PotionEffect}s
-     *
-     * @param potionEffects The potion effect array
-     * @return The serialized potion effects
-     */
-    public static CompletableFuture<String> serializePotionEffectArray(@NotNull PotionEffect[] potionEffects) throws DataSerializationException {
-        return CompletableFuture.supplyAsync(() -> {
-            // Return an empty string if there are no effects to serialize
-            if (potionEffects.length == 0) {
-                return "";
-            }
+    public static class PotionEffects extends BukkitSerializer implements Serializer<BukkitData.PotionEffects> {
 
-            // Create an output stream that will be encoded into base 64
-            ByteArrayOutputStream byteOutputStream = new ByteArrayOutputStream();
+        private static final TypeToken<List<Data.PotionEffects.Effect>> TYPE = new TypeToken<>() {
+        };
 
-            try (BukkitObjectOutputStream bukkitOutputStream = new BukkitObjectOutputStream(byteOutputStream)) {
-                // Define the length of the potion effect array to serialize
-                bukkitOutputStream.writeInt(potionEffects.length);
+        public PotionEffects(@NotNull HuskSync plugin) {
+            super(plugin);
+        }
 
-                // Write each serialize each PotionEffect to the output stream
-                for (PotionEffect potionEffect : potionEffects) {
-                    bukkitOutputStream.writeObject(serializePotionEffect(potionEffect));
-                }
+        @Override
+        public BukkitData.PotionEffects deserialize(@NotNull String serialized) throws DeserializationException {
+            return BukkitData.PotionEffects.adapt(
+                    plugin.getGson().fromJson(serialized, TYPE.getType())
+            );
+        }
 
-                // Return encoded data, using the encoder from SnakeYaml to get a ByteArray conversion
-                return Base64Coder.encodeLines(byteOutputStream.toByteArray());
-            } catch (IOException e) {
-                BukkitHuskSync.getInstance().log(Level.SEVERE, "Failed to serialize potion effect data", e);
-                throw new DataSerializationException("Failed to serialize potion effect data", e);
-            }
-        });
+        @NotNull
+        @Override
+        public String serialize(@NotNull BukkitData.PotionEffects element) throws SerializationException {
+            return plugin.getGson().toJson(element.getActiveEffects());
+        }
+
     }
 
-    /**
-     * Returns an array of ItemStacks from serialized potion effect data
-     *
-     * @param potionEffectData The serialized {@link PotionEffect} array
-     * @return The {@link PotionEffect}s
-     */
-    public static CompletableFuture<PotionEffect[]> deserializePotionEffectArray(@NotNull String potionEffectData) throws DataSerializationException {
-        return CompletableFuture.supplyAsync(() -> {
-            // Return empty array if there is no potion effect data (don't apply any effects to the player)
-            if (potionEffectData.isEmpty()) {
-                return new PotionEffect[0];
-            }
+    public static class Advancements extends BukkitSerializer implements Serializer<BukkitData.Advancements> {
 
-            // Create a byte input stream to read the serialized data
-            try (ByteArrayInputStream byteInputStream = new ByteArrayInputStream(Base64Coder.decodeLines(potionEffectData))) {
-                try (BukkitObjectInputStream bukkitInputStream = new BukkitObjectInputStream(byteInputStream)) {
-                    // Read the length of the Bukkit input stream and set the length of the array to this value
-                    PotionEffect[] potionEffects = new PotionEffect[bukkitInputStream.readInt()];
+        private static final TypeToken<List<Data.Advancements.Advancement>> TYPE = new TypeToken<>() {
+        };
 
-                    // Set the potion effects in the array from deserialized PotionEffect data
-                    int potionIndex = 0;
-                    for (PotionEffect ignored : potionEffects) {
-                        potionEffects[potionIndex] = deserializePotionEffect(bukkitInputStream.readObject());
-                        potionIndex++;
-                    }
+        public Advancements(@NotNull HuskSync plugin) {
+            super(plugin);
+        }
 
-                    // Return the finished, serialized potion effect array
-                    return potionEffects;
-                }
-            } catch (IOException | ClassNotFoundException e) {
-                BukkitHuskSync.getInstance().log(Level.SEVERE, "Failed to deserialize potion effect data", e);
-                throw new DataSerializationException("Failed to deserialize potion effects", e);
-            }
-        });
+        @Override
+        public BukkitData.Advancements deserialize(@NotNull String serialized) throws DeserializationException {
+            return BukkitData.Advancements.from(
+                    plugin.getGson().fromJson(serialized, TYPE.getType())
+            );
+        }
+
+        @NotNull
+        @Override
+        public String serialize(@NotNull BukkitData.Advancements element) throws SerializationException {
+            return plugin.getGson().toJson(element.getCompleted());
+        }
     }
 
-    /**
-     * Returns the serialized version of an {@link ItemStack} as a string to object Map
-     *
-     * @param potionEffect The {@link ItemStack} to serialize
-     * @return The serialized {@link ItemStack}
-     */
-    @Nullable
-    private static Map<String, Object> serializePotionEffect(@Nullable PotionEffect potionEffect) {
-        return potionEffect != null ? potionEffect.serialize() : null;
+    public static class Location extends BukkitSerializer implements Serializer<BukkitData.Location> {
+
+        public Location(@NotNull HuskSync plugin) {
+            super(plugin);
+        }
+
+        @Override
+        public BukkitData.Location deserialize(@NotNull String serialized) throws DeserializationException {
+            return plugin.getDataAdapter().fromJson(serialized, BukkitData.Location.class);
+        }
+
+        @NotNull
+        @Override
+        public String serialize(@NotNull BukkitData.Location element) throws SerializationException {
+            return plugin.getDataAdapter().toJson(element);
+        }
     }
 
-    /**
-     * Returns the deserialized {@link PotionEffect} from the Object read from the {@link BukkitObjectInputStream}
-     *
-     * @param serializedPotionEffect The serialized potion effect; a String-Object map
-     * @return The deserialized {@link PotionEffect}
-     */
-    @SuppressWarnings("unchecked") // Ignore the "Unchecked cast" warning
-    @Nullable
-    private static PotionEffect deserializePotionEffect(@Nullable Object serializedPotionEffect) {
-        return serializedPotionEffect != null ? new PotionEffect((Map<String, Object>) serializedPotionEffect) : null;
+    public static class Statistics extends BukkitSerializer implements Serializer<BukkitData.Statistics> {
+
+        public Statistics(@NotNull HuskSync plugin) {
+            super(plugin);
+        }
+
+        @Override
+        public BukkitData.Statistics deserialize(@NotNull String serialized) throws DeserializationException {
+            return BukkitData.Statistics.from(plugin.getGson().fromJson(
+                    serialized,
+                    BukkitData.Statistics.StatisticsMap.class
+            ));
+        }
+
+        @NotNull
+        @Override
+        public String serialize(@NotNull BukkitData.Statistics element) throws SerializationException {
+            return plugin.getGson().toJson(element.getStatisticsSet());
+        }
+
     }
 
+    public static class PersistentData extends BukkitSerializer implements Serializer<BukkitData.PersistentData> {
+
+        public PersistentData(@NotNull HuskSync plugin) {
+            super(plugin);
+        }
+
+        @Override
+        public BukkitData.PersistentData deserialize(@NotNull String serialized) throws DeserializationException {
+            return BukkitData.PersistentData.from(new NBTContainer(serialized));
+        }
+
+        @NotNull
+        @Override
+        public String serialize(@NotNull BukkitData.PersistentData element) throws SerializationException {
+            return element.getPersistentData().toString();
+        }
+
+    }
+
+    public static class Health extends Json<BukkitData.Health> implements Serializer<BukkitData.Health> {
+
+        public Health(@NotNull HuskSync plugin) {
+            super(plugin, BukkitData.Health.class);
+        }
+
+    }
+
+    public static class Hunger extends Json<BukkitData.Hunger> implements Serializer<BukkitData.Hunger> {
+
+        public Hunger(@NotNull HuskSync plugin) {
+            super(plugin, BukkitData.Hunger.class);
+        }
+
+    }
+
+    public static class Experience extends Json<BukkitData.Experience> implements Serializer<BukkitData.Experience> {
+
+        public Experience(@NotNull HuskSync plugin) {
+            super(plugin, BukkitData.Experience.class);
+        }
+
+    }
+
+    public static class GameMode extends Json<BukkitData.GameMode> implements Serializer<BukkitData.GameMode> {
+
+        public GameMode(@NotNull HuskSync plugin) {
+            super(plugin, BukkitData.GameMode.class);
+        }
+
+    }
+
+    public static abstract class Json<T extends Data & Adaptable> extends BukkitSerializer implements Serializer<T> {
+
+        private final Class<T> type;
+
+        protected Json(@NotNull HuskSync plugin, Class<T> type) {
+            super(plugin);
+            this.type = type;
+        }
+
+        @Override
+        public T deserialize(@NotNull String serialized) throws DeserializationException {
+            return plugin.getDataAdapter().fromJson(serialized, type);
+        }
+
+        @NotNull
+        @Override
+        public String serialize(@NotNull T element) throws SerializationException {
+            return plugin.getDataAdapter().toJson(element);
+        }
+
+    }
 
 }

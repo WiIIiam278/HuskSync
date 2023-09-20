@@ -50,7 +50,7 @@ public class Locales {
     public Map<String, String> rawLocales = new HashMap<>();
 
     /**
-     * Returns a raw, un-formatted locale loaded from the locales file
+     * Returns a raw, unformatted locale loaded from the Locales file
      *
      * @param localeId String identifier of the locale, corresponding to a key in the file
      * @return An {@link Optional} containing the locale corresponding to the id, if it exists
@@ -60,12 +60,12 @@ public class Locales {
     }
 
     /**
-     * Returns a raw, un-formatted locale loaded from the locales file, with replacements applied
+     * Returns a raw, unformatted locale loaded from the Locales file, with replacements applied
      * <p>
      * Note that replacements will not be MineDown-escaped; use {@link #escapeMineDown(String)} to escape replacements
      *
      * @param localeId     String identifier of the locale, corresponding to a key in the file
-     * @param replacements Ordered array of replacement strings to fill in placeholders with
+     * @param replacements An ordered array of replacement strings to fill in placeholders with
      * @return An {@link Optional} containing the replacement-applied locale corresponding to the id, if it exists
      */
     public Optional<String> getRawLocale(@NotNull String localeId, @NotNull String... replacements) {
@@ -73,7 +73,7 @@ public class Locales {
     }
 
     /**
-     * Returns a MineDown-formatted locale from the locales file
+     * Returns a MineDown-formatted locale from the Locales file
      *
      * @param localeId String identifier of the locale, corresponding to a key in the file
      * @return An {@link Optional} containing the formatted locale corresponding to the id, if it exists
@@ -83,12 +83,12 @@ public class Locales {
     }
 
     /**
-     * Returns a MineDown-formatted locale from the locales file, with replacements applied
+     * Returns a MineDown-formatted locale from the Locales file, with replacements applied
      * <p>
      * Note that replacements will be MineDown-escaped before application
      *
      * @param localeId     String identifier of the locale, corresponding to a key in the file
-     * @param replacements Ordered array of replacement strings to fill in placeholders with
+     * @param replacements An ordered array of replacement strings to fill in placeholders with
      * @return An {@link Optional} containing the replacement-applied, formatted locale corresponding to the id, if it exists
      */
     public Optional<MineDown> getLocale(@NotNull String localeId, @NotNull String... replacements) {
@@ -100,7 +100,7 @@ public class Locales {
      * Apply placeholder replacements to a raw locale
      *
      * @param rawLocale    The raw, unparsed locale
-     * @param replacements Ordered array of replacement strings to fill in placeholders with
+     * @param replacements An ordered array of replacement strings to fill in placeholders with
      * @return the raw locale, with inserted placeholders
      */
     @NotNull
@@ -189,4 +189,25 @@ public class Locales {
     public Locales() {
     }
 
+    /**
+     * Determines the slot a system notification should be displayed in
+     */
+    public enum NotificationSlot {
+        /**
+         * Displays the notification in the action bar
+         */
+        ACTION_BAR,
+        /**
+         * Displays the notification in the chat
+         */
+        CHAT,
+        /**
+         * Displays the notification in an Advancement Toast
+         */
+        TOAST,
+        /**
+         * Does not display the notification
+         */
+        NONE
+    }
 }

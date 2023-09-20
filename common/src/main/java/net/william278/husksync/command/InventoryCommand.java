@@ -21,111 +21,72 @@ package net.william278.husksync.command;
 
 import de.themoep.minedown.adventure.MineDown;
 import net.william278.husksync.HuskSync;
-import net.william278.husksync.data.DataSaveCause;
-import net.william278.husksync.data.UserData;
-import net.william278.husksync.data.UserDataBuilder;
-import net.william278.husksync.data.UserDataSnapshot;
-import net.william278.husksync.player.OnlineUser;
-import net.william278.husksync.player.User;
+import net.william278.husksync.data.Data;
+import net.william278.husksync.data.DataSnapshot;
+import net.william278.husksync.user.OnlineUser;
+import net.william278.husksync.user.User;
 import org.jetbrains.annotations.NotNull;
 
-import java.text.SimpleDateFormat;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.Locale;
 import java.util.Optional;
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-import java.util.logging.Level;
-import java.util.stream.Collectors;
 
-public class InventoryCommand extends CommandBase implements TabCompletable {
+public class InventoryCommand extends ItemsCommand {
 
-    public InventoryCommand(@NotNull HuskSync implementor) {
-        super("inventory", Permission.COMMAND_INVENTORY, implementor, "invsee", "openinv");
+    public InventoryCommand(@NotNull HuskSync plugin) {
+        super(plugin, List.of("inventory", "invsee", "openinv"));
     }
 
     @Override
-    public void onExecute(@NotNull OnlineUser player, @NotNull String[] args) {
-        if (args.length == 0 || args.length > 2) {
-            plugin.getLocales().getLocale("error_invalid_syntax", "/inventory <player>")
-                    .ifPresent(player::sendMessage);
+    protected void showItems(@NotNull OnlineUser viewer, @NotNull DataSnapshot.Unpacked snapshot,
+                             @NotNull User user, boolean allowEdit) {
+        final Optional<Data.Items.Inventory> optionalInventory = snapshot.getInventory();
+        if (optionalInventory.isEmpty()) {
+            plugin.getLocales().getLocale("error_no_data_to_display")
+                    .ifPresent(viewer::sendMessage);
             return;
         }
-        plugin.getDatabase().getUserByName(args[0].toLowerCase(Locale.ENGLISH)).thenAccept(optionalUser ->
-                optionalUser.ifPresentOrElse(user -> {
-                    if (args.length == 2) {
-                        // View user data by specified UUID
-                        try {
-                            final UUID versionUuid = UUID.fromString(args[1]);
-                            plugin.getDatabase().getUserData(user, versionUuid).thenAccept(data -> data.ifPresentOrElse(
-                                    userData -> showInventoryMenu(player, userData, user, false),
-                                    () -> plugin.getLocales().getLocale("error_invalid_version_uuid")
-                                            .ifPresent(player::sendMessage)));
-                        } catch (IllegalArgumentException e) {
-                            plugin.getLocales().getLocale("error_invalid_syntax",
-                                    "/inventory <player> [version_uuid]").ifPresent(player::sendMessage);
-                        }
-                    } else {
-                        // View (and edit) the latest user data
-                        plugin.getDatabase().getCurrentUserData(user).thenAccept(optionalData -> optionalData.ifPresentOrElse(
-                                versionedUserData -> showInventoryMenu(player, versionedUserData, user,
-                                        player.hasPermission(Permission.COMMAND_INVENTORY_EDIT.node)),
-                                () -> plugin.getLocales().getLocale("error_no_data_to_display")
-                                        .ifPresent(player::sendMessage)));
+
+        // Display opening message
+        plugin.getLocales().getLocale("inventory_viewer_opened", user.getUsername(),
+                        snapshot.getTimestamp().format(DateTimeFormatter.ofPattern("dd/MM/yyyy, HH:mm")))
+                .ifPresent(viewer::sendMessage);
+
+        // Show GUI
+        final Data.Items.Inventory inventory = optionalInventory.get();
+        viewer.showGui(
+                inventory,
+                plugin.getLocales().getLocale("inventory_viewer_menu_title", user.getUsername())
+                        .orElse(new MineDown(String.format("%s's Inventory", user.getUsername()))),
+                allowEdit,
+                inventory.getSlotCount(),
+                (itemsOnClose) -> {
+                    if (allowEdit && !inventory.equals(itemsOnClose)) {
+                        plugin.runAsync(() -> this.updateItems(viewer, itemsOnClose, user));
                     }
-                }, () -> plugin.getLocales().getLocale("error_invalid_player")
-                        .ifPresent(player::sendMessage)));
+                }
+        );
     }
 
-    private void showInventoryMenu(@NotNull OnlineUser player, @NotNull UserDataSnapshot userDataSnapshot,
-                                   @NotNull User dataOwner, boolean allowEdit) {
-        CompletableFuture.runAsync(() -> {
-            final UserData data = userDataSnapshot.userData();
-            data.getInventory().ifPresent(itemData -> {
-                // Show message
-                plugin.getLocales().getLocale("inventory_viewer_opened", dataOwner.username,
-                                new SimpleDateFormat("MMM dd yyyy, HH:mm:ss.sss")
-                                        .format(userDataSnapshot.versionTimestamp()))
-                        .ifPresent(player::sendMessage);
+    // Creates a new snapshot with the updated inventory
+    @SuppressWarnings("DuplicatedCode")
+    private void updateItems(@NotNull OnlineUser viewer, @NotNull Data.Items.Items items, @NotNull User user) {
+        final Optional<DataSnapshot.Packed> latestData = plugin.getDatabase().getLatestSnapshot(user);
+        if (latestData.isEmpty()) {
+            plugin.getLocales().getLocale("error_no_data_to_display")
+                    .ifPresent(viewer::sendMessage);
+            return;
+        }
 
-                // Show inventory menu
-                player.showMenu(itemData, allowEdit, 5, plugin.getLocales()
-                                .getLocale("inventory_viewer_menu_title", dataOwner.username)
-                                .orElse(new MineDown("Inventory Viewer")))
-                        .exceptionally(throwable -> {
-                            plugin.log(Level.WARNING, "Exception displaying inventory menu to " + player.username, throwable);
-                            return Optional.empty();
-                        })
-                        .thenAccept(dataOnClose -> {
-                            if (dataOnClose.isEmpty() || !allowEdit) {
-                                return;
-                            }
-
-                            // Create the updated data
-                            final UserDataBuilder builder = UserData.builder(plugin.getMinecraftVersion());
-                            data.getStatus().ifPresent(builder::setStatus);
-                            data.getAdvancements().ifPresent(builder::setAdvancements);
-                            data.getLocation().ifPresent(builder::setLocation);
-                            data.getPersistentDataContainer().ifPresent(builder::setPersistentDataContainer);
-                            data.getStatistics().ifPresent(builder::setStatistics);
-                            data.getPotionEffects().ifPresent(builder::setPotionEffects);
-                            data.getEnderChest().ifPresent(builder::setEnderChest);
-                            builder.setInventory(dataOnClose.get());
-
-                            // Set the updated data
-                            final UserData updatedUserData = builder.build();
-                            plugin.getDatabase()
-                                    .setUserData(dataOwner, updatedUserData, DataSaveCause.INVENTORY_COMMAND)
-                                    .thenRun(() -> plugin.getRedisManager().sendUserDataUpdate(dataOwner, updatedUserData));
-                        });
-            });
+        // Create and pack the snapshot with the updated inventory
+        final DataSnapshot.Packed snapshot = latestData.get().copy();
+        snapshot.edit(plugin, (data) -> {
+            data.setSaveCause(DataSnapshot.SaveCause.INVENTORY_COMMAND);
+            data.setPinned(plugin.getSettings().doAutoPin(DataSnapshot.SaveCause.INVENTORY_COMMAND));
+            data.getInventory().ifPresent(inventory -> inventory.setContents(items));
         });
+        plugin.getDatabase().addSnapshot(user, snapshot);
+        plugin.getRedisManager().sendUserDataUpdate(user, snapshot);
     }
 
-    @Override
-    public List<String> onTabComplete(@NotNull String[] args) {
-        return plugin.getOnlineUsers().stream().map(user -> user.username)
-                .filter(argument -> argument.startsWith(args.length >= 1 ? args[0] : ""))
-                .sorted().collect(Collectors.toList());
-    }
 }

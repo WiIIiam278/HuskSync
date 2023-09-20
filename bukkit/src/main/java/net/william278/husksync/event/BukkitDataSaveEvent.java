@@ -19,9 +19,9 @@
 
 package net.william278.husksync.event;
 
-import net.william278.husksync.data.DataSaveCause;
-import net.william278.husksync.data.UserData;
-import net.william278.husksync.player.User;
+import net.william278.husksync.HuskSync;
+import net.william278.husksync.data.DataSnapshot;
+import net.william278.husksync.user.User;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
@@ -29,16 +29,15 @@ import org.jetbrains.annotations.NotNull;
 @SuppressWarnings("unused")
 public class BukkitDataSaveEvent extends BukkitEvent implements DataSaveEvent, Cancellable {
     private static final HandlerList HANDLER_LIST = new HandlerList();
-    private boolean cancelled = false;
-    private UserData userData;
+    private final HuskSync plugin;
+    private final DataSnapshot.Packed snapshot;
     private final User user;
-    private final DataSaveCause saveCause;
+    private boolean cancelled = false;
 
-    protected BukkitDataSaveEvent(@NotNull User user, @NotNull UserData userData,
-                                  @NotNull DataSaveCause saveCause) {
+    protected BukkitDataSaveEvent(@NotNull User user, @NotNull DataSnapshot.Packed snapshot, @NotNull HuskSync plugin) {
         this.user = user;
-        this.userData = userData;
-        this.saveCause = saveCause;
+        this.snapshot = snapshot;
+        this.plugin = plugin;
     }
 
     @Override
@@ -58,18 +57,15 @@ public class BukkitDataSaveEvent extends BukkitEvent implements DataSaveEvent, C
     }
 
     @Override
-    public @NotNull UserData getUserData() {
-        return userData;
+    @NotNull
+    public DataSnapshot.Packed getData() {
+        return snapshot;
     }
 
+    @NotNull
     @Override
-    public void setUserData(@NotNull UserData userData) {
-        this.userData = userData;
-    }
-
-    @Override
-    public @NotNull DataSaveCause getSaveCause() {
-        return saveCause;
+    public HuskSync getPlugin() {
+        return plugin;
     }
 
     @NotNull
