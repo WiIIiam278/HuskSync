@@ -39,6 +39,7 @@ import org.yaml.snakeyaml.external.biz.base64Coder.Base64Coder;
 import java.io.ByteArrayInputStream;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.OffsetDateTime;
 import java.util.*;
 
 public class BukkitLegacyConverter extends LegacyConverter {
@@ -49,7 +50,8 @@ public class BukkitLegacyConverter extends LegacyConverter {
 
     @NotNull
     @Override
-    public DataSnapshot.Packed convert(@NotNull byte[] data) throws DataAdapter.AdaptionException {
+    public DataSnapshot.Packed convert(@NotNull byte[] data, @NotNull UUID id,
+                                       @NotNull OffsetDateTime timestamp) throws DataAdapter.AdaptionException {
         final JSONObject object = new JSONObject(plugin.getDataAdapter().bytesToString(data));
         final int version = object.getInt("format_version");
         if (version != 3) {
@@ -61,6 +63,7 @@ public class BukkitLegacyConverter extends LegacyConverter {
 
         // Read legacy data from the JSON object
         final DataSnapshot.Builder builder = DataSnapshot.builder(plugin)
+                .id(id).timestamp(timestamp)
                 .saveCause(DataSnapshot.SaveCause.CONVERTED_FROM_V2)
                 .data(readStatusData(object));
         readInventory(object).ifPresent(builder::inventory);

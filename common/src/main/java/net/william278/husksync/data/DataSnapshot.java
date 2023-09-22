@@ -96,9 +96,11 @@ public class DataSnapshot {
         return new Builder(plugin);
     }
 
+    // Deserialize a DataSnapshot downloaded from the database (with an ID & Timestamp from the database)
     @NotNull
     @ApiStatus.Internal
-    public static DataSnapshot.Packed deserialize(@NotNull HuskSync plugin, byte[] data) throws IllegalStateException {
+    public static DataSnapshot.Packed deserialize(@NotNull HuskSync plugin, byte[] data, @Nullable UUID id,
+                                                  @Nullable OffsetDateTime timestamp) throws IllegalStateException {
         final DataSnapshot.Packed snapshot = plugin.getDataAdapter().fromBytes(data, DataSnapshot.Packed.class);
         if (snapshot.getMinecraftVersion().compareTo(plugin.getMinecraftVersion()) > 0) {
             throw new IllegalStateException(String.format("Cannot set data for user because the Minecraft version of " +
@@ -114,7 +116,11 @@ public class DataSnapshot {
         }
         if (snapshot.getFormatVersion() < CURRENT_FORMAT_VERSION) {
             if (plugin.getLegacyConverter().isPresent()) {
-                return plugin.getLegacyConverter().get().convert(data);
+                return plugin.getLegacyConverter().get().convert(
+                        data,
+                        Objects.requireNonNull(id, "Attempted legacy conversion with null UUID!"),
+                        Objects.requireNonNull(timestamp, "Attempted legacy conversion with null timestamp!")
+                );
             }
             throw new IllegalStateException(String.format(
                     "No legacy converter to convert format version: %s", snapshot.getFormatVersion()
@@ -127,6 +133,13 @@ public class DataSnapshot {
                     snapshot.getPlatformType(), plugin.getPlatformType()));
         }
         return snapshot;
+    }
+
+    // Deserialize a DataSnapshot from a network message payload (without an ID)
+    @NotNull
+    @ApiStatus.Internal
+    public static DataSnapshot.Packed deserialize(@NotNull HuskSync plugin, byte[] data) throws IllegalStateException {
+        return deserialize(plugin, data, null, null);
     }
 
     /**
@@ -393,6 +406,7 @@ public class DataSnapshot {
     public static class Builder {
 
         private final HuskSync plugin;
+        private UUID id;
         private SaveCause saveCause;
         private boolean pinned;
         private OffsetDateTime timestamp;
@@ -403,6 +417,19 @@ public class DataSnapshot {
             this.pinned = false;
             this.data = new HashMap<>();
             this.timestamp = OffsetDateTime.now();
+            this.id = UUID.randomUUID();
+        }
+
+        /**
+         * Set the {@link UUID unique ID} of the snapshot
+         *
+         * @param id The {@link UUID} of the snapshot
+         * @return The builder
+         */
+        @NotNull
+        public Builder id(@NotNull UUID id) {
+            this.id = id;
+            return this;
         }
 
         /**
@@ -661,7 +688,7 @@ public class DataSnapshot {
                 throw new IllegalStateException("Cannot build DataSnapshot without a save cause");
             }
             return new Unpacked(
-                    UUID.randomUUID(),
+                    id,
                     pinned || plugin.getSettings().doAutoPin(saveCause),
                     timestamp,
                     saveCause,

@@ -24,6 +24,9 @@ import net.william278.husksync.adapter.DataAdapter;
 import net.william278.husksync.data.DataSnapshot;
 import org.jetbrains.annotations.NotNull;
 
+import java.time.OffsetDateTime;
+import java.util.UUID;
+
 public abstract class LegacyConverter {
 
     protected final HuskSync plugin;
@@ -33,6 +36,7 @@ public abstract class LegacyConverter {
     }
 
     @NotNull
-    public abstract DataSnapshot.Packed convert(@NotNull byte[] data) throws DataAdapter.AdaptionException;
+    public abstract DataSnapshot.Packed convert(@NotNull byte[] data, @NotNull UUID id,
+                                                @NotNull OffsetDateTime timestamp) throws DataAdapter.AdaptionException;
 
 }
