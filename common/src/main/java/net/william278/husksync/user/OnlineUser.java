@@ -125,12 +125,14 @@ public abstract class OnlineUser extends User implements CommandUser, UserDataHo
      * Set a player's status from a {@link DataSnapshot}
      *
      * @param snapshot The {@link DataSnapshot} to set the player's status from
+     * @param cause    The {@link DataSnapshot.UpdateCause} of the snapshot
+     * @since 3.0
      */
     public void applySnapshot(@NotNull DataSnapshot.Packed snapshot, @NotNull DataSnapshot.UpdateCause cause) {
         getPlugin().fireEvent(getPlugin().getPreSyncEvent(this, snapshot), (event) -> {
             if (!isOffline()) {
                 UserDataHolder.super.applySnapshot(
-                        event.getData(), (owner) -> completeSync(true, cause, getPlugin())
+                        event.getData(), (succeeded) -> completeSync(succeeded, cause, getPlugin())
                 );
             }
         });

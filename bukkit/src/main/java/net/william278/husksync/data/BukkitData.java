@@ -53,14 +53,8 @@ import java.util.stream.Collectors;
 public abstract class BukkitData implements Data {
 
     @Override
-    public final void apply(@NotNull UserDataHolder dataHolder, @NotNull HuskSync plugin) {
-        final BukkitUser user = (BukkitUser) dataHolder;
-        try {
-            this.apply(user, (BukkitHuskSync) plugin);
-        } catch (Throwable e) {
-            plugin.log(Level.WARNING, String.format("[%s] Failed to apply %s data object; skipping",
-                    user.getUsername(), this.getClass().getSimpleName()), e);
-        }
+    public final void apply(@NotNull UserDataHolder dataHolder, @NotNull HuskSync plugin) throws IllegalStateException {
+        this.apply((BukkitUser) dataHolder, (BukkitHuskSync) plugin);
     }
 
     public abstract void apply(@NotNull BukkitUser user, @NotNull BukkitHuskSync plugin) throws IllegalStateException;

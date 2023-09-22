@@ -26,6 +26,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
 
 /**
  * A holder of data in the form of {@link Data}s, which can be synced
@@ -83,22 +84,40 @@ public interface UserDataHolder extends DataHolder {
      * The {@code runAfter} callback function will be run after the snapshot has been applied.
      *
      * @param snapshot the snapshot to apply
-     * @param runAfter the function to run asynchronously after the snapshot has been applied
+     * @param runAfter a consumer accepting a boolean value, indicating if the data was successfully applied,
+     *                 which will be run after the snapshot has been applied
      * @since 3.0
      */
-    default void applySnapshot(@NotNull DataSnapshot.Packed snapshot, @NotNull ThrowingConsumer<UserDataHolder> runAfter) {
+    default void applySnapshot(@NotNull DataSnapshot.Packed snapshot, @NotNull ThrowingConsumer<Boolean> runAfter) {
         final HuskSync plugin = getPlugin();
-        final DataSnapshot.Unpacked unpacked = snapshot.unpack(plugin);
+
+        // Unpack the snapshot
+        final DataSnapshot.Unpacked unpacked;
+        try {
+            unpacked = snapshot.unpack(plugin);
+        } catch (Throwable e) {
+            plugin.log(Level.SEVERE, String.format("Failed to unpack data snapshot for %s", getUsername()), e);
+            return;
+        }
+
+        // Synchronously attempt to apply the snapshot
         plugin.runSync(() -> {
-            unpacked.getData().forEach((type, data) -> {
-                if (plugin.getSettings().isSyncFeatureEnabled(type)) {
-                    if (type.isCustom()) {
-                        getCustomDataStore().put(type, data);
+            try {
+                for (Map.Entry<Identifier, Data> entry : unpacked.getData().entrySet()) {
+                    final Identifier identifier = entry.getKey();
+                    if (plugin.getSettings().isSyncFeatureEnabled(identifier)) {
+                        if (identifier.isCustom()) {
+                            getCustomDataStore().put(identifier, entry.getValue());
+                        }
+                        entry.getValue().apply(this, plugin);
                     }
-                    data.apply(this, plugin);
                 }
-            });
-            plugin.runAsync(() -> runAfter.accept(this));
+            } catch (Throwable e) {
+                plugin.log(Level.SEVERE, String.format("Failed to apply data snapshot to %s", getUsername()), e);
+                plugin.runAsync(() -> runAfter.accept(false));
+                return;
+            }
+            plugin.runAsync(() -> runAfter.accept(true));
         });
     }
 
@@ -156,6 +175,9 @@ public interface UserDataHolder extends DataHolder {
     default void setPersistentData(@NotNull Data.PersistentData persistentData) {
         this.setData(Identifier.PERSISTENT_DATA, persistentData);
     }
+
+    @NotNull
+    String getUsername();
 
     @NotNull
     Map<Identifier, Data> getCustomDataStore();
