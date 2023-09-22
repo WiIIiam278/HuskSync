@@ -159,14 +159,12 @@ public abstract class BukkitData implements Data {
 
             @Override
             public void apply(@NotNull BukkitUser user, @NotNull BukkitHuskSync plugin) throws IllegalStateException {
-                plugin.getScheduler().globalRegionalScheduler().runDelayed(() -> {
-                    final Player player = user.getPlayer();
-                    this.clearInventoryCraftingSlots(player);
-                    player.setItemOnCursor(null);
-                    player.getInventory().setContents(plugin.setMapViews(getContents()));
-                    player.updateInventory();
-                    player.getInventory().setHeldItemSlot(heldItemSlot);
-                }, 1L);
+                final Player player = user.getPlayer();
+                this.clearInventoryCraftingSlots(player);
+                player.setItemOnCursor(null);
+                player.getInventory().setContents(plugin.setMapViews(getContents()));
+                player.updateInventory();
+                player.getInventory().setHeldItemSlot(heldItemSlot);
             }
 
             private void clearInventoryCraftingSlots(@NotNull Player player) {
