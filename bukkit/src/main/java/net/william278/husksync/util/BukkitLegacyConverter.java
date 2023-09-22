@@ -41,6 +41,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.OffsetDateTime;
 import java.util.*;
+import java.util.logging.Level;
 
 public class BukkitLegacyConverter extends LegacyConverter {
 
@@ -55,10 +56,7 @@ public class BukkitLegacyConverter extends LegacyConverter {
         final JSONObject object = new JSONObject(plugin.getDataAdapter().bytesToString(data));
         final int version = object.getInt("format_version");
         if (version != 3) {
-            throw new DataAdapter.AdaptionException(String.format(
-                    "Unsupported legacy data format version: %s. Please downgrade to an earlier version of HuskSync, " +
-                            "perform a manual legacy migration, then attempt to upgrade again.", version
-            ));
+            plugin.log(Level.WARNING, String.format("Converting data from older v2 data format (%s).", version));
         }
 
         // Read legacy data from the JSON object

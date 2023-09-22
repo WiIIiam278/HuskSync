@@ -45,7 +45,7 @@ public class DataSnapshot {
 
     /*
      * Current version of the snapshot data format.
-     * HuskSync v3.0 uses v4; HuskSync v2.0 uses v3. HuskSync v1.0 uses v1 or v2
+     * HuskSync v3.0 uses v4; HuskSync v2.0 uses v1-v3
      */
     protected static final int CURRENT_FORMAT_VERSION = 4;
 
@@ -240,12 +240,6 @@ public class DataSnapshot {
 
     /**
      * Get the format version of the snapshot (indicating the version of HuskSync that created it)
-     * <ul>
-     *     <li>1: HuskSync v1.0+</li>
-     *     <li>2: HuskSync v1.5+</li>
-     *     <li>3: HuskSync v2.0+</li>
-     *     <li>4: HuskSync v3.0+</li>
-     * </ul>
      *
      * @return The format version of the snapshot
      * @since 3.0
