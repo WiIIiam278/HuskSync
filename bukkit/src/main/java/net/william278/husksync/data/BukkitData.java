@@ -21,6 +21,7 @@ package net.william278.husksync.data;
 
 import com.google.gson.annotations.SerializedName;
 import de.tr7zw.changeme.nbtapi.NBTCompound;
+import de.tr7zw.changeme.nbtapi.NBTItem;
 import de.tr7zw.changeme.nbtapi.NBTPersistentDataContainer;
 import net.william278.desertwell.util.ThrowingConsumer;
 import net.william278.husksync.BukkitHuskSync;
@@ -35,6 +36,8 @@ import org.bukkit.Statistic;
 import org.bukkit.advancement.AdvancementProgress;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
+import org.bukkit.attribute.AttributeModifier;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryType;
@@ -156,12 +159,14 @@ public abstract class BukkitData implements Data {
 
             @Override
             public void apply(@NotNull BukkitUser user, @NotNull BukkitHuskSync plugin) throws IllegalStateException {
-                final Player player = user.getPlayer();
-                this.clearInventoryCraftingSlots(player);
-                player.setItemOnCursor(null);
-                player.getInventory().setContents(plugin.setMapViews(getContents()));
-                player.updateInventory();
-                player.getInventory().setHeldItemSlot(heldItemSlot);
+                plugin.getScheduler().globalRegionalScheduler().runDelayed(() -> {
+                    final Player player = user.getPlayer();
+                    this.clearInventoryCraftingSlots(player);
+                    player.setItemOnCursor(null);
+                    player.getInventory().setContents(plugin.setMapViews(getContents()));
+                    player.updateInventory();
+                    player.getInventory().setHeldItemSlot(heldItemSlot);
+                }, 1L);
             }
 
             private void clearInventoryCraftingSlots(@NotNull Player player) {
@@ -808,28 +813,43 @@ public abstract class BukkitData implements Data {
 
         @NotNull
         public static BukkitData.Health adapt(@NotNull Player player) {
+            double armorHealth = getMaxHealthArmor(player);
+            double totalMaxHealth = (float) Objects.requireNonNull(player.getAttribute(Attribute.GENERIC_MAX_HEALTH),
+                    "Missing max health attribute").getValue() - armorHealth;
             return from(
                     player.getHealth(),
-                    Objects.requireNonNull(player.getAttribute(Attribute.GENERIC_MAX_HEALTH),
-                            "Missing max health attribute").getValue(),
+                    totalMaxHealth,
                     player.getHealthScale()
             );
+        }
+
+        private static double getMaxHealthArmor(Player player) {
+            double maxHealth = 0;
+            for (ItemStack itemStack : player.getInventory().getArmorContents()) {
+                if (itemStack != null && itemStack.hasItemMeta() && itemStack.getItemMeta().hasAttributeModifiers()) {
+                    NBTItem nbtItem = new NBTItem(itemStack);
+                    if (!nbtItem.hasTag("MMOITEMS_MAX_HEALTH")) continue;
+                    maxHealth += nbtItem.getDouble("MMOITEMS_MAX_HEALTH");
+                }
+            }
+            return maxHealth;
         }
 
         @Override
         public void apply(@NotNull BukkitUser user, @NotNull BukkitHuskSync plugin) throws IllegalStateException {
             final Player player = user.getPlayer();
 
-            // Set base max health
             final AttributeInstance maxHealthAttribute = Objects.requireNonNull(
                     player.getAttribute(Attribute.GENERIC_MAX_HEALTH), "Missing max health attribute");
+
             double currentMaxHealth = maxHealthAttribute.getBaseValue();
             if (maxHealth != 0d) {
                 maxHealthAttribute.setBaseValue(maxHealth);
                 currentMaxHealth = maxHealth;
             }
 
-            // Set health
+            currentMaxHealth += getMaxHealthArmor(player);
+
             final double currentHealth = player.getHealth();
             if (health != currentHealth) {
                 final double healthToSet = currentHealth > currentMaxHealth ? currentMaxHealth : health;
