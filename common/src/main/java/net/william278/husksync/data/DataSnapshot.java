@@ -117,7 +117,9 @@ public class DataSnapshot {
         if (snapshot.getFormatVersion() < CURRENT_FORMAT_VERSION) {
             if (plugin.getLegacyConverter().isPresent()) {
                 return plugin.getLegacyConverter().get().convert(
-                        Objects.requireNonNull(id, "Attempted legacy conversion with null UUID!"), data
+                        data,
+                        Objects.requireNonNull(id, "Attempted legacy conversion with null UUID!"),
+                        Objects.requireNonNull(timestamp, "Attempted legacy conversion with null timestamp!")
                 );
             }
             throw new IllegalStateException(String.format(
