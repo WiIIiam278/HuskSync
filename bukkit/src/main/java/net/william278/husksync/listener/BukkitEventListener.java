@@ -58,16 +58,7 @@ public class BukkitEventListener extends EventListener implements BukkitJoinEven
         super(huskSync);
         this.blacklistedCommands = huskSync.getSettings().getBlacklistedCommandsWhileLocked();
         Bukkit.getServer().getPluginManager().registerEvents(this, huskSync);
-//        handleSetMaxHealth();
     }
-
-//    private void handleSetMaxHealth() {
-//        Bukkit.getScheduler().runTaskTimer(Bukkit.getPluginManager().getPlugin("HuskSync"), () -> {
-//            Bukkit.getOnlinePlayers().forEach(p -> {
-//                System.out.println(p.getMaxHealth());
-//            });
-//        }, 10, 20);
-//    }
 
     @Override
     public boolean handleEvent(@NotNull ListenerType type, @NotNull Priority priority) {
