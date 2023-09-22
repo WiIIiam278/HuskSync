@@ -808,10 +808,11 @@ public abstract class BukkitData implements Data {
 
         @NotNull
         public static BukkitData.Health adapt(@NotNull Player player) {
+            final double maxHealth = getMaxHealth(player);
             return from(
-                    player.getHealth(),
-                    getMaxHealth(player),
-                    player.getHealthScale()
+                    Math.min(player.getHealth(), maxHealth),
+                    maxHealth,
+                    player.isHealthScaled() ? player.getHealthScale() : 0d
             );
         }
 
