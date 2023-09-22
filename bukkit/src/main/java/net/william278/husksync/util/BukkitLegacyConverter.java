@@ -49,7 +49,7 @@ public class BukkitLegacyConverter extends LegacyConverter {
 
     @NotNull
     @Override
-    public DataSnapshot.Packed convert(@NotNull byte[] data) throws DataAdapter.AdaptionException {
+    public DataSnapshot.Packed convert(@NotNull UUID id, @NotNull byte[] data) throws DataAdapter.AdaptionException {
         final JSONObject object = new JSONObject(plugin.getDataAdapter().bytesToString(data));
         final int version = object.getInt("format_version");
         if (version != 3) {
@@ -61,6 +61,7 @@ public class BukkitLegacyConverter extends LegacyConverter {
 
         // Read legacy data from the JSON object
         final DataSnapshot.Builder builder = DataSnapshot.builder(plugin)
+                .id(id)
                 .saveCause(DataSnapshot.SaveCause.CONVERTED_FROM_V2)
                 .data(readStatusData(object));
         readInventory(object).ifPresent(builder::inventory);
