@@ -96,11 +96,11 @@ public class DataSnapshot {
         return new Builder(plugin);
     }
 
-    // Deserialize a DataSnapshot downloaded from the database (with an ID)
+    // Deserialize a DataSnapshot downloaded from the database (with an ID & Timestamp from the database)
     @NotNull
     @ApiStatus.Internal
-    public static DataSnapshot.Packed deserialize(@NotNull HuskSync plugin, @Nullable UUID id, byte[] data)
-            throws IllegalStateException {
+    public static DataSnapshot.Packed deserialize(@NotNull HuskSync plugin, byte[] data, @Nullable UUID id,
+                                                  @Nullable OffsetDateTime timestamp) throws IllegalStateException {
         final DataSnapshot.Packed snapshot = plugin.getDataAdapter().fromBytes(data, DataSnapshot.Packed.class);
         if (snapshot.getMinecraftVersion().compareTo(plugin.getMinecraftVersion()) > 0) {
             throw new IllegalStateException(String.format("Cannot set data for user because the Minecraft version of " +
@@ -137,7 +137,7 @@ public class DataSnapshot {
     @NotNull
     @ApiStatus.Internal
     public static DataSnapshot.Packed deserialize(@NotNull HuskSync plugin, byte[] data) throws IllegalStateException {
-        return deserialize(plugin, null, data);
+        return deserialize(plugin, data, null, null);
     }
 
     /**

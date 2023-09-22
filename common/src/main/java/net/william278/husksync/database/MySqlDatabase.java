@@ -217,7 +217,7 @@ public class MySqlDatabase extends Database {
     public Optional<DataSnapshot.Packed> getLatestSnapshot(@NotNull User user) {
         try (Connection connection = getConnection()) {
             try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
-                    SELECT `version_uuid`, `data`
+                    SELECT `version_uuid`, `timestamp`, `data`
                     FROM `%user_data_table%`
                     WHERE `player_uuid`=?
                     ORDER BY `timestamp` DESC
@@ -226,10 +226,13 @@ public class MySqlDatabase extends Database {
                 final ResultSet resultSet = statement.executeQuery();
                 if (resultSet.next()) {
                     final UUID versionUuid = UUID.fromString(resultSet.getString("version_uuid"));
+                    final OffsetDateTime timestamp = OffsetDateTime.ofInstant(
+                            resultSet.getTimestamp("timestamp").toInstant(), TimeZone.getDefault().toZoneId()
+                    );
                     final Blob blob = resultSet.getBlob("data");
                     final byte[] dataByteArray = blob.getBytes(1, (int) blob.length());
                     blob.free();
-                    return Optional.of(DataSnapshot.deserialize(plugin, versionUuid, dataByteArray));
+                    return Optional.of(DataSnapshot.deserialize(plugin, dataByteArray, versionUuid, timestamp));
                 }
             }
         } catch (SQLException | DataAdapter.AdaptionException e) {
@@ -245,7 +248,7 @@ public class MySqlDatabase extends Database {
         final List<DataSnapshot.Packed> retrievedData = new ArrayList<>();
         try (Connection connection = getConnection()) {
             try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
-                    SELECT `version_uuid`, `data`
+                    SELECT `version_uuid`, `timestamp`,  `data`
                     FROM `%user_data_table%`
                     WHERE `player_uuid`=?
                     ORDER BY `timestamp` DESC;"""))) {
@@ -253,10 +256,13 @@ public class MySqlDatabase extends Database {
                 final ResultSet resultSet = statement.executeQuery();
                 while (resultSet.next()) {
                     final UUID versionUuid = UUID.fromString(resultSet.getString("version_uuid"));
+                    final OffsetDateTime timestamp = OffsetDateTime.ofInstant(
+                            resultSet.getTimestamp("timestamp").toInstant(), TimeZone.getDefault().toZoneId()
+                    );
                     final Blob blob = resultSet.getBlob("data");
                     final byte[] dataByteArray = blob.getBytes(1, (int) blob.length());
                     blob.free();
-                    retrievedData.add(DataSnapshot.deserialize(plugin, versionUuid, dataByteArray));
+                    retrievedData.add(DataSnapshot.deserialize(plugin, dataByteArray, versionUuid, timestamp));
                 }
                 return retrievedData;
             }
@@ -271,7 +277,7 @@ public class MySqlDatabase extends Database {
     public Optional<DataSnapshot.Packed> getSnapshot(@NotNull User user, @NotNull UUID versionUuid) {
         try (Connection connection = getConnection()) {
             try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
-                    SELECT `version_uuid`, `data`
+                    SELECT `version_uuid`, `timestamp`,  `data`
                     FROM `%user_data_table%`
                     WHERE `player_uuid`=? AND `version_uuid`=?
                     ORDER BY `timestamp` DESC
@@ -281,9 +287,12 @@ public class MySqlDatabase extends Database {
                 final ResultSet resultSet = statement.executeQuery();
                 if (resultSet.next()) {
                     final Blob blob = resultSet.getBlob("data");
+                    final OffsetDateTime timestamp = OffsetDateTime.ofInstant(
+                            resultSet.getTimestamp("timestamp").toInstant(), TimeZone.getDefault().toZoneId()
+                    );
                     final byte[] dataByteArray = blob.getBytes(1, (int) blob.length());
                     blob.free();
-                    return Optional.of(DataSnapshot.deserialize(plugin, versionUuid, dataByteArray));
+                    return Optional.of(DataSnapshot.deserialize(plugin, dataByteArray, versionUuid, timestamp));
                 }
             }
         } catch (SQLException | DataAdapter.AdaptionException e) {
