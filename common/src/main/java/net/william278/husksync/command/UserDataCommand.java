@@ -129,7 +129,7 @@ public class UserDataCommand extends Command implements TabProvider {
             case "restore" -> {
                 if (optionalUuid.isEmpty()) {
                     plugin.getLocales().getLocale("error_invalid_syntax",
-                                    "/userdata delete <username> <version_uuid>")
+                                    "/userdata restore <username> <version_uuid>")
                             .ifPresent(executor::sendMessage);
                     return;
                 }
