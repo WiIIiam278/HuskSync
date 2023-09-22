@@ -810,8 +810,7 @@ public abstract class BukkitData implements Data {
         public static BukkitData.Health adapt(@NotNull Player player) {
             return from(
                     player.getHealth(),
-                    Objects.requireNonNull(player.getAttribute(Attribute.GENERIC_MAX_HEALTH),
-                            "Missing max health attribute").getValue(),
+                    getMaxHealth(player),
                     player.getHealthScale()
             );
         }
@@ -822,9 +821,10 @@ public abstract class BukkitData implements Data {
 
             // Set base max health
             final AttributeInstance maxHealthAttribute = Objects.requireNonNull(
-                    player.getAttribute(Attribute.GENERIC_MAX_HEALTH), "Missing max health attribute");
+                    player.getAttribute(Attribute.GENERIC_MAX_HEALTH), "Max health attribute was null"
+            );
             double currentMaxHealth = maxHealthAttribute.getBaseValue();
-            if (maxHealth != 0d) {
+            if (plugin.getSettings().doSynchronizeMaxHealth() && maxHealth != 0d) {
                 maxHealthAttribute.setBaseValue(maxHealth);
                 currentMaxHealth = maxHealth;
             }
@@ -851,6 +851,30 @@ public abstract class BukkitData implements Data {
             } catch (IllegalArgumentException e) {
                 plugin.log(Level.WARNING, "Failed to set player health scale", e);
             }
+        }
+
+        /**
+         * Returns a {@link Player}'s maximum health, minus any health boost effects
+         *
+         * @param player The {@link Player} to get the maximum health of
+         * @return The {@link Player}'s max health
+         */
+        private static double getMaxHealth(@NotNull Player player) {
+            double maxHealth = Objects.requireNonNull(
+                    player.getAttribute(Attribute.GENERIC_MAX_HEALTH), "Max health attribute was null"
+            ).getBaseValue();
+
+            // If the player has additional health bonuses from synchronized potion effects,
+            // subtract these from this number as they are synchronized separately
+            if (player.hasPotionEffect(PotionEffectType.HEALTH_BOOST) && maxHealth > 20d) {
+                final PotionEffect healthBoost = Objects.requireNonNull(
+                        player.getPotionEffect(PotionEffectType.HEALTH_BOOST), "Health boost effect was null"
+                );
+                final double boostEffect = 4 * (healthBoost.getAmplifier() + 1);
+                maxHealth -= boostEffect;
+            }
+
+            return maxHealth;
         }
 
         @Override

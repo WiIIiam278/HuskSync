@@ -77,7 +77,9 @@ synchronization:
   # Where to display sync notifications (ACTION_BAR, CHAT, TOAST or NONE)
   notification_display_slot: ACTION_BAR
   # (Experimental) Persist Cartography Table locked maps to let them be viewed on any server
-  persist_locked_maps: false
+  persist_locked_maps: true
+  # Whether to synchronize player max health (requires health syncing to be enabled)
+  synchronize_max_health: true
   # Whether dead players who log out and log in to a different server should have their items saved. You may need to modify this if you're using the keepInventory gamerule.
   synchronize_dead_players_changing_server: true
   # How long, in milliseconds, this server should wait for a response from the redis server before pulling data from the database instead (i.e., if the user did not change servers).

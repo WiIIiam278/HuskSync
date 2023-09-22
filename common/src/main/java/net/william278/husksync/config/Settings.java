@@ -177,7 +177,11 @@ public class Settings {
 
     @YamlComment("(Experimental) Persist Cartography Table locked maps to let them be viewed on any server")
     @YamlKey("synchronization.persist_locked_maps")
-    private boolean persistLockedMaps = false;
+    private boolean persistLockedMaps = true;
+
+    @YamlComment("Whether to synchronize player max health (requires health syncing to be enabled)")
+    @YamlKey("synchronization.synchronize_max_health")
+    private boolean synchronizeMaxHealth = true;
 
     @YamlComment("Whether dead players who log out and log in to a different server should have their items saved. "
             + "You may need to modify this if you're using the keepInventory gamerule.")
@@ -350,6 +354,10 @@ public class Settings {
 
     public boolean doSynchronizeDeadPlayersChangingServer() {
         return synchronizeDeadPlayersChangingServer;
+    }
+
+    public boolean doSynchronizeMaxHealth() {
+        return synchronizeMaxHealth;
     }
 
     public int getNetworkLatencyMilliseconds() {
