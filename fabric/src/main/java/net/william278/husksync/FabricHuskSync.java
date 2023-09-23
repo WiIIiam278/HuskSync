@@ -36,6 +36,7 @@ import net.william278.husksync.command.FabricCommand;
 import net.william278.husksync.config.Locales;
 import net.william278.husksync.config.Settings;
 import net.william278.husksync.data.Data;
+import net.william278.husksync.data.FabricSerializer;
 import net.william278.husksync.data.Identifier;
 import net.william278.husksync.data.Serializer;
 import net.william278.husksync.database.Database;
@@ -129,8 +130,10 @@ public class FabricHuskSync implements DedicatedServerModInitializer, HuskSync, 
         });
 
         // TODO: Prepare serializers
-//        initialize("data serializers", (plugin) -> {
-//        });
+        initialize("data serializers", (plugin) -> {
+            registerSerializer(Identifier.INVENTORY, new FabricSerializer.Inventory(this));
+            registerSerializer(Identifier.ENDER_CHEST, new FabricSerializer.EnderChest(this));
+        });
 
         // Initialize the database
         initialize(getSettings().getDatabaseType().getDisplayName() + " database connection", (plugin) -> {

@@ -1,6 +1,7 @@
 package net.william278.husksync.data;
 
 import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;
 import org.jetbrains.annotations.NotNull;
 
@@ -45,65 +46,90 @@ public interface FabricUserDataHolder extends UserDataHolder {
         }
         final PlayerInventory inventory = getPlayer().getInventory();
         return Optional.of(FabricData.Items.Inventory.from(
-                inventory,
+                getCombinedInventory(inventory),
                 inventory.selectedSlot
         ));
+    }
+
+    private ItemStack[] getCombinedInventory(@NotNull PlayerInventory inventory) {
+        final ItemStack[] combined = new ItemStack[inventory.main.size() + inventory.armor.size() + inventory.offHand.size()];
+        System.arraycopy(inventory.main.toArray(
+                new ItemStack[0]), 0, combined,
+                0, inventory.main.size()
+        );
+        System.arraycopy(
+                inventory.armor.toArray(new ItemStack[0]), 0, combined,
+                inventory.main.size(), inventory.armor.size()
+        );
+        System.arraycopy(
+                inventory.offHand.toArray(new ItemStack[0]), 0, combined,
+                inventory.main.size() + inventory.armor.size(), inventory.offHand.size()
+        );
+        return combined;
     }
 
     @NotNull
     @Override
     default Optional<Data.Items.EnderChest> getEnderChest() {
         return Optional.of(FabricData.Items.EnderChest.adapt(
-                getPlayer().getEnderChestInventory()
+                getPlayer().getEnderChestInventory().stacks
         ));
     }
 
     @NotNull
     @Override
     default Optional<Data.PotionEffects> getPotionEffects() {
-        return Optional.of(FabricData.PotionEffects.from(getPlayer().getActiveStatusEffects()));
+//        return Optional.of(FabricData.PotionEffects.from(getPlayer().getActiveStatusEffects()));
+        return Optional.empty();
     }
 
     @NotNull
     @Override
     default Optional<Data.Advancements> getAdvancements() {
-        return Optional.of(FabricData.Advancements.adapt(getPlayer()));
+//        return Optional.of(FabricData.Advancements.adapt(getPlayer()));
+        return Optional.empty();
     }
 
     @NotNull
     @Override
     default Optional<Data.Location> getLocation() {
-        return Optional.of(FabricData.Location.adapt(getPlayer()));
+//        return Optional.of(FabricData.Location.adapt(getPlayer()));
+        return Optional.empty();
     }
 
     @NotNull
     @Override
     default Optional<Data.Statistics> getStatistics() {
-        return Optional.of(FabricData.Statistics.adapt(getPlayer()));
+//        return Optional.of(FabricData.Statistics.adapt(getPlayer()));
+        return Optional.empty();
     }
 
     @NotNull
     @Override
     default Optional<Data.Health> getHealth() {
-        return Optional.of(FabricData.Health.adapt(getPlayer()));
+//        return Optional.of(FabricData.Health.adapt(getPlayer()));
+        return Optional.empty();
     }
 
     @NotNull
     @Override
     default Optional<Data.Hunger> getHunger() {
-        return Optional.of(FabricData.Hunger.adapt(getPlayer()));
+//        return Optional.of(FabricData.Hunger.adapt(getPlayer()));
+        return Optional.empty();
     }
 
     @NotNull
     @Override
     default Optional<Data.Experience> getExperience() {
-        return Optional.of(FabricData.Experience.adapt(getPlayer()));
+//        return Optional.of(FabricData.Experience.adapt(getPlayer()));
+        return Optional.empty();
     }
 
     @NotNull
     @Override
     default Optional<Data.GameMode> getGameMode() {
-        return Optional.of(FabricData.GameMode.adapt(getPlayer()));
+//        return Optional.of(FabricData.GameMode.adapt(getPlayer()));
+        return Optional.empty();
     }
 
     @NotNull
