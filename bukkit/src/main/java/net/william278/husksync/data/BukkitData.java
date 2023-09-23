@@ -27,7 +27,6 @@ import net.william278.husksync.BukkitHuskSync;
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.adapter.Adaptable;
 import net.william278.husksync.user.BukkitUser;
-import org.apache.commons.lang.NotImplementedException;
 import org.bukkit.*;
 import org.bukkit.advancement.AdvancementProgress;
 import org.bukkit.attribute.Attribute;
@@ -217,7 +216,7 @@ public abstract class BukkitData implements Data {
 
             @Override
             public void apply(@NotNull BukkitUser user, @NotNull BukkitHuskSync plugin) throws IllegalStateException {
-                throw new NotImplementedException("A generic item array cannot be applied to a player");
+                throw new UnsupportedOperationException("A generic item array cannot be applied to a player");
             }
 
         }
