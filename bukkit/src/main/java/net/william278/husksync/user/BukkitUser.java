@@ -61,17 +61,6 @@ public class BukkitUser extends OnlineUser implements BukkitUserDataHolder {
         return new BukkitUser(player, plugin);
     }
 
-    /**
-     * Get the Bukkit {@link Player} instance of this user
-     *
-     * @return the {@link Player} instance
-     * @since 3.0
-     */
-    @NotNull
-    public Player getPlayer() {
-        return player;
-    }
-
     @Override
     public boolean isOffline() {
         return player == null || !player.isOnline();
@@ -137,8 +126,25 @@ public class BukkitUser extends OnlineUser implements BukkitUserDataHolder {
         return player.hasMetadata("NPC");
     }
 
+    /**
+     * Get the Bukkit {@link Player} instance of this user
+     *
+     * @return the {@link Player} instance
+     * @since 3.0
+     */
     @NotNull
-    @Override
+    public Player getPlayer() {
+        return player;
+    }
+
+    /**
+     * Get the Bukkit {@link Player} instance of this user
+     *
+     * @return the {@link Player} instance
+     * @deprecated Use {@link #getPlayer()} instead
+     */
+    @NotNull
+    @Deprecated(since = "3.1")
     public Player getBukkitPlayer() {
         return player;
     }

@@ -139,7 +139,17 @@ public interface HuskSync extends Task.Supplier, EventDispatcher {
     List<Migrator> getAvailableMigrators();
 
     @NotNull
-    Map<Identifier, Data> getPlayerCustomDataStore(@NotNull OnlineUser user);
+    Map<UUID, Map<Identifier, Data>> getPlayerCustomDataStore();
+
+    @NotNull
+    default Map<Identifier, Data> getPlayerCustomDataStore(@NotNull OnlineUser user) {
+        if (getPlayerCustomDataStore().containsKey(user.getUuid())) {
+            return getPlayerCustomDataStore().get(user.getUuid());
+        }
+        final Map<Identifier, Data> data = new HashMap<>();
+        getPlayerCustomDataStore().put(user.getUuid(), data);
+        return data;
+    }
 
     /**
      * Initialize a faucet of the plugin.

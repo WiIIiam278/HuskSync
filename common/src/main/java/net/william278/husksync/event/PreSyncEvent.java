@@ -27,7 +27,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.function.Consumer;
 
 @SuppressWarnings("unused")
-public interface PreSyncEvent extends PlayerEvent {
+public interface PreSyncEvent extends PlayerEvent, Cancellable {
 
     @NotNull
     DataSnapshot.Packed getData();

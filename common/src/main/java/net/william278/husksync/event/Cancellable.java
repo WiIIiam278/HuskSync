@@ -19,7 +19,6 @@
 
 package net.william278.husksync.event;
 
-@SuppressWarnings("unused")
 public interface Cancellable extends Event {
 
     default boolean isCancelled() {

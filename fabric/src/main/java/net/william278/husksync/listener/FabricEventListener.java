@@ -20,88 +20,41 @@
 package net.william278.husksync.listener;
 
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.fabricmc.fabric.api.networking.v1.PacketSender;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
-import net.minecraft.enchantment.EnchantmentHelper;
-import net.minecraft.item.ItemStack;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.damage.DamageSource;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.network.ServerPlayNetworkHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.world.GameRules;
 import net.william278.husksync.HuskSync;
-import net.william278.husksync.data.FabricSerializer;
-import net.william278.husksync.data.ItemData;
-import net.william278.husksync.player.FabricPlayer;
-import net.william278.husksync.player.OnlineUser;
+import net.william278.husksync.user.FabricUser;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
-
 public class FabricEventListener extends EventListener {
-    public FabricEventListener(@NotNull HuskSync instance) {
-        super(instance);
+    public FabricEventListener(@NotNull HuskSync plugin) {
+        super(plugin);
         this.registerEvents();
     }
 
     public void registerEvents() {
-        // Join event
-        ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> handlePlayerJoin(
-                FabricPlayer.adapt(handler.player)
-        ));
+        ServerPlayConnectionEvents.JOIN.register(this::handlePlayerJoin);
+        ServerPlayConnectionEvents.DISCONNECT.register(this::handlePlayerQuit);
 
-        // Quit event
-        ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> handlePlayerQuit(
-                FabricPlayer.adapt(handler.player)
-        ));
-
-        // Death event
-        ServerLivingEntityEvents.AFTER_DEATH.register((entity, source) -> {
-            if (entity instanceof ServerPlayerEntity player) {
-                OnlineUser user = FabricPlayer.adapt(player);
-                if (cancelPlayerEvent(user.uuid)) {
-                    // scan player inventory for items to drop
-                    List<ItemStack> drops = new ArrayList<>();
-
-                    if (!player.getWorld().getGameRules().getBoolean(GameRules.KEEP_INVENTORY)) {
-                        for (int i = 0; i < player.getInventory().size(); ++i) {
-                            ItemStack item = player.getInventory().getStack(i);
-                            if (!item.isEmpty() && !EnchantmentHelper.hasVanishingCurse(item)) {
-                                drops.add(item);
-                            }
-                        }
-                    }
-
-                    // If the player is locked or the plugin disabling, clear their drops
-                    if (cancelPlayerEvent(user.uuid)) {
-                        drops.forEach(drop -> player.dropItem(drop, false, false));
-                        return;
-                    }
-
-                    // Handle saving player data snapshots on death
-                    if (!plugin.getSettings().doSaveOnDeath()) return;
-
-                    // save the player's inventory
-                    FabricSerializer.serializeItemStackArray(drops.toArray(new ItemStack[0]))
-                            .thenAccept(serialized -> super.saveOnPlayerDeath(user, new ItemData(serialized)));
-                }
-            }
-        });
-
-        ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
-            // Handle saving player data snapshots when the world saves
-            if (!plugin.getSettings().doSaveOnWorldSave()) return;
-
-            CompletableFuture.runAsync(() ->
-                    super.saveOnWorldSave(
-                            server.getPlayerManager()
-                                    .getPlayerList()
-                                    .stream().map(FabricPlayer::adapt)
-                                    .collect(Collectors.toList())
-                    )
-            );
-        });
+        // todo player death event mixin exposing death drops
+        // todo world save mixin
 
         // TODO: Events of extra things to cancel if the player has not been set yet
     }
+
+    private void handlePlayerJoin(@NotNull ServerPlayNetworkHandler handler, @NotNull PacketSender sender,
+                                  @NotNull MinecraftServer server) {
+        handlePlayerJoin(FabricUser.adapt(handler.player, plugin));
+    }
+
+    private void handlePlayerQuit(@NotNull ServerPlayNetworkHandler handler, @NotNull MinecraftServer server) {
+        handlePlayerQuit(FabricUser.adapt(handler.player, plugin));
+    }
+
+
 }

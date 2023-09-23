@@ -238,13 +238,8 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
 
     @NotNull
     @Override
-    public Map<Identifier, Data> getPlayerCustomDataStore(@NotNull OnlineUser user) {
-        if (playerCustomDataStore.containsKey(user.getUuid())) {
-            return playerCustomDataStore.get(user.getUuid());
-        }
-        final Map<Identifier, Data> data = new HashMap<>();
-        playerCustomDataStore.put(user.getUuid(), data);
-        return data;
+    public Map<UUID, Map<Identifier, Data>> getPlayerCustomDataStore() {
+        return playerCustomDataStore;
     }
 
     @Override
