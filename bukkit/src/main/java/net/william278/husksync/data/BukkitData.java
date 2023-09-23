@@ -95,14 +95,9 @@ public abstract class BukkitData implements Data {
 
         @Override
         public void setContents(@NotNull Data.Items contents) {
-            System.arraycopy(
-                    ((BukkitData.Items) contents).getContents(),
-                    0, this.contents,
-                    0, this.contents.length
-            );
+            this.setContents(((BukkitData.Items) contents).getContents());
         }
 
-        @SuppressWarnings("unused")
         public void setContents(@NotNull ItemStack[] contents) {
             System.arraycopy(contents, 0, this.contents, 0, this.contents.length);
         }
