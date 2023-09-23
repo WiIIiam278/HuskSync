@@ -63,6 +63,7 @@ public interface FabricDataSaveCallback extends FabricEventCallback<DataSaveEven
                 }
 
                 @NotNull
+                @SuppressWarnings("unused")
                 public Event<FabricDataSaveCallback> getEvent() {
                     return EVENT;
                 }

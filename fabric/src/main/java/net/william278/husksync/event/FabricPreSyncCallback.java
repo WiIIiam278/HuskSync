@@ -62,6 +62,7 @@ public interface FabricPreSyncCallback extends FabricEventCallback<PreSyncEvent>
                 }
 
                 @NotNull
+                @SuppressWarnings("unused")
                 public Event<FabricPreSyncCallback> getEvent() {
                     return EVENT;
                 }

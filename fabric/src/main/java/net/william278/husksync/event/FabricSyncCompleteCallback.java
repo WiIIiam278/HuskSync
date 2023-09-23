@@ -33,6 +33,7 @@ public interface FabricSyncCompleteCallback extends FabricEventCallback<SyncComp
                 }
 
                 @NotNull
+                @SuppressWarnings("unused")
                 public Event<FabricSyncCompleteCallback> getEvent() {
                     return EVENT;
                 }
