@@ -1,3 +1,9 @@
+# Set the storage engine
+SET DEFAULT_STORAGE_ENGINE = INNODB;
+
+# Enable foreign key constraints
+SET FOREIGN_KEY_CHECKS = 1;
+
 # Create the users table if it does not exist
 CREATE TABLE IF NOT EXISTS `%users_table%`
 (
@@ -5,7 +11,8 @@ CREATE TABLE IF NOT EXISTS `%users_table%`
     `username` varchar(16) NOT NULL,
 
     PRIMARY KEY (`uuid`)
-);
+) CHARACTER SET utf8
+  COLLATE utf8_unicode_ci;
 
 # Create the user data table if it does not exist
 CREATE TABLE IF NOT EXISTS `%user_data_table%`
@@ -18,4 +25,5 @@ CREATE TABLE IF NOT EXISTS `%user_data_table%`
     `data`         longblob    NOT NULL,
     PRIMARY KEY (`version_uuid`, `player_uuid`),
     FOREIGN KEY (`player_uuid`) REFERENCES `%users_table%` (`uuid`) ON DELETE CASCADE
-);
+) CHARACTER SET utf8
+  COLLATE utf8_unicode_ci;

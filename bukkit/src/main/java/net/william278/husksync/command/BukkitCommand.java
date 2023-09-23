@@ -19,77 +19,146 @@
 
 package net.william278.husksync.command;
 
+
 import me.lucko.commodore.CommodoreProvider;
 import net.william278.husksync.BukkitHuskSync;
-import net.william278.husksync.player.BukkitPlayer;
-import org.bukkit.command.*;
+import net.william278.husksync.user.BukkitUser;
+import net.william278.husksync.user.CommandUser;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.permissions.Permission;
+import org.bukkit.permissions.PermissionDefault;
+import org.bukkit.plugin.PluginManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
+import java.util.function.Function;
 
-/**
- * Bukkit executor that implements and executes {@link CommandBase}s
- */
-public class BukkitCommand implements CommandExecutor, TabExecutor {
+public class BukkitCommand extends org.bukkit.command.Command {
 
-    /**
-     * The {@link CommandBase} that will be executed
-     */
-    protected final CommandBase command;
-
-    /**
-     * The implementing plugin
-     */
     private final BukkitHuskSync plugin;
+    private final Command command;
 
-    public BukkitCommand(@NotNull CommandBase command, @NotNull BukkitHuskSync implementor) {
+    public BukkitCommand(@NotNull Command command, @NotNull BukkitHuskSync plugin) {
+        super(command.getName(), command.getDescription(), command.getUsage(), command.getAliases());
         this.command = command;
-        this.plugin = implementor;
-    }
-
-    /**
-     * Registers a {@link PluginCommand} to this implementation
-     *
-     * @param pluginCommand {@link PluginCommand} to register
-     */
-    public void register(@NotNull PluginCommand pluginCommand) {
-        pluginCommand.setExecutor(this);
-        pluginCommand.setTabCompleter(this);
-        pluginCommand.setPermission(command.permission);
-        pluginCommand.setDescription(command.getDescription());
-        if (CommodoreProvider.isSupported()) {
-            BrigadierUtil.registerCommodore(plugin, pluginCommand, command);
-        }
+        this.plugin = plugin;
     }
 
     @Override
-    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command,
-                             @NotNull String label, @NotNull String[] args) {
-        if (sender instanceof Player player) {
-            this.command.onExecute(BukkitPlayer.adapt(player), args);
-        } else {
-            if (this.command instanceof ConsoleExecutable consoleExecutable) {
-                consoleExecutable.onConsoleExecute(args);
-            } else {
-                plugin.getLocales().getLocale("error_in_game_command_only")
-                        .ifPresent(locale -> plugin.getAudiences().sender(sender)
-                                .sendMessage(locale.toComponent()));
-            }
-        }
+    public boolean execute(@NotNull CommandSender sender, @NotNull String commandLabel, @NotNull String[] args) {
+        this.command.onExecuted(sender instanceof Player p ? BukkitUser.adapt(p, plugin) : plugin.getConsole(), args);
         return true;
     }
 
-    @Nullable
+    @NotNull
     @Override
-    public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command,
-                                      @NotNull String alias, @NotNull String[] args) {
-        if (this.command instanceof TabCompletable tabCompletable) {
-            return tabCompletable.onTabComplete(args);
+    public List<String> tabComplete(@NotNull CommandSender sender, @NotNull String alias,
+                                    @NotNull String[] args) throws IllegalArgumentException {
+        if (!(this.command instanceof TabProvider provider)) {
+            return List.of();
         }
-        return Collections.emptyList();
+        final CommandUser user = sender instanceof Player p ? BukkitUser.adapt(p, plugin) : plugin.getConsole();
+        if (getPermission() == null || user.hasPermission(getPermission())) {
+            return provider.getSuggestions(user, args);
+        }
+        return List.of();
     }
 
+    public void register() {
+        // Register with bukkit
+        plugin.getCommandRegistrar().getServerCommandMap().register("husksync", this);
+
+        // Register permissions
+        BukkitCommand.addPermission(
+                plugin,
+                command.getPermission(),
+                command.getUsage(),
+                BukkitCommand.getPermissionDefault(command.isOperatorCommand())
+        );
+        final List<Permission> childNodes = command.getAdditionalPermissions()
+                .entrySet().stream()
+                .map((entry) -> BukkitCommand.addPermission(
+                        plugin,
+                        entry.getKey(),
+                        "",
+                        BukkitCommand.getPermissionDefault(entry.getValue()))
+                )
+                .filter(Objects::nonNull)
+                .toList();
+        if (!childNodes.isEmpty()) {
+            BukkitCommand.addPermission(
+                    plugin,
+                    command.getPermission("*"),
+                    command.getUsage(),
+                    PermissionDefault.FALSE,
+                    childNodes.toArray(new Permission[0])
+            );
+        }
+
+        // Register commodore TAB completion
+        if (CommodoreProvider.isSupported() && plugin.getSettings().doBrigadierTabCompletion()) {
+            BrigadierUtil.registerCommodore(plugin, this, command);
+        }
+    }
+
+    @Nullable
+    protected static Permission addPermission(@NotNull BukkitHuskSync plugin, @NotNull String node,
+                                              @NotNull String description, @NotNull PermissionDefault permissionDefault,
+                                              @NotNull Permission... children) {
+        final Map<String, Boolean> childNodes = Arrays.stream(children)
+                .map(Permission::getName)
+                .collect(HashMap::new, (map, child) -> map.put(child, true), HashMap::putAll);
+
+        final PluginManager manager = plugin.getServer().getPluginManager();
+        if (manager.getPermission(node) != null) {
+            return null;
+        }
+
+        Permission permission;
+        if (description.isEmpty()) {
+            permission = new Permission(node, permissionDefault, childNodes);
+        } else {
+            permission = new Permission(node, description, permissionDefault, childNodes);
+        }
+        manager.addPermission(permission);
+
+        return permission;
+    }
+
+    @NotNull
+    protected static PermissionDefault getPermissionDefault(boolean isOperatorCommand) {
+        return isOperatorCommand ? PermissionDefault.OP : PermissionDefault.TRUE;
+    }
+
+    /**
+     * Commands available on the Bukkit HuskSync implementation
+     */
+    public enum Type {
+
+        HUSKSYNC_COMMAND(HuskSyncCommand::new),
+        USERDATA_COMMAND(UserDataCommand::new),
+        INVENTORY_COMMAND(InventoryCommand::new),
+        ENDER_CHEST_COMMAND(EnderChestCommand::new);
+
+        public final Function<BukkitHuskSync, Command> commandSupplier;
+
+        Type(@NotNull Function<BukkitHuskSync, Command> supplier) {
+            this.commandSupplier = supplier;
+        }
+
+        @NotNull
+        public Command createCommand(@NotNull BukkitHuskSync plugin) {
+            return commandSupplier.apply(plugin);
+        }
+
+        public static void registerCommands(@NotNull BukkitHuskSync plugin) {
+            Arrays.stream(values())
+                    .map((type) -> type.createCommand(plugin))
+                    .forEach((command) -> new BukkitCommand(command, plugin).register());
+        }
+
+
+    }
 }

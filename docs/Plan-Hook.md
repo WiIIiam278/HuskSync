@@ -1,6 +1,6 @@
 HuskSync supports displaying information about user data on your [Player Analytics](https://github.com/plan-player-analytics/Plan) (Plan) web panel.
 
-[![Plan hook screenshots](https://raw.githubusercontent.com/WiIIiam278/HuskSync/master/images/plan-hook.png)](#)
+![Plan hook screenshots](https://raw.githubusercontent.com/WiIIiam278/HuskSync/master/images/plan-hook.png)
 
 ## Requirements
 - HuskSync v2.0+

@@ -19,7 +19,6 @@ ext {
     set 'mysql_driver_version', mysql_driver_version.toString()
     set 'mariadb_driver_version', mariadb_driver_version.toString()
     set 'snappy_version', snappy_version.toString()
-    set 'commons_text_version', commons_text_version.toString()
 }
 
 import org.apache.tools.ant.filters.ReplaceTokens
@@ -39,16 +38,18 @@ allprojects {
         mavenLocal()
         mavenCentral()
         maven { url 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/' }
+        maven { url 'https://repo.codemc.io/repository/maven-public/' }
         maven { url 'https://repo.minebench.de/' }
         maven { url 'https://repo.alessiodp.com/releases/' }
-        maven { url 'https://repo.mattstudios.me/artifactory/public/' }
         maven { url 'https://jitpack.io' }
+        maven { url 'https://mvn-repo.arim.space/lesser-gpl3/' }
         maven { url 'https://libraries.minecraft.net/' }
-        maven { url 'https://william278.net/releases/' }
+        maven { url 'https://repo.william278.net/releases/' }
     }
 
     dependencies {
         testImplementation 'org.junit.jupiter:junit-jupiter-api:5.10.0'
+        testImplementation 'org.junit.jupiter:junit-jupiter-params:5.10.0'
         testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.10.0'
     }
 

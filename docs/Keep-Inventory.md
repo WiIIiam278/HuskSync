@@ -1,4 +1,4 @@
-If your server uses the `keepInventory` gamerule, where players keep the contents of their inventory after dying, HuskSync's built-in snapshot-on-death and dead-player synchronisation features can cause a conflict leading to synchronisation issues.
+If your server uses the `keepInventory` gamerule, where players keep the contents of their inventory after dying, HuskSync's built-in snapshot-on-death and dead-player synchronization features can saveCause a conflict leading to synchronization issues.
 
 To solve this issue, you will need to adjust three settings in your `config.yml` file, as described below.
 
@@ -8,7 +8,7 @@ HuskSync has some special handling when players die, to account for scenarios wh
 * **Snapshot creation on death**&mdash;HuskSync can create a special snapshot for backup purposes when a player dies, formed by taking their drops and setting this to their inventory. When `keepInventory` is enabled, the player drops are empty, so this creates an inaccurate snapshot. This option is disabled by default.
 
 ## How can this be fixed?
-You will need to set the `synchronization.save_on_death` (which controls making snapshots on death), `save_empty_drops_on_death` (which controls whether snapshots of players who have no items to drop should be created), and `synchronization.synchronise_dead_players_changing_server` (which controls whether to sync dead players when they change servers) options to `false` in `config.yml`.
+You will need to set the `synchronization.save_on_death` (which controls making snapshots on death), `save_empty_drops_on_death` (which controls whether snapshots of players who have no items to drop should be created), and `synchronization.synchronize_dead_players_changing_server` (which controls whether to sync dead players when they change servers) options to `false` in `config.yml`.
 
 <details>
   <summary>Example in config.yml</summary>
@@ -19,7 +19,7 @@ You will need to set the `synchronization.save_on_death` (which controls making 
        save_on_death: false # <-- Set this to false
        save_empty_drops_on_death: false # <-- Set this to false
        # ...
-       synchronise_dead_players_changing_server: false # <-- Set this to false
+       synchronize_dead_players_changing_server: false # <-- Set this to false
   ```
   
 </details>

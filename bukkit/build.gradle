@@ -1,23 +1,27 @@
 dependencies {
     implementation project(path: ':common')
+
     implementation 'org.bstats:bstats-bukkit:3.0.2'
     implementation 'net.william278:mpdbdataconverter:1.0.1'
     implementation 'net.william278:hsldataconverter:1.0'
-    implementation 'net.william278:MapDataAPI:1.0.2'
-    implementation 'net.william278:AndJam:1.0.2'
+    implementation 'net.william278:mapdataapi:1.0.3'
+    implementation 'net.william278:andjam:1.0.2'
     implementation 'me.lucko:commodore:2.2'
     implementation 'net.kyori:adventure-platform-bukkit:4.3.0'
     implementation 'dev.triumphteam:triumph-gui:3.1.5'
+    implementation 'space.arim.morepaperlib:morepaperlib:0.4.3'
+    implementation 'de.tr7zw:item-nbt-api:2.12.0'
 
     compileOnly 'org.spigotmc:spigot-api:1.16.5-R0.1-SNAPSHOT'
     compileOnly 'commons-io:commons-io:2.13.0'
+    compileOnly 'org.json:json:20230618'
     compileOnly 'de.themoep:minedown-adventure:1.7.2-SNAPSHOT'
     compileOnly 'dev.dejvokep:boosted-yaml:1.3.1'
     compileOnly 'com.zaxxer:HikariCP:5.0.1'
-    compileOnly 'redis.clients:jedis:' + jedis_version
     compileOnly 'net.william278:DesertWell:2.0.4'
-    compileOnly 'net.william278:Annotaml:2.0.1'
+    compileOnly 'net.william278:annotaml:2.0.7'
     compileOnly 'net.william278:AdvancementAPI:97a9583413'
+    compileOnly "redis.clients:jedis:$jedis_version"
 }
 
 shadowJar {
@@ -26,7 +30,11 @@ shadowJar {
     }
 
     relocate 'org.apache.commons.io', 'net.william278.husksync.libraries.commons.io'
+    relocate 'org.apache.commons.text', 'net.william278.husksync.libraries.commons.text'
+    relocate 'org.apache.commons.lang3', 'net.william278.husksync.libraries.commons.lang3'
     relocate 'com.google.gson', 'net.william278.husksync.libraries.gson'
+    relocate 'org.json', 'net.william278.husksync.libraries.json'
+    relocate 'com.fatboyindustrial', 'net.william278.husktowns.libraries'
     relocate 'de.themoep', 'net.william278.husksync.libraries'
     relocate 'net.kyori', 'net.william278.husksync.libraries'
     relocate 'org.jetbrains', 'net.william278.husksync.libraries'
@@ -37,7 +45,7 @@ shadowJar {
     relocate 'net.william278.paginedown', 'net.william278.husksync.libraries.paginedown'
     relocate 'net.william278.mapdataapi', 'net.william278.husksync.libraries.mapdataapi'
     relocate 'net.william278.andjam', 'net.william278.husksync.libraries.andjam'
-    relocate 'net.querz', 'net.william278.husksync.libraries.nbt'
+    relocate 'net.querz', 'net.william278.husksync.libraries.nbtparser'
     relocate 'net.roxeez', 'net.william278.husksync.libraries'
 
     relocate 'me.lucko.commodore', 'net.william278.husksync.libraries.commodore'
@@ -47,4 +55,6 @@ shadowJar {
     relocate 'net.william278.mpdbconverter', 'net.william278.husksync.libraries.mpdbconverter'
     relocate 'net.william278.hslmigrator', 'net.william278.husksync.libraries.hslconverter'
     relocate 'net.william278.annotaml', 'net.william278.husksync.libraries.annotaml'
+    relocate 'space.arim.morepaperlib', 'net.william278.husksync.libraries.paperlib'
+    relocate 'de.tr7zw.changeme.nbtapi', 'net.william278.husksync.libraries.nbtapi'
 }

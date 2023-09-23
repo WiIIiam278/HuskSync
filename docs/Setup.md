@@ -11,15 +11,15 @@ This will walk you through installing HuskSync on your network of Spigot servers
 - You do not need to install HuskSync as a proxy plugin.
 ### 2. Restart servers
 - Start, then stop every server to let HuskSync generate the [[config file]].
-- HuskSync will throw an error in console and disable itself as it is unable to connect to the database. You haven't set the credentials yet, so this is expected.
+- HuskSync will throw an error in the console and disable itself as it is unable to connect to the database. You haven't set the credentials yet, so this is expected.
 - Advanced users: If you'd prefer, you can just create one config.yml file and create symbolic links in each `/plugins/HuskSync/` folder to it to make updating it easier.
-### 3. Enter MySQL & Redis database credentails
+### 3. Enter MySQL & Redis database credentials
 - Navigate to the HuskSync config file on each server (`~/plugins/HuskSync/config.yml`)
 - Under `credentials` in the `database` section, enter the credentials of your MySQL Database. You shouldn't touch the `connection_pool` properties.
-- Under `credentials` in the `redis` section, enter the credentails of your Redis Database. If your Redis server doesn't have a password, leave the password blank as it is.
+- Under `credentials` in the `redis` section, enter the credentials of your Redis Database. If your Redis server doesn't have a password, leave the password blank as it is.
 - Unless you want to have multiple clusters of servers within your network, each with separate user data, do not change the value of `cluster_id`.
 ### 4. Start every server again
-- Provided your MySQL and Redis credentials were correct, synchronisation should begin as soon as you start your servers again.
+- Provided your MySQL and Redis credentials were correct, synchronization should begin as soon as you start your servers again.
 - If you need to import data from HuskSync v1.x or MySQLPlayerDataBridge, please see the guides below:
   - [[Legacy Migration]]
   - [[MPDB Migration]]

@@ -19,32 +19,40 @@
 
 package net.william278.husksync;
 
+import com.fatboyindustrial.gsonjavatime.Converters;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import net.william278.annotaml.Annotaml;
+import net.william278.desertwell.util.ThrowingConsumer;
 import net.william278.desertwell.util.UpdateChecker;
 import net.william278.desertwell.util.Version;
+import net.william278.husksync.adapter.DataAdapter;
 import net.william278.husksync.config.Locales;
 import net.william278.husksync.config.Settings;
-import net.william278.husksync.data.DataAdapter;
+import net.william278.husksync.data.Data;
+import net.william278.husksync.data.Identifier;
+import net.william278.husksync.data.Serializer;
 import net.william278.husksync.database.Database;
-import net.william278.husksync.event.EventCannon;
+import net.william278.husksync.event.EventDispatcher;
 import net.william278.husksync.migrator.Migrator;
-import net.william278.husksync.player.OnlineUser;
 import net.william278.husksync.redis.RedisManager;
+import net.william278.husksync.user.ConsoleUser;
+import net.william278.husksync.user.OnlineUser;
+import net.william278.husksync.util.LegacyConverter;
+import net.william278.husksync.util.Task;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
+import java.lang.reflect.InvocationTargetException;
+import java.util.*;
 import java.util.logging.Level;
 
 /**
  * Abstract implementation of the HuskSync plugin.
  */
-public interface HuskSync {
+public interface HuskSync extends Task.Supplier, EventDispatcher {
 
     int SPIGOT_RESOURCE_ID = 97144;
 
@@ -82,21 +90,45 @@ public interface HuskSync {
     @NotNull
     RedisManager getRedisManager();
 
-    /**
-     * Returns the data adapter implementation
-     *
-     * @return the {@link DataAdapter} implementation
-     */
     @NotNull
     DataAdapter getDataAdapter();
 
     /**
-     * Returns the event firing cannon
-     *
-     * @return the {@link EventCannon} implementation
+     * Returns the data serializer for the given {@link Identifier}
      */
     @NotNull
-    EventCannon getEventCannon();
+    <T extends Data> Map<Identifier, Serializer<T>> getSerializers();
+
+    /**
+     * Register a data serializer for the given {@link Identifier}
+     *
+     * @param identifier the {@link Identifier}
+     * @param serializer the {@link Serializer}
+     */
+    default void registerSerializer(@NotNull Identifier identifier,
+                                    @NotNull Serializer<? extends Data> serializer) {
+        if (identifier.isCustom()) {
+            log(Level.INFO, String.format("Registered custom data type: %s", identifier));
+        }
+        getSerializers().put(identifier, (Serializer<Data>) serializer);
+    }
+
+    /**
+     * Get the {@link Identifier} for the given key
+     */
+    default Optional<Identifier> getIdentifier(@NotNull String key) {
+        return getSerializers().keySet().stream().filter(identifier -> identifier.toString().equals(key)).findFirst();
+    }
+
+    /**
+     * Get the set of registered data types
+     *
+     * @return the set of registered data types
+     */
+    @NotNull
+    default Set<Identifier> getRegisteredDataTypes() {
+        return getSerializers().keySet();
+    }
 
     /**
      * Returns a list of available data {@link Migrator}s
@@ -106,6 +138,25 @@ public interface HuskSync {
     @NotNull
     List<Migrator> getAvailableMigrators();
 
+    @NotNull
+    Map<Identifier, Data> getPlayerCustomDataStore(@NotNull OnlineUser user);
+
+    /**
+     * Initialize a faucet of the plugin.
+     *
+     * @param name   the name of the faucet
+     * @param runner a runnable for initializing the faucet
+     */
+    default void initialize(@NotNull String name, @NotNull ThrowingConsumer<HuskSync> runner) {
+        log(Level.INFO, "Initializing " + name + "...");
+        try {
+            runner.accept(this);
+        } catch (Throwable e) {
+            throw new FailedToLoadException("Failed to initialize " + name, e);
+        }
+        log(Level.INFO, "Successfully initialized " + name);
+    }
+
     /**
      * Returns the plugin {@link Settings}
      *
@@ -113,6 +164,8 @@ public interface HuskSync {
      */
     @NotNull
     Settings getSettings();
+
+    void setSettings(@NotNull Settings settings);
 
     /**
      * Returns the plugin {@link Locales}
@@ -122,6 +175,16 @@ public interface HuskSync {
     @NotNull
     Locales getLocales();
 
+    void setLocales(@NotNull Locales locales);
+
+    /**
+     * Returns if a dependency is loaded
+     *
+     * @param name the name of the dependency
+     * @return {@code true} if the dependency is loaded, {@code false} otherwise
+     */
+    boolean isDependencyLoaded(@NotNull String name);
+
     /**
      * Get a resource as an {@link InputStream} from the plugin jar
      *
@@ -129,6 +192,14 @@ public interface HuskSync {
      * @return the {@link InputStream} of the resource
      */
     InputStream getResource(@NotNull String name) throws IOException;
+
+    /**
+     * Returns the plugin data folder
+     *
+     * @return the plugin data folder as a {@link File}
+     */
+    @NotNull
+    File getDataFolder() throws IOException;
 
     /**
      * Log a message to the console
@@ -147,9 +218,17 @@ public interface HuskSync {
      */
     default void debug(@NotNull String message, @NotNull Throwable... throwable) {
         if (getSettings().doDebugLogging()) {
-            log(Level.INFO, "[DEBUG] " + message, throwable);
+            log(Level.INFO, String.format("[DEBUG] %s", message), throwable);
         }
     }
+
+    /**
+     * Get the console user
+     *
+     * @return the {@link ConsoleUser}
+     */
+    @NotNull
+    ConsoleUser getConsole();
 
     /**
      * Returns the plugin version
@@ -160,30 +239,6 @@ public interface HuskSync {
     Version getPluginVersion();
 
     /**
-     * Returns the plugin data folder
-     *
-     * @return the plugin data folder as a {@link File}
-     */
-    @NotNull
-    File getDataFolder() throws IOException;
-
-    /**
-     * Returns a future returning the latest plugin {@link Version} if the plugin is out-of-date
-     *
-     * @return a {@link CompletableFuture} returning the latest {@link Version} if the current one is out-of-date
-     */
-    default CompletableFuture<Optional<Version>> getLatestVersionIfOutdated() {
-        return UpdateChecker.builder()
-                .currentVersion(getPluginVersion())
-                .endpoint(UpdateChecker.Endpoint.SPIGOT)
-                .resource(Integer.toString(SPIGOT_RESOURCE_ID)).build()
-                .check()
-                .thenApply(checked -> checked.isUpToDate()
-                        ? Optional.empty()
-                        : Optional.of(checked.getLatestVersion()));
-    }
-
-    /**
      * Returns the Minecraft version implementation
      *
      * @return the Minecraft {@link Version}
@@ -192,12 +247,95 @@ public interface HuskSync {
     Version getMinecraftVersion();
 
     /**
-     * Reloads the {@link Settings} and {@link Locales} from their respective config files
+     * Returns the platform type
      *
-     * @return a {@link CompletableFuture} that will be completed when the plugin reload is complete and if it was successful
+     * @return the platform type
      */
-    CompletableFuture<Boolean> reload();
+    @NotNull
+    String getPlatformType();
 
+    /**
+     * Returns the legacy data converter, if it exists
+     *
+     * @return the {@link LegacyConverter}
+     */
+    Optional<LegacyConverter> getLegacyConverter();
+
+    /**
+     * Reloads the {@link Settings} and {@link Locales} from their respective config files.
+     */
+    default void loadConfigs() {
+        try {
+            // Load settings
+            setSettings(Annotaml.create(new File(getDataFolder(), "config.yml"), Settings.class).get());
+
+            // Load locales from language preset default
+            final Locales languagePresets = Annotaml.create(
+                    Locales.class,
+                    Objects.requireNonNull(getResource(String.format("locales/%s.yml", getSettings().getLanguage())))
+            ).get();
+            setLocales(Annotaml.create(new File(
+                    getDataFolder(),
+                    String.format("messages_%s.yml", getSettings().getLanguage())
+            ), languagePresets).get());
+        } catch (IOException | InvocationTargetException | InstantiationException | IllegalAccessException e) {
+            throw new FailedToLoadException("Failed to load config or message files", e);
+        }
+    }
+
+    @NotNull
+    default UpdateChecker getUpdateChecker() {
+        return UpdateChecker.builder()
+                .currentVersion(getPluginVersion())
+                .endpoint(UpdateChecker.Endpoint.SPIGOT)
+                .resource(Integer.toString(SPIGOT_RESOURCE_ID))
+                .build();
+    }
+
+    default void checkForUpdates() {
+        if (getSettings().doCheckForUpdates()) {
+            getUpdateChecker().check().thenAccept(checked -> {
+                if (!checked.isUpToDate()) {
+                    log(Level.WARNING, String.format(
+                            "A new version of HuskSync is available: v%s (running v%s)",
+                            checked.getLatestVersion(), getPluginVersion())
+                    );
+                }
+            });
+        }
+    }
+
+    @NotNull
     Set<UUID> getLockedPlayers();
+
+    @NotNull
+    Gson getGson();
+
+    @NotNull
+    default Gson createGson() {
+        return Converters.registerOffsetDateTime(new GsonBuilder()).create();
+    }
+
+    /**
+     * An exception indicating the plugin has been accessed before it has been registered.
+     */
+    final class FailedToLoadException extends IllegalStateException {
+
+        private static final String FORMAT = """
+                HuskSync has failed to load! The plugin will not be enabled and no data will be synchronized.
+                Please make sure the plugin has been setup correctly (https://william278.net/docs/husksync/setup):
+                                
+                1) Make sure you've entered your MySQL or MariaDB database details correctly in config.yml
+                2) Make sure your Redis server details are also correct in config.yml
+                3) Make sure your config is up-to-date (https://william278.net/docs/husksync/config-files)
+                4) Check the error below for more details
+                                
+                Caused by: %s""";
+
+        FailedToLoadException(@NotNull String message, @NotNull Throwable cause) {
+            super(String.format(FORMAT, message), cause);
+        }
+
+    }
 
 }

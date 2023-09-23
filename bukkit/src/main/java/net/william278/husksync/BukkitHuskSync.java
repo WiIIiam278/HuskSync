@@ -19,253 +19,215 @@
 
 package net.william278.husksync;
 
+import com.google.gson.Gson;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
-import net.william278.annotaml.Annotaml;
 import net.william278.desertwell.util.Version;
+import net.william278.husksync.adapter.DataAdapter;
+import net.william278.husksync.adapter.GsonAdapter;
+import net.william278.husksync.adapter.SnappyGsonAdapter;
+import net.william278.husksync.api.BukkitHuskSyncAPI;
 import net.william278.husksync.command.BukkitCommand;
-import net.william278.husksync.command.BukkitCommandType;
-import net.william278.husksync.command.Permission;
 import net.william278.husksync.config.Locales;
 import net.william278.husksync.config.Settings;
-import net.william278.husksync.data.CompressedDataAdapter;
-import net.william278.husksync.data.DataAdapter;
-import net.william278.husksync.data.JsonDataAdapter;
+import net.william278.husksync.data.BukkitSerializer;
+import net.william278.husksync.data.Data;
+import net.william278.husksync.data.Identifier;
+import net.william278.husksync.data.Serializer;
 import net.william278.husksync.database.Database;
 import net.william278.husksync.database.MySqlDatabase;
-import net.william278.husksync.event.BukkitEventCannon;
-import net.william278.husksync.event.EventCannon;
+import net.william278.husksync.event.BukkitEventDispatcher;
 import net.william278.husksync.hook.PlanHook;
 import net.william278.husksync.listener.BukkitEventListener;
 import net.william278.husksync.listener.EventListener;
 import net.william278.husksync.migrator.LegacyMigrator;
 import net.william278.husksync.migrator.Migrator;
 import net.william278.husksync.migrator.MpdbMigrator;
-import net.william278.husksync.player.BukkitPlayer;
-import net.william278.husksync.player.OnlineUser;
 import net.william278.husksync.redis.RedisManager;
+import net.william278.husksync.user.BukkitUser;
+import net.william278.husksync.user.ConsoleUser;
+import net.william278.husksync.user.OnlineUser;
+import net.william278.husksync.util.BukkitLegacyConverter;
+import net.william278.husksync.util.BukkitMapPersister;
+import net.william278.husksync.util.BukkitTask;
+import net.william278.husksync.util.LegacyConverter;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
-import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.Player;
-import org.bukkit.permissions.PermissionDefault;
-import org.bukkit.plugin.Plugin;
+import org.bukkit.map.MapView;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
+import space.arim.morepaperlib.MorePaperLib;
+import space.arim.morepaperlib.commands.CommandRegistration;
+import space.arim.morepaperlib.scheduling.AsynchronousScheduler;
+import space.arim.morepaperlib.scheduling.GracefulScheduling;
+import space.arim.morepaperlib.scheduling.RegionalScheduler;
 
-import java.io.File;
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
-public class BukkitHuskSync extends JavaPlugin implements HuskSync {
+public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.Supplier, BukkitEventDispatcher,
+        BukkitMapPersister {
 
     /**
      * Metrics ID for <a href="https://bstats.org/plugin/bukkit/HuskSync%20-%20Bukkit/13140">HuskSync on Bukkit</a>.
      */
     private static final int METRICS_ID = 13140;
+    private static final String PLATFORM_TYPE_ID = "bukkit";
+
     private Database database;
     private RedisManager redisManager;
     private EventListener eventListener;
     private DataAdapter dataAdapter;
-    private EventCannon eventCannon;
+    private Map<Identifier, Serializer<? extends Data>> serializers;
+    private Map<UUID, Map<Identifier, Data>> playerCustomDataStore;
     private Settings settings;
     private Locales locales;
     private List<Migrator> availableMigrators;
-
+    private LegacyConverter legacyConverter;
+    private Map<Integer, MapView> mapViews;
     private BukkitAudiences audiences;
-    private static BukkitHuskSync instance;
-
-    /**
-     * (<b>Internal use only)</b> Returns the instance of the implementing Bukkit plugin
-     *
-     * @return the instance of the Bukkit plugin
-     */
-    public static BukkitHuskSync getInstance() {
-        return instance;
-    }
-
-    @Override
-    public void onLoad() {
-        instance = this;
-    }
+    private MorePaperLib paperLib;
+    private AsynchronousScheduler asyncScheduler;
+    private RegionalScheduler regionalScheduler;
+    private Gson gson;
 
     @Override
     public void onEnable() {
-        // Initialize HuskSync
-        final AtomicBoolean initialized = new AtomicBoolean(true);
-        try {
-            // Create adventure audience
-            this.audiences = BukkitAudiences.create(this);
+        // Initial plugin setup
+        this.gson = createGson();
+        this.audiences = BukkitAudiences.create(this);
+        this.paperLib = new MorePaperLib(this);
+        this.availableMigrators = new ArrayList<>();
+        this.serializers = new LinkedHashMap<>();
+        this.playerCustomDataStore = new ConcurrentHashMap<>();
+        this.mapViews = new ConcurrentHashMap<>();
 
-            // Load settings and locales
-            log(Level.INFO, "Loading plugin configuration settings & locales...");
-            initialized.set(reload().join());
-            if (initialized.get()) {
-                log(Level.INFO, "Successfully loaded plugin configuration settings & locales");
-            } else {
-                throw new HuskSyncInitializationException("Failed to load plugin configuration settings and/or locales");
-            }
+        // Load settings and locales
+        initialize("plugin config & locale files", (plugin) -> this.loadConfigs());
 
-            // Prepare data adapter
+        // Prepare data adapter
+        initialize("data adapter", (plugin) -> {
             if (settings.doCompressData()) {
-                dataAdapter = new CompressedDataAdapter();
+                dataAdapter = new SnappyGsonAdapter(this);
             } else {
-                dataAdapter = new JsonDataAdapter();
+                dataAdapter = new GsonAdapter(this);
             }
+        });
 
-            // Prepare event cannon
-            eventCannon = new BukkitEventCannon();
+        // Prepare serializers
+        initialize("data serializers", (plugin) -> {
+            registerSerializer(Identifier.INVENTORY, new BukkitSerializer.Inventory(this));
+            registerSerializer(Identifier.ENDER_CHEST, new BukkitSerializer.EnderChest(this));
+            registerSerializer(Identifier.ADVANCEMENTS, new BukkitSerializer.Advancements(this));
+            registerSerializer(Identifier.LOCATION, new BukkitSerializer.Location(this));
+            registerSerializer(Identifier.HEALTH, new BukkitSerializer.Health(this));
+            registerSerializer(Identifier.HUNGER, new BukkitSerializer.Hunger(this));
+            registerSerializer(Identifier.GAME_MODE, new BukkitSerializer.GameMode(this));
+            registerSerializer(Identifier.POTION_EFFECTS, new BukkitSerializer.PotionEffects(this));
+            registerSerializer(Identifier.STATISTICS, new BukkitSerializer.Statistics(this));
+            registerSerializer(Identifier.EXPERIENCE, new BukkitSerializer.Experience(this));
+            registerSerializer(Identifier.PERSISTENT_DATA, new BukkitSerializer.PersistentData(this));
+        });
 
-            // Prepare migrators
-            availableMigrators = new ArrayList<>();
+        // Setup available migrators
+        initialize("data migrators/converters", (plugin) -> {
             availableMigrators.add(new LegacyMigrator(this));
-            final Plugin mySqlPlayerDataBridge = Bukkit.getPluginManager().getPlugin("MySqlPlayerDataBridge");
-            if (mySqlPlayerDataBridge != null) {
-                availableMigrators.add(new MpdbMigrator(this, mySqlPlayerDataBridge));
+            if (isDependencyLoaded("MySqlPlayerDataBridge")) {
+                availableMigrators.add(new MpdbMigrator(this));
             }
+            legacyConverter = new BukkitLegacyConverter(this);
+        });
 
-            // Prepare database connection
+        // Initialize the database
+        initialize(getSettings().getDatabaseType().getDisplayName() + " database connection", (plugin) -> {
             this.database = new MySqlDatabase(this);
-            log(Level.INFO, String.format("Attempting to establish connection to the %s database...",
-                    settings.getDatabaseType().getDisplayName()));
             this.database.initialize();
-            if (initialized.get()) {
-                log(Level.INFO, String.format("Successfully established a connection to the %s database",
-                        settings.getDatabaseType().getDisplayName()));
-            } else {
-                throw new HuskSyncInitializationException("Failed to establish a connection to the database. " +
-                        "Please check the supplied database credentials in the config file");
-            }
+        });
 
-            // Prepare redis connection
+        // Prepare redis connection
+        initialize("Redis server connection", (plugin) -> {
             this.redisManager = new RedisManager(this);
-            log(Level.INFO, "Attempting to establish connection to the Redis server...");
-            initialized.set(this.redisManager.initialize());
-            if (initialized.get()) {
-                log(Level.INFO, "Successfully established a connection to the Redis server");
-            } else {
-                throw new HuskSyncInitializationException("Failed to establish a connection to the Redis server. " +
-                        "Please check the supplied Redis credentials in the config file");
-            }
+            this.redisManager.initialize();
+        });
 
-            // Register events
-            log(Level.INFO, "Registering events...");
-            this.eventListener = new BukkitEventListener(this);
-            log(Level.INFO, "Successfully registered events listener");
+        // Register events
+        initialize("events", (plugin) -> this.eventListener = new BukkitEventListener(this));
 
-            // Register permissions
-            log(Level.INFO, "Registering permissions & commands...");
-            Arrays.stream(Permission.values()).forEach(permission -> getServer().getPluginManager()
-                    .addPermission(new org.bukkit.permissions.Permission(permission.node, switch (permission.defaultAccess) {
-                        case EVERYONE -> PermissionDefault.TRUE;
-                        case NOBODY -> PermissionDefault.FALSE;
-                        case OPERATORS -> PermissionDefault.OP;
-                    })));
+        // Register commands
+        initialize("commands", (plugin) -> BukkitCommand.Type.registerCommands(this));
 
-            // Register commands
-            for (final BukkitCommandType bukkitCommandType : BukkitCommandType.values()) {
-                final PluginCommand pluginCommand = getCommand(bukkitCommandType.commandBase.command);
-                if (pluginCommand != null) {
-                    new BukkitCommand(bukkitCommandType.commandBase, this).register(pluginCommand);
-                }
-            }
-            log(Level.INFO, "Successfully registered permissions & commands");
-
-            // Hook into plan
-            if (Bukkit.getPluginManager().getPlugin("Plan") != null) {
-                log(Level.INFO, "Enabling Plan integration...");
+        // Register plugin hooks
+        initialize("hooks", (plugin) -> {
+            if (isDependencyLoaded("Plan") && getSettings().usePlanHook()) {
                 new PlanHook(this).hookIntoPlan();
-                log(Level.INFO, "Plan integration enabled!");
             }
+        });
 
-            // Hook into bStats metrics
-            try {
-                new Metrics(this, METRICS_ID);
-            } catch (final Exception e) {
-                log(Level.WARNING, "Skipped bStats metrics initialization due to an exception.");
-            }
+        // Register API
+        initialize("api", (plugin) -> BukkitHuskSyncAPI.register(this));
 
-            // Check for updates
-            if (settings.doCheckForUpdates()) {
-                log(Level.INFO, "Checking for updates...");
-                getLatestVersionIfOutdated().thenAccept(newestVersion ->
-                        newestVersion.ifPresent(newVersion -> log(Level.WARNING,
-                                "An update is available for HuskSync, v" + newVersion
-                                        + " (Currently running v" + getPluginVersion() + ")")));
-            }
-        } catch (IllegalStateException exception) {
-            log(Level.SEVERE, """
-                    ***************************************************
-                               
-                              Failed to initialize HuskSync!
-                               
-                    ***************************************************
-                    The plugin was disabled due to an error. Please check
-                    the logs below for details.
-                    No user data will be synchronised.
-                    ***************************************************
-                    Caused by: %error_message%
-                    """
-                    .replaceAll("%error_message%", exception.getMessage()));
-            initialized.set(false);
-        } catch (Exception exception) {
-            log(Level.SEVERE, "An unhandled exception occurred initializing HuskSync!", exception);
-            initialized.set(false);
-        } finally {
-            // Validate initialization
-            if (initialized.get()) {
-                log(Level.INFO, "Successfully enabled HuskSync v" + getPluginVersion());
-            } else {
-                log(Level.SEVERE, "Failed to initialize HuskSync. The plugin will now be disabled");
-                getServer().getPluginManager().disablePlugin(this);
-            }
-        }
+        // Hook into bStats and check for updates
+        initialize("metrics", (plugin) -> this.registerMetrics(METRICS_ID));
+        this.checkForUpdates();
     }
 
     @Override
     public void onDisable() {
+        // Handle shutdown
         if (this.eventListener != null) {
             this.eventListener.handlePluginDisable();
         }
+
+        // Unregister API and cancel tasks
+        BukkitHuskSyncAPI.unregister();
+        this.cancelTasks();
+
+        // Complete shutdown
         log(Level.INFO, "Successfully disabled HuskSync v" + getPluginVersion());
     }
 
     @Override
-    public @NotNull Set<OnlineUser> getOnlineUsers() {
-        return Bukkit.getOnlinePlayers().stream().map(BukkitPlayer::adapt).collect(Collectors.toSet());
+    @NotNull
+    public Set<OnlineUser> getOnlineUsers() {
+        return Bukkit.getOnlinePlayers().stream()
+                .map(player -> BukkitUser.adapt(player, this))
+                .collect(Collectors.toSet());
     }
 
     @Override
-    public @NotNull Optional<OnlineUser> getOnlineUser(@NotNull UUID uuid) {
+    @NotNull
+    public Optional<OnlineUser> getOnlineUser(@NotNull UUID uuid) {
         final Player player = Bukkit.getPlayer(uuid);
         if (player == null) {
             return Optional.empty();
         }
-        return Optional.of(BukkitPlayer.adapt(player));
+        return Optional.of(BukkitUser.adapt(player, this));
     }
 
     @Override
-    public @NotNull Database getDatabase() {
+    @NotNull
+    public Database getDatabase() {
         return database;
     }
 
     @Override
-    public @NotNull RedisManager getRedisManager() {
+    @NotNull
+    public RedisManager getRedisManager() {
         return redisManager;
     }
 
+    @NotNull
     @Override
-    public @NotNull DataAdapter getDataAdapter() {
+    public DataAdapter getDataAdapter() {
         return dataAdapter;
     }
 
+    @NotNull
     @Override
-    public @NotNull EventCannon getEventCannon() {
-        return eventCannon;
+    public Map<Identifier, Serializer<? extends Data>> getSerializers() {
+        return serializers;
     }
 
     @NotNull
@@ -274,14 +236,55 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync {
         return availableMigrators;
     }
 
+    @NotNull
     @Override
-    public @NotNull Settings getSettings() {
+    public Map<Identifier, Data> getPlayerCustomDataStore(@NotNull OnlineUser user) {
+        if (playerCustomDataStore.containsKey(user.getUuid())) {
+            return playerCustomDataStore.get(user.getUuid());
+        }
+        final Map<Identifier, Data> data = new HashMap<>();
+        playerCustomDataStore.put(user.getUuid(), data);
+        return data;
+    }
+
+    @Override
+    @NotNull
+    public Settings getSettings() {
         return settings;
     }
 
     @Override
-    public @NotNull Locales getLocales() {
+    public void setSettings(@NotNull Settings settings) {
+        this.settings = settings;
+    }
+
+    @Override
+    @NotNull
+    public Locales getLocales() {
         return locales;
+    }
+
+    @Override
+    public void setLocales(@NotNull Locales locales) {
+        this.locales = locales;
+    }
+
+    @Override
+    public boolean isDependencyLoaded(@NotNull String name) {
+        return Bukkit.getPluginManager().getPlugin(name) != null;
+    }
+
+    // Register bStats metrics
+    public void registerMetrics(int metricsId) {
+        if (!getPluginVersion().getMetadata().isBlank()) {
+            return;
+        }
+
+        try {
+            new Metrics(this, metricsId);
+        } catch (Throwable e) {
+            log(Level.WARNING, "Failed to register bStats metrics (" + e.getMessage() + ")");
+        }
     }
 
     @Override
@@ -291,6 +294,12 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync {
         } else {
             getLogger().log(level, message);
         }
+    }
+
+    @NotNull
+    @Override
+    public ConsoleUser getConsole() {
+        return new ConsoleUser(audiences.console());
     }
 
     @NotNull
@@ -305,39 +314,65 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync {
         return Version.fromString(Bukkit.getBukkitVersion());
     }
 
-    /**
-     * Returns the adventure Bukkit audiences
-     *
-     * @return The adventure Bukkit audiences
-     */
     @NotNull
-    public BukkitAudiences getAudiences() {
-        return audiences;
+    @Override
+    public String getPlatformType() {
+        return PLATFORM_TYPE_ID;
     }
 
+    @Override
+    public Optional<LegacyConverter> getLegacyConverter() {
+        return Optional.of(legacyConverter);
+    }
+
+    @NotNull
     @Override
     public Set<UUID> getLockedPlayers() {
         return this.eventListener.getLockedPlayers();
     }
 
+    @NotNull
     @Override
-    public CompletableFuture<Boolean> reload() {
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-                // Load plugin settings
-                this.settings = Annotaml.create(new File(getDataFolder(), "config.yml"), new Settings()).get();
-
-                // Load locales from language preset default
-                final Locales languagePresets = Annotaml.create(Locales.class,
-                        Objects.requireNonNull(getResource("locales/" + settings.getLanguage() + ".yml"))).get();
-                this.locales = Annotaml.create(new File(getDataFolder(), "messages_" + settings.getLanguage() + ".yml"),
-                        languagePresets).get();
-                return true;
-            } catch (IOException | NullPointerException | InvocationTargetException | IllegalAccessException |
-                     InstantiationException e) {
-                log(Level.SEVERE, "Failed to load data from the config", e);
-                return false;
-            }
-        });
+    public Gson getGson() {
+        return gson;
     }
+
+    @NotNull
+    public Map<Integer, MapView> getMapViews() {
+        return mapViews;
+    }
+
+    @NotNull
+    public GracefulScheduling getScheduler() {
+        return paperLib.scheduling();
+    }
+
+    @NotNull
+    public AsynchronousScheduler getAsyncScheduler() {
+        return asyncScheduler == null
+                ? asyncScheduler = getScheduler().asyncScheduler() : asyncScheduler;
+    }
+
+    @NotNull
+    public RegionalScheduler getRegionalScheduler() {
+        return regionalScheduler == null
+                ? regionalScheduler = getScheduler().globalRegionalScheduler() : regionalScheduler;
+    }
+
+    @NotNull
+    public BukkitAudiences getAudiences() {
+        return audiences;
+    }
+
+    @NotNull
+    public CommandRegistration getCommandRegistrar() {
+        return paperLib.commandRegistration();
+    }
+
+    @Override
+    @NotNull
+    public HuskSync getPlugin() {
+        return this;
+    }
+
 }
