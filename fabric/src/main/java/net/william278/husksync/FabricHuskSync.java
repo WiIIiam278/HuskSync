@@ -21,6 +21,7 @@ package net.william278.husksync;
 
 import com.google.gson.Gson;
 import net.fabricmc.api.DedicatedServerModInitializer;
+import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
@@ -30,6 +31,8 @@ import net.william278.desertwell.util.Version;
 import net.william278.husksync.adapter.DataAdapter;
 import net.william278.husksync.adapter.GsonAdapter;
 import net.william278.husksync.adapter.SnappyGsonAdapter;
+import net.william278.husksync.command.Command;
+import net.william278.husksync.command.FabricCommand;
 import net.william278.husksync.config.Locales;
 import net.william278.husksync.config.Settings;
 import net.william278.husksync.data.Data;
@@ -77,6 +80,7 @@ public class FabricHuskSync implements DedicatedServerModInitializer, HuskSync, 
     private Map<UUID, Map<Identifier, Data>> playerCustomDataStore;
     private Settings settings;
     private Locales locales;
+    private Map<String, Boolean> permissions;
     private FabricServerAudiences audiences;
     private Gson gson;
 
@@ -85,10 +89,21 @@ public class FabricHuskSync implements DedicatedServerModInitializer, HuskSync, 
 
     @Override
     public void onInitializeServer() {
+        // Get the logger and mod container
         this.logger = LoggerFactory.getLogger("HuskSync");
         this.mod = FabricLoader.getInstance().getModContainer("husksync").orElseThrow();
 
-        // mixin
+        // Prepare utils
+        this.gson = createGson();
+        this.serializers = new LinkedHashMap<>();
+        this.playerCustomDataStore = new ConcurrentHashMap<>();
+        this.permissions = new HashMap<>();
+
+        // Load settings and locales
+        initialize("plugin config & locale files", (plugin) -> this.loadConfigs());
+
+        // Register commands
+        initialize("commands", (plugin) -> this.registerCommands());
 
         // load HuskSync after server started
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
@@ -102,13 +117,7 @@ public class FabricHuskSync implements DedicatedServerModInitializer, HuskSync, 
 
     private void onEnable() {
         // Initial plugin setup
-        this.gson = createGson();
         this.audiences = FabricServerAudiences.of(server);
-        this.serializers = new LinkedHashMap<>();
-        this.playerCustomDataStore = new ConcurrentHashMap<>();
-
-        // Load settings and locales
-        initialize("plugin config & locale files", (plugin) -> this.loadConfigs());
 
         // Prepare data adapter
         initialize("data adapter", (plugin) -> {
@@ -120,8 +129,8 @@ public class FabricHuskSync implements DedicatedServerModInitializer, HuskSync, 
         });
 
         // TODO: Prepare serializers
-        initialize("data serializers", (plugin) -> {
-        });
+//        initialize("data serializers", (plugin) -> {
+//        });
 
         // Initialize the database
         initialize(getSettings().getDatabaseType().getDisplayName() + " database connection", (plugin) -> {
@@ -138,9 +147,6 @@ public class FabricHuskSync implements DedicatedServerModInitializer, HuskSync, 
         // Register events
         initialize("events", (plugin) -> this.eventListener = new FabricEventListener(this));
 
-        // TODO: Register commands
-        //initialize("commands", (plugin) -> BukkitCommand.Type.registerCommands(this));
-
         // Register plugin hooks
         initialize("hooks", (plugin) -> {
             if (isDependencyLoaded("Plan") && getSettings().usePlanHook()) {
@@ -149,7 +155,8 @@ public class FabricHuskSync implements DedicatedServerModInitializer, HuskSync, 
         });
 
         // TODO: Register API
-        //initialize("api", (plugin) -> BukkitHuskSyncAPI.register(this));
+//        initialize("api", (plugin) -> {
+//        });
 
         // Check for updates
         this.checkForUpdates();
@@ -171,9 +178,21 @@ public class FabricHuskSync implements DedicatedServerModInitializer, HuskSync, 
         log(Level.INFO, "Successfully disabled HuskSync v" + getPluginVersion());
     }
 
+    private void registerCommands() {
+        final List<Command> commands = FabricCommand.Type.getCommands(this);
+        CommandRegistrationCallback.EVENT.register((dispatcher, registry, environment) ->
+                commands.forEach(command -> new FabricCommand(command, this).register(dispatcher))
+        );
+    }
+
     @NotNull
     public FabricServerAudiences getAudiences() {
         return audiences;
+    }
+
+    @NotNull
+    public Map<String, Boolean> getPermissions() {
+        return permissions;
     }
 
     @Override
@@ -270,6 +289,7 @@ public class FabricHuskSync implements DedicatedServerModInitializer, HuskSync, 
     }
 
     @Override
+    @SuppressWarnings("NullableProblems")
     public void log(@NotNull Level level, @NotNull String message, @NotNull Throwable... throwable) {
         LoggingEventBuilder logEvent = logger.makeLoggingEventBuilder(
                 switch (level.getName()) {

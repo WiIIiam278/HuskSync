@@ -20,6 +20,7 @@
 package net.william278.husksync.user;
 
 import de.themoep.minedown.adventure.MineDown;
+import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.kyori.adventure.audience.Audience;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.william278.husksync.FabricHuskSync;
@@ -70,9 +71,13 @@ public class FabricUser extends OnlineUser implements FabricUserDataHolder {
         // TODO
     }
 
+
     @Override
     public boolean hasPermission(@NotNull String node) {
-        return false; // TODO Fabric perm API
+        final boolean requiresOp = Boolean.TRUE.equals(
+                ((FabricHuskSync) plugin).getPermissions().getOrDefault(node, true)
+        );
+        return Permissions.check(player, node, !requiresOp || player.hasPermissionLevel(3));
     }
 
     @Override
