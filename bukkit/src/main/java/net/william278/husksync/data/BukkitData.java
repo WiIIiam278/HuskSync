@@ -28,10 +28,7 @@ import net.william278.husksync.HuskSync;
 import net.william278.husksync.adapter.Adaptable;
 import net.william278.husksync.user.BukkitUser;
 import org.apache.commons.lang.NotImplementedException;
-import org.bukkit.Bukkit;
-import org.bukkit.GameRule;
-import org.bukkit.Material;
-import org.bukkit.Statistic;
+import org.bukkit.*;
 import org.bukkit.advancement.AdvancementProgress;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
@@ -529,7 +526,7 @@ public abstract class BukkitData implements Data {
     }
 
     public static class Statistics extends BukkitData implements Data.Statistics {
-        private Map<Statistic, Integer> untypedStatistics;
+        private Map<Statistic, Integer> genericStatistics;
         private Map<Statistic, Map<Material, Integer>> blockStatistics;
         private Map<Statistic, Map<Material, Integer>> itemStatistics;
         private Map<Statistic, Map<EntityType, Integer>> entityStatistics;
@@ -538,7 +535,7 @@ public abstract class BukkitData implements Data {
                            @NotNull Map<Statistic, Map<Material, Integer>> blockStatistics,
                            @NotNull Map<Statistic, Map<Material, Integer>> itemStatistics,
                            @NotNull Map<Statistic, Map<EntityType, Integer>> entityStatistics) {
-            this.untypedStatistics = genericStatistics;
+            this.genericStatistics = genericStatistics;
             this.blockStatistics = blockStatistics;
             this.itemStatistics = itemStatistics;
             this.entityStatistics = entityStatistics;
@@ -659,7 +656,7 @@ public abstract class BukkitData implements Data {
 
         @Override
         public void apply(@NotNull BukkitUser user, @NotNull BukkitHuskSync plugin) throws IllegalStateException {
-            untypedStatistics.forEach((stat, value) -> applyStat(user, stat, null, value));
+            genericStatistics.forEach((stat, value) -> applyStat(user, stat, null, value));
             blockStatistics.forEach((stat, m) -> m.forEach((block, value) -> applyStat(user, stat, block, value)));
             itemStatistics.forEach((stat, m) -> m.forEach((item, value) -> applyStat(user, stat, item, value)));
             entityStatistics.forEach((stat, m) -> m.forEach((entity, value) -> applyStat(user, stat, entity, value)));
@@ -682,45 +679,41 @@ public abstract class BukkitData implements Data {
         @NotNull
         @Override
         public Map<String, Integer> getGenericStatistics() {
-            return untypedStatistics.entrySet().stream().collect(
-                    TreeMap::new,
-                    (m, e) -> m.put(e.getKey().getKey().toString(), e.getValue()), TreeMap::putAll
-            );
+            return convertStatistics(genericStatistics);
         }
 
         @NotNull
         @Override
         public Map<String, Map<String, Integer>> getBlockStatistics() {
-            return blockStatistics.entrySet().stream().collect(
+            return blockStatistics.entrySet().stream().filter(entry -> entry.getKey() != null).collect(
                     TreeMap::new,
-                    (m, e) -> m.put(e.getKey().getKey().toString(), e.getValue().entrySet().stream().collect(
-                            TreeMap::new,
-                            (m2, e2) -> m2.put(e2.getKey().getKey().toString(), e2.getValue()), TreeMap::putAll
-                    )), TreeMap::putAll
+                    (m, e) -> m.put(e.getKey().getKey().toString(), convertStatistics(e.getValue())), TreeMap::putAll
             );
         }
 
         @NotNull
         @Override
         public Map<String, Map<String, Integer>> getItemStatistics() {
-            return itemStatistics.entrySet().stream().collect(
+            return itemStatistics.entrySet().stream().filter(entry -> entry.getKey() != null).collect(
                     TreeMap::new,
-                    (m, e) -> m.put(e.getKey().getKey().toString(), e.getValue().entrySet().stream().collect(
-                            TreeMap::new,
-                            (m2, e2) -> m2.put(e2.getKey().getKey().toString(), e2.getValue()), TreeMap::putAll
-                    )), TreeMap::putAll
+                    (m, e) -> m.put(e.getKey().getKey().toString(), convertStatistics(e.getValue())), TreeMap::putAll
             );
         }
 
         @NotNull
         @Override
         public Map<String, Map<String, Integer>> getEntityStatistics() {
-            return entityStatistics.entrySet().stream().collect(
+            return entityStatistics.entrySet().stream().filter(entry -> entry.getKey() != null).collect(
                     TreeMap::new,
-                    (m, e) -> m.put(e.getKey().getKey().toString(), e.getValue().entrySet().stream().collect(
-                            TreeMap::new,
-                            (m2, e2) -> m2.put(e2.getKey().getKey().toString(), e2.getValue()), TreeMap::putAll
-                    )), TreeMap::putAll
+                    (m, e) -> m.put(e.getKey().getKey().toString(), convertStatistics(e.getValue())), TreeMap::putAll
+            );
+        }
+
+        @NotNull
+        private <T extends Keyed> Map<String, Integer> convertStatistics(@NotNull Map<T, Integer> stats) {
+            return stats.entrySet().stream().filter(entry -> entry.getKey() != null).collect(
+                    TreeMap::new,
+                    (m, e) -> m.put(e.getKey().getKey().toString(), e.getValue()), TreeMap::putAll
             );
         }
 
