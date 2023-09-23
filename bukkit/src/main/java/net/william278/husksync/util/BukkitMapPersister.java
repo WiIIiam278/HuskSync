@@ -133,12 +133,15 @@ public interface BukkitMapPersister {
         final MapMeta meta = Objects.requireNonNull((MapMeta) map.getItemMeta());
         NBT.get(map, nbt -> {
             if (!nbt.hasTag(MAP_DATA_KEY)) {
-                return nbt;
+                return;
             }
             final ReadableNBT mapData = nbt.getCompound(MAP_DATA_KEY);
+            final ReadableNBT mapIds = nbt.getCompound(MAP_VIEW_ID_MAPPINGS_KEY);
+            if (mapData == null || mapIds == null) {
+                return;
+            }
 
             // Search for an existing map view
-            final ReadableNBT mapIds = nbt.getCompound(MAP_VIEW_ID_MAPPINGS_KEY);
             Optional<String> world = Optional.empty();
             for (String worldUid : mapIds.getKeys()) {
                 world = Bukkit.getWorlds().stream()
@@ -157,7 +160,7 @@ public interface BukkitMapPersister {
                     meta.setMapView(view);
                     map.setItemMeta(meta);
                     getPlugin().debug(String.format("View exists (#%s); updated map (UID: %s)", view.getId(), uid));
-                    return nbt;
+                    return;
                 }
             }
 
@@ -165,10 +168,11 @@ public interface BukkitMapPersister {
             final MapData canvasData;
             try {
                 getPlugin().debug("Deserializing map data from NBT and generating view...");
-                canvasData = MapData.fromByteArray(mapData.getByteArray(MAP_PIXEL_DATA_KEY));
+                canvasData = MapData.fromByteArray(Objects.requireNonNull(mapData.getByteArray(MAP_PIXEL_DATA_KEY),
+                        "Map pixel data is null"));
             } catch (Throwable e) {
                 getPlugin().log(Level.WARNING, "Failed to deserialize map data from NBT", e);
-                return nbt;
+                return;
             }
 
             // Add a renderer to the map with the data
@@ -179,10 +183,11 @@ public interface BukkitMapPersister {
 
             // Set the map view ID in NBT
             NBT.modify(map, editable -> {
-                editable.getCompound(MAP_VIEW_ID_MAPPINGS_KEY).setInteger(worldUid, view.getId());
+                Objects.requireNonNull(editable.getCompound(MAP_VIEW_ID_MAPPINGS_KEY),
+                                "Map view ID mappings compound is null")
+                        .setInteger(worldUid, view.getId());
             });
             getPlugin().debug(String.format("Generated view (#%s) and updated map (UID: %s)", view.getId(), worldUid));
-            return nbt;
         });
         return map;
     }
