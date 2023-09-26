@@ -46,6 +46,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public abstract class BukkitData implements Data {
 
@@ -588,30 +589,53 @@ public abstract class BukkitData implements Data {
         @NotNull
         public static BukkitData.Statistics from(@NotNull StatisticsMap stats) {
             return new BukkitData.Statistics(
-                    stats.genericStats().entrySet().stream().collect(Collectors.toMap(
-                            entry -> matchStatistic(entry.getKey()),
-                            Map.Entry::getValue
+                stats.genericStats().entrySet().stream()
+                    .flatMap(entry -> {
+                        Statistic statistic = matchStatistic(entry.getKey());
+                        return statistic != null ? Stream.of(new AbstractMap.SimpleEntry<>(statistic, entry.getValue())) : Stream.empty();
+                    })
+                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)),
+                stats.blockStats().entrySet().stream()
+                    .flatMap(entry -> {
+                        Statistic statistic = matchStatistic(entry.getKey());
+                        return statistic != null ? Stream.of(new AbstractMap.SimpleEntry<>(statistic, entry.getValue())) : Stream.empty();
+                    })
+                    .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        entry -> entry.getValue().entrySet().stream()
+                            .flatMap(blockEntry -> {
+                                Material material = Material.matchMaterial(blockEntry.getKey());
+                                return material != null ? Stream.of(new AbstractMap.SimpleEntry<>(material, blockEntry.getValue())) : Stream.empty();
+                            })
+                            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))
                     )),
-                    stats.blockStats().entrySet().stream().collect(Collectors.toMap(
-                            entry -> matchStatistic(entry.getKey()),
-                            entry -> entry.getValue().entrySet().stream().collect(Collectors.toMap(
-                                    blockEntry -> Material.matchMaterial(blockEntry.getKey()),
-                                    Map.Entry::getValue
-                            ))
+                stats.itemStats().entrySet().stream()
+                    .flatMap(entry -> {
+                        Statistic statistic = matchStatistic(entry.getKey());
+                        return statistic != null ? Stream.of(new AbstractMap.SimpleEntry<>(statistic, entry.getValue())) : Stream.empty();
+                    })
+                    .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        entry -> entry.getValue().entrySet().stream()
+                            .flatMap(itemEntry -> {
+                                Material material = Material.matchMaterial(itemEntry.getKey());
+                                return material != null ? Stream.of(new AbstractMap.SimpleEntry<>(material, itemEntry.getValue())) : Stream.empty();
+                            })
+                            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))
                     )),
-                    stats.itemStats().entrySet().stream().collect(Collectors.toMap(
-                            entry -> matchStatistic(entry.getKey()),
-                            entry -> entry.getValue().entrySet().stream().collect(Collectors.toMap(
-                                    itemEntry -> Material.matchMaterial(itemEntry.getKey()),
-                                    Map.Entry::getValue
-                            ))
-                    )),
-                    stats.entityStats().entrySet().stream().collect(Collectors.toMap(
-                            entry -> matchStatistic(entry.getKey()),
-                            entry -> entry.getValue().entrySet().stream().collect(Collectors.toMap(
-                                    entityEntry -> matchEntityType(entityEntry.getKey()),
-                                    Map.Entry::getValue
-                            ))
+                stats.entityStats().entrySet().stream()
+                    .flatMap(entry -> {
+                        Statistic statistic = matchStatistic(entry.getKey());
+                        return statistic != null ? Stream.of(new AbstractMap.SimpleEntry<>(statistic, entry.getValue())) : Stream.empty();
+                    })
+                    .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        entry -> entry.getValue().entrySet().stream()
+                            .flatMap(itemEntry -> {
+                                EntityType entityType = matchEntityType(itemEntry.getKey());
+                                return entityType != null ? Stream.of(new AbstractMap.SimpleEntry<>(entityType, itemEntry.getValue())) : Stream.empty();
+                            })
+                            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))
                     ))
             );
         }
