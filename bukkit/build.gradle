@@ -7,7 +7,7 @@ dependencies {
     implementation 'net.william278:mapdataapi:1.0.3'
     implementation 'net.william278:andjam:1.0.2'
     implementation 'me.lucko:commodore:2.2'
-    implementation 'net.kyori:adventure-platform-bukkit:4.3.0'
+    implementation 'net.kyori:adventure-platform-bukkit:4.3.1'
     implementation 'dev.triumphteam:triumph-gui:3.1.5'
     implementation 'space.arim.morepaperlib:morepaperlib:0.4.3'
     implementation 'de.tr7zw:item-nbt-api:2.12.0'
