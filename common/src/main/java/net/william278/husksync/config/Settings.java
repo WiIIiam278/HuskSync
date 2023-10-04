@@ -26,6 +26,7 @@ import net.william278.husksync.data.DataSnapshot;
 import net.william278.husksync.data.Identifier;
 import net.william278.husksync.database.Database;
 import net.william278.husksync.listener.EventListener;
+import net.william278.husksync.sync.DataSyncer;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -135,6 +136,10 @@ public class Settings {
 
 
     // Synchronization settings
+    @YamlComment("The type of data syncing method to use. DELAY is recommended for most servers")
+    @YamlKey("synchronization.type")
+    private DataSyncer.Type syncerType = DataSyncer.Type.DELAY;
+
     @YamlComment("The number of data snapshot backups that should be kept at once per user")
     @YamlKey("synchronization.max_user_data_snapshots")
     private int maxUserDataSnapshots = 16;
@@ -313,6 +318,11 @@ public class Settings {
 
     public boolean redisUseSsl() {
         return redisUseSsl;
+    }
+
+    @NotNull
+    public DataSyncer.Type getSyncerType() {
+        return syncerType;
     }
 
     public int getMaxUserDataSnapshots() {
