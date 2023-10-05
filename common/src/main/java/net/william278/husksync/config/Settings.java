@@ -45,7 +45,7 @@ import java.util.*;
 public class Settings {
 
     // Top-level settings
-    @YamlComment("Locale of the default language file to use. Docs: https://william278.net/docs/huskhomes/translations")
+    @YamlComment("Locale of the default language file to use. Docs: https://william278.net/docs/husksync/translations")
     @YamlKey("language")
     private String language = "en-gb";
 
@@ -136,9 +136,10 @@ public class Settings {
 
 
     // Synchronization settings
-    @YamlComment("The type of data syncing method to use (DELAY or LOCKSTEP). DELAY is recommended for most servers")
-    @YamlKey("synchronization.type")
-    private DataSyncer.Type syncerType = DataSyncer.Type.DELAY;
+    @YamlComment("The mode of data synchronization to use (DELAY or LOCKSTEP). DELAY should be fine for most networks."
+            + " Docs: https://william278.net/docs/husksync/sync-modes")
+    @YamlKey("synchronization.mode")
+    private DataSyncer.Mode syncMode = DataSyncer.Mode.DELAY;
 
     @YamlComment("The number of data snapshot backups that should be kept at once per user")
     @YamlKey("synchronization.max_user_data_snapshots")
@@ -320,8 +321,8 @@ public class Settings {
     }
 
     @NotNull
-    public DataSyncer.Type getSyncerType() {
-        return syncerType;
+    public DataSyncer.Mode getSyncMode() {
+        return syncMode;
     }
 
     public int getMaxUserDataSnapshots() {

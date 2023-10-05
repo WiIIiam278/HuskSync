@@ -14,6 +14,7 @@ Welcome! This is the plugin documentation for HuskSync v3.x+. Please click throu
 ## Documentation
 * 🖥️ [[Commands]]
 * ✅ [[Sync Features]]
+* ⚙️ [[Sync Modes]]
 * 🟩 [[Plan Hook]]
 * ☂️ [[Dumping UserData]]
 * 📋 [[Event Priorities]]

@@ -163,7 +163,7 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
 
         // Prepare data syncer
         initialize("data syncer", (plugin) -> {
-            dataSyncer = getSettings().getSyncerType().create(this);
+            dataSyncer = getSettings().getSyncMode().create(this);
             dataSyncer.initialize();
         });
 

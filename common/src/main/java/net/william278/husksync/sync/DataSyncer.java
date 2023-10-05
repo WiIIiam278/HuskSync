@@ -96,17 +96,17 @@ public abstract class DataSyncer {
     }
 
     /**
-     * Represents a type of {@link DataSyncer}
+     * Represents the different available modes of {@link DataSyncer}
      *
      * @since 3.1
      */
-    public enum Type {
+    public enum Mode {
         DELAY(DelayDataSyncer::new),
         LOCKSTEP(LockstepDataSyncer::new);
 
         private final Function<HuskSync, ? extends DataSyncer> supplier;
 
-        Type(@NotNull Function<HuskSync, ? extends DataSyncer> supplier) {
+        Mode(@NotNull Function<HuskSync, ? extends DataSyncer> supplier) {
             this.supplier = supplier;
         }
 
