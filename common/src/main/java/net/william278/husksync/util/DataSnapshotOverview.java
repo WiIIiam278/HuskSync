@@ -70,6 +70,8 @@ public class DataSnapshotOverview {
         }
         locales.getLocale("data_manager_cause", snapshot.getSaveCause().getDisplayName())
                 .ifPresent(user::sendMessage);
+        locales.getLocale("data_manager_server", snapshot.getServerName())
+                .ifPresent(user::sendMessage);
 
         // User status data, if present in the snapshot
         final Optional<Data.Health> health = snapshot.getHealth();

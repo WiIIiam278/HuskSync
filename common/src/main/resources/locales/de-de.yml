@@ -11,6 +11,7 @@ data_manager_title: '[Du siehst den Nutzerdaten-Schnappschuss](#00fb9a) [%1%](#0
 data_manager_timestamp: '[⌚ %1%](#ffc43b-#f5c962 show_text=&7Versions-Zeitstempel:\n&8Zeitpunkt der Speicherung der Daten)'
 data_manager_pinned: '[※ Schnappschuss angeheftet](#d8ff2b show_text=&7Angeheftet:\n&8Dieser Nutzerdaten-Schnappschuss wird nicht automatisch rotiert.)'
 data_manager_cause: '[⚑ %1%](#23a825-#36f539 show_text=&7Speicherungsgrund:\n&8Der Grund für das Speichern der Daten)'
+data_manager_server: '[Ⓢ %1%](#ff87b3-#f5538e show_text=&7Server:\n&8Name of the server the data was saved on)'
 data_manager_size: '[⏏ %1%](color=#62a9f5-#7ab8fa show_text=&7Snapshot size:\n&8Estimated file size of the snapshot (in KiB))\n'
 data_manger_status: '[%1%](red)[/](gray)[%2%](red)[×](gray)[❤](red show_text=&7Lebenspunkte)   [%3%](yellow)[×](gray)[🍖](yellow show_text=&7Hungerpunkte)   [ʟᴠ](green)[.](gray)[%4%](green show_text=&7XP-Level)   [🏹 %5%](dark_aqua show_text=&7Spielmodus)'
 data_manager_advancements_statistics: '[⭐ Erfolge: %1%](color=#ffc43b-#f5c962 show_text=&7Erfolge in denen du Fortschritt gemacht hast:\n&8%2%)   [⌛ Spielzeit: %3%ʜʀs](color=#62a9f5-#7ab8fa show_text=&7Deine verbrachte Zeit im Spiel\n&8⚠ Basierend auf Spielstatistiken)\n'
