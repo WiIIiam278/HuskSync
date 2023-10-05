@@ -92,7 +92,7 @@ public class RedisManager extends JedisPubSub {
         try (Jedis jedis = jedisPool.getResource()) {
             jedis.subscribe(
                     this,
-                    Arrays.stream(RedisMessageType.values())
+                    Arrays.stream(RedisMessage.Type.values())
                             .map(type -> type.getMessageChannel(clusterId))
                             .toArray(String[]::new)
             );
@@ -101,7 +101,7 @@ public class RedisManager extends JedisPubSub {
 
     @Override
     public void onMessage(@NotNull String channel, @NotNull String message) {
-        final RedisMessageType messageType = RedisMessageType.getTypeFromChannel(channel, clusterId).orElse(null);
+        final RedisMessage.Type messageType = RedisMessage.Type.getTypeFromChannel(channel, clusterId).orElse(null);
         if (messageType == null) {
             return;
         }
@@ -118,7 +118,7 @@ public class RedisManager extends JedisPubSub {
                     user -> RedisMessage.create(
                             UUID.fromString(new String(redisMessage.getPayload(), StandardCharsets.UTF_8)),
                             user.createSnapshot(DataSnapshot.SaveCause.INVENTORY_COMMAND).asBytes(plugin)
-                    ).dispatch(plugin, RedisMessageType.RETURN_USER_DATA)
+                    ).dispatch(plugin, RedisMessage.Type.RETURN_USER_DATA)
             );
             case RETURN_USER_DATA -> {
                 final CompletableFuture<Optional<DataSnapshot.Packed>> future = pendingRequests.get(
@@ -142,7 +142,7 @@ public class RedisManager extends JedisPubSub {
     public void sendUserDataUpdate(@NotNull User user, @NotNull DataSnapshot.Packed data) {
         plugin.runAsync(() -> {
             final RedisMessage redisMessage = RedisMessage.create(user.getUuid(), data.asBytes(plugin));
-            redisMessage.dispatch(plugin, RedisMessageType.UPDATE_USER_DATA);
+            redisMessage.dispatch(plugin, RedisMessage.Type.UPDATE_USER_DATA);
         });
     }
 
@@ -162,7 +162,7 @@ public class RedisManager extends JedisPubSub {
                     user.getUuid(),
                     requestId.toString().getBytes(StandardCharsets.UTF_8)
             );
-            redisMessage.dispatch(plugin, RedisMessageType.REQUEST_USER_DATA);
+            redisMessage.dispatch(plugin, RedisMessage.Type.REQUEST_USER_DATA);
         });
         return future.orTimeout(
                         plugin.getSettings().getNetworkLatencyMilliseconds(),
