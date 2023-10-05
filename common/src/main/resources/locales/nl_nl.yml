@@ -11,6 +11,7 @@ data_manager_title: '[Momentopname van gebruikersgegevens bekijken](#00fb9a) [%1
 data_manager_timestamp: '[⌚ %1%](#ffc43b-#f5c962 show_text=&7Versie tijdmarkering:\n&8Toen de gegevens werden opgeslagen)'
 data_manager_pinned: '[※ Momentopname vastgezet](#d8ff2b show_text=&7Vastgezet:\n&8Deze momentopname van gebruikersgegevens wordt niet automatisch gerouleerd.)'
 data_manager_cause: '[⚑ %1%](#23a825-#36f539 show_text=&7Reden opslaan:\n&8Waarom de data is opgeslagen)'
+data_manager_server: '[Ⓢ %1%](#ff87b3-#f5538e show_text=&7Server:\n&8Name of the server the data was saved on)'
 data_manager_size: '[⏏ %1%](color=#62a9f5-#7ab8fa show_text=&7Grootte van momentopname:\n&8Geschatte bestandsgrootte van de momentopname (in KiB))\n'
 data_manger_status: '[%1%](red)[/](gray)[%2%](red)[×](gray)[❤](red show_text=&7Gezondheids punten)   [%3%](yellow)[×](gray)[🍖](yellow show_text=&7Honger punten)   [ʟᴠ](green)[.](gray)[%4%](green show_text=&7XP level)   [🏹 %5%](dark_aqua show_text=&7Speltype)'
 data_manager_advancements_statistics: '[⭐ Advancements: %1%](color=#ffc43b-#f5c962 show_text=&7Advancements waarin je voortgang hebt:\n&8%2%)   [⌛ Speeltijd: %3%uren](color=#62a9f5-#7ab8fa show_text=&7In-game speeltijd\n&8⚠ Gebaseerd op in-game statistieken)\n'

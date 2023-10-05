@@ -33,9 +33,7 @@ HuskSync requires Redis to operate (for reasons demonstrated below). Redis is an
 <details>
 <summary>&nbsp;<b>How does the plugin synchronize data?</b></summary>
 
-![System diagram](https://raw.githubusercontent.com/WiIIiam278/HuskSync/master/images/system-diagram.png)
-
-HuskSync makes use of both MySQL and Redis for optimal data synchronization.
+HuskSync makes use of both MySQL and Redis for optimal data synchronization. You have the option of using one of two [[Sync Modes]], which synchronize data between servers (`DELAY` or `LOCKSTEP`)
 
 When a user changes servers, in addition to data being saved to MySQL, it is also cached via the Redis server with a temporary expiry key. When changing servers, the receiving server detects the key and sets the user data from Redis. When a player rejoins the network, the system fetches the last-saved data snapshot from the MySQL Database.
 

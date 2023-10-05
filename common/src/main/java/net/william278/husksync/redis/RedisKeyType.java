@@ -24,9 +24,9 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Locale;
 
 public enum RedisKeyType {
-    CACHE(60 * 60 * 24),
     DATA_UPDATE(10),
-    SERVER_SWITCH(10);
+    SERVER_SWITCH(10),
+    DATA_CHECKOUT(60 * 60 * 24 * 7 * 52);
 
     private final int timeToLive;
 

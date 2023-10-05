@@ -26,6 +26,7 @@ import net.william278.husksync.data.DataSnapshot;
 import net.william278.husksync.data.Identifier;
 import net.william278.husksync.database.Database;
 import net.william278.husksync.listener.EventListener;
+import net.william278.husksync.sync.DataSyncer;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -44,7 +45,7 @@ import java.util.*;
 public class Settings {
 
     // Top-level settings
-    @YamlComment("Locale of the default language file to use. Docs: https://william278.net/docs/huskhomes/translations")
+    @YamlComment("Locale of the default language file to use. Docs: https://william278.net/docs/husksync/translations")
     @YamlKey("language")
     private String language = "en-gb";
 
@@ -135,6 +136,11 @@ public class Settings {
 
 
     // Synchronization settings
+    @YamlComment("The mode of data synchronization to use (DELAY or LOCKSTEP). DELAY should be fine for most networks."
+            + " Docs: https://william278.net/docs/husksync/sync-modes")
+    @YamlKey("synchronization.mode")
+    private DataSyncer.Mode syncMode = DataSyncer.Mode.DELAY;
+
     @YamlComment("The number of data snapshot backups that should be kept at once per user")
     @YamlKey("synchronization.max_user_data_snapshots")
     private int maxUserDataSnapshots = 16;
@@ -150,7 +156,6 @@ public class Settings {
             DataSnapshot.SaveCause.INVENTORY_COMMAND.name(),
             DataSnapshot.SaveCause.ENDERCHEST_COMMAND.name(),
             DataSnapshot.SaveCause.BACKUP_RESTORE.name(),
-            DataSnapshot.SaveCause.CONVERTED_FROM_V2.name(),
             DataSnapshot.SaveCause.LEGACY_MIGRATION.name(),
             DataSnapshot.SaveCause.MPDB_MIGRATION.name()
     );
@@ -188,7 +193,7 @@ public class Settings {
     @YamlKey("synchronization.synchronize_dead_players_changing_server")
     private boolean synchronizeDeadPlayersChangingServer = true;
 
-    @YamlComment("How long, in milliseconds, this server should wait for a response from the redis server before "
+    @YamlComment("If using the DELAY sync method, how long should this server listen for Redis key data updates before "
             + "pulling data from the database instead (i.e., if the user did not change servers).")
     @YamlKey("synchronization.network_latency_milliseconds")
     private int networkLatencyMilliseconds = 500;
@@ -313,6 +318,11 @@ public class Settings {
 
     public boolean redisUseSsl() {
         return redisUseSsl;
+    }
+
+    @NotNull
+    public DataSyncer.Mode getSyncMode() {
+        return syncMode;
     }
 
     public int getMaxUserDataSnapshots() {

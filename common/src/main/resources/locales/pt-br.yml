@@ -11,6 +11,7 @@ data_manager_title: '[Visualizando snapshot dos dados do usuário](#00fb9a) [%1%
 data_manager_timestamp: '[⌚ %1%](#ffc43b-#f5c962 show_text=&7Version timestamp:\n&8Quando os dados foram salvos)'
 data_manager_pinned: '[※ Snapshot marcada](#d8ff2b show_text=&7Marcada:\n&8Essa snapshot de dados do usuário não será girada automaticamente.)'
 data_manager_cause: '[⚑ %1%](#23a825-#36f539 show_text=&7Causa do salvamento:\n&8O motivo para que os dados fossem salvos)'
+data_manager_server: '[Ⓢ %1%](#ff87b3-#f5538e show_text=&7Server:\n&8Name of the server the data was saved on)'
 data_manager_size: '[⏏ %1%](color=#62a9f5-#7ab8fa show_text=&7Snapshot size:\n&8Estimated file size of the snapshot (in KiB))\n'
 data_manger_status: '[%1%](red)[/](gray)[%2%](red)[×](gray)[❤](red show_text=&7Pontos de Vida)   [%3%](yellow)[×](gray)[🍖](yellow show_text=&7Pontos de vida)   [ʟᴠ](green)[.](gray)[%4%](green show_text=&7XP level)   [🏹 %5%](dark_aqua show_text=&7Game mode)'
 data_manager_advancements_statistics: '[⭐ Progressos: %1%](color=#ffc43b-#f5c962 show_text=&7Progressos que você tem realizado em:\n&8%2%)   [⌛ Tempo de jogo: %3%ʜʀs](color=#62a9f5-#7ab8fa show_text=&7Tempo de jogo dentro do jogo\n&8⚠ Com base em estatísticas dentro do jogo)\n'

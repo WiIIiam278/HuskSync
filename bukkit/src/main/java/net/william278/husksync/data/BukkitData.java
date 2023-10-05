@@ -657,20 +657,18 @@ public abstract class BukkitData implements Data {
             return new StatisticsMap(genericStats, blockStats, itemStats, entityStats);
         }
 
-        @NotNull
+        @Nullable
         private static Statistic matchStatistic(@NotNull String key) {
             return Arrays.stream(Statistic.values())
                     .filter(stat -> stat.getKey().toString().equals(key))
-                    .findFirst()
-                    .orElseThrow(() -> new IllegalArgumentException(String.format("Invalid statistic key: %s", key)));
+                    .findFirst().orElse(null);
         }
 
-        @NotNull
+        @Nullable
         private static EntityType matchEntityType(@NotNull String key) {
             return Arrays.stream(EntityType.values())
                     .filter(entityType -> entityType.getKey().toString().equals(key))
-                    .findFirst()
-                    .orElseThrow(() -> new IllegalArgumentException(String.format("Invalid entity type key: %s", key)));
+                    .findFirst().orElse(null);
         }
 
         @Override
