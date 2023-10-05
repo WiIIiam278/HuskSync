@@ -28,6 +28,7 @@ import net.william278.husksync.adapter.SnappyGsonAdapter;
 import net.william278.husksync.api.BukkitHuskSyncAPI;
 import net.william278.husksync.command.BukkitCommand;
 import net.william278.husksync.config.Locales;
+import net.william278.husksync.config.Server;
 import net.william278.husksync.config.Settings;
 import net.william278.husksync.data.BukkitSerializer;
 import net.william278.husksync.data.Data;
@@ -88,6 +89,7 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
     private DataSyncer dataSyncer;
     private Settings settings;
     private Locales locales;
+    private Server server;
     private List<Migrator> availableMigrators;
     private LegacyConverter legacyConverter;
     private Map<Integer, MapView> mapViews;
@@ -273,6 +275,17 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
     @Override
     public void setSettings(@NotNull Settings settings) {
         this.settings = settings;
+    }
+
+    @NotNull
+    @Override
+    public String getServerName() {
+        return server.getName();
+    }
+
+    @Override
+    public void setServer(@NotNull Server server) {
+        this.server = server;
     }
 
     @Override

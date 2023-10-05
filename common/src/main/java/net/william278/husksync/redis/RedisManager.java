@@ -180,7 +180,8 @@ public class RedisManager extends JedisPubSub {
      * @param user the user to set data for
      * @param data the user's data to set
      */
-    public void setUserData(@NotNull User user, @NotNull DataSnapshot.Packed data) {
+    public CompletableFuture<Void> setUserData(@NotNull User user, @NotNull DataSnapshot.Packed data) {
+        final CompletableFuture<Optional<DataSnapshot.Packed>> future = new CompletableFuture<>();
         plugin.runAsync(() -> {
             try (Jedis jedis = jedisPool.getResource()) {
                 jedis.setex(
@@ -188,10 +189,76 @@ public class RedisManager extends JedisPubSub {
                         RedisKeyType.DATA_UPDATE.getTimeToLive(),
                         data.asBytes(plugin)
                 );
+                future.complete(null);
                 plugin.debug(String.format("[%s] Set %s key to redis at: %s", user.getUsername(),
                         RedisKeyType.DATA_UPDATE.name(), new SimpleDateFormat("mm:ss.SSS").format(new Date())));
             } catch (Throwable e) {
                 plugin.log(Level.SEVERE, "An exception occurred setting a user's server switch", e);
+            }
+        });
+    }
+
+    public void setUserCheckedOut(@NotNull User user, boolean checkedOut) {
+        plugin.runAsync(() -> {
+            try (Jedis jedis = jedisPool.getResource()) {
+                if (checkedOut) {
+                    jedis.set(
+                            getKey(RedisKeyType.DATA_CHECKOUT, user.getUuid(), clusterId),
+                            plugin.getServerName().getBytes(StandardCharsets.UTF_8)
+                    );
+                } else {
+                    jedis.del(getKey(RedisKeyType.DATA_CHECKOUT, user.getUuid(), clusterId));
+                }
+                plugin.debug(String.format("[%s] %s %s key to redis at: %s",
+                        checkedOut ? "set" : "removed", user.getUsername(), RedisKeyType.DATA_CHECKOUT.name(),
+                        new SimpleDateFormat("mm:ss.SSS").format(new Date())));
+            } catch (Throwable e) {
+                plugin.log(Level.SEVERE, "An exception occurred setting a user's server switch", e);
+            }
+        });
+    }
+
+    public CompletableFuture<Optional<String>> getUserCheckedOut(@NotNull User user) {
+        final CompletableFuture<Optional<String>> future = new CompletableFuture<>();
+        plugin.runAsync(() -> {
+            try (Jedis jedis = jedisPool.getResource()) {
+                final byte[] key = getKey(RedisKeyType.DATA_CHECKOUT, user.getUuid(), clusterId);
+                final byte[] readData = jedis.get(key);
+                if (readData == null) {
+                    plugin.debug("[" + user.getUsername() + "] Could not read " +
+                            RedisKeyType.DATA_CHECKOUT.name() + " key from redis at: " +
+                            new SimpleDateFormat("mm:ss.SSS").format(new Date()));
+                    future.complete(Optional.empty());
+                } else {
+                    plugin.debug("[" + user.getUsername() + "] Successfully read "
+                            + RedisKeyType.DATA_CHECKOUT.name() + " key from redis at: " +
+                            new SimpleDateFormat("mm:ss.SSS").format(new Date()));
+                    future.complete(Optional.of(new String(readData, StandardCharsets.UTF_8)));
+                }
+            } catch (Throwable e) {
+                plugin.log(Level.SEVERE, "An exception occurred fetching a user's checkout key from redis", e);
+                future.complete(Optional.empty());
+            }
+        });
+        return future;
+    }
+
+    public void clearUsersCheckedOutOnServer() {
+        plugin.runAsync(() -> {
+            final String keyFormat = String.format("%s*", RedisKeyType.DATA_CHECKOUT.getKeyPrefix(clusterId));
+            try (Jedis jedis = jedisPool.getResource()) {
+                final Set<String> keys = jedis.keys(keyFormat);
+                if (keys == null) {
+                    plugin.log(Level.WARNING, "Checkout key set returned null from jedis during clearing");
+                    return;
+                }
+                for (String key : keys) {
+                    if (jedis.get(key).equals(plugin.getServerName())) {
+                        jedis.del(key);
+                    }
+                }
+            } catch (Throwable e) {
+                plugin.log(Level.SEVERE, "An exception occurred clearing users checked out on this server", e);
             }
         });
     }

@@ -28,6 +28,7 @@ import net.william278.desertwell.util.UpdateChecker;
 import net.william278.desertwell.util.Version;
 import net.william278.husksync.adapter.DataAdapter;
 import net.william278.husksync.config.Locales;
+import net.william278.husksync.config.Server;
 import net.william278.husksync.config.Settings;
 import net.william278.husksync.data.Data;
 import net.william278.husksync.data.Identifier;
@@ -181,6 +182,11 @@ public interface HuskSync extends Task.Supplier, EventDispatcher {
 
     void setSettings(@NotNull Settings settings);
 
+    @NotNull
+    String getServerName();
+
+    void setServer(@NotNull Server server);
+
     /**
      * Returns the plugin {@link Locales}
      *
@@ -282,6 +288,9 @@ public interface HuskSync extends Task.Supplier, EventDispatcher {
         try {
             // Load settings
             setSettings(Annotaml.create(new File(getDataFolder(), "config.yml"), Settings.class).get());
+
+            // Load server name
+            setServer(Annotaml.create(new File(getDataFolder(), "server.yml"), Server.class).get());
 
             // Load locales from language preset default
             final Locales languagePresets = Annotaml.create(
