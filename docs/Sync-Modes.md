@@ -1,4 +1,4 @@
-**HuskSync** offers two built-in synchronization modes. These sync modes change the way data is synced between servers. This page details the two sync modes available and how they work.
+HuskSync offers two built-in **synchronization modes**. These sync modes change the way data is synced between servers. This page details the two sync modes available and how they work.
 
 * The `DELAY` sync mode is the default sync mode, that use the `network_latency_miliseconds` value to apply a delay before listening to Redis data
 * The `LOCKSTEP` sync mode uses a data checkout system to ensure that all servers are in sync regardless of network latency or tick rate fluctuations. This mode was introduced in HuskSync v3.1
@@ -13,7 +13,7 @@ You can change which sync mode you are using by editing the `sync_mode` setting 
 ```yaml
 synchronization:
   # The mode of data synchronization to use (DELAY or LOCKSTEP). DELAY should be fine for most networks. Docs: https://william278.net/docs/husksync/sync-modes
-  type: DELAY
+  mode: DELAY
 ```
 </details>
 
