@@ -20,9 +20,11 @@
 package net.william278.husksync.sync;
 
 import net.william278.husksync.HuskSync;
+import net.william278.husksync.api.HuskSyncAPI;
 import net.william278.husksync.data.DataSnapshot;
 import net.william278.husksync.user.OnlineUser;
 import net.william278.husksync.util.Task;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.atomic.AtomicLong;
@@ -38,34 +40,61 @@ import java.util.function.Supplier;
 public abstract class DataSyncer {
     private static final long BASE_LISTEN_ATTEMPTS = 16;
     private static final long LISTEN_DELAY = 10;
-    private final long maxListenAttempts;
 
     protected final HuskSync plugin;
+    private final long maxListenAttempts;
 
+    @ApiStatus.Internal
     protected DataSyncer(@NotNull HuskSync plugin) {
         this.plugin = plugin;
         this.maxListenAttempts = getMaxListenAttempts();
     }
 
-    public void initialize() {
-    }
-
-    public void terminate() {
-    }
-
-    public abstract void setUserData(@NotNull OnlineUser user);
-
-    public abstract void saveUserData(@NotNull OnlineUser user);
-
-    private long getMaxListenAttempts() {
-        return BASE_LISTEN_ATTEMPTS + ((plugin.getSettings().getNetworkLatencyMilliseconds() / 1000) * 20 / LISTEN_DELAY);
+    /**
+     * API-exposed constructor for a {@link DataSyncer}
+     *
+     * @param api instance of the {@link HuskSyncAPI}
+     */
+    @SuppressWarnings("unused")
+    public DataSyncer(@NotNull HuskSyncAPI api) {
+        this(api.getPlugin());
     }
 
     /**
-     * Set a user's data from the database
-     *
-     * @param user The user to set the data for
+     * Called when the plugin is enabled
      */
+    public void initialize() {
+    }
+
+    /**
+     * Called when the plugin is disabled
+     */
+    public void terminate() {
+    }
+
+    /**
+     * Called when a user's data should be fetched and applied to them
+     *
+     * @param user the user to fetch data for
+     */
+    public abstract void setUserData(@NotNull OnlineUser user);
+
+    /**
+     * Called when a user's data should be serialized and saved
+     *
+     * @param user the user to save
+     */
+    public abstract void saveUserData(@NotNull OnlineUser user);
+
+    // Calculates the max attempts the system should listen for user data for based on the latency value
+    private long getMaxListenAttempts() {
+        return BASE_LISTEN_ATTEMPTS + (
+                (Math.max(100, plugin.getSettings().getNetworkLatencyMilliseconds()) / 1000) * 20 / LISTEN_DELAY
+        );
+    }
+
+    // Set a user's data from the database, or set them as a new user
+    @ApiStatus.Internal
     protected void setUserFromDatabase(@NotNull OnlineUser user) {
         plugin.getDatabase().getLatestSnapshot(user).ifPresentOrElse(
                 snapshot -> user.applySnapshot(snapshot, DataSnapshot.UpdateCause.SYNCHRONIZED),
@@ -73,6 +102,8 @@ public abstract class DataSyncer {
         );
     }
 
+    // Continuously listen for data from Redis
+    @ApiStatus.Internal
     protected void listenForRedisData(@NotNull OnlineUser user, @NotNull Supplier<Boolean> completionSupplier) {
         final AtomicLong timesRun = new AtomicLong(0L);
         final AtomicReference<Task.Repeating> task = new AtomicReference<>();
@@ -96,7 +127,7 @@ public abstract class DataSyncer {
     }
 
     /**
-     * Represents the different available modes of {@link DataSyncer}
+     * Represents the different available default modes of {@link DataSyncer}
      *
      * @since 3.1
      */

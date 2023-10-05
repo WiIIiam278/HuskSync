@@ -4,6 +4,8 @@ To do this, you create and register an implementation of a platform `Data` class
 
 > **Note:** Before you begin, consider if this is what you'd like to do. For simpler/smaller data sync tasks you may wish to consider using the PersistentDataContainer API format instead, which is a bit more portable if you decide to exit the HuskSync ecosystem.
 
+If you'd like to have a look at an example of a data extension for HuskSync that provides serializers for Pixelmon data when running the plugin on Arclight, check out [PokeSync by GsTio86](https://github.com/GsTio86/PokeSync)!
+
 ## Table of Contents
 1. [Extending the BukkitData Class](#1-extending-the-bukkitdata-class)
    1. [Implementing Adaptable](#11-implementing-adaptable) 

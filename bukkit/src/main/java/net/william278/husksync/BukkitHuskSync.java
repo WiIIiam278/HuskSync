@@ -251,6 +251,12 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
         return dataSyncer;
     }
 
+    @Override
+    public void setDataSyncer(@NotNull DataSyncer dataSyncer) {
+        log(Level.INFO, String.format("Switching data syncer to %s", dataSyncer.getClass().getSimpleName()));
+        this.dataSyncer = dataSyncer;
+    }
+
     @NotNull
     @Override
     public Map<Identifier, Serializer<? extends Data>> getSerializers() {

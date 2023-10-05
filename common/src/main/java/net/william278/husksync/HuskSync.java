@@ -146,6 +146,13 @@ public interface HuskSync extends Task.Supplier, EventDispatcher {
     DataSyncer getDataSyncer();
 
     /**
+     * Set the data syncer implementation
+     *
+     * @param dataSyncer the {@link DataSyncer} implementation
+     */
+    void setDataSyncer(@NotNull DataSyncer dataSyncer);
+
+    /**
      * Returns a list of available data {@link Migrator}s
      *
      * @return a list of {@link Migrator}s
@@ -275,7 +282,7 @@ public interface HuskSync extends Task.Supplier, EventDispatcher {
     String getPlatformType();
 
     /**
-     * Returns the legacy data converter, if it exists
+     * Returns the legacy data converter if it exists
      *
      * @return the {@link LegacyConverter}
      */

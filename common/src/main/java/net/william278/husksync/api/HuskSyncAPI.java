@@ -26,6 +26,7 @@ import net.william278.husksync.data.Data;
 import net.william278.husksync.data.DataSnapshot;
 import net.william278.husksync.data.Identifier;
 import net.william278.husksync.data.Serializer;
+import net.william278.husksync.sync.DataSyncer;
 import net.william278.husksync.user.OnlineUser;
 import net.william278.husksync.user.User;
 import org.jetbrains.annotations.ApiStatus;
@@ -404,6 +405,7 @@ public abstract class HuskSyncAPI {
      * @param <T>        The type of the element
      * @return The deserialized element
      * @throws Serializer.DeserializationException If the element could not be deserialized
+     * @since 3.0
      */
     @NotNull
     public <T extends Adaptable> T deserializeData(@NotNull String serialized, Class<T> type)
@@ -418,11 +420,22 @@ public abstract class HuskSyncAPI {
      * @param <T>     The type of the element
      * @return The serialized JSON string
      * @throws Serializer.SerializationException If the element could not be serialized
+     * @since 3.0
      */
     @NotNull
     public <T extends Adaptable> String serializeData(@NotNull T element)
             throws Serializer.SerializationException {
         return plugin.getDataAdapter().toJson(element);
+    }
+
+    /**
+     * Set the {@link DataSyncer} to be used to sync data
+     *
+     * @param syncer The data syncer to use for synchronizing user data
+     * @since 3.1
+     */
+    public void setDataSyncer(@NotNull DataSyncer syncer) {
+        plugin.setDataSyncer(syncer);
     }
 
     /**
