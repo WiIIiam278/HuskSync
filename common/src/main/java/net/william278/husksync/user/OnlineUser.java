@@ -158,7 +158,7 @@ public abstract class OnlineUser extends User implements CommandUser, UserDataHo
             }
             plugin.fireEvent(
                     plugin.getSyncCompleteEvent(this),
-                    (event) -> plugin.getLockedPlayers().remove(getUuid())
+                    (event) -> plugin.unlockPlayer(getUuid())
             );
         } else {
             cause.getFailedLocale(plugin).ifPresent(this::sendMessage);

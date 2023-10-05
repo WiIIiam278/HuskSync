@@ -45,9 +45,9 @@ public class DataSnapshot {
 
     /*
      * Current version of the snapshot data format.
-     * HuskSync v3.0 uses v4; HuskSync v2.0 uses v1-v3
+     * HuskSync v3.1 uses v5, v3.0 uses v4; v2.0 uses v1-v3
      */
-    protected static final int CURRENT_FORMAT_VERSION = 4;
+    protected static final int CURRENT_FORMAT_VERSION = 5;
 
     @SerializedName("id")
     protected UUID id;
@@ -60,6 +60,9 @@ public class DataSnapshot {
 
     @SerializedName("save_cause")
     protected SaveCause saveCause;
+
+    @SerializedName("server_name")
+    protected String serverName;
 
     @SerializedName("minecraft_version")
     protected String minecraftVersion;
@@ -74,12 +77,13 @@ public class DataSnapshot {
     protected Map<String, String> data;
 
     private DataSnapshot(@NotNull UUID id, boolean pinned, @NotNull OffsetDateTime timestamp,
-                         @NotNull SaveCause saveCause, @NotNull Map<String, String> data,
+                         @NotNull SaveCause saveCause, @NotNull String serverName, @NotNull Map<String, String> data,
                          @NotNull Version minecraftVersion, @NotNull String platformType, int formatVersion) {
         this.id = id;
         this.pinned = pinned;
         this.timestamp = timestamp;
         this.saveCause = saveCause;
+        this.serverName = serverName;
         this.data = data;
         this.minecraftVersion = minecraftVersion.toStringWithoutMetadata();
         this.platformType = platformType;
@@ -114,7 +118,7 @@ public class DataSnapshot {
                             "Please ensure each server is running the latest version of HuskSync.",
                     snapshot.getFormatVersion(), CURRENT_FORMAT_VERSION));
         }
-        if (snapshot.getFormatVersion() < CURRENT_FORMAT_VERSION) {
+        if (snapshot.getFormatVersion() < 4) {
             if (plugin.getLegacyConverter().isPresent()) {
                 return plugin.getLegacyConverter().get().convert(
                         data,
@@ -196,12 +200,25 @@ public class DataSnapshot {
     }
 
     /**
+     * Get the server the snapshot was created on.
+     * <p>
+     * Note that snapshots generated before v3.1 will return {@code "N/A"}
+     *
+     * @return The server name
+     * @since 3.1
+     */
+    @NotNull
+    public String getServerName() {
+        return Optional.ofNullable(serverName).orElse("N/A");
+    }
+
+    /**
      * Set why the snapshot was created
      *
      * @param saveCause The {@link SaveCause data save cause} of the snapshot
      * @since 3.0
      */
-    public void setSaveCause(SaveCause saveCause) {
+    public void setSaveCause(@NotNull SaveCause saveCause) {
         this.saveCause = saveCause;
     }
 
@@ -256,9 +273,9 @@ public class DataSnapshot {
     public static class Packed extends DataSnapshot implements Adaptable {
 
         protected Packed(@NotNull UUID id, boolean pinned, @NotNull OffsetDateTime timestamp,
-                         @NotNull SaveCause saveCause, @NotNull Map<String, String> data,
+                         @NotNull SaveCause saveCause, @NotNull String serverName, @NotNull Map<String, String> data,
                          @NotNull Version minecraftVersion, @NotNull String platformType, int formatVersion) {
-            super(id, pinned, timestamp, saveCause, data, minecraftVersion, platformType, formatVersion);
+            super(id, pinned, timestamp, saveCause, serverName, data, minecraftVersion, platformType, formatVersion);
         }
 
         @SuppressWarnings("unused")
@@ -282,8 +299,8 @@ public class DataSnapshot {
         @NotNull
         public Packed copy() {
             return new Packed(
-                    UUID.randomUUID(), pinned, OffsetDateTime.now(), saveCause, data,
-                    getMinecraftVersion(), platformType, formatVersion
+                    UUID.randomUUID(), pinned, OffsetDateTime.now(), saveCause, serverName,
+                    data, getMinecraftVersion(), platformType, formatVersion
             );
         }
 
@@ -307,7 +324,7 @@ public class DataSnapshot {
         @NotNull
         public DataSnapshot.Unpacked unpack(@NotNull HuskSync plugin) {
             return new Unpacked(
-                    id, pinned, timestamp, saveCause, data,
+                    id, pinned, timestamp, saveCause, serverName, data,
                     getMinecraftVersion(), platformType, formatVersion, plugin
             );
         }
@@ -325,17 +342,17 @@ public class DataSnapshot {
         private final Map<Identifier, Data> deserialized;
 
         private Unpacked(@NotNull UUID id, boolean pinned, @NotNull OffsetDateTime timestamp,
-                         @NotNull SaveCause saveCause, @NotNull Map<String, String> data,
+                         @NotNull SaveCause saveCause, @NotNull String serverName, @NotNull Map<String, String> data,
                          @NotNull Version minecraftVersion, @NotNull String platformType, int formatVersion,
                          @NotNull HuskSync plugin) {
-            super(id, pinned, timestamp, saveCause, data, minecraftVersion, platformType, formatVersion);
+            super(id, pinned, timestamp, saveCause, serverName, data, minecraftVersion, platformType, formatVersion);
             this.deserialized = deserializeData(plugin);
         }
 
         private Unpacked(@NotNull UUID id, boolean pinned, @NotNull OffsetDateTime timestamp,
-                         @NotNull SaveCause saveCause, @NotNull Map<Identifier, Data> data,
+                         @NotNull SaveCause saveCause, @NotNull String serverName, @NotNull Map<Identifier, Data> data,
                          @NotNull Version minecraftVersion, @NotNull String platformType, int formatVersion) {
-            super(id, pinned, timestamp, saveCause, Map.of(), minecraftVersion, platformType, formatVersion);
+            super(id, pinned, timestamp, saveCause, serverName, Map.of(), minecraftVersion, platformType, formatVersion);
             this.deserialized = data;
         }
 
@@ -384,7 +401,7 @@ public class DataSnapshot {
         @ApiStatus.Internal
         public DataSnapshot.Packed pack(@NotNull HuskSync plugin) {
             return new DataSnapshot.Packed(
-                    id, pinned, timestamp, saveCause, serializeData(plugin),
+                    id, pinned, timestamp, saveCause, serverName, serializeData(plugin),
                     getMinecraftVersion(), platformType, formatVersion
             );
         }
@@ -402,6 +419,7 @@ public class DataSnapshot {
         private final HuskSync plugin;
         private UUID id;
         private SaveCause saveCause;
+        private String serverName;
         private boolean pinned;
         private OffsetDateTime timestamp;
         private final Map<Identifier, Data> data;
@@ -412,6 +430,7 @@ public class DataSnapshot {
             this.data = new HashMap<>();
             this.timestamp = OffsetDateTime.now();
             this.id = UUID.randomUUID();
+            this.serverName = plugin.getServerName();
         }
 
         /**
@@ -438,6 +457,19 @@ public class DataSnapshot {
         @NotNull
         public Builder saveCause(@NotNull SaveCause saveCause) {
             this.saveCause = saveCause;
+            return this;
+        }
+
+        /**
+         * Set the name of the server where this snapshot was created
+         *
+         * @param serverName The server name
+         * @return The builder
+         * @since 3.1
+         */
+        @NotNull
+        public Builder serverName(@NotNull String serverName) {
+            this.serverName = serverName;
             return this;
         }
 
@@ -686,6 +718,7 @@ public class DataSnapshot {
                     pinned || plugin.getSettings().doAutoPin(saveCause),
                     timestamp,
                     saveCause,
+                    serverName,
                     data,
                     plugin.getMinecraftVersion(),
                     plugin.getPlatformType(),
