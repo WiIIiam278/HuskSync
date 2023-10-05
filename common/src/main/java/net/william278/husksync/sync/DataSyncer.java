@@ -1,3 +1,22 @@
+/*
+ * This file is part of HuskSync, licensed under the Apache License 2.0.
+ *
+ *  Copyright (c) William278 <will27528@gmail.com>
+ *  Copyright (c) contributors
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
 package net.william278.husksync.sync;
 
 import net.william278.husksync.HuskSync;
@@ -5,12 +24,11 @@ import net.william278.husksync.data.DataSnapshot;
 import net.william278.husksync.user.OnlineUser;
 import net.william278.husksync.util.Task;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * Handles the synchronization of data when a player changes servers or logs in
@@ -18,13 +36,15 @@ import java.util.function.Function;
  * @since 3.1
  */
 public abstract class DataSyncer {
-
-    private final long MAX_LISTEN_ATTEMPTS = 16L;
+    private static final long BASE_LISTEN_ATTEMPTS = 16;
+    private static final long LISTEN_DELAY = 10;
+    private final long maxListenAttempts;
 
     protected final HuskSync plugin;
 
     protected DataSyncer(@NotNull HuskSync plugin) {
         this.plugin = plugin;
+        this.maxListenAttempts = getMaxListenAttempts();
     }
 
     public void initialize() {
@@ -37,6 +57,9 @@ public abstract class DataSyncer {
 
     public abstract void saveUserData(@NotNull OnlineUser user);
 
+    private long getMaxListenAttempts() {
+        return BASE_LISTEN_ATTEMPTS + ((plugin.getSettings().getNetworkLatencyMilliseconds() / 1000) * 20 / LISTEN_DELAY);
+    }
 
     /**
      * Set a user's data from the database
@@ -50,14 +73,7 @@ public abstract class DataSyncer {
         );
     }
 
-    /**
-     * Set the user as soon as the source server has set the data to redis
-     *
-     * @param user       The user to set the data for
-     * @param onConsumed The runnable to run when the data has been fetched
-     * @since 3.1
-     */
-    protected void consumeUserData(@NotNull OnlineUser user, @Nullable Runnable onConsumed) {
+    protected void listenForRedisData(@NotNull OnlineUser user, @NotNull Supplier<Boolean> completionSupplier) {
         final AtomicLong timesRun = new AtomicLong(0L);
         final AtomicReference<Task.Repeating> task = new AtomicReference<>();
         final Runnable runnable = () -> {
@@ -65,35 +81,18 @@ public abstract class DataSyncer {
                 task.get().cancel();
                 return;
             }
-            if (plugin.isDisabling() || timesRun.getAndIncrement() > MAX_LISTEN_ATTEMPTS) {
+            if (plugin.isDisabling() || timesRun.getAndIncrement() > maxListenAttempts) {
                 task.get().cancel();
                 setUserFromDatabase(user);
-                if (onConsumed != null) {
-                    onConsumed.run();
-                }
                 return;
             }
 
-            plugin.getRedisManager().getUserData(user).ifPresent(redisData -> {
+            if (completionSupplier.get()) {
                 task.get().cancel();
-                user.applySnapshot(redisData, DataSnapshot.UpdateCause.SYNCHRONIZED);
-                if (onConsumed != null) {
-                    onConsumed.run();
-                }
-            });
+            }
         };
-        task.set(plugin.getRepeatingTask(runnable, 10));
+        task.set(plugin.getRepeatingTask(runnable, LISTEN_DELAY));
         task.get().run();
-    }
-
-    /**
-     * Set the user as soon as the source server has set the data to redis
-     *
-     * @param user The user to set the data for
-     * @since 3.1
-     */
-    protected void consumeUserData(@NotNull OnlineUser user) {
-        this.consumeUserData(user, null);
     }
 
     /**

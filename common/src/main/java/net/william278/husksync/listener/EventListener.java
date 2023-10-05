@@ -25,8 +25,10 @@ import net.william278.husksync.data.DataSnapshot;
 import net.william278.husksync.user.OnlineUser;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
-import java.util.logging.Level;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 /**
  * Handles what should happen when events are fired

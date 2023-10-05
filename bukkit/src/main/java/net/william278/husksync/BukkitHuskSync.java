@@ -140,9 +140,6 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
             registerSerializer(Identifier.PERSISTENT_DATA, new BukkitSerializer.PersistentData(this));
         });
 
-        // Prepare data syncer
-        initialize("data syncer", (plugin) -> dataSyncer = getSettings().getSyncerType().create(this));
-
         // Setup available migrators
         initialize("data migrators/converters", (plugin) -> {
             availableMigrators.add(new LegacyMigrator(this));
@@ -162,6 +159,12 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
         initialize("Redis server connection", (plugin) -> {
             this.redisManager = new RedisManager(this);
             this.redisManager.initialize();
+        });
+
+        // Prepare data syncer
+        initialize("data syncer", (plugin) -> {
+            dataSyncer = getSettings().getSyncerType().create(this);
+            dataSyncer.initialize();
         });
 
         // Register events
@@ -189,8 +192,13 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
     public void onDisable() {
         // Handle shutdown
         this.disabling = true;
+
+        // Close the event listener / data syncer
         if (this.eventListener != null) {
             this.eventListener.handlePluginDisable();
+        }
+        if (this.dataSyncer != null) {
+            this.dataSyncer.terminate();
         }
 
         // Unregister API and cancel tasks
