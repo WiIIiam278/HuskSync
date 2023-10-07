@@ -17,11 +17,13 @@
  *  limitations under the License.
  */
 
-import listener.PaperEventListener;
-import net.william278.husksync.BukkitHuskSync;
+package net.william278.husksync;
+
 import net.william278.husksync.listener.BukkitEventListener;
+import net.william278.husksync.listener.PaperEventListener;
 import org.jetbrains.annotations.NotNull;
 
+@SuppressWarnings("unused")
 public class PaperHuskSync extends BukkitHuskSync {
 
     @NotNull

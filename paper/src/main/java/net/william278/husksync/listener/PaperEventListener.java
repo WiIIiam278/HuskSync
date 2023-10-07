@@ -17,11 +17,10 @@
  *  limitations under the License.
  */
 
-package listener;
+package net.william278.husksync.listener;
 
 import net.william278.husksync.BukkitHuskSync;
 import net.william278.husksync.data.BukkitData;
-import net.william278.husksync.listener.BukkitEventListener;
 import net.william278.husksync.user.BukkitUser;
 import net.william278.husksync.user.OnlineUser;
 import org.bukkit.event.entity.PlayerDeathEvent;

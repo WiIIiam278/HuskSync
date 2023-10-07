@@ -17,6 +17,8 @@
  *  limitations under the License.
  */
 
+package net.william278.husksync;
+
 import io.papermc.paper.plugin.loader.PluginClasspathBuilder;
 import io.papermc.paper.plugin.loader.PluginLoader;
 import io.papermc.paper.plugin.loader.library.impl.MavenLibraryResolver;

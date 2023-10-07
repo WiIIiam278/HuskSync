@@ -264,6 +264,7 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
 
     @NotNull
     @Override
+    @SuppressWarnings("unchecked")
     public Map<Identifier, Serializer<? extends Data>> getSerializers() {
         return serializers;
     }
