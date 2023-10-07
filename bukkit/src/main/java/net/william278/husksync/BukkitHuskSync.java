@@ -168,7 +168,7 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
         });
 
         // Register events
-        initialize("events", (plugin) -> this.eventListener = new BukkitEventListener(this));
+        initialize("events", (plugin) -> this.eventListener = createEventListener());
 
         // Register commands
         initialize("commands", (plugin) -> BukkitCommand.Type.registerCommands(this));
@@ -207,6 +207,11 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
 
         // Complete shutdown
         log(Level.INFO, "Successfully disabled HuskSync v" + getPluginVersion());
+    }
+
+    @NotNull
+    protected BukkitEventListener createEventListener() {
+        return new BukkitEventListener(this);
     }
 
     @Override
