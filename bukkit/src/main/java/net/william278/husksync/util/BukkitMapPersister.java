@@ -36,6 +36,7 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
+import java.io.File;
 import java.util.List;
 import java.util.*;
 import java.util.function.Function;
@@ -175,11 +176,12 @@ public interface BukkitMapPersister {
                 return;
             }
 
-            // Add a renderer to the map with the data
+            // Add a renderer to the map with the data and save to file
             final MapView view = generateRenderedMap(canvasData);
             final String worldUid = getDefaultMapWorld().getUID().toString();
             meta.setMapView(view);
             map.setItemMeta(meta);
+            saveMapToFile(canvasData, view.getId());
 
             // Set the map view ID in NBT
             NBT.modify(map, editable -> {
@@ -190,6 +192,58 @@ public interface BukkitMapPersister {
             getPlugin().debug(String.format("Generated view (#%s) and updated map (UID: %s)", view.getId(), worldUid));
         });
         return map;
+    }
+
+    default void renderMapFromFile(@NotNull MapView view) {
+        final File mapFile = new File(getMapCacheFolder(), view.getId() + ".dat");
+        if (!mapFile.exists()) {
+            return;
+        }
+
+        final MapData canvasData;
+        try {
+            canvasData = MapData.fromNbt(mapFile);
+        } catch (Throwable e) {
+            getPlugin().log(Level.WARNING, "Failed to deserialize map data from file", e);
+            return;
+        }
+
+        getPlugin().runSync(() -> {
+            // Create a new map view renderer with the map data color at each pixel
+            view.getRenderers().clear();
+            view.addRenderer(new PersistentMapRenderer(canvasData));
+            view.setLocked(true);
+            view.setScale(MapView.Scale.NORMAL);
+            view.setTrackingPosition(false);
+            view.setUnlimitedTracking(false);
+
+            // Set the view to the map
+            setMapView(view);
+        });
+    }
+
+    default void saveMapToFile(@NotNull MapData data, int id) {
+        getPlugin().runAsync(() -> {
+            final File mapFile = new File(getMapCacheFolder(), id + ".dat");
+            if (mapFile.exists()) {
+                return;
+            }
+
+            try {
+                data.toFile(mapFile);
+            } catch (Throwable e) {
+                getPlugin().log(Level.WARNING, "Failed to serialize map data to file", e);
+            }
+        });
+    }
+
+    @NotNull
+    private File getMapCacheFolder() {
+        final File mapCache = new File(getPlugin().getDataFolder(), "maps");
+        if (!mapCache.exists() && !mapCache.mkdirs()) {
+            getPlugin().log(Level.WARNING, "Failed to create maps folder");
+        }
+        return mapCache;
     }
 
     // Sets the renderer of a map, and returns the generated MapView

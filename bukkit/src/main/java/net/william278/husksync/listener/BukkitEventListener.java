@@ -43,7 +43,9 @@ import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.server.MapInitializeEvent;
 import org.bukkit.event.world.WorldSaveEvent;
+import org.bukkit.map.MapView;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -113,6 +115,14 @@ public class BukkitEventListener extends EventListener implements BukkitJoinEven
         plugin.runAsync(() -> super.saveOnWorldSave(event.getWorld().getPlayers()
                 .stream().map(player -> BukkitUser.adapt(player, plugin))
                 .collect(Collectors.toList())));
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onMapInitialize(@NotNull MapInitializeEvent event) {
+        final MapView view = event.getMap();
+        if (plugin.getSettings().doPersistLockedMaps() && view.isLocked() && view.getRenderers().isEmpty()) {
+            getPlugin().runAsync(() -> ((BukkitHuskSync) plugin).renderMapFromFile(event.getMap()));
+        }
     }
 
 
