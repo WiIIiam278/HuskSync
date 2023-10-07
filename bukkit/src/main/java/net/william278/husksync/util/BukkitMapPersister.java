@@ -210,18 +210,16 @@ public interface BukkitMapPersister {
             return;
         }
 
-        getPlugin().runSync(() -> {
-            // Create a new map view renderer with the map data color at each pixel
-            view.getRenderers().clear();
-            view.addRenderer(new PersistentMapRenderer(canvasData));
-            view.setLocked(true);
-            view.setScale(MapView.Scale.NORMAL);
-            view.setTrackingPosition(false);
-            view.setUnlimitedTracking(false);
+        // Create a new map view renderer with the map data color at each pixel
+        view.getRenderers().clear();
+        view.addRenderer(new PersistentMapRenderer(canvasData));
+        view.setLocked(true);
+        view.setScale(MapView.Scale.NORMAL);
+        view.setTrackingPosition(false);
+        view.setUnlimitedTracking(false);
 
-            // Set the view to the map
-            setMapView(view);
-        });
+        // Set the view to the map
+        setMapView(view);
     }
 
     default void saveMapToFile(@NotNull MapData data, int id) {
