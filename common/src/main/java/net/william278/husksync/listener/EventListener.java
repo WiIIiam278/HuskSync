@@ -88,16 +88,16 @@ public abstract class EventListener {
      * Handles the saving of data when a player dies
      *
      * @param user  The user who died
-     * @param drops The items that this user would have dropped
+     * @param items The items that should be saved for this user on their death
      */
-    protected void saveOnPlayerDeath(@NotNull OnlineUser user, @NotNull Data.Items drops) {
+    protected void saveOnPlayerDeath(@NotNull OnlineUser user, @NotNull Data.Items items) {
         if (plugin.isDisabling() || !plugin.getSettings().doSaveOnDeath() || plugin.isLocked(user.getUuid())
-                || user.isNpc() || (!plugin.getSettings().doSaveEmptyDropsOnDeath() && drops.isEmpty())) {
+                || user.isNpc() || (!plugin.getSettings().doSaveEmptyDeathItems() && items.isEmpty())) {
             return;
         }
 
         final DataSnapshot.Packed snapshot = user.createSnapshot(DataSnapshot.SaveCause.DEATH);
-        snapshot.edit(plugin, (data -> data.getInventory().ifPresent(inventory -> inventory.setContents(drops))));
+        snapshot.edit(plugin, (data -> data.getInventory().ifPresent(inventory -> inventory.setContents(items))));
         plugin.getDatabase().addSnapshot(user, snapshot);
     }
 

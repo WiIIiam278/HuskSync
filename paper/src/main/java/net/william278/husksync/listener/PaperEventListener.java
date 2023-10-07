@@ -50,10 +50,12 @@ public class PaperEventListener extends BukkitEventListener {
             return;
         }
 
-        // Paper - save the player's items to keep if there are any for better compat
+        // Paper - support saving the player's items to keep if enabled
         final int maxInventorySize = BukkitData.Items.Inventory.INVENTORY_SLOT_COUNT;
-        final List<ItemStack> itemsToSave = event.getItemsToKeep().isEmpty()
-                ? event.getDrops() : event.getItemsToKeep();
+        final List<ItemStack> itemsToSave = switch (plugin.getSettings().getDeathItemsMode()) {
+            case DROPS -> event.getDrops();
+            case ITEMS_TO_KEEP -> event.getItemsToKeep();
+        };
         if (itemsToSave.size() > maxInventorySize) {
             itemsToSave.subList(maxInventorySize, itemsToSave.size()).clear();
         }
