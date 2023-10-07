@@ -22,6 +22,8 @@ package net.william278.husksync.util;
 import de.tr7zw.changeme.nbtapi.NBT;
 import de.tr7zw.changeme.nbtapi.iface.ReadWriteNBT;
 import de.tr7zw.changeme.nbtapi.iface.ReadableNBT;
+import net.querz.nbt.io.NBTUtil;
+import net.querz.nbt.tag.CompoundTag;
 import net.william278.husksync.HuskSync;
 import net.william278.mapdataapi.MapBanner;
 import net.william278.mapdataapi.MapData;
@@ -230,7 +232,9 @@ public interface BukkitMapPersister {
             }
 
             try {
-                data.toFile(mapFile);
+                final CompoundTag rootTag = new CompoundTag();
+                rootTag.put("data", data.toNBT().getTag());
+                NBTUtil.write(rootTag, mapFile);
             } catch (Throwable e) {
                 getPlugin().log(Level.WARNING, "Failed to serialize map data to file", e);
             }

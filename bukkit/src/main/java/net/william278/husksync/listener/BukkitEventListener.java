@@ -45,7 +45,6 @@ import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.server.MapInitializeEvent;
 import org.bukkit.event.world.WorldSaveEvent;
-import org.bukkit.map.MapView;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -119,8 +118,7 @@ public class BukkitEventListener extends EventListener implements BukkitJoinEven
 
     @EventHandler(ignoreCancelled = true)
     public void onMapInitialize(@NotNull MapInitializeEvent event) {
-        final MapView view = event.getMap();
-        if (plugin.getSettings().doPersistLockedMaps() && view.isLocked() && view.getRenderers().isEmpty()) {
+        if (plugin.getSettings().doPersistLockedMaps() && event.getMap().isLocked()) {
             getPlugin().runAsync(() -> ((BukkitHuskSync) plugin).renderMapFromFile(event.getMap()));
         }
     }
