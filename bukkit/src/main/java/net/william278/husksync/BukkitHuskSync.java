@@ -194,11 +194,11 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
         this.disabling = true;
 
         // Close the event listener / data syncer
-        if (this.eventListener != null) {
-            this.eventListener.handlePluginDisable();
-        }
         if (this.dataSyncer != null) {
             this.dataSyncer.terminate();
+        }
+        if (this.eventListener != null) {
+            this.eventListener.handlePluginDisable();
         }
 
         // Unregister API and cancel tasks
