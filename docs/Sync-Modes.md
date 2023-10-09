@@ -1,5 +1,8 @@
-HuskSync offers two built-in **synchronization modes**. These sync modes change the way data is synced between servers. This page details the two sync modes available and how they work.
+HuskSync offers two built-in **synchronization modes** that utilise Redis and MySQL to optimally sync data as users change servers (illustrated below). These sync modes change the way data is synced between servers, and can be changed in the `config.yml` file.
 
+![Overall architecture of the synchronisation systems](https://raw.githubusercontent.com/WiIIiam278/HuskSync/master/images/system-diagram.png)
+
+## Available Modes
 * The `DELAY` sync mode is the default sync mode, that use the `network_latency_miliseconds` value to apply a delay before listening to Redis data
 * The `LOCKSTEP` sync mode uses a data checkout system to ensure that all servers are in sync regardless of network latency or tick rate fluctuations. This mode was introduced in HuskSync v3.1
 
@@ -18,8 +21,6 @@ synchronization:
 </details>
 
 ## Delay
-![Delay diagram](https://raw.githubusercontent.com/WiIIiam278/HuskSync/master/images/system-diagram.png)
-
 The `DELAY` sync mode works as described below:
 * When a user disconnects from a server, a `SERVER_SWITCH` key is immediately set on Redis, followed by a `DATA_UPDATE` key which contains the user's packed and serialized Data Snapshot.
 * When the user connects to a server, they are marked as locked (unable to break blocks, use containers, etc.)

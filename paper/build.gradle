@@ -1,0 +1,41 @@
+dependencies {
+    implementation project(':bukkit')
+    compileOnly project(':common')
+
+    compileOnly 'io.papermc.paper:paper-api:1.19.4-R0.1-SNAPSHOT'
+}
+
+shadowJar {
+    dependencies {
+        exclude(dependency('com.mojang:brigadier'))
+    }
+
+    relocate 'org.apache.commons.io', 'net.william278.husksync.libraries.commons.io'
+    relocate 'org.apache.commons.text', 'net.william278.husksync.libraries.commons.text'
+    relocate 'org.apache.commons.lang3', 'net.william278.husksync.libraries.commons.lang3'
+    relocate 'com.google.gson', 'net.william278.husksync.libraries.gson'
+    relocate 'org.json', 'net.william278.husksync.libraries.json'
+    relocate 'com.fatboyindustrial', 'net.william278.husksync.libraries'
+    relocate 'de.themoep', 'net.william278.husksync.libraries'
+    relocate 'net.kyori', 'net.william278.husksync.libraries'
+    relocate 'org.jetbrains', 'net.william278.husksync.libraries'
+    relocate 'org.intellij', 'net.william278.husksync.libraries'
+    relocate 'com.zaxxer', 'net.william278.husksync.libraries'
+    relocate 'dev.dejvokep', 'net.william278.husksync.libraries'
+    relocate 'net.william278.desertwell', 'net.william278.husksync.libraries.desertwell'
+    relocate 'net.william278.paginedown', 'net.william278.husksync.libraries.paginedown'
+    relocate 'net.william278.mapdataapi', 'net.william278.husksync.libraries.mapdataapi'
+    relocate 'net.william278.andjam', 'net.william278.husksync.libraries.andjam'
+    relocate 'net.querz', 'net.william278.husksync.libraries.nbtparser'
+    relocate 'net.roxeez', 'net.william278.husksync.libraries'
+
+    relocate 'me.lucko.commodore', 'net.william278.husksync.libraries.commodore'
+    relocate 'net.byteflux.libby', 'net.william278.husksync.libraries.libby'
+    relocate 'org.bstats', 'net.william278.husksync.libraries.bstats'
+    relocate 'dev.triumphteam.gui', 'net.william278.husksync.libraries.triumphgui'
+    relocate 'net.william278.mpdbconverter', 'net.william278.husksync.libraries.mpdbconverter'
+    relocate 'net.william278.hslmigrator', 'net.william278.husksync.libraries.hslconverter'
+    relocate 'net.william278.annotaml', 'net.william278.husksync.libraries.annotaml'
+    relocate 'space.arim.morepaperlib', 'net.william278.husksync.libraries.paperlib'
+    relocate 'de.tr7zw.changeme.nbtapi', 'net.william278.husksync.libraries.nbtapi'
+}
