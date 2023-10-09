@@ -294,10 +294,16 @@ public interface HuskSync extends Task.Supplier, EventDispatcher {
     default void loadConfigs() {
         try {
             // Load settings
-            setSettings(Annotaml.create(new File(getDataFolder(), "config.yml"), Settings.class).get());
+            setSettings(Annotaml.create(
+                    new File(getDataFolder(), "config.yml"),
+                    Settings.class
+            ).get());
 
             // Load server name
-            setServer(Annotaml.create(new File(getDataFolder(), "server.yml"), Server.class).get());
+            setServer(Annotaml.create(
+                    new File(getDataFolder(), "server.yml"),
+                    Server.getDefault(this)
+            ).get());
 
             // Load locales from language preset default
             final Locales languagePresets = Annotaml.create(
