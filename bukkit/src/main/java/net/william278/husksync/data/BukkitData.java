@@ -100,6 +100,10 @@ public abstract class BukkitData implements Data {
         }
 
         public void setContents(@NotNull ItemStack[] contents) {
+            // Ensure the array is the correct length for the inventory
+            if (contents.length != this.contents.length) {
+                contents = Arrays.copyOf(contents, this.contents.length);
+            }
             System.arraycopy(contents, 0, this.contents, 0, this.contents.length);
         }
 
