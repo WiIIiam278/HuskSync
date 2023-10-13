@@ -8,22 +8,26 @@ HuskSync has some special handling when players die, to account for scenarios wh
 * **Snapshot creation on death**&mdash;HuskSync can create a special snapshot for backup purposes when a player dies, formed by taking their drops and setting this to their inventory. When `keepInventory` is enabled, the player drops are empty, so this creates an inaccurate snapshot. This option is disabled by default.
 
 ## How can this be fixed?
-You will need to set the `synchronization.save_on_death` (which controls making snapshots on death), `save_empty_drops_on_death` (which controls whether snapshots of players who have no items to drop should be created), and `synchronization.synchronize_dead_players_changing_server` (which controls whether to sync dead players when they change servers) options to `false` in `config.yml`.
+You should change the `items_to_save` mode to `ITEMS_TO_KEEP` instead of drops. Also, ensure `save_empty_items` and `sync_dead_players_changing_server` are enabled.
 
 <details>
-  <summary>Example in config.yml</summary>
-  
-  ```yml
-     synchronization:
-       # ...
-       save_on_death: false # <-- Set this to false
-       save_empty_drops_on_death: false # <-- Set this to false
-       # ...
-       synchronize_dead_players_changing_server: false # <-- Set this to false
-  ```
-  
-</details>
+<summary>Example in config.yml</summary>
 
+```yml
+ synchronization:
+   #...
+   save_on_death:
+     # Whether to create a snapshot for users when they die (containing their death drops)
+     enabled: true
+     # What items to save in death snapshots? (DROPS or ITEMS_TO_KEEP). Note that ITEMS_TO_KEEP (suggested for keepInventory servers) requires a Paper 1.19.4+ server
+     items_to_save: ITEMS_TO_KEEP
+     # Should a death snapshot still be created even if the items to save on the player's death are empty?
+     save_empty_items: true
+     # Whether dead players who log out and log in to a different server should have their items saved.
+     sync_dead_players_changing_server: true
+   #...
+```
+</details>
 
 ## Troubleshooting with custom keepInventory setups
 If the above doesn't work for you, you may need to do more things to get this to work properly.

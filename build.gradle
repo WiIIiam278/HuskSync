@@ -78,11 +78,11 @@ subprojects {
         from '../LICENSE'
     }
 
-    if (['fabric'].contains(project.name)) {
+    if (['paper', 'fabric'].contains(project.name)) {
         compileJava.options.release.set 17
     }
 
-    if (['bukkit', 'plugin', 'fabric'].contains(project.name)) {
+    if (['bukkit', 'paper', 'plugin', 'fabric'].contains(project.name)) {
         shadowJar {
             destinationDirectory.set(file("$rootDir/target"))
             archiveClassifier.set('')

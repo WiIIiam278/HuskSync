@@ -75,10 +75,15 @@ synchronization:
     - MPDB_MIGRATION
   # Whether to create a snapshot for users on a world when the server saves that world
   save_on_world_save: true
-  # Whether to create a snapshot for users when they die (containing their death drops)
-  save_on_death: false
-  # Whether to save empty death drops for users when they die
-  save_empty_drops_on_death: true
+  save_on_death:
+    # Whether to create a snapshot for users when they die (containing their death drops)
+    enabled: true
+    # What items to save in death snapshots? (DROPS or ITEMS_TO_KEEP). Note that ITEMS_TO_KEEP (suggested for keepInventory servers) requires a Paper 1.19.4+ server
+    items_to_save: DROPS
+    # Should a death snapshot still be created even if the items to save on the player's death are empty?
+    save_empty_items: false
+    # Whether dead players who log out and log in to a different server should have their items saved.
+    sync_dead_players_changing_server: true
   # Whether to use the snappy data compression algorithm. Keep on unless you know what you're doing
   compress_data: true
   # Where to display sync notifications (ACTION_BAR, CHAT, TOAST or NONE)
@@ -87,8 +92,6 @@ synchronization:
   persist_locked_maps: true
   # Whether to synchronize player max health (requires health syncing to be enabled)
   synchronize_max_health: true
-  # Whether dead players who log out and log in to a different server should have their items saved. You may need to modify this if you're using the keepInventory gamerule.
-  synchronize_dead_players_changing_server: true
   # If using the DELAY sync method, how long should this server listen for Redis key data updates before pulling data from the database instead (i.e., if the user did not change servers).
   network_latency_milliseconds: 500
   # Which data types to synchronize (Docs: https://william278.net/docs/husksync/sync-features)

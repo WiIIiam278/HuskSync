@@ -99,6 +99,10 @@ public abstract class BukkitData implements Data {
         }
 
         public void setContents(@NotNull ItemStack[] contents) {
+            // Ensure the array is the correct length for the inventory
+            if (contents.length != this.contents.length) {
+                contents = Arrays.copyOf(contents, this.contents.length);
+            }
             System.arraycopy(contents, 0, this.contents, 0, this.contents.length);
         }
 
@@ -729,7 +733,13 @@ public abstract class BukkitData implements Data {
         private <T extends Keyed> Map<String, Integer> convertStatistics(@NotNull Map<T, Integer> stats) {
             return stats.entrySet().stream().filter(entry -> entry.getKey() != null).collect(
                     TreeMap::new,
-                    (m, e) -> m.put(e.getKey().getKey().toString(), e.getValue()), TreeMap::putAll
+                    (m, e) -> {
+                        try {
+                            m.put(e.getKey().getKey().toString(), e.getValue());
+                        } catch (Throwable t) {
+                            // Ignore; skip elements with invalid keys (e.g., legacy materials)
+                        }
+                    }, TreeMap::putAll
             );
         }
 

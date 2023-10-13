@@ -165,12 +165,21 @@ public class Settings {
     private boolean saveOnWorldSave = true;
 
     @YamlComment("Whether to create a snapshot for users when they die (containing their death drops)")
-    @YamlKey("synchronization.save_on_death")
+    @YamlKey("synchronization.save_on_death.enabled")
     private boolean saveOnDeath = false;
 
-    @YamlComment("Whether to save empty death drops for users when they die")
-    @YamlKey("synchronization.save_empty_drops_on_death")
-    private boolean saveEmptyDropsOnDeath = true;
+    @YamlComment("What items to save in death snapshots? (DROPS or ITEMS_TO_KEEP). "
+            + " Note that ITEMS_TO_KEEP (suggested for keepInventory servers) requires a Paper 1.19.4+ server.")
+    @YamlKey("synchronization.save_on_death.items_to_save")
+    private DeathItemsMode deathItemsMode = DeathItemsMode.DROPS;
+
+    @YamlComment("Should a death snapshot still be created even if the items to save on the player's death are empty?")
+    @YamlKey("synchronization.save_on_death.save_empty_items")
+    private boolean saveEmptyDeathItems = true;
+
+    @YamlComment("Whether dead players who log out and log in to a different server should have their items saved.")
+    @YamlKey("synchronization.save_on_death.sync_dead_players_changing_server")
+    private boolean synchronizeDeadPlayersChangingServer = true;
 
     @YamlComment("Whether to use the snappy data compression algorithm. Keep on unless you know what you're doing")
     @YamlKey("synchronization.compress_data")
@@ -187,11 +196,6 @@ public class Settings {
     @YamlComment("Whether to synchronize player max health (requires health syncing to be enabled)")
     @YamlKey("synchronization.synchronize_max_health")
     private boolean synchronizeMaxHealth = true;
-
-    @YamlComment("Whether dead players who log out and log in to a different server should have their items saved. "
-            + "You may need to modify this if you're using the keepInventory gamerule.")
-    @YamlKey("synchronization.synchronize_dead_players_changing_server")
-    private boolean synchronizeDeadPlayersChangingServer = true;
 
     @YamlComment("If using the DELAY sync method, how long should this server listen for Redis key data updates before "
             + "pulling data from the database instead (i.e., if the user did not change servers).")
@@ -341,8 +345,13 @@ public class Settings {
         return saveOnDeath;
     }
 
-    public boolean doSaveEmptyDropsOnDeath() {
-        return saveEmptyDropsOnDeath;
+    @NotNull
+    public DeathItemsMode getDeathItemsMode() {
+        return deathItemsMode;
+    }
+
+    public boolean doSaveEmptyDeathItems() {
+        return saveEmptyDeathItems;
     }
 
     public boolean doCompressData() {
@@ -395,6 +404,14 @@ public class Settings {
         } catch (IllegalArgumentException e) {
             return EventListener.Priority.NORMAL;
         }
+    }
+
+    /**
+     * Represents the mode of saving items on death
+     */
+    public enum DeathItemsMode {
+        DROPS,
+        ITEMS_TO_KEEP
     }
 
     /**

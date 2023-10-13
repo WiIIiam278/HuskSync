@@ -217,16 +217,16 @@ public class LegacyMigrator extends Migrator {
     @NotNull
     @Override
     public String getName() {
-        return "HuskSync v1.x --> v2.x Migrator";
+        return "HuskSync v1.x --> v3.x Migrator";
     }
 
     @NotNull
     @Override
     public String getHelpMenu() {
         return """
-                === HuskSync v1.x --> v2.x Migration Wizard =========
+                === HuskSync v1.x --> v3.x Migration Wizard =========
                 This will migrate all user data from HuskSync v1.x to
-                HuskSync v2.x's new format. To perform the migration,
+                HuskSync v3.x's new format. To perform the migration,
                 please follow the steps below carefully.
 
                 [!] Existing data in the database will be wiped. [!]

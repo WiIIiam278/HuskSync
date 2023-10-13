@@ -23,7 +23,8 @@ The name of the generated .json file will match the following format: `<username
   "pinned": false,
   "timestamp": "2023-09-15T17:27:08.6768038+01:00",
   "save_cause": "DISCONNECT",
-  "minecraft_version": "1.20.1",
+  "server": "alpha",
+  "minecraft_version": "1.20.2",
   "platform_type": "bukkit",
   "format_version": 4,
   "data": {

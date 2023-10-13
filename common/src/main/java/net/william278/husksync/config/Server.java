@@ -19,11 +19,15 @@
 
 package net.william278.husksync.config;
 
+import net.william278.annotaml.Annotaml;
 import net.william278.annotaml.YamlFile;
 import net.william278.annotaml.YamlKey;
+import net.william278.husksync.HuskSync;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
 import java.nio.file.Path;
+import java.util.List;
 
 /**
  * Represents a server on a proxied network.
@@ -37,24 +41,42 @@ import java.nio.file.Path;
         ┗╸ If you join it using /server alpha, then set it to 'alpha' (case-sensitive)""")
 public class Server {
 
-    /**
-     * Default server identifier.
-     */
-    @NotNull
-    public static String getDefaultServerName() {
-        try {
-            final Path serverDirectory = Path.of(System.getProperty("user.dir"));
-            return serverDirectory.getFileName().toString().trim();
-        } catch (Exception e) {
-            return "server";
-        }
-    }
-
     @YamlKey("name")
-    private String serverName = getDefaultServerName();
+    private String serverName;
+
+    private Server(@NotNull String serverName) {
+        this.serverName = serverName;
+    }
 
     @SuppressWarnings("unused")
     private Server() {
+    }
+
+    @NotNull
+    public static Server getDefault(@NotNull HuskSync plugin) {
+        return new Server(getDefaultServerName(plugin));
+    }
+
+    /**
+     * Find a sensible default name for the server name property
+     */
+    @NotNull
+    private static String getDefaultServerName(@NotNull HuskSync plugin) {
+        try {
+            // Fetch server default from supported plugins if present
+            for (String s : List.of("HuskHomes", "HuskTowns")) {
+                final File serverFile = Path.of(plugin.getDataFolder().getParent(), s, "server.yml").toFile();
+                if (serverFile.exists()) {
+                    return Annotaml.create(serverFile, Server.class).get().getName();
+                }
+            }
+
+            // Fetch server default from user dir name
+            final Path serverDirectory = Path.of(System.getProperty("user.dir"));
+            return serverDirectory.getFileName().toString().trim();
+        } catch (Throwable e) {
+            return "server";
+        }
     }
 
     @Override

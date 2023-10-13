@@ -6,8 +6,10 @@ pluginManagement {
 }
 
 rootProject.name = 'HuskSync'
-
-include 'common'
-include 'bukkit'
-include 'plugin'
-include 'fabric'
+include(
+        'common',
+        'bukkit',
+        'paper',
+        'plugin',
+        'fabric'
+)

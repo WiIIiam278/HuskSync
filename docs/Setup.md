@@ -1,6 +1,8 @@
 This will walk you through installing HuskSync on your network of Spigot servers.
 
 ## Requirements
+> **Note:** If the plugin fails to load, please check that you are not running an [incompatible version combination](Unsupported-Versions)
+
 * A MySQL Database (v8.0+)
 * A Redis Database (v5.0+) &mdash; see [[FAQs]] for more details.
 * Any number of Spigot servers, connected by a BungeeCord or Velocity-based proxy (Minecraft v1.16.5+, running Java 16+)

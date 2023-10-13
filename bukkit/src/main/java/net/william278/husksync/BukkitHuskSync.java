@@ -168,7 +168,7 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
         });
 
         // Register events
-        initialize("events", (plugin) -> this.eventListener = new BukkitEventListener(this));
+        initialize("events", (plugin) -> this.eventListener = createEventListener());
 
         // Register commands
         initialize("commands", (plugin) -> BukkitCommand.Type.registerCommands(this));
@@ -194,11 +194,11 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
         this.disabling = true;
 
         // Close the event listener / data syncer
-        if (this.eventListener != null) {
-            this.eventListener.handlePluginDisable();
-        }
         if (this.dataSyncer != null) {
             this.dataSyncer.terminate();
+        }
+        if (this.eventListener != null) {
+            this.eventListener.handlePluginDisable();
         }
 
         // Unregister API and cancel tasks
@@ -207,6 +207,11 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
 
         // Complete shutdown
         log(Level.INFO, "Successfully disabled HuskSync v" + getPluginVersion());
+    }
+
+    @NotNull
+    protected BukkitEventListener createEventListener() {
+        return new BukkitEventListener(this);
     }
 
     @Override
@@ -259,6 +264,7 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
 
     @NotNull
     @Override
+    @SuppressWarnings("unchecked")
     public Map<Identifier, Serializer<? extends Data>> getSerializers() {
         return serializers;
     }
