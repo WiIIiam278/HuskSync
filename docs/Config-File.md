@@ -1,6 +1,12 @@
-This page contains the configuration file reference for HuskSync. The config file is located in `/plugins/HuskSync/config.yml`
+This page contains the configuration structure for HuskSync.
 
-## Example config
+## Configuration structure
+📁 `plugins/HuskSync/`
+- 📄 `config.yml`: General plugin configuration
+- 📄 `server.yml`: Server ID configuration
+- 📄 `messages-xx-xx.yml`: Plugin locales, formatted in MineDown (see [[Translations]])
+
+## Example files
 <details>
 <summary>config.yml</summary>
 
@@ -12,7 +18,7 @@ This page contains the configuration file reference for HuskSync. The config fil
 # ┣╸ Information: https://william278.net/project/husksync
 # ┣╸ Config Help: https://william278.net/docs/husksync/config-file/
 # ┗╸ Documentation: https://william278.net/docs/husksync
-# Locale of the default language file to use. Docs: https://william278.net/docs/huskhomes/translations
+# Locale of the default language file to use. Docs: https://william278.net/docs/husksync/translations
 language: en-gb
 # Whether to automatically check for plugin updates on startup
 check_for_updates: true
@@ -54,6 +60,8 @@ redis:
     password: ''
   use_ssl: false
 synchronization:
+  # The mode of data synchronization to use (DELAY or LOCKSTEP). DELAY should be fine for most networks. Docs: https://william278.net/docs/husksync/sync-modes
+  mode: DELAY
   # The number of data snapshot backups that should be kept at once per user
   max_user_data_snapshots: 16
   # Number of hours between new snapshots being saved as backups (Use "0" to backup all snapshots)
@@ -63,15 +71,19 @@ synchronization:
     - INVENTORY_COMMAND
     - ENDERCHEST_COMMAND
     - BACKUP_RESTORE
-    - CONVERTED_FROM_V2
     - LEGACY_MIGRATION
     - MPDB_MIGRATION
   # Whether to create a snapshot for users on a world when the server saves that world
   save_on_world_save: true
-  # Whether to create a snapshot for users when they die (containing their death drops)
-  save_on_death: false
-  # Whether to save empty death drops for users when they die
-  save_empty_drops_on_death: true
+  save_on_death:
+    # Whether to create a snapshot for users when they die (containing their death drops)
+    enabled: true
+    # What items to save in death snapshots? (DROPS or ITEMS_TO_KEEP). Note that ITEMS_TO_KEEP (suggested for keepInventory servers) requires a Paper 1.19.4+ server
+    items_to_save: DROPS
+    # Should a death snapshot still be created even if the items to save on the player's death are empty?
+    save_empty_items: false
+    # Whether dead players who log out and log in to a different server should have their items saved.
+    sync_dead_players_changing_server: true
   # Whether to use the snappy data compression algorithm. Keep on unless you know what you're doing
   compress_data: true
   # Where to display sync notifications (ACTION_BAR, CHAT, TOAST or NONE)
@@ -80,9 +92,7 @@ synchronization:
   persist_locked_maps: true
   # Whether to synchronize player max health (requires health syncing to be enabled)
   synchronize_max_health: true
-  # Whether dead players who log out and log in to a different server should have their items saved. You may need to modify this if you're using the keepInventory gamerule.
-  synchronize_dead_players_changing_server: true
-  # How long, in milliseconds, this server should wait for a response from the redis server before pulling data from the database instead (i.e., if the user did not change servers).
+  # If using the DELAY sync method, how long should this server listen for Redis key data updates before pulling data from the database instead (i.e., if the user did not change servers).
   network_latency_milliseconds: 500
   # Which data types to synchronize (Docs: https://william278.net/docs/husksync/sync-features)
   features:
@@ -109,5 +119,17 @@ synchronization:
 
 </details>
 
-## Messages files
-You can customize the plugin locales, too, by editing your `messages-xx-xx.yml` file. This file is formatted using [MineDown syntax](https://github.com/Phoenix616/MineDown). For more information, see [[Translations]].
+<details>
+<summary>server.yml</summary>
+
+```yaml
+# ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+# ┃   HuskSync Server ID config  ┃
+# ┃    Developed by William278   ┃
+# ┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+# ┣╸ This file should contain the ID of this server as defined in your proxy config.
+# ┗╸ If you join it using /server alpha, then set it to 'alpha' (case-sensitive)
+name: beta
+```
+
+</details>

@@ -40,7 +40,7 @@ import java.util.Optional;
         ┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
         ┣╸ See plugin about menu for international locale credits
         ┣╸ Formatted in MineDown: https://github.com/Phoenix616/MineDown
-        ┗╸ Translate HuskSync: https://william278.net/docs/husksync/Translations""")
+        ┗╸ Translate HuskSync: https://william278.net/docs/husksync/translations""")
 public class Locales {
 
     /**

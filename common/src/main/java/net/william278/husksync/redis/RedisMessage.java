@@ -25,6 +25,9 @@ import net.william278.husksync.HuskSync;
 import net.william278.husksync.adapter.Adaptable;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Arrays;
+import java.util.Locale;
+import java.util.Optional;
 import java.util.UUID;
 
 public class RedisMessage implements Adaptable {
@@ -53,7 +56,7 @@ public class RedisMessage implements Adaptable {
         return plugin.getGson().fromJson(json, RedisMessage.class);
     }
 
-    public void dispatch(@NotNull HuskSync plugin, @NotNull RedisMessageType type) {
+    public void dispatch(@NotNull HuskSync plugin, @NotNull Type type) {
         plugin.runAsync(() -> plugin.getRedisManager().sendMessage(
                 type.getMessageChannel(plugin.getSettings().getClusterId()),
                 plugin.getGson().toJson(this)
@@ -77,4 +80,27 @@ public class RedisMessage implements Adaptable {
         this.payload = payload;
     }
 
+    public enum Type {
+
+        UPDATE_USER_DATA,
+        REQUEST_USER_DATA,
+        RETURN_USER_DATA;
+
+        @NotNull
+        public String getMessageChannel(@NotNull String clusterId) {
+            return String.format(
+                    "%s:%s:%s",
+                    RedisManager.KEY_NAMESPACE.toLowerCase(Locale.ENGLISH),
+                    clusterId.toLowerCase(Locale.ENGLISH),
+                    name().toLowerCase(Locale.ENGLISH)
+            );
+        }
+
+        public static Optional<Type> getTypeFromChannel(@NotNull String channel, @NotNull String clusterId) {
+            return Arrays.stream(values())
+                    .filter(messageType -> messageType.getMessageChannel(clusterId).equalsIgnoreCase(channel))
+                    .findFirst();
+        }
+
+    }
 }

@@ -11,6 +11,7 @@ data_manager_title: '[Stai vedendo l''istantanea](#00fb9a) [%1%](#00fb9a show_te
 data_manager_timestamp: '[⌚ %1%](#ffc43b-#f5c962 show_text=&7:\n&8Quando i dati sono stati salvati)'
 data_manager_pinned: '[※ Istantanea fissata](#d8ff2b show_text=&7Pinned:\n&8Quest''istantanea non sarà cancellata automaticamente.)'
 data_manager_cause: '[⚑ %1%](#23a825-#36f539 show_text=&7Causa di salvataggio:\n&8Cosa ha causato il salvataggio dei dati)'
+data_manager_server: '[Ⓢ %1%](#ff87b3-#f5538e show_text=&7Server:\n&8Name of the server the data was saved on)'
 data_manager_size: '[⏏ %1%](color=#62a9f5-#7ab8fa show_text=&7Peso dell''istantanea:\n&8Peso stimato del file (in KiB))\n'
 data_manger_status: '[%1%](red)[/](gray)[%2%](red)[×](gray)[❤](red show_text=&7Vita)   [%3%](yellow)[×](gray)[🍖](yellow show_text=&7Fame)   [ʟᴠ](green)[.](gray)[%4%](green show_text=&7Livello di XP)   [🏹 %5%](dark_aqua show_text=&7Modalità di gioco)'
 data_manager_advancements_statistics: '[⭐ Progressi: %1%](color=#ffc43b-#f5c962 show_text=&7Progressi compiuti in:\n&8%2%)   [⌛ Tempo di gioco: %3%ʜʀs](color=#62a9f5-#7ab8fa show_text=&7Tempo di gioco\n&8⚠ Basato sulle statistiche di gioco)\n'

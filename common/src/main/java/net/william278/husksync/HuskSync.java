@@ -28,6 +28,7 @@ import net.william278.desertwell.util.UpdateChecker;
 import net.william278.desertwell.util.Version;
 import net.william278.husksync.adapter.DataAdapter;
 import net.william278.husksync.config.Locales;
+import net.william278.husksync.config.Server;
 import net.william278.husksync.config.Settings;
 import net.william278.husksync.data.Data;
 import net.william278.husksync.data.Identifier;
@@ -36,6 +37,7 @@ import net.william278.husksync.database.Database;
 import net.william278.husksync.event.EventDispatcher;
 import net.william278.husksync.migrator.Migrator;
 import net.william278.husksync.redis.RedisManager;
+import net.william278.husksync.sync.DataSyncer;
 import net.william278.husksync.user.ConsoleUser;
 import net.william278.husksync.user.OnlineUser;
 import net.william278.husksync.util.LegacyConverter;
@@ -90,6 +92,11 @@ public interface HuskSync extends Task.Supplier, EventDispatcher {
     @NotNull
     RedisManager getRedisManager();
 
+    /**
+     * Returns the implementing adapter for serializing data
+     *
+     * @return the {@link DataAdapter}
+     */
     @NotNull
     DataAdapter getDataAdapter();
 
@@ -131,6 +138,21 @@ public interface HuskSync extends Task.Supplier, EventDispatcher {
     }
 
     /**
+     * Returns the data syncer implementation
+     *
+     * @return the {@link DataSyncer} implementation
+     */
+    @NotNull
+    DataSyncer getDataSyncer();
+
+    /**
+     * Set the data syncer implementation
+     *
+     * @param dataSyncer the {@link DataSyncer} implementation
+     */
+    void setDataSyncer(@NotNull DataSyncer dataSyncer);
+
+    /**
      * Returns a list of available data {@link Migrator}s
      *
      * @return a list of {@link Migrator}s
@@ -166,6 +188,11 @@ public interface HuskSync extends Task.Supplier, EventDispatcher {
     Settings getSettings();
 
     void setSettings(@NotNull Settings settings);
+
+    @NotNull
+    String getServerName();
+
+    void setServer(@NotNull Server server);
 
     /**
      * Returns the plugin {@link Locales}
@@ -255,7 +282,7 @@ public interface HuskSync extends Task.Supplier, EventDispatcher {
     String getPlatformType();
 
     /**
-     * Returns the legacy data converter, if it exists
+     * Returns the legacy data converter if it exists
      *
      * @return the {@link LegacyConverter}
      */
@@ -267,7 +294,16 @@ public interface HuskSync extends Task.Supplier, EventDispatcher {
     default void loadConfigs() {
         try {
             // Load settings
-            setSettings(Annotaml.create(new File(getDataFolder(), "config.yml"), Settings.class).get());
+            setSettings(Annotaml.create(
+                    new File(getDataFolder(), "config.yml"),
+                    Settings.class
+            ).get());
+
+            // Load server name
+            setServer(Annotaml.create(
+                    new File(getDataFolder(), "server.yml"),
+                    Server.getDefault(this)
+            ).get());
 
             // Load locales from language preset default
             final Locales languagePresets = Annotaml.create(
@@ -305,11 +341,30 @@ public interface HuskSync extends Task.Supplier, EventDispatcher {
         }
     }
 
+    /**
+     * Get the set of UUIDs of "locked players", for which events will be canceled.
+     * </p>
+     * Players are locked while their items are being set (on join) or saved (on quit)
+     */
     @NotNull
     Set<UUID> getLockedPlayers();
 
+    default boolean isLocked(@NotNull UUID uuid) {
+        return getLockedPlayers().contains(uuid);
+    }
+
+    default void lockPlayer(@NotNull UUID uuid) {
+        getLockedPlayers().add(uuid);
+    }
+
+    default void unlockPlayer(@NotNull UUID uuid) {
+        getLockedPlayers().remove(uuid);
+    }
+
     @NotNull
     Gson getGson();
+
+    boolean isDisabling();
 
     @NotNull
     default Gson createGson() {

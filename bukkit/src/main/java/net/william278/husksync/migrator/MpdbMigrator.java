@@ -221,6 +221,9 @@ public class MpdbMigrator extends Migrator {
     public String getHelpMenu() {
         return """
                 === MySQLPlayerDataBridge Migration Wizard ==========
+                NOTE: This migrator currently WORKS WITH MPDB version
+                v4.9.2 and below!
+                
                 This will migrate inventories, ender chests and XP
                 from the MySQLPlayerDataBridge plugin to HuskSync.
 
@@ -254,6 +257,9 @@ public class MpdbMigrator extends Migrator {
 
                 STEP 4] To start the migration, please run:
                 "husksync migrate mpdb start"
+                
+                NOTE: This migrator currently WORKS WITH MPDB version
+                v4.9.2 and below!
                 """.replaceAll(Pattern.quote("%source_host%"), obfuscateDataString(sourceHost))
                 .replaceAll(Pattern.quote("%source_port%"), Integer.toString(sourcePort))
                 .replaceAll(Pattern.quote("%source_username%"), obfuscateDataString(sourceUsername))

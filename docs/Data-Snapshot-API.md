@@ -307,7 +307,7 @@ huskSyncAPI.editCurrentInventory(user, inventory -> {
     // Get the player's inventory contents
     ItemStack[] inventoryContents = ((BukkitData.Items.Inventory) inventory).getContents();
     
-    // The array of ItemStacks is a copy of the player's inventory contents (in 1.20.1, this is an array of length 42)
+    // The array of ItemStacks is a copy of the player's inventory contents (Typically an array of length 42)
     inventoryContents[0] = new ItemStack(Material.DIAMOND_SWORD);
     inventoryContents[1] = null; // null = an empty slot
     

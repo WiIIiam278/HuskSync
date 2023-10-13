@@ -28,6 +28,7 @@ import net.william278.husksync.adapter.SnappyGsonAdapter;
 import net.william278.husksync.api.BukkitHuskSyncAPI;
 import net.william278.husksync.command.BukkitCommand;
 import net.william278.husksync.config.Locales;
+import net.william278.husksync.config.Server;
 import net.william278.husksync.config.Settings;
 import net.william278.husksync.data.BukkitSerializer;
 import net.william278.husksync.data.Data;
@@ -43,6 +44,7 @@ import net.william278.husksync.migrator.LegacyMigrator;
 import net.william278.husksync.migrator.Migrator;
 import net.william278.husksync.migrator.MpdbMigrator;
 import net.william278.husksync.redis.RedisManager;
+import net.william278.husksync.sync.DataSyncer;
 import net.william278.husksync.user.BukkitUser;
 import net.william278.husksync.user.ConsoleUser;
 import net.william278.husksync.user.OnlineUser;
@@ -64,6 +66,7 @@ import space.arim.morepaperlib.scheduling.RegionalScheduler;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
@@ -82,8 +85,11 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
     private DataAdapter dataAdapter;
     private Map<Identifier, Serializer<? extends Data>> serializers;
     private Map<UUID, Map<Identifier, Data>> playerCustomDataStore;
+    private Set<UUID> lockedPlayers;
+    private DataSyncer dataSyncer;
     private Settings settings;
     private Locales locales;
+    private Server server;
     private List<Migrator> availableMigrators;
     private LegacyConverter legacyConverter;
     private Map<Integer, MapView> mapViews;
@@ -92,15 +98,18 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
     private AsynchronousScheduler asyncScheduler;
     private RegionalScheduler regionalScheduler;
     private Gson gson;
+    private boolean disabling;
 
     @Override
     public void onEnable() {
         // Initial plugin setup
+        this.disabling = false;
         this.gson = createGson();
         this.audiences = BukkitAudiences.create(this);
         this.paperLib = new MorePaperLib(this);
         this.availableMigrators = new ArrayList<>();
         this.serializers = new LinkedHashMap<>();
+        this.lockedPlayers = new ConcurrentSkipListSet<>();
         this.playerCustomDataStore = new ConcurrentHashMap<>();
         this.mapViews = new ConcurrentHashMap<>();
 
@@ -152,8 +161,14 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
             this.redisManager.initialize();
         });
 
+        // Prepare data syncer
+        initialize("data syncer", (plugin) -> {
+            dataSyncer = getSettings().getSyncMode().create(this);
+            dataSyncer.initialize();
+        });
+
         // Register events
-        initialize("events", (plugin) -> this.eventListener = new BukkitEventListener(this));
+        initialize("events", (plugin) -> this.eventListener = createEventListener());
 
         // Register commands
         initialize("commands", (plugin) -> BukkitCommand.Type.registerCommands(this));
@@ -176,6 +191,12 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
     @Override
     public void onDisable() {
         // Handle shutdown
+        this.disabling = true;
+
+        // Close the event listener / data syncer
+        if (this.dataSyncer != null) {
+            this.dataSyncer.terminate();
+        }
         if (this.eventListener != null) {
             this.eventListener.handlePluginDisable();
         }
@@ -186,6 +207,11 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
 
         // Complete shutdown
         log(Level.INFO, "Successfully disabled HuskSync v" + getPluginVersion());
+    }
+
+    @NotNull
+    protected BukkitEventListener createEventListener() {
+        return new BukkitEventListener(this);
     }
 
     @Override
@@ -226,6 +252,19 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
 
     @NotNull
     @Override
+    public DataSyncer getDataSyncer() {
+        return dataSyncer;
+    }
+
+    @Override
+    public void setDataSyncer(@NotNull DataSyncer dataSyncer) {
+        log(Level.INFO, String.format("Switching data syncer to %s", dataSyncer.getClass().getSimpleName()));
+        this.dataSyncer = dataSyncer;
+    }
+
+    @NotNull
+    @Override
+    @SuppressWarnings("unchecked")
     public Map<Identifier, Serializer<? extends Data>> getSerializers() {
         return serializers;
     }
@@ -256,6 +295,17 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
     @Override
     public void setSettings(@NotNull Settings settings) {
         this.settings = settings;
+    }
+
+    @NotNull
+    @Override
+    public String getServerName() {
+        return server.getName();
+    }
+
+    @Override
+    public void setServer(@NotNull Server server) {
+        this.server = server;
     }
 
     @Override
@@ -328,13 +378,18 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
     @NotNull
     @Override
     public Set<UUID> getLockedPlayers() {
-        return this.eventListener.getLockedPlayers();
+        return lockedPlayers;
     }
 
     @NotNull
     @Override
     public Gson getGson() {
         return gson;
+    }
+
+    @Override
+    public boolean isDisabling() {
+        return disabling;
     }
 
     @NotNull

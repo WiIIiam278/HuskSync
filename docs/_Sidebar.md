@@ -11,6 +11,7 @@
 ## Documentation
 * 🖥️ [[Commands]]
 * ✅ [[Sync Features]]
+* ⚙️ [[Sync Modes]]
 * 🟩 [[Plan Hook]]
 * ☂️ [[Dumping UserData]]
 * 📋 [[Event Priorities]]

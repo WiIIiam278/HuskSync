@@ -11,6 +11,7 @@ data_manager_title: '[Viendo una snapshot sobre la informacion del jugador](#00f
 data_manager_timestamp: '[⌚ %1%](#ffc43b-#f5c962 show_text=&7Version del registro:\n&8Cuando los datos se han guardado)'
 data_manager_pinned: '[※ Snapshot anclada](#d8ff2b show_text=&Anclado:\n&8La informacion de este jugador no se rotará automaticamente.)'
 data_manager_cause: '[⚑ %1%](#23a825-#36f539 show_text=&7Motivo del guardado:\n&8Lo que ha causado que se guarde)'
+data_manager_server: '[Ⓢ %1%](#ff87b3-#f5538e show_text=&7Server:\n&8Name of the server the data was saved on)'
 data_manager_size: '[⏏ %1%](color=#62a9f5-#7ab8fa show_text=&7Snapshot size:\n&8Estimated file size of the snapshot (in KiB))\n'
 data_manger_status: '[%1%](red)[/](gray)[%2%](red)[×](gray)[❤](red show_text=&7Puntos de vida)   [%3%](yellow)[×](gray)[🍖](yellow show_text=&7Puntos de hambre)   [ʟᴠ](green)[.](gray)[%4%](green show_text=&7Nivel de exp)   [🏹 %5%](dark_aqua show_text=&7Gamemode)'
 data_manager_advancements_statistics: '[⭐ Logros: %1%](color=#ffc43b-#f5c962 show_text=&7Logros que has conseguido:\n&8%2%)   [⌛ Tiempo de juego: %3%ʜʀs](color=#62a9f5-#7ab8fa show_text=&7In-game play time\n&8⚠ Based on in-game statistics)\n'

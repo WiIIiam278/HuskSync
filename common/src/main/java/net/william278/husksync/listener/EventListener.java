@@ -23,13 +23,12 @@ import net.william278.husksync.HuskSync;
 import net.william278.husksync.data.Data;
 import net.william278.husksync.data.DataSnapshot;
 import net.william278.husksync.user.OnlineUser;
-import net.william278.husksync.util.Task;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.logging.Level;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 /**
  * Handles what should happen when events are fired
@@ -39,22 +38,8 @@ public abstract class EventListener {
     // The plugin instance
     protected final HuskSync plugin;
 
-    /**
-     * Set of UUIDs of "locked players", for which events will be canceled.
-     * </p>
-     * Players are locked while their items are being set (on join) or saved (on quit)
-     */
-    private final Set<UUID> lockedPlayers;
-
-    /**
-     * Whether the plugin is currently being disabled
-     */
-    private boolean disabling;
-
     protected EventListener(@NotNull HuskSync plugin) {
         this.plugin = plugin;
-        this.lockedPlayers = new HashSet<>();
-        this.disabling = false;
     }
 
     /**
@@ -66,51 +51,8 @@ public abstract class EventListener {
         if (user.isNpc()) {
             return;
         }
-        lockedPlayers.add(user.getUuid());
-
-        plugin.runAsyncDelayed(() -> {
-            // Fetch from the database if the user isn't changing servers
-            if (!plugin.getRedisManager().getUserServerSwitch(user)) {
-                this.setUserFromDatabase(user);
-                return;
-            }
-
-            // Set the user as soon as the source server has set the data to redis
-            final long MAX_ATTEMPTS = 16L;
-            final AtomicLong timesRun = new AtomicLong(0L);
-            final AtomicReference<Task.Repeating> task = new AtomicReference<>();
-            final Runnable runnable = () -> {
-                if (user.isOffline()) {
-                    task.get().cancel();
-                    return;
-                }
-                if (disabling || timesRun.getAndIncrement() > MAX_ATTEMPTS) {
-                    task.get().cancel();
-                    this.setUserFromDatabase(user);
-                    return;
-                }
-
-                plugin.getRedisManager().getUserData(user).ifPresent(redisData -> {
-                    task.get().cancel();
-                    user.applySnapshot(redisData, DataSnapshot.UpdateCause.SYNCHRONIZED);
-                });
-            };
-            task.set(plugin.getRepeatingTask(runnable, 10));
-            task.get().run();
-
-        }, Math.max(0, plugin.getSettings().getNetworkLatencyMilliseconds() / 50L));
-    }
-
-    /**
-     * Set a user's data from the database
-     *
-     * @param user The user to set the data for
-     */
-    private void setUserFromDatabase(@NotNull OnlineUser user) {
-        plugin.getDatabase().getLatestSnapshot(user).ifPresentOrElse(
-                snapshot -> user.applySnapshot(snapshot, DataSnapshot.UpdateCause.SYNCHRONIZED),
-                () -> user.completeSync(true, DataSnapshot.UpdateCause.NEW_USER, plugin)
-        );
+        plugin.lockPlayer(user.getUuid());
+        plugin.getDataSyncer().setUserData(user);
     }
 
     /**
@@ -119,27 +61,11 @@ public abstract class EventListener {
      * @param user The {@link OnlineUser} to handle
      */
     protected final void handlePlayerQuit(@NotNull OnlineUser user) {
-        // Players quitting have their data manually saved when the plugin is disabled
-        if (disabling) {
+        if (user.isNpc() || plugin.isDisabling() || plugin.isLocked(user.getUuid())) {
             return;
         }
-
-        // Don't sync players awaiting synchronization
-        if (lockedPlayers.contains(user.getUuid()) || user.isNpc()) {
-            return;
-        }
-
-        // Handle disconnection
-        try {
-            lockedPlayers.add(user.getUuid());
-            plugin.getRedisManager().setUserServerSwitch(user).thenRun(() -> {
-                final DataSnapshot.Packed data = user.createSnapshot(DataSnapshot.SaveCause.DISCONNECT);
-                plugin.getRedisManager().setUserData(user, data);
-                plugin.getDatabase().addSnapshot(user, data);
-            });
-        } catch (Throwable e) {
-            plugin.log(Level.SEVERE, "An exception occurred handling a player disconnection", e);
-        }
+        plugin.lockPlayer(user.getUuid());
+        plugin.runAsync(() -> plugin.getDataSyncer().saveUserData(user));
     }
 
     /**
@@ -148,11 +74,11 @@ public abstract class EventListener {
      * @param usersInWorld a list of users in the world that is being saved
      */
     protected final void saveOnWorldSave(@NotNull List<OnlineUser> usersInWorld) {
-        if (disabling || !plugin.getSettings().doSaveOnWorldSave()) {
+        if (plugin.isDisabling() || !plugin.getSettings().doSaveOnWorldSave()) {
             return;
         }
         usersInWorld.stream()
-                .filter(user -> !lockedPlayers.contains(user.getUuid()) && !user.isNpc())
+                .filter(user -> !plugin.isLocked(user.getUuid()) && !user.isNpc())
                 .forEach(user -> plugin.getDatabase().addSnapshot(
                         user, user.createSnapshot(DataSnapshot.SaveCause.WORLD_SAVE)
                 ));
@@ -162,16 +88,16 @@ public abstract class EventListener {
      * Handles the saving of data when a player dies
      *
      * @param user  The user who died
-     * @param drops The items that this user would have dropped
+     * @param items The items that should be saved for this user on their death
      */
-    protected void saveOnPlayerDeath(@NotNull OnlineUser user, @NotNull Data.Items drops) {
-        if (disabling || !plugin.getSettings().doSaveOnDeath() || lockedPlayers.contains(user.getUuid()) || user.isNpc()
-                || (!plugin.getSettings().doSaveEmptyDropsOnDeath() && drops.isEmpty())) {
+    protected void saveOnPlayerDeath(@NotNull OnlineUser user, @NotNull Data.Items items) {
+        if (plugin.isDisabling() || !plugin.getSettings().doSaveOnDeath() || plugin.isLocked(user.getUuid())
+                || user.isNpc() || (!plugin.getSettings().doSaveEmptyDeathItems() && items.isEmpty())) {
             return;
         }
 
         final DataSnapshot.Packed snapshot = user.createSnapshot(DataSnapshot.SaveCause.DEATH);
-        snapshot.edit(plugin, (data -> data.getInventory().ifPresent(inventory -> inventory.setContents(drops))));
+        snapshot.edit(plugin, (data -> data.getInventory().ifPresent(inventory -> inventory.setContents(items))));
         plugin.getDatabase().addSnapshot(user, snapshot);
     }
 
@@ -182,30 +108,24 @@ public abstract class EventListener {
      * @return Whether the event should be canceled
      */
     protected final boolean cancelPlayerEvent(@NotNull UUID userUuid) {
-        return disabling || lockedPlayers.contains(userUuid);
+        return plugin.isDisabling() || plugin.isLocked(userUuid);
     }
 
     /**
      * Handle the plugin disabling
      */
     public final void handlePluginDisable() {
-        disabling = true;
-
-        // Save data for all online users
+        // Save for all online players
         plugin.getOnlineUsers().stream()
-                .filter(user -> !lockedPlayers.contains(user.getUuid()) && !user.isNpc())
+                .filter(user -> !plugin.isLocked(user.getUuid()) && !user.isNpc())
                 .forEach(user -> {
-                    lockedPlayers.add(user.getUuid());
+                    plugin.lockPlayer(user.getUuid());
                     plugin.getDatabase().addSnapshot(user, user.createSnapshot(DataSnapshot.SaveCause.SERVER_SHUTDOWN));
                 });
 
         // Close outstanding connections
         plugin.getDatabase().terminate();
         plugin.getRedisManager().terminate();
-    }
-
-    public final Set<UUID> getLockedPlayers() {
-        return this.lockedPlayers;
     }
 
     /**
