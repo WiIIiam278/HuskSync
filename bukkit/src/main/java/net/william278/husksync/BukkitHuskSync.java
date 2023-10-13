@@ -118,10 +118,10 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
 
         // Prepare data adapter
         initialize("data adapter", (plugin) -> {
-            if (settings.doCompressData()) {
-                dataAdapter = new SnappyGsonAdapter(this);
+            if (getSettings().doCompressData()) {
+                this.dataAdapter = new SnappyGsonAdapter(this);
             } else {
-                dataAdapter = new GsonAdapter(this);
+                this.dataAdapter = new GsonAdapter(this);
             }
         });
 
@@ -142,11 +142,11 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
 
         // Setup available migrators
         initialize("data migrators/converters", (plugin) -> {
-            availableMigrators.add(new LegacyMigrator(this));
+            this.availableMigrators.add(new LegacyMigrator(this));
             if (isDependencyLoaded("MySqlPlayerDataBridge")) {
-                availableMigrators.add(new MpdbMigrator(this));
+                this.availableMigrators.add(new MpdbMigrator(this));
             }
-            legacyConverter = new BukkitLegacyConverter(this);
+            this.legacyConverter = new BukkitLegacyConverter(this);
         });
 
         // Initialize the database
@@ -163,8 +163,8 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
 
         // Prepare data syncer
         initialize("data syncer", (plugin) -> {
-            dataSyncer = getSettings().getSyncMode().create(this);
-            dataSyncer.initialize();
+            this.dataSyncer = getSettings().getSyncMode().create(this);
+            this.dataSyncer.initialize();
         });
 
         // Register events
@@ -201,9 +201,14 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
             this.eventListener.handlePluginDisable();
         }
 
-        // Unregister API and cancel tasks
-        BukkitHuskSyncAPI.unregister();
+        // Cancel tasks, close audiences
+        if (this.audiences != null) {
+            this.audiences.close();
+        }
         this.cancelTasks();
+
+        // Unregister API
+        BukkitHuskSyncAPI.unregister();
 
         // Complete shutdown
         log(Level.INFO, "Successfully disabled HuskSync v" + getPluginVersion());

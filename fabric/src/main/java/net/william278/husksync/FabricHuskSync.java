@@ -34,6 +34,7 @@ import net.william278.husksync.adapter.SnappyGsonAdapter;
 import net.william278.husksync.command.Command;
 import net.william278.husksync.command.FabricCommand;
 import net.william278.husksync.config.Locales;
+import net.william278.husksync.config.Server;
 import net.william278.husksync.config.Settings;
 import net.william278.husksync.data.Data;
 import net.william278.husksync.data.FabricSerializer;
@@ -47,6 +48,7 @@ import net.william278.husksync.listener.EventListener;
 import net.william278.husksync.listener.FabricEventListener;
 import net.william278.husksync.migrator.Migrator;
 import net.william278.husksync.redis.RedisManager;
+import net.william278.husksync.sync.DataSyncer;
 import net.william278.husksync.user.ConsoleUser;
 import net.william278.husksync.user.FabricUser;
 import net.william278.husksync.user.OnlineUser;
@@ -65,6 +67,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
@@ -72,18 +75,22 @@ public class FabricHuskSync implements DedicatedServerModInitializer, HuskSync, 
         FabricEventDispatcher {
     private Logger logger;
     private ModContainer mod;
-    private MinecraftServer server;
+    private MinecraftServer minecraftServer;
     private Database database;
     private RedisManager redisManager;
     private EventListener eventListener;
     private DataAdapter dataAdapter;
     private Map<Identifier, Serializer<? extends Data>> serializers;
     private Map<UUID, Map<Identifier, Data>> playerCustomDataStore;
+    private Set<UUID> lockedPlayers;
+    private DataSyncer dataSyncer;
     private Settings settings;
     private Locales locales;
+    private Server server;
     private Map<String, Boolean> permissions;
     private FabricServerAudiences audiences;
     private Gson gson;
+    private boolean disabling;
 
     public FabricHuskSync() {
     }
@@ -95,8 +102,10 @@ public class FabricHuskSync implements DedicatedServerModInitializer, HuskSync, 
         this.mod = FabricLoader.getInstance().getModContainer("husksync").orElseThrow();
 
         // Prepare utils
+        this.disabling = false;
         this.gson = createGson();
         this.serializers = new LinkedHashMap<>();
+        this.lockedPlayers = new ConcurrentSkipListSet<>();
         this.playerCustomDataStore = new ConcurrentHashMap<>();
         this.permissions = new HashMap<>();
 
@@ -106,26 +115,26 @@ public class FabricHuskSync implements DedicatedServerModInitializer, HuskSync, 
         // Register commands
         initialize("commands", (plugin) -> this.registerCommands());
 
-        // load HuskSync after server started
+        // Load HuskSync after server startup
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
-            this.server = server;
+            this.minecraftServer = server;
             this.onEnable();
         });
 
-        // unload HuskSync before server stopped
+        // Unload HuskSync before server shutdown
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> this.onDisable());
     }
 
     private void onEnable() {
         // Initial plugin setup
-        this.audiences = FabricServerAudiences.of(server);
+        this.audiences = FabricServerAudiences.of(minecraftServer);
 
         // Prepare data adapter
         initialize("data adapter", (plugin) -> {
-            if (settings.doCompressData()) {
-                dataAdapter = new SnappyGsonAdapter(this);
+            if (getSettings().doCompressData()) {
+                this.dataAdapter = new SnappyGsonAdapter(this);
             } else {
-                dataAdapter = new GsonAdapter(this);
+                this.dataAdapter = new GsonAdapter(this);
             }
         });
 
@@ -145,6 +154,12 @@ public class FabricHuskSync implements DedicatedServerModInitializer, HuskSync, 
         initialize("Redis server connection", (plugin) -> {
             this.redisManager = new RedisManager(this);
             this.redisManager.initialize();
+        });
+
+        // Prepare data syncer
+        initialize("data syncer", (plugin) -> {
+            this.dataSyncer = getSettings().getSyncMode().create(this);
+            this.dataSyncer.initialize();
         });
 
         // Register events
@@ -167,6 +182,12 @@ public class FabricHuskSync implements DedicatedServerModInitializer, HuskSync, 
 
     private void onDisable() {
         // Handle shutdown
+        this.disabling = true;
+
+        // Close the event listener / data syncer
+        if (this.dataSyncer != null) {
+            this.dataSyncer.terminate();
+        }
         if (this.eventListener != null) {
             this.eventListener.handlePluginDisable();
         }
@@ -218,6 +239,17 @@ public class FabricHuskSync implements DedicatedServerModInitializer, HuskSync, 
 
     @NotNull
     @Override
+    public DataSyncer getDataSyncer() {
+        return dataSyncer;
+    }
+
+    @Override
+    public void setDataSyncer(@NotNull DataSyncer dataSyncer) {
+
+    }
+
+    @NotNull
+    @Override
     public Map<Identifier, Serializer<? extends Data>> getSerializers() {
         return serializers;
     }
@@ -231,6 +263,17 @@ public class FabricHuskSync implements DedicatedServerModInitializer, HuskSync, 
     @Override
     public void setSettings(@NotNull Settings settings) {
         this.settings = settings;
+    }
+
+    @NotNull
+    @Override
+    public String getServerName() {
+        return server.getName();
+    }
+
+    @Override
+    public void setServer(@NotNull Server server) {
+        this.server = server;
     }
 
     @Override
@@ -264,7 +307,7 @@ public class FabricHuskSync implements DedicatedServerModInitializer, HuskSync, 
     @Override
     @NotNull
     public Set<OnlineUser> getOnlineUsers() {
-        return server.getPlayerManager().getPlayerList()
+        return minecraftServer.getPlayerManager().getPlayerList()
                 .stream().map(user -> (OnlineUser) FabricUser.adapt(user, this))
                 .collect(Collectors.toSet());
     }
@@ -272,7 +315,7 @@ public class FabricHuskSync implements DedicatedServerModInitializer, HuskSync, 
     @Override
     @NotNull
     public Optional<OnlineUser> getOnlineUser(@NotNull UUID uuid) {
-        return Optional.ofNullable(server.getPlayerManager().getPlayer(uuid))
+        return Optional.ofNullable(minecraftServer.getPlayerManager().getPlayer(uuid))
                 .map(user -> FabricUser.adapt(user, this));
     }
 
@@ -334,7 +377,7 @@ public class FabricHuskSync implements DedicatedServerModInitializer, HuskSync, 
     @Override
     @NotNull
     public Version getMinecraftVersion() {
-        return Version.fromString(server.getVersion());
+        return Version.fromString(minecraftServer.getVersion());
     }
 
     @NotNull
@@ -351,7 +394,7 @@ public class FabricHuskSync implements DedicatedServerModInitializer, HuskSync, 
     @NotNull
     @Override
     public Set<UUID> getLockedPlayers() {
-        return this.eventListener.getLockedPlayers();
+        return lockedPlayers;
     }
 
     @NotNull
@@ -360,9 +403,14 @@ public class FabricHuskSync implements DedicatedServerModInitializer, HuskSync, 
         return gson;
     }
 
+    @Override
+    public boolean isDisabling() {
+        return disabling;
+    }
+
     @NotNull
     public MinecraftServer getMinecraftServer() {
-        return server;
+        return minecraftServer;
     }
 
     @Override
