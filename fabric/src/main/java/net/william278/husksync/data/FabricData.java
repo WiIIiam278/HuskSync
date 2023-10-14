@@ -19,13 +19,21 @@
 
 package net.william278.husksync.data;
 
+import com.google.gson.annotations.SerializedName;
+import net.fabricmc.fabric.api.dimension.v1.FabricDimensions;
 import net.minecraft.enchantment.EnchantmentHelper;
+import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.registry.Registries;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.TeleportTarget;
 import net.william278.husksync.FabricHuskSync;
 import net.william278.husksync.HuskSync;
+import net.william278.husksync.adapter.Adaptable;
 import net.william278.husksync.user.FabricUser;
 import org.jetbrains.annotations.NotNull;
 
@@ -215,6 +223,218 @@ public abstract class FabricData implements Data {
                 throw new UnsupportedOperationException("A generic item array cannot be applied to a player");
             }
 
+        }
+
+    }
+
+    public static class PotionEffects extends FabricData implements Data.PotionEffects {
+
+        private final Collection<StatusEffectInstance> effects;
+
+        private PotionEffects(@NotNull Collection<StatusEffectInstance> effects) {
+            this.effects = effects;
+        }
+
+        @NotNull
+        public static FabricData.PotionEffects from(@NotNull Collection<StatusEffectInstance> effects) {
+            return new FabricData.PotionEffects(effects);
+        }
+
+        @NotNull
+        public static FabricData.PotionEffects adapt(@NotNull Collection<Effect> effects) {
+            return from(
+                    effects.stream()
+                            .map(effect -> new StatusEffectInstance(
+                                    Objects.requireNonNull(
+                                            Registries.STATUS_EFFECT.get(Identifier.tryParse(effect.type())),
+                                            "Invalid effect type when adapting effects"
+                                    ),
+                                    effect.duration(),
+                                    effect.amplifier(),
+                                    effect.isAmbient(),
+                                    effect.showParticles(),
+                                    effect.hasIcon()
+                            ))
+                            .toList()
+            );
+        }
+
+        @NotNull
+        @SuppressWarnings("unused")
+        public static FabricData.PotionEffects empty() {
+            return new FabricData.PotionEffects(List.of());
+        }
+
+        @Override
+        public void apply(@NotNull FabricUser user, @NotNull FabricHuskSync plugin) throws IllegalStateException {
+            final ServerPlayerEntity player = user.getPlayer();
+            player.getActiveStatusEffects().forEach((effect, instance) -> player.removeStatusEffect(effect));
+            getEffects().forEach(player::addStatusEffect);
+        }
+
+        @NotNull
+        @Override
+        public List<Effect> getActiveEffects() {
+            return effects.stream()
+                    .map(potionEffect -> new Effect(
+                            Objects.requireNonNull(
+                                    Registries.STATUS_EFFECT.getId(potionEffect.getEffectType()),
+                                    "Invalid effect type when getting active effects"
+                            ).toString(),
+                            potionEffect.getAmplifier(),
+                            potionEffect.getDuration(),
+                            potionEffect.isAmbient(),
+                            potionEffect.shouldShowParticles(),
+                            potionEffect.shouldShowIcon()
+                    ))
+                    .toList();
+        }
+
+        @NotNull
+        public Collection<StatusEffectInstance> getEffects() {
+            return effects;
+        }
+    }
+
+    // TODO ADVANCEMENTS
+
+    public static class Location extends FabricData implements Data.Location, Adaptable {
+        @SerializedName("x")
+        private double x;
+        @SerializedName("y")
+        private double y;
+        @SerializedName("z")
+        private double z;
+        @SerializedName("yaw")
+        private float yaw;
+        @SerializedName("pitch")
+        private float pitch;
+        @SerializedName("world")
+        private World world;
+
+        private Location(double x, double y, double z, float yaw, float pitch, @NotNull World world) {
+            this.x = x;
+            this.y = y;
+            this.z = z;
+            this.yaw = yaw;
+            this.pitch = pitch;
+            this.world = world;
+        }
+
+        @SuppressWarnings("unused")
+        private Location() {
+        }
+
+        @NotNull
+        public static FabricData.Location from(double x, double y, double z,
+                                               float yaw, float pitch, @NotNull World world) {
+            return new FabricData.Location(x, y, z, yaw, pitch, world);
+        }
+
+        @NotNull
+        public static FabricData.Location adapt(@NotNull ServerPlayerEntity player) {
+            return from(
+                    player.getX(),
+                    player.getY(),
+                    player.getZ(),
+                    player.getYaw(),
+                    player.getPitch(),
+                    new World(
+                            Objects.requireNonNull(
+                                    player.getWorld(), "World is null"
+                            ).getRegistryKey().getValue().toString(),
+                            UUID.nameUUIDFromBytes(
+                                    player.getWorld().getDimensionKey().getValue().toString().getBytes()
+                            ),
+                            player.getWorld().getDimensionKey().getValue().toString()
+                    )
+            );
+        }
+
+        @Override
+        public void apply(@NotNull FabricUser user, @NotNull FabricHuskSync plugin) throws IllegalStateException {
+            final ServerPlayerEntity player = user.getPlayer();
+            final MinecraftServer server = plugin.getMinecraftServer();
+            try {
+                player.dismountVehicle();
+                FabricDimensions.teleport(
+                        player,
+                        server.getWorld(server.getWorldRegistryKeys().stream()
+                                .filter(key -> key.getValue().equals(Identifier.tryParse(world.name())))
+                                .findFirst().orElseThrow(
+                                        () -> new IllegalStateException("Invalid world")
+                                )),
+                        new TeleportTarget(
+                                new Vec3d(x, y, z),
+                                Vec3d.ZERO,
+                                yaw,
+                                pitch
+                        )
+                );
+            } catch (Throwable e) {
+                throw new IllegalStateException("Failed to apply location", e);
+            }
+        }
+
+        @Override
+        public double getX() {
+            return x;
+        }
+
+        @Override
+        public void setX(double x) {
+            this.x = x;
+        }
+
+        @Override
+        public double getY() {
+            return y;
+        }
+
+        @Override
+        public void setY(double y) {
+            this.y = y;
+        }
+
+        @Override
+        public double getZ() {
+            return z;
+        }
+
+        @Override
+        public void setZ(double z) {
+            this.z = z;
+        }
+
+        @Override
+        public float getYaw() {
+            return yaw;
+        }
+
+        @Override
+        public void setYaw(float yaw) {
+            this.yaw = yaw;
+        }
+
+        @Override
+        public float getPitch() {
+            return pitch;
+        }
+
+        @Override
+        public void setPitch(float pitch) {
+            this.pitch = pitch;
+        }
+
+        @NotNull
+        @Override
+        public World getWorld() {
+            return world;
+        }
+
+        @Override
+        public void setWorld(@NotNull World world) {
+            this.world = world;
         }
 
     }

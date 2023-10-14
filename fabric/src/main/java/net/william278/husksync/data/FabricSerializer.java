@@ -19,6 +19,7 @@
 
 package net.william278.husksync.data;
 
+import com.google.gson.reflect.TypeToken;
 import com.mojang.brigadier.StringReader;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
@@ -31,6 +32,7 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
+import java.util.List;
 
 //TODO
 public abstract class FabricSerializer {
@@ -125,6 +127,30 @@ public abstract class FabricSerializer {
             Arrays.stream(data.getContents()).forEach(item -> items.add(item.writeNbt(new NbtCompound())));
             return items.toString();
         }
+    }
+
+    public static class PotionEffects extends FabricSerializer implements Serializer<FabricData.PotionEffects> {
+
+        private static final TypeToken<List<Data.PotionEffects.Effect>> TYPE = new TypeToken<>() {
+        };
+
+        public PotionEffects(@NotNull HuskSync plugin) {
+            super(plugin);
+        }
+
+        @Override
+        public FabricData.PotionEffects deserialize(@NotNull String serialized) throws DeserializationException {
+            return FabricData.PotionEffects.adapt(
+                    plugin.getGson().fromJson(serialized, TYPE.getType())
+            );
+        }
+
+        @NotNull
+        @Override
+        public String serialize(@NotNull FabricData.PotionEffects element) throws SerializationException {
+            return plugin.getGson().toJson(element.getActiveEffects());
+        }
+
     }
     
 }
