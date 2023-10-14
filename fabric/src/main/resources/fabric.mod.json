@@ -3,10 +3,10 @@
   "id": "husksync",
   "version": "${version}",
   "name": "husksync",
-  "description": "",
+  "description": "${description}",
   "authors": [],
   "contact": {
-    "repo": "https://github.com/hanbings/HuskSync"
+    "repo": "https://github.com/WiIIiam278/HuskSync"
   },
   "license": "Apache-2.0",
   "icon": "assets/husksync/icon.png",
