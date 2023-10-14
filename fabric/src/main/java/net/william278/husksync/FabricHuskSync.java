@@ -372,11 +372,15 @@ public class FabricHuskSync implements DedicatedServerModInitializer, HuskSync, 
 
     @Override
     @NotNull
-    public File getDataFolder() throws IOException {
+    public File getDataFolder() {
         Path path = FabricLoader.getInstance().getConfigDir().resolve("husksync");
 
         if (!Files.isDirectory(path)) {
-            Files.createDirectory(path);
+            try {
+                Files.createDirectory(path);
+            } catch (IOException e) {
+                log(Level.SEVERE, "Failed to create data folder", e);
+            }
         }
 
         return path.toFile();

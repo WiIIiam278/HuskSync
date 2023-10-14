@@ -236,7 +236,7 @@ public interface HuskSync extends Task.Supplier, EventDispatcher {
      * @return the plugin data folder as a {@link File}
      */
     @NotNull
-    File getDataFolder() throws IOException;
+    File getDataFolder();
 
     /**
      * Log a message to the console
