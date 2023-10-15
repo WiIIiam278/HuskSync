@@ -321,7 +321,7 @@ public interface BukkitMapPersister {
         return new MapCursor(
                 (byte) banner.getPosition().getX(),
                 (byte) banner.getPosition().getZ(),
-                (byte) 0,
+                (byte) 8, // Always rotate banners upright
                 switch (banner.getColor().toLowerCase(Locale.ENGLISH)) {
                     case "white" -> MapCursor.Type.BANNER_WHITE;
                     case "orange" -> MapCursor.Type.BANNER_ORANGE;
