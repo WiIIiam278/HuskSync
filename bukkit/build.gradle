@@ -13,7 +13,7 @@ dependencies {
     implementation 'de.tr7zw:item-nbt-api:2.12.0'
 
     compileOnly 'org.spigotmc:spigot-api:1.16.5-R0.1-SNAPSHOT'
-    compileOnly 'commons-io:commons-io:2.14.0'
+    compileOnly 'commons-io:commons-io:2.15.0'
     compileOnly 'org.json:json:20231013'
     compileOnly 'de.themoep:minedown-adventure:1.7.2-SNAPSHOT'
     compileOnly 'dev.dejvokep:boosted-yaml:1.3.1'
