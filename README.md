@@ -71,8 +71,8 @@ Due to its complexity, official support for HuskSync is provided through a paid 
 ### Translations
 Translations of the plugin locales are welcome to help make the plugin more accessible. Please submit a pull request with your translations as a `.yml` file.
 
-- [Locales Directory](https://github.com/WiIIiam278/HuskSync/tree/master/common/src/main/resources/languages)
-- [English Locales](https://github.com/WiIIiam278/HuskSync/tree/master/common/src/main/resources/languages/en-gb.yml)
+- [Locales Directory](https://github.com/WiIIiam278/HuskSync/tree/master/common/src/main/resources/locales)
+- [English Locales](https://github.com/WiIIiam278/HuskSync/tree/master/common/src/main/resources/locales/en-gb.yml)
 
 ## Links
 - [Docs](https://william278.net/docs/husksync/) &mdash; Read the plugin documentation!
