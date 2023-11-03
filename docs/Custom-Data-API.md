@@ -12,6 +12,7 @@ If you'd like to have a look at an example of a data extension for HuskSync that
 2. [Extending the BukkitSerializer Class](#2-extending-the-bukkitserializer-class)
 3. [Identifiers and registering our Serializer](#3-identifiers--registering-our-serializer)
 4. [Setting and Getting our Data to/from a User](#4-setting-and-getting-our-data-tofrom-a-user)
+   1. [Persisting custom data on the DataSaveEvent](#41-persisting-custom-data-on-the-datasaveevent) 
 
 ## 1. Extending the BukkitData Class
 * HuskSync provides a `Data` interface that you must implement that will represent your custom data.
@@ -130,4 +131,14 @@ huskSyncAPI.getUser(player).setData(LOGIN_PARTICLES_ID, loginParticleData);
 
 // Get our data from a player
 LoginParticleData loginParticleData = (LoginParticleData) huskSyncAPI.getUser(player).getData(LOGIN_PARTICLES_ID);
+```
+
+### 4.1 Persisting custom data on the DataSaveEvent
+Add an EventListener to the `DataSaveEvent` and use the `#editData` consumer method to apply custom data during standard DataSaves. This will persist data to users any time the data save routine executes (on user logout, server shutdownm, world save, etc).
+
+```java
+@EventHandler
+public void onDataSave(BukkitDataSaveEvent event) {
+    event.editData((unpacked) -> unpacked.setData(LOGIN_PARTICLES_ID, new LoginParticleData("FIREWORKS_SPARK", 10)));
+}
 ```

@@ -3,10 +3,10 @@
     <img src="images/banner.png" alt="HuskSync" />
     <a href="https://github.com/WiIIiam278/HuskSync/actions/workflows/ci.yml">
         <img src="https://img.shields.io/github/actions/workflow/status/WiIIiam278/HuskSync/ci.yml?branch=master&logo=github"/>
-    </a> 
-    <a href="https://jitpack.io/#net.william278/HuskSync">
-        <img src="https://img.shields.io/jitpack/version/net.william278/HuskSync?color=%2300fb9a&label=api&logo=gradle" />
-    </a> 
+    </a>
+    <a href="https://repo.william278.net/#/releases/net/william278/husksync/">
+        <img src="https://repo.william278.net/api/badge/latest/releases/net/william278/husksync?color=00fb9a&name=Maven&prefix=v" />
+    </a>
     <a href="https://discord.gg/tVYhJfyDWG">
         <img src="https://img.shields.io/discord/818135932103557162.svg?label=&logo=discord&logoColor=fff&color=7389D8&labelColor=6A7EC2" />
     </a> 
@@ -71,8 +71,8 @@ Due to its complexity, official support for HuskSync is provided through a paid 
 ### Translations
 Translations of the plugin locales are welcome to help make the plugin more accessible. Please submit a pull request with your translations as a `.yml` file.
 
-- [Locales Directory](https://github.com/WiIIiam278/HuskSync/tree/master/common/src/main/resources/languages)
-- [English Locales](https://github.com/WiIIiam278/HuskSync/tree/master/common/src/main/resources/languages/en-gb.yml)
+- [Locales Directory](https://github.com/WiIIiam278/HuskSync/tree/master/common/src/main/resources/locales)
+- [English Locales](https://github.com/WiIIiam278/HuskSync/tree/master/common/src/main/resources/locales/en-gb.yml)
 
 ## Links
 - [Docs](https://william278.net/docs/husksync/) &mdash; Read the plugin documentation!
