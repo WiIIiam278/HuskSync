@@ -1,4 +1,4 @@
-This guide will walk you through how to migrate from MySQLPlayerDataBridge (MPDB) to HuskSync v2.x.
+This guide will walk you through how to migrate from MySQLPlayerDataBridge (MPDB) to HuskSync v3.x.
 
 > **Warning:** Please note that due to MPDB changes, HuskSync only supports migrating from MySQLPlayerDataBridge `<= v4.9.2`. Support for newer versions will be added in the future.
 
@@ -6,13 +6,13 @@ This guide will walk you through how to migrate from MySQLPlayerDataBridge (MPDB
 - Spigot servers with MySQLPlayerDataBridge *still installed*
 
 ## Migration Instructions
-### 1. Install HuskSync v2.x on all Spigot servers
+### 1. Install HuskSync v3.x on all Spigot servers
 - Download, then install HuskSync on all your servers. Don't uninstall MySQLPlayerDataBridge yet.
-- Follow the setup instructions [here](Setup).
+- Follow the setup instructions [here](setup).
 - Start your servers again when done.
 
 ### 2. Configure the migrator
-- With your servers back on and correctly configured to run HuskSync v2.x, ensure nobody is online.
+- With your servers back on and correctly configured to run HuskSync v3.x, ensure nobody is online.
 - Use the console on one of your Spigot servers to enter: `husksync migrate mpdb`. If the MPDB migrator is not available, ensure MySQLPlayerDataBridge is still installed.
 - Adjust the migration setting as needed using the following command: `husksync migrate mpdb set <setting> <value>`.
 - Note that migration will be carried out *from* the database you specify with the settings in console *to* the database configured in `config.yml`.
