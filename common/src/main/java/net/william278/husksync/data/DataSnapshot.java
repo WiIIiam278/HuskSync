@@ -822,6 +822,11 @@ public class DataSnapshot {
                     .replaceAll("_", " "), 18);
         }
 
+        @NotNull
+        public String getLocale(@NotNull HuskSync plugin) {
+            return plugin.getLocales().getRawLocale("save_cause_" + name().toLowerCase())
+                    .orElse(getDisplayName());
+        }
     }
 
     /**
