@@ -1,7 +1,22 @@
 # Dependabot configuration file for GitHub
+
 version: 2
 updates:
-  - package-ecosystem: "gradle" # See documentation for possible values
-    directory: "/" # Location of package manifests
+  # CI workflow action updates
+  - package-ecosystem: "github-actions"
+    directory: "/"
     schedule:
-      interval: "daily"
+      interval: "weekly"
+    commit-message:
+      prefix: "ci"
+
+  # Gradle package updates
+  - package-ecosystem: "gradle"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "deps"
+    ignore:
+      - dependency-name: 'org.spigotmc:spigot-api'
+      - dependency-name: 'org.papermc:paper-api'
