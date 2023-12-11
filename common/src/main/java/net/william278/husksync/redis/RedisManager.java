@@ -24,11 +24,9 @@ import net.william278.husksync.data.DataSnapshot;
 import net.william278.husksync.user.User;
 import org.jetbrains.annotations.Blocking;
 import org.jetbrains.annotations.NotNull;
-import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisPool;
-import redis.clients.jedis.JedisPoolConfig;
-import redis.clients.jedis.JedisPubSub;
+import redis.clients.jedis.*;
 import redis.clients.jedis.exceptions.JedisException;
+import redis.clients.jedis.util.Pool;
 
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
@@ -47,7 +45,7 @@ public class RedisManager extends JedisPubSub {
 
     private final HuskSync plugin;
     private final String clusterId;
-    private JedisPool jedisPool;
+    private Pool<Jedis> jedisPool;
     private final Map<UUID, CompletableFuture<Optional<DataSnapshot.Packed>>> pendingRequests;
 
     public RedisManager(@NotNull HuskSync plugin) {
@@ -71,9 +69,16 @@ public class RedisManager extends JedisPubSub {
         config.setMaxIdle(0);
         config.setTestOnBorrow(true);
         config.setTestOnReturn(true);
-        this.jedisPool = password.isEmpty()
-                ? new JedisPool(config, host, port, 0, useSSL)
-                : new JedisPool(config, host, port, 0, password, useSSL);
+        Set<String> redisSentinelNodes = new HashSet<>(plugin.getSettings().getRedisSentinelNodes());
+        if(redisSentinelNodes.isEmpty()) {
+            this.jedisPool = password.isEmpty()
+                    ? new JedisPool(config, host, port, 0, useSSL)
+                    : new JedisPool(config, host, port, 0, password, useSSL);
+        } else {
+            String sentinelPassword = plugin.getSettings().getRedisSentinelPassword();
+            String redisSentinelMaster = plugin.getSettings().getRedisSentinelMaster();
+            this.jedisPool = new JedisSentinelPool(redisSentinelMaster, redisSentinelNodes, password.isEmpty() ? null : password, sentinelPassword.isEmpty() ? null : sentinelPassword);
+        }
 
         // Ping the server to check the connection
         try {
