@@ -1,1 +1,15 @@
-    "BowItemMixin",
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "net.william278.husksync.mixins",
+  "compatibilityLevel": "JAVA_17",
+  "server": [
+    "ItemEntityMixin",
+    "ServerPlayerEntityMixin"
+  ],
+  "client": [],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "mixins": []
+}
