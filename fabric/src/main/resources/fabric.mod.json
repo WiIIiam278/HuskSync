@@ -23,5 +23,8 @@
   },
   "suggests": {
     "plan": "*"
-  }
+  },
+  "mixins": [
+    "husksync.mixins.json"
+  ]
 }

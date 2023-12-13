@@ -21,9 +21,14 @@ package net.william278.husksync.listener;
 
 import net.fabricmc.fabric.api.networking.v1.PacketSender;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.ItemStack;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayNetworkHandler;
+import net.minecraft.util.ActionResult;
 import net.william278.husksync.HuskSync;
+import net.william278.husksync.event.ItemDropCallback;
+import net.william278.husksync.event.ItemPickupCallback;
 import net.william278.husksync.user.FabricUser;
 import org.jetbrains.annotations.NotNull;
 
@@ -41,6 +46,8 @@ public class FabricEventListener extends EventListener {
         // todo world save mixin
 
         // TODO: Events of extra things to cancel if the player has not been set yet
+        ItemPickupCallback.EVENT.register(this::handleItemPickup);
+        ItemDropCallback.EVENT.register(this::handleItemDrop);
     }
 
     private void handlePlayerJoin(@NotNull ServerPlayNetworkHandler handler, @NotNull PacketSender sender,
@@ -52,5 +59,11 @@ public class FabricEventListener extends EventListener {
         handlePlayerQuit(FabricUser.adapt(handler.player, plugin));
     }
 
+    private ActionResult handleItemPickup(PlayerEntity player, ItemStack itemStack) {
+        return (cancelPlayerEvent(player.getUuid())) ? ActionResult.FAIL : ActionResult.PASS;
+    }
 
+    private ActionResult handleItemDrop(PlayerEntity player, ItemStack itemStack) {
+        return (cancelPlayerEvent(player.getUuid())) ? ActionResult.FAIL : ActionResult.PASS;
+    }
 }
