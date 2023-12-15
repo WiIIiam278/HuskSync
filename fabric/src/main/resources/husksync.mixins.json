@@ -5,6 +5,7 @@
   "compatibilityLevel": "JAVA_17",
   "server": [
     "ItemEntityMixin",
+    "ServerPlayerEntityMixin",
     "ServerPlayNetworkHandlerMixin"
   ],
   "client": [],
