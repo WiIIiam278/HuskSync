@@ -134,6 +134,7 @@ public class Settings {
     @YamlKey("redis.use_ssl")
     private boolean redisUseSsl = false;
 
+    @YamlComment("If you're using Redis Sentinel, specify the master set name. If you don't know what this is, don't change anything here.")
     @YamlKey("redis.sentinel.master")
     private String redisSentinelMaster = "";
 
@@ -334,14 +335,17 @@ public class Settings {
         return redisUseSsl;
     }
 
+    @NotNull
     public String getRedisSentinelMaster() {
         return redisSentinelMaster;
     }
 
+    @NotNull
     public List<String> getRedisSentinelNodes() {
         return redisSentinelNodes;
     }
 
+    @NotNull
     public String getRedisSentinelPassword() {
         return redisSentinelPassword;
     }

@@ -70,7 +70,7 @@ public class RedisManager extends JedisPubSub {
         config.setTestOnBorrow(true);
         config.setTestOnReturn(true);
         Set<String> redisSentinelNodes = new HashSet<>(plugin.getSettings().getRedisSentinelNodes());
-        if(redisSentinelNodes.isEmpty()) {
+        if (redisSentinelNodes.isEmpty()) {
             this.jedisPool = password.isEmpty()
                     ? new JedisPool(config, host, port, 0, useSSL)
                     : new JedisPool(config, host, port, 0, password, useSSL);
