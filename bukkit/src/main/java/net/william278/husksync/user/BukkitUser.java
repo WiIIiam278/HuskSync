@@ -23,7 +23,6 @@ import de.themoep.minedown.adventure.MineDown;
 import dev.triumphteam.gui.builder.gui.StorageBuilder;
 import dev.triumphteam.gui.guis.Gui;
 import dev.triumphteam.gui.guis.StorageGui;
-import net.kyori.adventure.audience.Audience;
 import net.roxeez.advancement.display.FrameType;
 import net.william278.andjam.Toast;
 import net.william278.husksync.BukkitHuskSync;
