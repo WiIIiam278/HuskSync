@@ -46,7 +46,6 @@ import net.william278.husksync.migrator.MpdbMigrator;
 import net.william278.husksync.redis.RedisManager;
 import net.william278.husksync.sync.DataSyncer;
 import net.william278.husksync.user.BukkitUser;
-import net.william278.husksync.user.ConsoleUser;
 import net.william278.husksync.user.OnlineUser;
 import net.william278.husksync.util.BukkitLegacyConverter;
 import net.william278.husksync.util.BukkitMapPersister;
@@ -344,12 +343,6 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
         } else {
             getLogger().log(level, message);
         }
-    }
-
-    @NotNull
-    @Override
-    public ConsoleUser getConsole() {
-        return new ConsoleUser(audiences.console());
     }
 
     @NotNull

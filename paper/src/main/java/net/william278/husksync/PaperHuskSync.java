@@ -19,9 +19,13 @@
 
 package net.william278.husksync;
 
+import net.kyori.adventure.audience.Audience;
 import net.william278.husksync.listener.BukkitEventListener;
 import net.william278.husksync.listener.PaperEventListener;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.UUID;
 
 @SuppressWarnings("unused")
 public class PaperHuskSync extends BukkitHuskSync {
@@ -30,6 +34,13 @@ public class PaperHuskSync extends BukkitHuskSync {
     @Override
     protected BukkitEventListener createEventListener() {
         return new PaperEventListener(this);
+    }
+
+    @NotNull
+    @Override
+    public Audience getAudience(@NotNull UUID user) {
+        final Player player = getServer().getPlayer(user);
+        return player == null || !player.isOnline() ? Audience.empty() : player;
     }
 
 }

@@ -36,7 +36,6 @@ shadowJar {
     relocate 'org.json', 'net.william278.husksync.libraries.json'
     relocate 'com.fatboyindustrial', 'net.william278.husksync.libraries'
     relocate 'de.themoep', 'net.william278.husksync.libraries'
-    relocate 'net.kyori', 'net.william278.husksync.libraries'
     relocate 'org.jetbrains', 'net.william278.husksync.libraries'
     relocate 'org.intellij', 'net.william278.husksync.libraries'
     relocate 'com.zaxxer', 'net.william278.husksync.libraries'

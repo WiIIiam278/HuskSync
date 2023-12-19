@@ -22,6 +22,8 @@ package net.william278.husksync;
 import com.fatboyindustrial.gsonjavatime.Converters;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import net.kyori.adventure.audience.Audience;
+import net.kyori.adventure.platform.AudienceProvider;
 import net.william278.annotaml.Annotaml;
 import net.william278.desertwell.util.ThrowingConsumer;
 import net.william278.desertwell.util.UpdateChecker;
@@ -250,12 +252,35 @@ public interface HuskSync extends Task.Supplier, EventDispatcher {
     }
 
     /**
-     * Get the console user
+     * Get the {@link AudienceProvider} instance
      *
-     * @return the {@link ConsoleUser}
+     * @return the {@link AudienceProvider} instance
+     * @since 1.0
      */
     @NotNull
-    ConsoleUser getConsole();
+    AudienceProvider getAudiences();
+
+    /**
+     * Get the {@link Audience} instance for the given {@link OnlineUser}
+     *
+     * @param user the {@link OnlineUser} to get the {@link Audience} for
+     * @return the {@link Audience} instance
+     */
+    @NotNull
+    default Audience getAudience(@NotNull UUID user) {
+        return getAudiences().player(user);
+    }
+
+    /**
+     * Get the {@link ConsoleUser} instance
+     *
+     * @return the {@link ConsoleUser} instance
+     * @since 1.0
+     */
+    @NotNull
+    default ConsoleUser getConsole() {
+        return new ConsoleUser(getAudiences());
+    }
 
     /**
      * Returns the plugin version
