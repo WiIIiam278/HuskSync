@@ -77,12 +77,6 @@ public class BukkitUser extends OnlineUser implements BukkitUserDataHolder {
         return player == null || !player.isOnline();
     }
 
-    @NotNull
-    @Override
-    public Audience getAudience() {
-        return ((BukkitHuskSync) plugin).getAudiences().player(player);
-    }
-
     @Override
     public void sendToast(@NotNull MineDown title, @NotNull MineDown description,
                           @NotNull String iconMaterial, @NotNull String backgroundType) {
