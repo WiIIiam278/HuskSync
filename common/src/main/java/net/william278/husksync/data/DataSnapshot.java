@@ -503,7 +503,10 @@ public class DataSnapshot {
         @NotNull
         public Builder timestamp(@NotNull OffsetDateTime timestamp) {
             if (timestamp.isAfter(OffsetDateTime.now())) {
-                throw new IllegalArgumentException("Data snapshots cannot have a timestamp set in the future");
+                throw new IllegalArgumentException("Data snapshots cannot have a timestamp set in the future! "
+                        + "Make sure your database server time matches the server time.\n"
+                        + "Current game server timestamp: " + OffsetDateTime.now() + " / "
+                        + "Snapshot timestamp: " + timestamp);
             }
             this.timestamp = timestamp;
             return this;
@@ -822,6 +825,11 @@ public class DataSnapshot {
                     .replaceAll("_", " "), 18);
         }
 
+        @NotNull
+        public String getLocale(@NotNull HuskSync plugin) {
+            return plugin.getLocales().getRawLocale("save_cause_" + name().toLowerCase())
+                    .orElse(getDisplayName());
+        }
     }
 
     /**

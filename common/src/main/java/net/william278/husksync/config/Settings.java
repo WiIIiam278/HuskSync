@@ -134,6 +134,17 @@ public class Settings {
     @YamlKey("redis.use_ssl")
     private boolean redisUseSsl = false;
 
+    @YamlComment("If you're using Redis Sentinel, specify the master set name. If you don't know what this is, don't change anything here.")
+    @YamlKey("redis.sentinel.master")
+    private String redisSentinelMaster = "";
+
+    @YamlComment("List of host:port pairs")
+    @YamlKey("redis.sentinel.nodes")
+    private List<String> redisSentinelNodes = new ArrayList<>();
+
+    @YamlKey("redis.sentinel.password")
+    private String redisSentinelPassword = "";
+
 
     // Synchronization settings
     @YamlComment("The mode of data synchronization to use (DELAY or LOCKSTEP). DELAY should be fine for most networks."
@@ -322,6 +333,21 @@ public class Settings {
 
     public boolean redisUseSsl() {
         return redisUseSsl;
+    }
+
+    @NotNull
+    public String getRedisSentinelMaster() {
+        return redisSentinelMaster;
+    }
+
+    @NotNull
+    public List<String> getRedisSentinelNodes() {
+        return redisSentinelNodes;
+    }
+
+    @NotNull
+    public String getRedisSentinelPassword() {
+        return redisSentinelPassword;
     }
 
     @NotNull

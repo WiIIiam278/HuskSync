@@ -1,7 +1,7 @@
 plugins {
     id 'com.github.johnrengelman.shadow' version '8.1.1'
     id 'org.cadixdev.licenser' version '0.6.1' apply false
-    id 'org.ajoberstar.grgit' version '5.2.0'
+    id 'org.ajoberstar.grgit' version '5.2.1'
     id 'maven-publish'
     id 'java'
 }
@@ -49,9 +49,9 @@ allprojects {
     }
 
     dependencies {
-        testImplementation 'org.junit.jupiter:junit-jupiter-api:5.10.0'
-        testImplementation 'org.junit.jupiter:junit-jupiter-params:5.10.0'
-        testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.10.0'
+        testImplementation 'org.junit.jupiter:junit-jupiter-api:5.10.1'
+        testImplementation 'org.junit.jupiter:junit-jupiter-params:5.10.1'
+        testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.10.1'
     }
 
     test {

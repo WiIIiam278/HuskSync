@@ -50,13 +50,11 @@ public abstract class OnlineUser extends User implements CommandUser, UserDataHo
      */
     public abstract boolean isOffline();
 
-    /**
-     * Get the player's adventure {@link Audience}
-     *
-     * @return the player's {@link Audience}
-     */
     @NotNull
-    public abstract Audience getAudience();
+    @Override
+    public Audience getAudience() {
+        return getPlugin().getAudience(getUuid());
+    }
 
     /**
      * Send a message to this player

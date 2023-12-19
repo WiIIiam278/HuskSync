@@ -211,7 +211,8 @@ public interface BukkitMapPersister {
         }
 
         // Create a new map view renderer with the map data color at each pixel
-        view.getRenderers().clear();
+        // use view.removeRenderer() to remove all this maps renderers
+        view.getRenderers().forEach(view::removeRenderer);
         view.addRenderer(new PersistentMapRenderer(canvasData));
         view.setLocked(true);
         view.setScale(MapView.Scale.NORMAL);
@@ -306,6 +307,10 @@ public interface BukkitMapPersister {
 
             // Set the map banners and markers
             final MapCursorCollection cursors = canvas.getCursors();
+            while (cursors.size() > 0) {
+                cursors.removeCursor(cursors.getCursor(0));
+            }
+
             canvasData.getBanners().forEach(banner -> cursors.addCursor(createBannerCursor(banner)));
             canvas.setCursors(cursors);
         }
@@ -316,7 +321,7 @@ public interface BukkitMapPersister {
         return new MapCursor(
                 (byte) banner.getPosition().getX(),
                 (byte) banner.getPosition().getZ(),
-                (byte) 0,
+                (byte) 8, // Always rotate banners upright
                 switch (banner.getColor().toLowerCase(Locale.ENGLISH)) {
                     case "white" -> MapCursor.Type.BANNER_WHITE;
                     case "orange" -> MapCursor.Type.BANNER_ORANGE;
@@ -412,12 +417,13 @@ public interface BukkitMapPersister {
         @NotNull
         private MapData extractMapData() {
             final List<MapBanner> banners = new ArrayList<>();
+            final String BANNER_PREFIX = "banner_";
             for (int i = 0; i < getCursors().size(); i++) {
                 final MapCursor cursor = getCursors().getCursor(i);
                 final String type = cursor.getType().name().toLowerCase(Locale.ENGLISH);
-                if (type.startsWith("banner_")) {
+                if (type.startsWith(BANNER_PREFIX)) {
                     banners.add(new MapBanner(
-                            type.replaceAll("banner_", ""),
+                            type.replaceAll(BANNER_PREFIX, ""),
                             cursor.getCaption() == null ? "" : cursor.getCaption(),
                             cursor.getX(),
                             mapView.getWorld() != null ? mapView.getWorld().getSeaLevel() : 128,

@@ -20,6 +20,7 @@
 package net.william278.husksync;
 
 import com.google.gson.Gson;
+import net.kyori.adventure.platform.AudienceProvider;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import net.william278.desertwell.util.Version;
 import net.william278.husksync.adapter.DataAdapter;
@@ -46,7 +47,6 @@ import net.william278.husksync.migrator.MpdbMigrator;
 import net.william278.husksync.redis.RedisManager;
 import net.william278.husksync.sync.DataSyncer;
 import net.william278.husksync.user.BukkitUser;
-import net.william278.husksync.user.ConsoleUser;
 import net.william278.husksync.user.OnlineUser;
 import net.william278.husksync.util.BukkitLegacyConverter;
 import net.william278.husksync.util.BukkitMapPersister;
@@ -348,12 +348,6 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
 
     @NotNull
     @Override
-    public ConsoleUser getConsole() {
-        return new ConsoleUser(audiences.console());
-    }
-
-    @NotNull
-    @Override
     public Version getPluginVersion() {
         return Version.fromString(getDescription().getVersion(), "-");
     }
@@ -415,7 +409,7 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
     }
 
     @NotNull
-    public BukkitAudiences getAudiences() {
+    public AudienceProvider getAudiences() {
         return audiences;
     }
 
