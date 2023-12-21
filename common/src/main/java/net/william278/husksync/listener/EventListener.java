@@ -65,7 +65,7 @@ public abstract class EventListener {
             return;
         }
         plugin.lockPlayer(user.getUuid());
-        plugin.runAsync(() -> plugin.getDataSyncer().saveUserData(user));
+        plugin.getDataSyncer().saveUserData(user);
     }
 
     /**
