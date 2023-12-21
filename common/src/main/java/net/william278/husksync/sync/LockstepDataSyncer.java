@@ -21,6 +21,7 @@ package net.william278.husksync.sync;
 
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.data.DataSnapshot;
+import net.william278.husksync.redis.RedisKeyType;
 import net.william278.husksync.user.OnlineUser;
 import org.jetbrains.annotations.NotNull;
 
@@ -60,7 +61,7 @@ public class LockstepDataSyncer extends DataSyncer {
     public void saveUserData(@NotNull OnlineUser user) {
         plugin.runAsync(() -> {
             final DataSnapshot.Packed data = user.createSnapshot(DataSnapshot.SaveCause.DISCONNECT);
-            plugin.getRedisManager().setUserData(user, data);
+            plugin.getRedisManager().setUserData(user, data, RedisKeyType.TTL_1_YEAR);
             plugin.getRedisManager().setUserCheckedOut(user, false);
             plugin.getDatabase().addSnapshot(user, data);
         });

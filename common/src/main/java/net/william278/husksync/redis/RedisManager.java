@@ -181,15 +181,16 @@ public class RedisManager extends JedisPubSub {
     /**
      * Set a user's data to Redis
      *
-     * @param user the user to set data for
-     * @param data the user's data to set
+     * @param user       the user to set data for
+     * @param data       the user's data to set
+     * @param timeToLive The time to cache the data for
      */
     @Blocking
-    public void setUserData(@NotNull User user, @NotNull DataSnapshot.Packed data) {
+    public void setUserData(@NotNull User user, @NotNull DataSnapshot.Packed data, int timeToLive) {
         try (Jedis jedis = jedisPool.getResource()) {
             jedis.setex(
                     getKey(RedisKeyType.DATA_UPDATE, user.getUuid(), clusterId),
-                    RedisKeyType.DATA_UPDATE.getTimeToLive(),
+                    timeToLive,
                     data.asBytes(plugin)
             );
             plugin.debug(String.format("[%s] Set %s key on Redis", user.getUsername(), RedisKeyType.DATA_UPDATE));
@@ -264,7 +265,8 @@ public class RedisManager extends JedisPubSub {
         try (Jedis jedis = jedisPool.getResource()) {
             jedis.setex(
                     getKey(RedisKeyType.SERVER_SWITCH, user.getUuid(), clusterId),
-                    RedisKeyType.SERVER_SWITCH.getTimeToLive(), new byte[0]
+                    RedisKeyType.TTL_10_SECONDS,
+                    new byte[0]
             );
             plugin.debug(String.format("[%s] Set %s key to Redis",
                     user.getUsername(), RedisKeyType.SERVER_SWITCH));
