@@ -192,10 +192,9 @@ public class RedisManager extends JedisPubSub {
                     RedisKeyType.DATA_UPDATE.getTimeToLive(),
                     data.asBytes(plugin)
             );
-            plugin.debug(String.format("[%s] Set %s key from Redis",
-                    user.getUsername(), RedisKeyType.DATA_UPDATE));
+            plugin.debug(String.format("[%s] Set %s key on Redis", user.getUsername(), RedisKeyType.DATA_UPDATE));
         } catch (Throwable e) {
-            plugin.log(Level.SEVERE, "An exception occurred setting user data to Redis", e);
+            plugin.log(Level.SEVERE, "An exception occurred setting user data on Redis", e);
         }
     }
 
@@ -210,7 +209,7 @@ public class RedisManager extends JedisPubSub {
             } else {
                 jedis.del(getKey(RedisKeyType.DATA_CHECKOUT, user.getUuid(), clusterId));
             }
-            plugin.debug(String.format("[%s] %s %s key from Redis", user.getUsername(),
+            plugin.debug(String.format("[%s] %s %s key to/from Redis", user.getUsername(),
                     checkedOut ? "Set" : "Removed", RedisKeyType.DATA_CHECKOUT));
         } catch (Throwable e) {
             plugin.log(Level.SEVERE, "An exception occurred setting checkout to", e);
