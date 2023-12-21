@@ -223,14 +223,14 @@ public class RedisManager extends JedisPubSub {
             final byte[] key = getKey(RedisKeyType.DATA_CHECKOUT, user.getUuid(), clusterId);
             final byte[] readData = jedis.get(key);
             if (readData != null) {
-                plugin.debug(String.format("[%s] Read %s key from Redis server", user.getUsername(),
-                        RedisKeyType.DATA_CHECKOUT));
+                plugin.debug(String.format("[%s] Waiting for %s key to be unset on Redis server",
+                        user.getUsername(), RedisKeyType.DATA_CHECKOUT));
                 return Optional.of(new String(readData, StandardCharsets.UTF_8));
             }
         } catch (Throwable e) {
             plugin.log(Level.SEVERE, "An exception occurred getting a user's checkout key from Redis", e);
         }
-        plugin.debug(String.format("[%s] Waiting for %s key from Redis server", user.getUsername(),
+        plugin.debug(String.format("[%s] %s key no longer set on Redis server", user.getUsername(),
                 RedisKeyType.DATA_CHECKOUT));
         return Optional.empty();
     }
