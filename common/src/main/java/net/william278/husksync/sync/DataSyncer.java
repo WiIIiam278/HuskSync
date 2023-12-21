@@ -134,8 +134,8 @@ public abstract class DataSyncer {
      * @since 3.1
      */
     public enum Mode {
-        DELAY(DelayDataSyncer::new),
-        LOCKSTEP(LockstepDataSyncer::new);
+        LOCKSTEP(LockstepDataSyncer::new),
+        DELAY(DelayDataSyncer::new);
 
         private final Function<HuskSync, ? extends DataSyncer> supplier;
 
