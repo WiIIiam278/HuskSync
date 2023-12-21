@@ -11,7 +11,7 @@ data_manager_title: '[Kullanıcı veri anlık görünümü](#00fb9a) [%1%](#00fb
 data_manager_timestamp: '[⌚ %1%](#ffc43b-#f5c962 show_text=&7Versiyon zaman damgası:\n&8Verinin ne zaman kaydedildiği)'
 data_manager_pinned: '[※ Anlık sabitlendi](#d8ff2b show_text=&7Sabitlendi:\n&8Bu kullanıcı veri anlığı otomatik olarak döndürülmeyecek.)'
 data_manager_cause: '[⚑ %1%](#23a825-#36f539 show_text=&7Kaydetme sebebi:\n&8Verinin kaydedilme nedeni)'
-data_manager_server: '[Ⓢ %1%](#ff87b3-#f5538e show_text=&7Sunucu:\n&8Verinin kaydedildiği sunucu adı)'
+data_manager_server: '[☁ %1%](#ff87b3-#f5538e show_text=&7Sunucu:\n&8Verinin kaydedildiği sunucu adı)'
 data_manager_size: '[⏏ %1%](color=#62a9f5-#7ab8fa show_text=&7Anlık boyutu:\n&8Anlının tahmini dosya boyutu (KiB cinsinden))\n'
 data_manger_status: '[%1%](red)[/](gray)[%2%](red)[×](gray)[❤](red show_text=&7Can puanı)   [%3%](yellow)[×](gray)[🍖](yellow show_text=&7Açlık puanı)   [ʟᴠ](green)[.](gray)[%4%](green show_text=&7XP seviyesi)   [🏹 %5%](dark_aqua show_text=&7Oyun modu)'
 data_manager_advancements_statistics: '[⭐ Gelişmeler: %1%](color=#ffc43b-#f5c962 show_text=&7Gelişmelerdeki ilerlemeniz:\n&8%2%)   [⌛ Oynama Süresi: %3%s](color=#62a9f5-#7ab8fa show_text=&7Oyunda geçen süre\n&8⚠ Oyun içi istatistiklere dayanır)\n'

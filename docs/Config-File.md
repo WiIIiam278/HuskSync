@@ -60,8 +60,8 @@ redis:
     password: ''
   use_ssl: false
 synchronization:
-  # The mode of data synchronization to use (DELAY or LOCKSTEP). DELAY should be fine for most networks. Docs: https://william278.net/docs/husksync/sync-modes
-  mode: DELAY
+  # The data synchronization mode to use (LOCKSTEP or DELAY). LOCKSTEP is recommended for most networks. Docs: https://william278.net/docs/husksync/sync-modes
+  mode: LOCKSTEP
   # The number of data snapshot backups that should be kept at once per user
   max_user_data_snapshots: 16
   # Number of hours between new snapshots being saved as backups (Use "0" to backup all snapshots)

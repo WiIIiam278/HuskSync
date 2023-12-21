@@ -24,15 +24,13 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Locale;
 
 public enum RedisKeyType {
-    DATA_UPDATE(10),
-    SERVER_SWITCH(10),
-    DATA_CHECKOUT(60 * 60 * 24 * 7 * 52);
 
-    private final int timeToLive;
+    LATEST_SNAPSHOT,
+    SERVER_SWITCH,
+    DATA_CHECKOUT;
 
-    RedisKeyType(int timeToLive) {
-        this.timeToLive = timeToLive;
-    }
+    public static final int TTL_1_YEAR = 60 * 60 * 24 * 7 * 52; // 1 year
+    public static final int TTL_10_SECONDS = 10; // 10 seconds
 
     @NotNull
     public String getKeyPrefix(@NotNull String clusterId) {
@@ -42,10 +40,6 @@ public enum RedisKeyType {
                 clusterId.toLowerCase(Locale.ENGLISH),
                 name().toLowerCase(Locale.ENGLISH)
         );
-    }
-
-    public int getTimeToLive() {
-        return timeToLive;
     }
 
 }

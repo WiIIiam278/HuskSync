@@ -147,10 +147,10 @@ public class Settings {
 
 
     // Synchronization settings
-    @YamlComment("The mode of data synchronization to use (DELAY or LOCKSTEP). DELAY should be fine for most networks."
+    @YamlComment("The data synchronization mode to use (LOCKSTEP or DELAY). LOCKSTEP is recommended for most networks."
             + " Docs: https://william278.net/docs/husksync/sync-modes")
     @YamlKey("synchronization.mode")
-    private DataSyncer.Mode syncMode = DataSyncer.Mode.DELAY;
+    private DataSyncer.Mode syncMode = DataSyncer.Mode.LOCKSTEP;
 
     @YamlComment("The number of data snapshot backups that should be kept at once per user")
     @YamlKey("synchronization.max_user_data_snapshots")

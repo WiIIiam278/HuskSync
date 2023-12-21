@@ -11,7 +11,7 @@ data_manager_title: '[%3%](#00fb9a bold show_text=&7플레이어 UUID:\n&8%4%)[�
 data_manager_timestamp: '[⌚ %1%](#ffc43b-#f5c962 show_text=&7저장 시각:\n&8데이터가 저장된 시각)'
 data_manager_pinned: '[※ 스냅샷 고정됨](#d8ff2b show_text=&7고정됨:\n&8이 유저의 데이터 스냅샷은 자동으로 갱신되지 않습니다.)'
 data_manager_cause: '[⚑ %1%](#23a825-#36f539 show_text=&7저장 사유:\n&8데이터가 저장된 사유입니다.)'
-data_manager_server: '[Ⓢ %1%](#ff87b3-#f5538e show_text=&7서버:\n&8데이터 저장이 이루어진 서버입니다.)'
+data_manager_server: '[☁ %1%](#ff87b3-#f5538e show_text=&7서버:\n&8데이터 저장이 이루어진 서버입니다.)'
 data_manager_size: '[⏏ %1%](color=#62a9f5-#7ab8fa show_text=&7스냅샷 크기:\n&8스냅샷 파일의 대략적인 크기입니다. (단위 KiB))\n'
 data_manger_status: '[%1%](red)[/](gray)[%2%](red)[×](gray)[❤](red show_text=&7체력)   [%3%](yellow)[×](gray)[🍖](yellow show_text=&7허기)   [ʟᴠ](green)[.](gray)[%4%](green show_text=&7경험치 레벨)   [🏹 %5%](dark_aqua show_text=&7게임 모드)'
 data_manager_advancements_statistics: '[⭐ 도전 과제: %1%](color=#ffc43b-#f5c962 show_text=&7진행한 도전 과제:\n&8%2%)   [⌛ 플레이 타임: %3%ʜʀs](color=#62a9f5-#7ab8fa show_text=&7인게임 플레이 시간\n&8⚠ 인게임 통계에 기반합니다.)\n'

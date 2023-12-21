@@ -50,6 +50,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.logging.Level;
 
@@ -257,8 +258,14 @@ public interface HuskSync extends Task.Supplier, EventDispatcher {
      */
     default void debug(@NotNull String message, @NotNull Throwable... throwable) {
         if (getSettings().doDebugLogging()) {
-            log(Level.INFO, String.format("[DEBUG] %s", message), throwable);
+            log(Level.INFO, getDebugString(message), throwable);
         }
+    }
+
+    // Get the debug log message format
+    @NotNull
+    private String getDebugString(@NotNull String message) {
+        return String.format("[DEBUG] [%s] %s", new SimpleDateFormat("mm:ss.SSS").format(new Date()), message);
     }
 
     /**

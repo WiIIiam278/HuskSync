@@ -1092,7 +1092,7 @@ public abstract class BukkitData implements Data {
             final Player player = user.getPlayer();
             player.setGameMode(org.bukkit.GameMode.valueOf(gameMode));
             player.setAllowFlight(allowFlight);
-            player.setFlying(isFlying);
+            player.setFlying(allowFlight && isFlying);
         }
 
         @NotNull
