@@ -27,6 +27,8 @@ import net.william278.husksync.util.Task;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
@@ -114,6 +116,8 @@ public abstract class DataSyncer {
             }
             if (plugin.isDisabling() || timesRun.getAndIncrement() > maxListenAttempts) {
                 task.get().cancel();
+                plugin.debug(String.format("[%s] [%s] Redis timed out after %s attempts; setting from database",
+                        user.getUsername(), SimpleDateFormat.getDateTimeInstance().format(new Date()), timesRun.get()));
                 setUserFromDatabase(user);
                 return;
             }
