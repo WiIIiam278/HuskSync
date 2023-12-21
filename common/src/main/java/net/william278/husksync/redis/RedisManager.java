@@ -36,7 +36,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
 /**
- * Manages the connection to the Redis server, handling the caching of user data
+ * Manages the connection to Redis, handling the caching of user data
  */
 public class RedisManager extends JedisPubSub {
 
@@ -54,7 +54,7 @@ public class RedisManager extends JedisPubSub {
     }
 
     /**
-     * Initialize the redis connection pool
+     * Initialize Redis connection pool
      */
     @Blocking
     public void initialize() throws IllegalStateException {
@@ -83,7 +83,7 @@ public class RedisManager extends JedisPubSub {
         try {
             jedisPool.getResource().ping();
         } catch (JedisException e) {
-            throw new IllegalStateException("Failed to establish connection with the Redis server. "
+            throw new IllegalStateException("Failed to establish connection with Redis. "
                     + "Please check the supplied credentials in the config file", e);
         }
 
@@ -179,7 +179,7 @@ public class RedisManager extends JedisPubSub {
     }
 
     /**
-     * Set a user's data to the Redis server
+     * Set a user's data to Redis
      *
      * @param user the user to set data for
      * @param data the user's data to set
@@ -192,7 +192,7 @@ public class RedisManager extends JedisPubSub {
                     RedisKeyType.DATA_UPDATE.getTimeToLive(),
                     data.asBytes(plugin)
             );
-            plugin.debug(String.format("[%s] Set %s key from Redis server",
+            plugin.debug(String.format("[%s] Set %s key from Redis",
                     user.getUsername(), RedisKeyType.DATA_UPDATE));
         } catch (Throwable e) {
             plugin.log(Level.SEVERE, "An exception occurred setting user data to Redis", e);
@@ -210,7 +210,7 @@ public class RedisManager extends JedisPubSub {
             } else {
                 jedis.del(getKey(RedisKeyType.DATA_CHECKOUT, user.getUuid(), clusterId));
             }
-            plugin.debug(String.format("[%s] %s %s key from Redis server", user.getUsername(),
+            plugin.debug(String.format("[%s] %s %s key from Redis", user.getUsername(),
                     checkedOut ? "Set" : "Removed", RedisKeyType.DATA_CHECKOUT));
         } catch (Throwable e) {
             plugin.log(Level.SEVERE, "An exception occurred setting checkout to", e);
@@ -223,14 +223,15 @@ public class RedisManager extends JedisPubSub {
             final byte[] key = getKey(RedisKeyType.DATA_CHECKOUT, user.getUuid(), clusterId);
             final byte[] readData = jedis.get(key);
             if (readData != null) {
-                plugin.debug(String.format("[%s] Waiting for %s key to be unset on Redis server",
-                        user.getUsername(), RedisKeyType.DATA_CHECKOUT));
-                return Optional.of(new String(readData, StandardCharsets.UTF_8));
+                final String checkoutServer = new String(readData, StandardCharsets.UTF_8);
+                plugin.debug(String.format("[%s] Waiting for %s key to be unset from %s on Redis",
+                        user.getUsername(), checkoutServer, RedisKeyType.DATA_CHECKOUT));
+                return Optional.of(checkoutServer);
             }
         } catch (Throwable e) {
             plugin.log(Level.SEVERE, "An exception occurred getting a user's checkout key from Redis", e);
         }
-        plugin.debug(String.format("[%s] %s key no longer set on Redis server", user.getUsername(),
+        plugin.debug(String.format("[%s] %s key no longer set on Redis", user.getUsername(),
                 RedisKeyType.DATA_CHECKOUT));
         return Optional.empty();
     }
@@ -255,7 +256,7 @@ public class RedisManager extends JedisPubSub {
     }
 
     /**
-     * Set a user's server switch to the Redis server
+     * Set a user's server switch to Redis
      *
      * @param user the user to set the server switch for
      */
@@ -266,7 +267,7 @@ public class RedisManager extends JedisPubSub {
                     getKey(RedisKeyType.SERVER_SWITCH, user.getUuid(), clusterId),
                     RedisKeyType.SERVER_SWITCH.getTimeToLive(), new byte[0]
             );
-            plugin.debug(String.format("[%s] Set %s key to Redis server",
+            plugin.debug(String.format("[%s] Set %s key to Redis",
                     user.getUsername(), RedisKeyType.SERVER_SWITCH));
         } catch (Throwable e) {
             plugin.log(Level.SEVERE, "An exception occurred setting a user's server switch key from Redis", e);
@@ -274,7 +275,7 @@ public class RedisManager extends JedisPubSub {
     }
 
     /**
-     * Fetch a user's data from the Redis server and consume the key if found
+     * Fetch a user's data from Redis and consume the key if found
      *
      * @param user The user to fetch data for
      * @return The user's data, if it's present on the database. Otherwise, an empty optional.
@@ -285,11 +286,11 @@ public class RedisManager extends JedisPubSub {
             final byte[] key = getKey(RedisKeyType.DATA_UPDATE, user.getUuid(), clusterId);
             final byte[] dataByteArray = jedis.get(key);
             if (dataByteArray == null) {
-                plugin.debug(String.format("[%s] Waiting for %s key from Redis server",
+                plugin.debug(String.format("[%s] Waiting for %s key from Redis",
                         user.getUsername(), RedisKeyType.DATA_UPDATE));
                 return Optional.empty();
             }
-            plugin.debug(String.format("[%s] Read %s key from Redis server",
+            plugin.debug(String.format("[%s] Read %s key from Redis",
                     user.getUsername(), RedisKeyType.DATA_UPDATE));
 
             // Consume the key (delete from redis)
@@ -309,11 +310,11 @@ public class RedisManager extends JedisPubSub {
             final byte[] key = getKey(RedisKeyType.SERVER_SWITCH, user.getUuid(), clusterId);
             final byte[] readData = jedis.get(key);
             if (readData == null) {
-                plugin.debug(String.format("[%s] Waiting for %s key from Redis server",
+                plugin.debug(String.format("[%s] Waiting for %s key from Redis",
                         user.getUsername(), RedisKeyType.SERVER_SWITCH));
                 return false;
             }
-            plugin.debug(String.format("[%s] Read %s key from Redis server",
+            plugin.debug(String.format("[%s] Read %s key from Redis",
                     user.getUsername(), RedisKeyType.SERVER_SWITCH));
 
             // Consume the key (delete from redis)
