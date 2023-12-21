@@ -31,6 +31,8 @@ The `LOCKSTEP` sync mode works as described below:
 
 Additionally, note that `DATA_CHECKOUT` keys are set with the server ID of the server which "checked out" the data (taken from the `server.yml` config file). On both shutdown and startup, the plugin will clear all `DATA_CHECKOUT` keys for the current server ID (to prevent stale keys in the event of a server crash for instance)
 
+`LOCKSTEP` has been the default sync mode since HuskSync v3.2, and is recommended for most networks.
+
 ## Delay
 The `DELAY` sync mode works as described below:
 * When a user disconnects from a server, a `SERVER_SWITCH` key is immediately set on Redis, followed by a `DATA_UPDATE` key which contains the user's packed and serialized Data Snapshot.
@@ -40,6 +42,4 @@ The `DELAY` sync mode works as described below:
   * If present, it will continuously attempt to read for a `DATA_UPDATE` key; when read, their data will be set from the snapshot deserialized from Redis.
   * If not present, their data will be pulled from the database (as though they joined the network)
 
-`DELAY` has been the default sync mode since HuskSync v2.0. In HuskSync v3.1, `LOCKSTEP` was introduced. Since the delay mode has been tested and deployed for the longest, it is still the default, though note this may change in the future.
-
-However, if your network has a fluctuating tick rate or significant latency (especially if you have servers on different hardware/locations), you may wish to use `LOCKSTEP` instead for a more reliable sync system.
+If your network has a fluctuating tick rate or significant latency (especially if you have servers on different hardware/locations), you may wish to use `LOCKSTEP` instead for a more reliable sync system.
