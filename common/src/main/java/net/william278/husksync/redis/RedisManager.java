@@ -230,7 +230,7 @@ public class RedisManager extends JedisPubSub {
         } catch (Throwable e) {
             plugin.log(Level.SEVERE, "An exception occurred getting a user's checkout key from Redis", e);
         }
-        plugin.debug(String.format("[%s] %s key no longer set on Redis", user.getUsername(),
+        plugin.debug(String.format("[%s] %s key not set on Redis", user.getUsername(),
                 RedisKeyType.DATA_CHECKOUT));
         return Optional.empty();
     }
