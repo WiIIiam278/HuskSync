@@ -223,7 +223,7 @@ public class RedisManager extends JedisPubSub {
             final byte[] readData = jedis.get(key);
             if (readData != null) {
                 final String checkoutServer = new String(readData, StandardCharsets.UTF_8);
-                plugin.debug(String.format("[%s] Waiting for %s key to be unset from %s on Redis",
+                plugin.debug(String.format("[%s] Waiting for %s %s key to be unset on Redis",
                         user.getUsername(), checkoutServer, RedisKeyType.DATA_CHECKOUT));
                 return Optional.of(checkoutServer);
             }
