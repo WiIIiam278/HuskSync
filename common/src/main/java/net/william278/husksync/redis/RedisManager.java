@@ -193,10 +193,10 @@ public class RedisManager extends JedisPubSub {
                     RedisKeyType.DATA_UPDATE.getTimeToLive(),
                     data.asBytes(plugin)
             );
-            plugin.debug(String.format("[%s] Set %s key to redis at: %s", user.getUsername(),
-                    RedisKeyType.DATA_UPDATE.name(), new SimpleDateFormat("mm:ss.SSS").format(new Date())));
+            plugin.debug(String.format("[%s] [%s] Set %s key from Redis server", user.getUsername(),
+                    SimpleDateFormat.getDateTimeInstance().format(new Date()), RedisKeyType.DATA_UPDATE));
         } catch (Throwable e) {
-            plugin.log(Level.SEVERE, "An exception occurred setting a user's server switch", e);
+            plugin.log(Level.SEVERE, "An exception occurred setting user data to Redis", e);
         }
     }
 
@@ -211,11 +211,11 @@ public class RedisManager extends JedisPubSub {
             } else {
                 jedis.del(getKey(RedisKeyType.DATA_CHECKOUT, user.getUuid(), clusterId));
             }
-            plugin.debug(String.format("[%s] %s %s key to redis at: %s",
-                    checkedOut ? "set" : "removed", user.getUsername(), RedisKeyType.DATA_CHECKOUT.name(),
-                    new SimpleDateFormat("mm:ss.SSS").format(new Date())));
+            plugin.debug(String.format("[%s] [%s] %s %s key from Redis server", user.getUsername(),
+                    SimpleDateFormat.getDateTimeInstance().format(new Date()), checkedOut ? "Set" : "Removed",
+                    RedisKeyType.DATA_CHECKOUT));
         } catch (Throwable e) {
-            plugin.log(Level.SEVERE, "An exception occurred setting a user's server switch", e);
+            plugin.log(Level.SEVERE, "An exception occurred setting checkout to", e);
         }
     }
 
@@ -225,17 +225,15 @@ public class RedisManager extends JedisPubSub {
             final byte[] key = getKey(RedisKeyType.DATA_CHECKOUT, user.getUuid(), clusterId);
             final byte[] readData = jedis.get(key);
             if (readData != null) {
-                plugin.debug("[" + user.getUsername() + "] Successfully read "
-                        + RedisKeyType.DATA_CHECKOUT.name() + " key from redis at: " +
-                        new SimpleDateFormat("mm:ss.SSS").format(new Date()));
+                plugin.debug(String.format("[%s] [%s] Read %s key from Redis server", user.getUsername(),
+                        SimpleDateFormat.getDateTimeInstance().format(new Date()), RedisKeyType.DATA_CHECKOUT));
                 return Optional.of(new String(readData, StandardCharsets.UTF_8));
             }
         } catch (Throwable e) {
-            plugin.log(Level.SEVERE, "An exception occurred fetching a user's checkout key from redis", e);
+            plugin.log(Level.SEVERE, "An exception occurred getting a user's checkout key from Redis", e);
         }
-        plugin.debug("[" + user.getUsername() + "] Could not read " +
-                RedisKeyType.DATA_CHECKOUT.name() + " key from redis at: " +
-                new SimpleDateFormat("mm:ss.SSS").format(new Date()));
+        plugin.debug(String.format("[%s] [%s] Waiting for %s key from Redis server", user.getUsername(),
+                SimpleDateFormat.getDateTimeInstance().format(new Date()), RedisKeyType.DATA_CHECKOUT));
         return Optional.empty();
     }
 
@@ -245,7 +243,7 @@ public class RedisManager extends JedisPubSub {
         try (Jedis jedis = jedisPool.getResource()) {
             final Set<String> keys = jedis.keys(keyFormat);
             if (keys == null) {
-                plugin.log(Level.WARNING, "Checkout key set returned null from jedis during clearing");
+                plugin.log(Level.WARNING, "Checkout key returned null from Redis during clearing");
                 return;
             }
             for (String key : keys) {
@@ -254,7 +252,7 @@ public class RedisManager extends JedisPubSub {
                 }
             }
         } catch (Throwable e) {
-            plugin.log(Level.SEVERE, "An exception occurred clearing users checked out on this server", e);
+            plugin.log(Level.SEVERE, "An exception occurred clearing this server's checkout keys on Redis", e);
         }
     }
 
@@ -270,10 +268,10 @@ public class RedisManager extends JedisPubSub {
                     getKey(RedisKeyType.SERVER_SWITCH, user.getUuid(), clusterId),
                     RedisKeyType.SERVER_SWITCH.getTimeToLive(), new byte[0]
             );
-            plugin.debug(String.format("[%s] Set %s key to redis at: %s", user.getUsername(),
-                    RedisKeyType.SERVER_SWITCH.name(), new SimpleDateFormat("mm:ss.SSS").format(new Date())));
+            plugin.debug(String.format("[%s] [%s] Set %s key to Redis server", user.getUsername(),
+                    SimpleDateFormat.getDateTimeInstance().format(new Date()), RedisKeyType.SERVER_SWITCH));
         } catch (Throwable e) {
-            plugin.log(Level.SEVERE, "An exception occurred setting a user's server switch", e);
+            plugin.log(Level.SEVERE, "An exception occurred setting a user's server switch key from Redis", e);
         }
     }
 
@@ -289,14 +287,12 @@ public class RedisManager extends JedisPubSub {
             final byte[] key = getKey(RedisKeyType.DATA_UPDATE, user.getUuid(), clusterId);
             final byte[] dataByteArray = jedis.get(key);
             if (dataByteArray == null) {
-                plugin.debug("[" + user.getUsername() + "] Could not read " +
-                        RedisKeyType.DATA_UPDATE.name() + " key from redis at: " +
-                        new SimpleDateFormat("mm:ss.SSS").format(new Date()));
+                plugin.debug(String.format("[%s] [%s] Waiting for %s key from Redis server", user.getUsername(),
+                        SimpleDateFormat.getDateTimeInstance().format(new Date()), RedisKeyType.DATA_UPDATE));
                 return Optional.empty();
             }
-            plugin.debug("[" + user.getUsername() + "] Successfully read "
-                    + RedisKeyType.DATA_UPDATE.name() + " key from redis at: " +
-                    new SimpleDateFormat("mm:ss.SSS").format(new Date()));
+            plugin.debug(String.format("[%s] [%s] Read %s key from Redis server", user.getUsername(),
+                    SimpleDateFormat.getDateTimeInstance().format(new Date()), RedisKeyType.DATA_UPDATE));
 
             // Consume the key (delete from redis)
             jedis.del(key);
@@ -304,7 +300,7 @@ public class RedisManager extends JedisPubSub {
             // Use Snappy to decompress the json
             return Optional.of(DataSnapshot.deserialize(plugin, dataByteArray));
         } catch (Throwable e) {
-            plugin.log(Level.SEVERE, "An exception occurred fetching a user's data from redis", e);
+            plugin.log(Level.SEVERE, "An exception occurred getting a user's data from redis", e);
             return Optional.empty();
         }
     }
@@ -315,20 +311,18 @@ public class RedisManager extends JedisPubSub {
             final byte[] key = getKey(RedisKeyType.SERVER_SWITCH, user.getUuid(), clusterId);
             final byte[] readData = jedis.get(key);
             if (readData == null) {
-                plugin.debug("[" + user.getUsername() + "] Could not read " +
-                        RedisKeyType.SERVER_SWITCH.name() + " key from redis at: " +
-                        new SimpleDateFormat("mm:ss.SSS").format(new Date()));
+                plugin.debug(String.format("[%s] [%s] Waiting for %s key from Redis server", user.getUsername(),
+                        SimpleDateFormat.getDateTimeInstance().format(new Date()), RedisKeyType.SERVER_SWITCH));
                 return false;
             }
-            plugin.debug("[" + user.getUsername() + "] Successfully read "
-                    + RedisKeyType.SERVER_SWITCH.name() + " key from redis at: " +
-                    new SimpleDateFormat("mm:ss.SSS").format(new Date()));
+            plugin.debug(String.format("[%s] [%s] Read %s key from Redis server", user.getUsername(),
+                    SimpleDateFormat.getDateTimeInstance().format(new Date()), RedisKeyType.SERVER_SWITCH));
 
             // Consume the key (delete from redis)
             jedis.del(key);
             return true;
         } catch (Throwable e) {
-            plugin.log(Level.SEVERE, "An exception occurred fetching a user's server switch from redis", e);
+            plugin.log(Level.SEVERE, "An exception occurred getting a user's server switch from redis", e);
             return false;
         }
     }
