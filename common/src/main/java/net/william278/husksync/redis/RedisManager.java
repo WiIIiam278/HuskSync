@@ -189,11 +189,11 @@ public class RedisManager extends JedisPubSub {
     public void setUserData(@NotNull User user, @NotNull DataSnapshot.Packed data, int timeToLive) {
         try (Jedis jedis = jedisPool.getResource()) {
             jedis.setex(
-                    getKey(RedisKeyType.DATA_UPDATE, user.getUuid(), clusterId),
+                    getKey(RedisKeyType.LATEST_SNAPSHOT, user.getUuid(), clusterId),
                     timeToLive,
                     data.asBytes(plugin)
             );
-            plugin.debug(String.format("[%s] Set %s key on Redis", user.getUsername(), RedisKeyType.DATA_UPDATE));
+            plugin.debug(String.format("[%s] Set %s key on Redis", user.getUsername(), RedisKeyType.LATEST_SNAPSHOT));
         } catch (Throwable e) {
             plugin.log(Level.SEVERE, "An exception occurred setting user data on Redis", e);
         }
@@ -284,15 +284,15 @@ public class RedisManager extends JedisPubSub {
     @Blocking
     public Optional<DataSnapshot.Packed> getUserData(@NotNull User user) {
         try (Jedis jedis = jedisPool.getResource()) {
-            final byte[] key = getKey(RedisKeyType.DATA_UPDATE, user.getUuid(), clusterId);
+            final byte[] key = getKey(RedisKeyType.LATEST_SNAPSHOT, user.getUuid(), clusterId);
             final byte[] dataByteArray = jedis.get(key);
             if (dataByteArray == null) {
                 plugin.debug(String.format("[%s] Waiting for %s key from Redis",
-                        user.getUsername(), RedisKeyType.DATA_UPDATE));
+                        user.getUsername(), RedisKeyType.LATEST_SNAPSHOT));
                 return Optional.empty();
             }
             plugin.debug(String.format("[%s] Read %s key from Redis",
-                    user.getUsername(), RedisKeyType.DATA_UPDATE));
+                    user.getUsername(), RedisKeyType.LATEST_SNAPSHOT));
 
             // Consume the key (delete from redis)
             jedis.del(key);

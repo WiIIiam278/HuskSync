@@ -25,7 +25,7 @@ import java.util.Locale;
 
 public enum RedisKeyType {
 
-    DATA_UPDATE,
+    LATEST_SNAPSHOT,
     SERVER_SWITCH,
     DATA_CHECKOUT;
 
