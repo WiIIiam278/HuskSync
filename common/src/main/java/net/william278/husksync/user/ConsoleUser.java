@@ -20,6 +20,7 @@
 package net.william278.husksync.user;
 
 import net.kyori.adventure.audience.Audience;
+import net.kyori.adventure.platform.AudienceProvider;
 import org.jetbrains.annotations.NotNull;
 
 public final class ConsoleUser implements CommandUser {
@@ -27,8 +28,8 @@ public final class ConsoleUser implements CommandUser {
     @NotNull
     private final Audience audience;
 
-    public ConsoleUser(@NotNull Audience console) {
-        this.audience = console;
+    public ConsoleUser(@NotNull AudienceProvider audiences) {
+        this.audience = audiences.console();
     }
 
     @Override

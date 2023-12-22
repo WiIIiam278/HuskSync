@@ -114,6 +114,8 @@ public abstract class DataSyncer {
             }
             if (plugin.isDisabling() || timesRun.getAndIncrement() > maxListenAttempts) {
                 task.get().cancel();
+                plugin.debug(String.format("[%s] Redis timed out after %s attempts; setting from database",
+                        user.getUsername(), timesRun.get()));
                 setUserFromDatabase(user);
                 return;
             }
@@ -132,8 +134,8 @@ public abstract class DataSyncer {
      * @since 3.1
      */
     public enum Mode {
-        DELAY(DelayDataSyncer::new),
-        LOCKSTEP(LockstepDataSyncer::new);
+        LOCKSTEP(LockstepDataSyncer::new),
+        DELAY(DelayDataSyncer::new);
 
         private final Function<HuskSync, ? extends DataSyncer> supplier;
 

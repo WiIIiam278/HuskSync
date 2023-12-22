@@ -134,12 +134,23 @@ public class Settings {
     @YamlKey("redis.use_ssl")
     private boolean redisUseSsl = false;
 
+    @YamlComment("If you're using Redis Sentinel, specify the master set name. If you don't know what this is, don't change anything here.")
+    @YamlKey("redis.sentinel.master")
+    private String redisSentinelMaster = "";
+
+    @YamlComment("List of host:port pairs")
+    @YamlKey("redis.sentinel.nodes")
+    private List<String> redisSentinelNodes = new ArrayList<>();
+
+    @YamlKey("redis.sentinel.password")
+    private String redisSentinelPassword = "";
+
 
     // Synchronization settings
-    @YamlComment("The mode of data synchronization to use (DELAY or LOCKSTEP). DELAY should be fine for most networks."
+    @YamlComment("The data synchronization mode to use (LOCKSTEP or DELAY). LOCKSTEP is recommended for most networks."
             + " Docs: https://william278.net/docs/husksync/sync-modes")
     @YamlKey("synchronization.mode")
-    private DataSyncer.Mode syncMode = DataSyncer.Mode.DELAY;
+    private DataSyncer.Mode syncMode = DataSyncer.Mode.LOCKSTEP;
 
     @YamlComment("The number of data snapshot backups that should be kept at once per user")
     @YamlKey("synchronization.max_user_data_snapshots")
@@ -322,6 +333,21 @@ public class Settings {
 
     public boolean redisUseSsl() {
         return redisUseSsl;
+    }
+
+    @NotNull
+    public String getRedisSentinelMaster() {
+        return redisSentinelMaster;
+    }
+
+    @NotNull
+    public List<String> getRedisSentinelNodes() {
+        return redisSentinelNodes;
+    }
+
+    @NotNull
+    public String getRedisSentinelPassword() {
+        return redisSentinelPassword;
     }
 
     @NotNull

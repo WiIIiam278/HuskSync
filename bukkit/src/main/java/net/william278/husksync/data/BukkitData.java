@@ -598,54 +598,54 @@ public abstract class BukkitData implements Data {
         @NotNull
         public static BukkitData.Statistics from(@NotNull StatisticsMap stats) {
             return new BukkitData.Statistics(
-                stats.genericStats().entrySet().stream()
-                    .flatMap(entry -> {
-                        Statistic statistic = matchStatistic(entry.getKey());
-                        return statistic != null ? Stream.of(new AbstractMap.SimpleEntry<>(statistic, entry.getValue())) : Stream.empty();
-                    })
-                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)),
-                stats.blockStats().entrySet().stream()
-                    .flatMap(entry -> {
-                        Statistic statistic = matchStatistic(entry.getKey());
-                        return statistic != null ? Stream.of(new AbstractMap.SimpleEntry<>(statistic, entry.getValue())) : Stream.empty();
-                    })
-                    .collect(Collectors.toMap(
-                        Map.Entry::getKey,
-                        entry -> entry.getValue().entrySet().stream()
-                            .flatMap(blockEntry -> {
-                                Material material = Material.matchMaterial(blockEntry.getKey());
-                                return material != null ? Stream.of(new AbstractMap.SimpleEntry<>(material, blockEntry.getValue())) : Stream.empty();
+                    stats.genericStats().entrySet().stream()
+                            .flatMap(entry -> {
+                                Statistic statistic = matchStatistic(entry.getKey());
+                                return statistic != null ? Stream.of(new AbstractMap.SimpleEntry<>(statistic, entry.getValue())) : Stream.empty();
                             })
-                            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))
-                    )),
-                stats.itemStats().entrySet().stream()
-                    .flatMap(entry -> {
-                        Statistic statistic = matchStatistic(entry.getKey());
-                        return statistic != null ? Stream.of(new AbstractMap.SimpleEntry<>(statistic, entry.getValue())) : Stream.empty();
-                    })
-                    .collect(Collectors.toMap(
-                        Map.Entry::getKey,
-                        entry -> entry.getValue().entrySet().stream()
-                            .flatMap(itemEntry -> {
-                                Material material = Material.matchMaterial(itemEntry.getKey());
-                                return material != null ? Stream.of(new AbstractMap.SimpleEntry<>(material, itemEntry.getValue())) : Stream.empty();
+                            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)),
+                    stats.blockStats().entrySet().stream()
+                            .flatMap(entry -> {
+                                Statistic statistic = matchStatistic(entry.getKey());
+                                return statistic != null ? Stream.of(new AbstractMap.SimpleEntry<>(statistic, entry.getValue())) : Stream.empty();
                             })
-                            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))
-                    )),
-                stats.entityStats().entrySet().stream()
-                    .flatMap(entry -> {
-                        Statistic statistic = matchStatistic(entry.getKey());
-                        return statistic != null ? Stream.of(new AbstractMap.SimpleEntry<>(statistic, entry.getValue())) : Stream.empty();
-                    })
-                    .collect(Collectors.toMap(
-                        Map.Entry::getKey,
-                        entry -> entry.getValue().entrySet().stream()
-                            .flatMap(itemEntry -> {
-                                EntityType entityType = matchEntityType(itemEntry.getKey());
-                                return entityType != null ? Stream.of(new AbstractMap.SimpleEntry<>(entityType, itemEntry.getValue())) : Stream.empty();
+                            .collect(Collectors.toMap(
+                                    Map.Entry::getKey,
+                                    entry -> entry.getValue().entrySet().stream()
+                                            .flatMap(blockEntry -> {
+                                                Material material = Material.matchMaterial(blockEntry.getKey());
+                                                return material != null ? Stream.of(new AbstractMap.SimpleEntry<>(material, blockEntry.getValue())) : Stream.empty();
+                                            })
+                                            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))
+                            )),
+                    stats.itemStats().entrySet().stream()
+                            .flatMap(entry -> {
+                                Statistic statistic = matchStatistic(entry.getKey());
+                                return statistic != null ? Stream.of(new AbstractMap.SimpleEntry<>(statistic, entry.getValue())) : Stream.empty();
                             })
-                            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))
-                    ))
+                            .collect(Collectors.toMap(
+                                    Map.Entry::getKey,
+                                    entry -> entry.getValue().entrySet().stream()
+                                            .flatMap(itemEntry -> {
+                                                Material material = Material.matchMaterial(itemEntry.getKey());
+                                                return material != null ? Stream.of(new AbstractMap.SimpleEntry<>(material, itemEntry.getValue())) : Stream.empty();
+                                            })
+                                            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))
+                            )),
+                    stats.entityStats().entrySet().stream()
+                            .flatMap(entry -> {
+                                Statistic statistic = matchStatistic(entry.getKey());
+                                return statistic != null ? Stream.of(new AbstractMap.SimpleEntry<>(statistic, entry.getValue())) : Stream.empty();
+                            })
+                            .collect(Collectors.toMap(
+                                    Map.Entry::getKey,
+                                    entry -> entry.getValue().entrySet().stream()
+                                            .flatMap(itemEntry -> {
+                                                EntityType entityType = matchEntityType(itemEntry.getKey());
+                                                return entityType != null ? Stream.of(new AbstractMap.SimpleEntry<>(entityType, itemEntry.getValue())) : Stream.empty();
+                                            })
+                                            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))
+                            ))
             );
         }
 
@@ -827,10 +827,9 @@ public abstract class BukkitData implements Data {
 
         @NotNull
         public static BukkitData.Health adapt(@NotNull Player player) {
-            final double maxHealth = getMaxHealth(player);
             return from(
-                    Math.min(player.getHealth(), maxHealth),
-                    maxHealth,
+                    player.getHealth(),
+                    getMaxHealth(player),
                     player.isHealthScaled() ? player.getHealthScale() : 0d
             );
         }
@@ -839,62 +838,63 @@ public abstract class BukkitData implements Data {
         public void apply(@NotNull BukkitUser user, @NotNull BukkitHuskSync plugin) throws IllegalStateException {
             final Player player = user.getPlayer();
 
-            // Set base max health
-            final AttributeInstance maxHealthAttribute = Objects.requireNonNull(
-                    player.getAttribute(Attribute.GENERIC_MAX_HEALTH), "Max health attribute was null"
-            );
-            double currentMaxHealth = maxHealthAttribute.getBaseValue();
-            if (plugin.getSettings().doSynchronizeMaxHealth() && maxHealth != 0d) {
-                maxHealthAttribute.setBaseValue(maxHealth);
-                currentMaxHealth = maxHealth;
+            // Set max health
+            final AttributeInstance maxHealth = getMaxHealthAttribute(player);
+            try {
+                if (plugin.getSettings().doSynchronizeMaxHealth() && this.maxHealth != 0) {
+                    maxHealth.setBaseValue(this.maxHealth);
+                }
+            } catch (Throwable e) {
+                plugin.log(Level.WARNING, String.format("Failed setting the max health of %s to %s",
+                        player.getName(), this.maxHealth), e);
             }
 
             // Set health
-            final double currentHealth = player.getHealth();
-            if (health != currentHealth) {
-                final double healthToSet = currentHealth > currentMaxHealth ? currentMaxHealth : health;
-                try {
-                    player.setHealth(Math.min(healthToSet, currentMaxHealth));
-                } catch (IllegalArgumentException e) {
-                    plugin.log(Level.WARNING, "Failed to set player health", e);
-                }
+            try {
+                final double health = player.getHealth();
+                player.setHealth(Math.min(health, maxHealth.getBaseValue()));
+            } catch (Throwable e) {
+                plugin.log(Level.WARNING, String.format("Failed setting the health of %s to %s",
+                        player.getName(), this.maxHealth), e);
             }
 
             // Set health scale
             try {
-                if (healthScale != 0d) {
-                    player.setHealthScale(healthScale);
+                if (this.healthScale != 0d) {
+                    player.setHealthScaled(true);
+                    player.setHealthScale(this.healthScale);
                 } else {
-                    player.setHealthScale(maxHealth);
+                    player.setHealthScaled(false);
+                    player.setHealthScale(this.maxHealth);
                 }
-                player.setHealthScaled(healthScale != 0D);
-            } catch (IllegalArgumentException e) {
-                plugin.log(Level.WARNING, "Failed to set player health scale", e);
+            } catch (Throwable e) {
+                plugin.log(Level.WARNING, String.format("Failed setting the health scale of %s to %s",
+                        player.getName(), this.healthScale), e);
             }
         }
 
-        /**
-         * Returns a {@link Player}'s maximum health, minus any health boost effects
-         *
-         * @param player The {@link Player} to get the maximum health of
-         * @return The {@link Player}'s max health
-         */
+        // Returns the max health of a player, accounting for health boost potion effects
         private static double getMaxHealth(@NotNull Player player) {
-            double maxHealth = Objects.requireNonNull(
-                    player.getAttribute(Attribute.GENERIC_MAX_HEALTH), "Max health attribute was null"
-            ).getBaseValue();
+            // Get the base value of the attribute (ignore armor, items that give health boosts, etc.)
+            double maxHealth = getMaxHealthAttribute(player).getBaseValue();
 
-            // If the player has additional health bonuses from synchronized potion effects,
-            // subtract these from this number as they are synchronized separately
+            // Subtract health boost potion effects from stored max health
             if (player.hasPotionEffect(PotionEffectType.HEALTH_BOOST) && maxHealth > 20d) {
                 final PotionEffect healthBoost = Objects.requireNonNull(
                         player.getPotionEffect(PotionEffectType.HEALTH_BOOST), "Health boost effect was null"
                 );
-                final double boostEffect = 4 * (healthBoost.getAmplifier() + 1);
-                maxHealth -= boostEffect;
+                maxHealth -= (4 * (healthBoost.getAmplifier() + 1));
             }
 
             return maxHealth;
+        }
+
+        // Returns the max health attribute of a player
+        @NotNull
+        private static AttributeInstance getMaxHealthAttribute(@NotNull Player player) {
+            return Objects.requireNonNull(
+                    player.getAttribute(Attribute.GENERIC_MAX_HEALTH), "Max health attribute was null"
+            );
         }
 
         @Override
@@ -1098,7 +1098,7 @@ public abstract class BukkitData implements Data {
             final Player player = user.getPlayer();
             player.setGameMode(org.bukkit.GameMode.valueOf(gameMode));
             player.setAllowFlight(allowFlight);
-            player.setFlying(isFlying);
+            player.setFlying(allowFlight && isFlying);
         }
 
         @NotNull

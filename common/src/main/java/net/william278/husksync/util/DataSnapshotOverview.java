@@ -68,7 +68,7 @@ public class DataSnapshotOverview {
             locales.getLocale("data_manager_pinned")
                     .ifPresent(user::sendMessage);
         }
-        locales.getLocale("data_manager_cause", snapshot.getSaveCause().getDisplayName())
+        locales.getLocale("data_manager_cause", snapshot.getSaveCause().getLocale(plugin))
                 .ifPresent(user::sendMessage);
         locales.getLocale("data_manager_server", snapshot.getServerName())
                 .ifPresent(user::sendMessage);

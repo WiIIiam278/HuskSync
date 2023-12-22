@@ -66,17 +66,17 @@ HuskSync is licensed under the Apache 2.0 license.
 Contributions to the project are welcome&mdash;feel free to open a pull request with new features, improvements and/or fixes!
 
 ### Support
-Due to its complexity, official support for HuskSync is provided through a paid model. This means that support is only available to users who have purchased a license to the plugin from Spigot, Polymart, or Craftaro and have provided proof of purchase. Please join our Discord server if you have done so and need help!
+Due to its complexity, official binaries and customer support for HuskSync is provided through a paid model. This means that support is only available to users who have purchased a license to the plugin from Spigot, Polymart, Craftaro, or BuiltByBit and have provided proof of purchase. Please join our Discord server if you have done so and need help!
 
 ### Translations
 Translations of the plugin locales are welcome to help make the plugin more accessible. Please submit a pull request with your translations as a `.yml` file.
 
-- [Locales Directory](https://github.com/WiIIiam278/HuskSync/tree/master/common/src/main/resources/languages)
-- [English Locales](https://github.com/WiIIiam278/HuskSync/tree/master/common/src/main/resources/languages/en-gb.yml)
+- [Locales Directory](https://github.com/WiIIiam278/HuskSync/tree/master/common/src/main/resources/locales)
+- [English Locales](https://github.com/WiIIiam278/HuskSync/tree/master/common/src/main/resources/locales/en-gb.yml)
 
 ## Links
 - [Docs](https://william278.net/docs/husksync/) &mdash; Read the plugin documentation!
-- [Spigot](https://www.spigotmc.org/resources/husksync.97144/) &mdash; View the Spigot resource page (Also: [Polymart](https://polymart.org/resource/husksync.1634), [Craftaro](https://craftaro.com/marketplace/product/husksync.758))
+- [Spigot](https://www.spigotmc.org/resources/husksync.97144/) &mdash; View the Spigot resource page (Also: [Polymart](https://polymart.org/resource/husksync.1634), [Craftaro](https://craftaro.com/marketplace/product/husksync.758), [BuiltByBit](https://builtbybit.com/resources/husksync.34956/))
 - [Issues](https://github.com/WiIIiam278/HuskSync/issues) &mdash; File a bug report or feature request
 - [Discord](https://discord.gg/tVYhJfyDWG) &mdash; Get help, ask questions (Purchase required)
 - [bStats](https://bstats.org/plugin/bukkit/HuskSync%20-%20Bukkit/13140) &mdash; View plugin metrics
