@@ -19,7 +19,7 @@ jobs:
       - name: 'Checkout for CI 🛎️'
         uses: actions/checkout@v4
       - name: 'Push Docs to Github Wiki 📄️'
-        uses: Andrew-Chen-Wang/github-wiki-action@v3
+        uses: Andrew-Chen-Wang/github-wiki-action@v4
         env:
           WIKI_DIR: 'docs/'
           GH_TOKEN: ${{ github.token }}
