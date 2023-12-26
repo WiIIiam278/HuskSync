@@ -144,7 +144,6 @@ public abstract class FabricData implements Data {
                     player.getInventory().setStack(
                             slot, items[slot] == null ? ItemStack.EMPTY : items[slot]
                     );
-                    plugin.debug(String.format("Set slot %s to %s", slot, items[slot]));
                 }
                 player.getInventory().selectedSlot = heldItemSlot;
                 player.playerScreenHandler.sendContentUpdates();
