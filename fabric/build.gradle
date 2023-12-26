@@ -18,8 +18,11 @@ dependencies {
     modImplementation include("net.kyori:adventure-platform-fabric:${adventure_platform_fabric_version}")
     modImplementation include("me.lucko:fabric-permissions-api:${fabric_permissions_api_version}")
 
-    implementation include('redis.clients:jedis:' + jedis_version)
-    implementation include('com.mysql:mysql-connector-j:' + mysql_driver_version)
+    // Runtime dependencies on Bukkit; "include" them on Fabric. (todo: minify JAR?)
+    implementation include("redis.clients:jedis:$jedis_version")
+    implementation include("com.mysql:mysql-connector-j:$mysql_driver_version")
+    implementation include("org.mariadb.jdbc:mariadb-java-client:$mariadb_driver_version")
+    implementation include("org.xerial.snappy:snappy-java:$snappy_version")
 
     compileOnly 'org.jetbrains:annotations:24.0.1'
     compileOnly 'net.william278:DesertWell:2.0.4'
