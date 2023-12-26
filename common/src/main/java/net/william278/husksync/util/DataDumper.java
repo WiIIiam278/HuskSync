@@ -115,7 +115,7 @@ public class DataDumper {
             } else {
                 return "(Failed to upload to logs site, got: " + connection.getResponseCode() + ")";
             }
-        } catch (Exception e) {
+        } catch (Throwable e) {
             plugin.log(Level.SEVERE, "Failed to upload data to logs site", e);
         }
         return "(Failed to upload to logs site)";
