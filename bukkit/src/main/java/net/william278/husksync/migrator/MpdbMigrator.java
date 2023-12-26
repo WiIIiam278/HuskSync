@@ -143,7 +143,7 @@ public class MpdbMigrator extends Migrator {
                 });
                 plugin.log(Level.INFO, "Migration complete for " + dataToMigrate.size() + " users in " + ((System.currentTimeMillis() - startTime) / 1000) + " seconds!");
                 return true;
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 plugin.log(Level.SEVERE, "Error while migrating data: " + e.getMessage() + " - are your source database credentials correct?");
                 return false;
             }

@@ -47,6 +47,8 @@ import java.util.logging.Level;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static net.william278.husksync.util.BukkitTypeMatcher.*;
+
 public abstract class BukkitData implements Data {
 
     @Override
@@ -607,7 +609,7 @@ public abstract class BukkitData implements Data {
                                     Map.Entry::getKey,
                                     entry -> entry.getValue().entrySet().stream()
                                             .flatMap(blockEntry -> {
-                                                Material material = Material.matchMaterial(blockEntry.getKey());
+                                                Material material = matchMaterial(blockEntry.getKey());
                                                 return material != null ? Stream.of(new AbstractMap.SimpleEntry<>(material, blockEntry.getValue())) : Stream.empty();
                                             })
                                             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))
@@ -621,7 +623,7 @@ public abstract class BukkitData implements Data {
                                     Map.Entry::getKey,
                                     entry -> entry.getValue().entrySet().stream()
                                             .flatMap(itemEntry -> {
-                                                Material material = Material.matchMaterial(itemEntry.getKey());
+                                                Material material = matchMaterial(itemEntry.getKey());
                                                 return material != null ? Stream.of(new AbstractMap.SimpleEntry<>(material, itemEntry.getValue())) : Stream.empty();
                                             })
                                             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))
@@ -658,20 +660,6 @@ public abstract class BukkitData implements Data {
                                                         @NotNull Map<String, Map<String, Integer>> itemStats,
                                                         @NotNull Map<String, Map<String, Integer>> entityStats) {
             return new StatisticsMap(genericStats, blockStats, itemStats, entityStats);
-        }
-
-        @Nullable
-        private static Statistic matchStatistic(@NotNull String key) {
-            return Arrays.stream(Statistic.values())
-                    .filter(stat -> stat.getKey().toString().equals(key))
-                    .findFirst().orElse(null);
-        }
-
-        @Nullable
-        private static EntityType matchEntityType(@NotNull String key) {
-            return Arrays.stream(EntityType.values())
-                    .filter(entityType -> entityType.getKey().toString().equals(key))
-                    .findFirst().orElse(null);
         }
 
         @Override

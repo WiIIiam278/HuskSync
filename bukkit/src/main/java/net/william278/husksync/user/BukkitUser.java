@@ -40,6 +40,8 @@ import java.util.Arrays;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 
+import static net.william278.husksync.util.BukkitTypeMatcher.matchMaterial;
+
 /**
  * Bukkit platform implementation of an {@link OnlineUser}
  */
@@ -69,7 +71,7 @@ public class BukkitUser extends OnlineUser implements BukkitUserDataHolder {
     public void sendToast(@NotNull MineDown title, @NotNull MineDown description,
                           @NotNull String iconMaterial, @NotNull String backgroundType) {
         try {
-            final Material material = Material.matchMaterial(iconMaterial);
+            final Material material = matchMaterial(iconMaterial);
             Toast.builder((BukkitHuskSync) plugin)
                     .setTitle(title.toComponent())
                     .setDescription(description.toComponent())
