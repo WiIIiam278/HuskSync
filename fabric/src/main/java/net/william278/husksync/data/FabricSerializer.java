@@ -71,8 +71,7 @@ public abstract class FabricSerializer {
                 final ItemStack[] contents = new ItemStack[items.size()];
                 for (int i = 0; i < items.size(); i++) {
                     final NbtCompound item = items.getCompound(i);
-                    final ItemStack stack = ItemStack.fromNbt(item);
-                    items.set(i, stack.writeNbt(new NbtCompound()));
+                    contents[i] = ItemStack.fromNbt(item);
                 }
                 final int heldItemSlot = root.getInt(HELD_ITEM_SLOT_TAG);
                 return FabricData.Items.Inventory.from(
@@ -110,9 +109,7 @@ public abstract class FabricSerializer {
                 final NbtList items = (NbtList) new StringNbtReader(new StringReader(serialized)).parseElement();
                 final ItemStack[] contents = new ItemStack[items.size()];
                 for (int i = 0; i < items.size(); i++) {
-                    final NbtCompound item = items.getCompound(i);
-                    final ItemStack stack = ItemStack.fromNbt(item);
-                    items.set(i, stack.writeNbt(new NbtCompound()));
+                    contents[i] = items.get(i) != null ? ItemStack.fromNbt(items.getCompound(i)) : ItemStack.EMPTY;
                 }
                 return FabricData.Items.EnderChest.adapt(contents);
             } catch (Throwable e) {
