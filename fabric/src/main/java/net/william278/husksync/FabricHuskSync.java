@@ -361,7 +361,7 @@ public class FabricHuskSync implements DedicatedServerModInitializer, HuskSync, 
     @NotNull
     @Override
     public ConsoleUser getConsole() {
-        return new ConsoleUser(audiences.console());
+        return new ConsoleUser(audiences);
     }
 
     @Override
