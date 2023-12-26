@@ -21,6 +21,8 @@ package net.william278.husksync.command;
 
 import de.themoep.minedown.adventure.MineDown;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.JoinConfiguration;
+import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.TextColor;
 import net.william278.desertwell.about.AboutMenu;
 import net.william278.desertwell.util.UpdateChecker;
@@ -28,10 +30,12 @@ import net.william278.husksync.HuskSync;
 import net.william278.husksync.migrator.Migrator;
 import net.william278.husksync.user.CommandUser;
 import net.william278.husksync.user.OnlineUser;
+import org.apache.commons.text.WordUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
@@ -39,6 +43,7 @@ public class HuskSyncCommand extends Command implements TabProvider {
 
     private static final Map<String, Boolean> SUB_COMMANDS = Map.of(
             "about", false,
+            "status", true,
             "reload", true,
             "migrate", true,
             "update", true
@@ -94,6 +99,13 @@ public class HuskSyncCommand extends Command implements TabProvider {
 
         switch (subCommand) {
             case "about" -> executor.sendMessage(aboutMenu.toComponent());
+            case "status" -> {
+                getPlugin().getLocales().getLocale("system_status_header").ifPresent(executor::sendMessage);
+                executor.sendMessage(Component.join(
+                        JoinConfiguration.newlines(),
+                        Arrays.stream(StatusLine.values()).map(s -> s.get(plugin)).toList()
+                ));
+            }
             case "reload" -> {
                 try {
                     plugin.loadConfigs();
@@ -182,6 +194,61 @@ public class HuskSyncCommand extends Command implements TabProvider {
             case 0, 1 -> SUB_COMMANDS.keySet().stream().sorted().toList();
             default -> null;
         };
+    }
+
+    private enum StatusLine {
+        PLUGIN_VERSION(plugin -> Component.text("v" + plugin.getPluginVersion().toStringWithoutMetadata())
+                .append(plugin.getPluginVersion().getMetadata().isBlank() ? Component.empty()
+                        : Component.text("(build " + plugin.getPluginVersion().getMetadata() + ")"))),
+        PLATFORM_TYPE(plugin -> Component.text(WordUtils.capitalizeFully(plugin.getPlatformType()))),
+        LANGUAGE(plugin -> Component.text(plugin.getSettings().getLanguage())),
+        MINECRAFT_VERSION(plugin -> Component.text(plugin.getMinecraftVersion().toString())),
+        JAVA_VERSION(plugin -> Component.text(System.getProperty("java.version"))),
+        JAVA_VENDOR(plugin -> Component.text(System.getProperty("java.vendor"))),
+        SYNC_MODE(plugin -> Component.text(WordUtils.capitalizeFully(plugin.getSettings().getSyncMode().toString()))),
+        DELAY_LATENCY(plugin -> Component.text(plugin.getSettings().getNetworkLatencyMilliseconds() + "ms")),
+        SERVER_NAME(plugin -> Component.text(plugin.getServerName())),
+        DATABASE_TYPE(plugin -> Component.text(plugin.getSettings().getDatabaseType().getDisplayName())),
+        IS_DATABASE_LOCAL(plugin -> getLocalhostBoolean(plugin.getSettings().getMySqlHost())),
+        IS_REDIS_SENTINEL(plugin -> getBoolean(!plugin.getSettings().getRedisSentinelMaster().isBlank())),
+        IS_REDIS_PASSWORD(plugin -> getBoolean(!plugin.getSettings().getRedisPassword().isBlank())),
+        IS_REDIS_SSL(plugin -> getBoolean(plugin.getSettings().redisUseSsl())),
+        IS_REDIS_LOCAL(plugin -> getLocalhostBoolean(plugin.getSettings().getRedisHost())),
+        DATA_TYPES(plugin -> Component.join(
+                JoinConfiguration.commas(true),
+                plugin.getRegisteredDataTypes().stream().map(i -> {
+                    boolean enabled = plugin.getSettings().isSyncFeatureEnabled(i);
+                    return Component.text(i.toString(), TextColor.color(enabled ? 0x00ff00 : 0xff0000))
+                            .hoverEvent(HoverEvent.showText(Component.text(enabled ? "Enabled" : "Disabled")));
+                }).toList()
+        ));
+
+        private final Function<HuskSync, Component> supplier;
+
+        StatusLine(@NotNull Function<HuskSync, Component> supplier) {
+            this.supplier = supplier;
+        }
+
+        @NotNull
+        private Component get(@NotNull HuskSync plugin) {
+            return Component.text(
+                            WordUtils.capitalizeFully(name().replaceAll("_", " ")),
+                            TextColor.color(0x848484)
+                    )
+                    .append(Component.text(':')).append(Component.space())
+                    .append(supplier.apply(plugin));
+        }
+
+        @NotNull
+        private static Component getBoolean(boolean value) {
+            return Component.text(value ? "Yes" : "No", TextColor.color(value ? 0x00ff00 : 0xff0000));
+        }
+
+        @NotNull
+        private static Component getLocalhostBoolean(@NotNull String value) {
+            return getBoolean(value.equals("127.0.0.1") || value.equals("0.0.0.0")
+                    || value.equals("localhost") || value.equals("::1"));
+        }
     }
 
 }
