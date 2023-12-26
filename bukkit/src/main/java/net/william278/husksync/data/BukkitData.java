@@ -48,7 +48,7 @@ import java.util.logging.Level;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static net.william278.husksync.util.BukkitTypeMatcher.*;
+import static net.william278.husksync.util.BukkitKeyedAdapter.*;
 
 public abstract class BukkitData implements Data {
 
@@ -696,7 +696,8 @@ public abstract class BukkitData implements Data {
         public Map<String, Map<String, Integer>> getBlockStatistics() {
             return blockStatistics.entrySet().stream().filter(entry -> entry.getKey() != null).collect(
                     TreeMap::new,
-                    (m, e) -> m.put(e.getKey().getKey().toString(), convertStatistics(e.getValue())), TreeMap::putAll
+                    (m, e) -> getKeyName(e.getKey()).ifPresent(key -> m.put(key, convertStatistics(e.getValue()))),
+                    TreeMap::putAll
             );
         }
 
@@ -705,7 +706,8 @@ public abstract class BukkitData implements Data {
         public Map<String, Map<String, Integer>> getItemStatistics() {
             return itemStatistics.entrySet().stream().filter(entry -> entry.getKey() != null).collect(
                     TreeMap::new,
-                    (m, e) -> m.put(e.getKey().getKey().toString(), convertStatistics(e.getValue())), TreeMap::putAll
+                    (m, e) -> getKeyName(e.getKey()).ifPresent(key -> m.put(key, convertStatistics(e.getValue()))),
+                    TreeMap::putAll
             );
         }
 
@@ -714,7 +716,8 @@ public abstract class BukkitData implements Data {
         public Map<String, Map<String, Integer>> getEntityStatistics() {
             return entityStatistics.entrySet().stream().filter(entry -> entry.getKey() != null).collect(
                     TreeMap::new,
-                    (m, e) -> m.put(e.getKey().getKey().toString(), convertStatistics(e.getValue())), TreeMap::putAll
+                    (m, e) -> getKeyName(e.getKey()).ifPresent(key -> m.put(key, convertStatistics(e.getValue()))),
+                    TreeMap::putAll
             );
         }
 
@@ -722,13 +725,8 @@ public abstract class BukkitData implements Data {
         private <T extends Keyed> Map<String, Integer> convertStatistics(@NotNull Map<T, Integer> stats) {
             return stats.entrySet().stream().filter(entry -> entry.getKey() != null).collect(
                     TreeMap::new,
-                    (m, e) -> {
-                        try {
-                            m.put(e.getKey().getKey().toString(), e.getValue());
-                        } catch (Throwable t) {
-                            // Ignore; skip elements with invalid keys (e.g., legacy materials)
-                        }
-                    }, TreeMap::putAll
+                    (m, e) -> getKeyName(e.getKey()).ifPresent(key -> m.put(key, e.getValue())),
+                    TreeMap::putAll
             );
         }
 
