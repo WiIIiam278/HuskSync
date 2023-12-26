@@ -23,6 +23,7 @@ import de.themoep.minedown.adventure.MineDown;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.JoinConfiguration;
 import net.kyori.adventure.text.event.HoverEvent;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import net.william278.desertwell.about.AboutMenu;
 import net.william278.desertwell.util.UpdateChecker;
@@ -196,7 +197,7 @@ public class HuskSyncCommand extends Command implements TabProvider {
 
     private enum StatusLine {
         PLUGIN_VERSION(plugin -> Component.text("v" + plugin.getPluginVersion().toStringWithoutMetadata())
-                .append(plugin.getPluginVersion().getMetadata().isBlank() ? Component.empty()
+                .appendSpace().append(plugin.getPluginVersion().getMetadata().isBlank() ? Component.empty()
                         : Component.text("(build " + plugin.getPluginVersion().getMetadata() + ")"))),
         PLATFORM_TYPE(plugin -> Component.text(WordUtils.capitalizeFully(plugin.getPlatformType()))),
         LANGUAGE(plugin -> Component.text(plugin.getSettings().getLanguage())),
@@ -208,15 +209,17 @@ public class HuskSyncCommand extends Command implements TabProvider {
         SERVER_NAME(plugin -> Component.text(plugin.getServerName())),
         DATABASE_TYPE(plugin -> Component.text(plugin.getSettings().getDatabaseType().getDisplayName())),
         IS_DATABASE_LOCAL(plugin -> getLocalhostBoolean(plugin.getSettings().getMySqlHost())),
-        IS_REDIS_SENTINEL(plugin -> getBoolean(!plugin.getSettings().getRedisSentinelMaster().isBlank())),
-        IS_REDIS_PASSWORD(plugin -> getBoolean(!plugin.getSettings().getRedisPassword().isBlank())),
-        IS_REDIS_SSL(plugin -> getBoolean(plugin.getSettings().redisUseSsl())),
+        USING_REDIS_SENTINEL(plugin -> getBoolean(!plugin.getSettings().getRedisSentinelMaster().isBlank())),
+        USING_REDIS_PASSWORD(plugin -> getBoolean(!plugin.getSettings().getRedisPassword().isBlank())),
+        REDIS_USING_SSL(plugin -> getBoolean(plugin.getSettings().redisUseSsl())),
         IS_REDIS_LOCAL(plugin -> getLocalhostBoolean(plugin.getSettings().getRedisHost())),
         DATA_TYPES(plugin -> Component.join(
                 JoinConfiguration.commas(true),
                 plugin.getRegisteredDataTypes().stream().map(i -> {
                     boolean enabled = plugin.getSettings().isSyncFeatureEnabled(i);
-                    return Component.text(i.toString(), TextColor.color(enabled ? 0x00ff00 : 0xff0000))
+                    return Component.textOfChildren(Component
+                                    .text(i.toString()).appendSpace().append(Component.text(enabled ? '✔' : '❌')))
+                            .color(enabled ? NamedTextColor.GREEN : NamedTextColor.RED)
                             .hoverEvent(HoverEvent.showText(Component.text(enabled ? "Enabled" : "Disabled")));
                 }).toList()
         ));
@@ -229,17 +232,19 @@ public class HuskSyncCommand extends Command implements TabProvider {
 
         @NotNull
         private Component get(@NotNull HuskSync plugin) {
-            return Component.text(
+            return Component
+                    .text("•").appendSpace()
+                    .append(Component.text(
                             WordUtils.capitalizeFully(name().replaceAll("_", " ")),
                             TextColor.color(0x848484)
-                    )
-                    .append(Component.text(':')).append(Component.space())
+                    ))
+                    .append(Component.text(':')).append(Component.space().color(NamedTextColor.WHITE))
                     .append(supplier.apply(plugin));
         }
 
         @NotNull
         private static Component getBoolean(boolean value) {
-            return Component.text(value ? "Yes" : "No", TextColor.color(value ? 0x00ff00 : 0xff0000));
+            return Component.text(value ? "Yes" : "No", value ? NamedTextColor.GREEN : NamedTextColor.RED);
         }
 
         @NotNull
