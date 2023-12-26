@@ -40,7 +40,7 @@ import java.util.Arrays;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 
-import static net.william278.husksync.util.BukkitTypeMatcher.matchMaterial;
+import static net.william278.husksync.util.BukkitKeyedAdapter.matchMaterial;
 
 /**
  * Bukkit platform implementation of an {@link OnlineUser}

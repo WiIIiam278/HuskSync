@@ -44,7 +44,7 @@ import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.logging.Level;
 
-import static net.william278.husksync.util.BukkitTypeMatcher.*;
+import static net.william278.husksync.util.BukkitKeyedAdapter.*;
 
 public class BukkitLegacyConverter extends LegacyConverter {
 

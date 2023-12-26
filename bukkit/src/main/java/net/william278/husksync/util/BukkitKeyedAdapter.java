@@ -19,6 +19,7 @@
 
 package net.william278.husksync.util;
 
+import org.bukkit.Keyed;
 import org.bukkit.Material;
 import org.bukkit.Statistic;
 import org.bukkit.entity.EntityType;
@@ -26,26 +27,48 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
+import java.util.Optional;
 
-public final class BukkitTypeMatcher {
+// Utility class for adapting "Keyed" Bukkit objects
+public final class BukkitKeyedAdapter {
 
     @Nullable
     public static Statistic matchStatistic(@NotNull String key) {
-        return Arrays.stream(Statistic.values())
-                .filter(stat -> stat.getKey().toString().equals(key))
-                .findFirst().orElse(null);
+        try {
+            return Arrays.stream(Statistic.values())
+                    .filter(stat -> stat.getKey().toString().equals(key))
+                    .findFirst().orElse(null);
+        } catch (Throwable e) {
+            return null;
+        }
     }
 
     @Nullable
     public static EntityType matchEntityType(@NotNull String key) {
-        return Arrays.stream(EntityType.values())
-                .filter(entityType -> entityType.getKey().toString().equals(key))
-                .findFirst().orElse(null);
+        try {
+            return Arrays.stream(EntityType.values())
+                    .filter(entityType -> entityType.getKey().toString().equals(key))
+                    .findFirst().orElse(null);
+        } catch (Throwable e) {
+            return null;
+        }
     }
 
     @Nullable
     public static Material matchMaterial(@NotNull String key) {
-        return Material.matchMaterial(key);
+        try {
+            return Material.matchMaterial(key);
+        } catch (Throwable e) {
+            return null;
+        }
+    }
+
+    public static Optional<String> getKeyName(@NotNull Keyed keyed) {
+        try {
+            return Optional.of(keyed.getKey().toString());
+        } catch (Throwable e) {
+            return Optional.empty();
+        }
     }
 
 }
