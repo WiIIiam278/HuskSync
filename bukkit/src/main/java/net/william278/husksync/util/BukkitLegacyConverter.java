@@ -19,6 +19,7 @@
 
 package net.william278.husksync.util;
 
+import com.google.common.collect.Maps;
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.adapter.DataAdapter;
 import net.william278.husksync.data.BukkitData;
@@ -42,6 +43,8 @@ import java.text.SimpleDateFormat;
 import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.logging.Level;
+
+import static net.william278.husksync.util.BukkitKeyedAdapter.*;
 
 public class BukkitLegacyConverter extends LegacyConverter {
 
@@ -197,34 +200,42 @@ public class BukkitLegacyConverter extends LegacyConverter {
     @NotNull
     private BukkitData.Statistics readStatisticMaps(@NotNull JSONObject untyped, @NotNull JSONObject blocks,
                                                     @NotNull JSONObject items, @NotNull JSONObject entities) {
-        final Map<Statistic, Integer> genericStats = new HashMap<>();
-        untyped.keys().forEachRemaining(stat -> genericStats.put(Statistic.valueOf(stat), untyped.getInt(stat)));
+        // Read generic stats
+        final Map<Statistic, Integer> genericStats = Maps.newHashMap();
+        untyped.keys().forEachRemaining(stat -> genericStats.put(matchStatistic(stat), untyped.getInt(stat)));
 
-        final Map<Statistic, Map<Material, Integer>> blockStats = new HashMap<>();
-        blocks.keys().forEachRemaining(stat -> {
-            final JSONObject blockStat = blocks.getJSONObject(stat);
-            final Map<Material, Integer> blockMap = new HashMap<>();
-            blockStat.keys().forEachRemaining(block -> blockMap.put(Material.valueOf(block), blockStat.getInt(block)));
-            blockStats.put(Statistic.valueOf(stat), blockMap);
-        });
+        // Read block & item stats
+        final Map<Statistic, Map<Material, Integer>> blockStats, itemStats;
+        blockStats = readMaterialStatistics(blocks);
+        itemStats = readMaterialStatistics(items);
 
-        final Map<Statistic, Map<Material, Integer>> itemStats = new HashMap<>();
-        items.keys().forEachRemaining(stat -> {
-            final JSONObject itemStat = items.getJSONObject(stat);
-            final Map<Material, Integer> itemMap = new HashMap<>();
-            itemStat.keys().forEachRemaining(item -> itemMap.put(Material.valueOf(item), itemStat.getInt(item)));
-            itemStats.put(Statistic.valueOf(stat), itemMap);
-        });
-
-        final Map<Statistic, Map<EntityType, Integer>> entityStats = new HashMap<>();
+        // Read entity stats
+        final Map<Statistic, Map<EntityType, Integer>> entityStats = Maps.newHashMap();
         entities.keys().forEachRemaining(stat -> {
             final JSONObject entityStat = entities.getJSONObject(stat);
             final Map<EntityType, Integer> entityMap = new HashMap<>();
-            entityStat.keys().forEachRemaining(entity -> entityMap.put(EntityType.valueOf(entity), entityStat.getInt(entity)));
-            entityStats.put(Statistic.valueOf(stat), entityMap);
+            entityStat.keys().forEachRemaining(entity -> entityMap.put(matchEntityType(entity), entityStat.getInt(entity)));
+            entityStats.put(matchStatistic(stat), entityMap);
         });
 
         return BukkitData.Statistics.from(genericStats, blockStats, itemStats, entityStats);
+    }
+
+    @NotNull
+    private Map<Statistic, Map<Material, Integer>> readMaterialStatistics(@NotNull JSONObject items) {
+        final Map<Statistic, Map<Material, Integer>> itemStats = Maps.newHashMap();
+        items.keys().forEachRemaining(stat -> {
+            final JSONObject itemStat = items.getJSONObject(stat);
+            final Map<Material, Integer> itemMap = Maps.newHashMap();
+            itemStat.keys().forEachRemaining(item -> {
+                final Material material = matchMaterial(item);
+                if (material != null) {
+                    itemMap.put(material, itemStat.getInt(item));
+                }
+            });
+            itemStats.put(matchStatistic(stat), itemMap);
+        });
+        return itemStats;
     }
 
     // Deserialize a legacy item stack array

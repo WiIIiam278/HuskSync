@@ -11,7 +11,7 @@ This page contains a table of HuskSync commands and their required permission no
     <tbody>
         <!-- /husksync command -->
         <tr>
-            <td rowspan="5"><code>/husksync</code></td>
+            <td rowspan="6"><code>/husksync</code></td>
             <td><code>/husksync</code></td>
             <td>View & manage plugin system information</td>
             <td><code>husksync.command.husksync</code></td>
@@ -20,6 +20,11 @@ This page contains a table of HuskSync commands and their required permission no
             <td><code>/husksync about</code></td>
             <td>View information about the plugin</td>
             <td><code>husksync.command.husksync.about</code></td>
+        </tr>
+        <tr>
+            <td><code>/husksync status</code></td>
+            <td>View plugin system status information</td>
+            <td><code>husksync.command.husksync.status</code></td>
         </tr>
         <tr>
             <td><code>/husksync reload</code></td>
