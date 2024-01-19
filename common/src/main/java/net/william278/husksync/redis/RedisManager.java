@@ -47,6 +47,8 @@ public class RedisManager extends JedisPubSub {
     private Pool<Jedis> jedisPool;
     private final Map<UUID, CompletableFuture<Optional<DataSnapshot.Packed>>> pendingRequests;
 
+    private boolean enabled;
+
     public RedisManager(@NotNull HuskSync plugin) {
         this.plugin = plugin;
         this.clusterId = plugin.getSettings().getClusterId();
@@ -88,18 +90,51 @@ public class RedisManager extends JedisPubSub {
         }
 
         // Subscribe using a thread (rather than a task)
+        enabled = true;
         new Thread(this::subscribe, "husksync:redis_subscriber").start();
     }
 
     @Blocking
     private void subscribe() {
-        try (Jedis jedis = jedisPool.getResource()) {
-            jedis.subscribe(
-                    this,
-                    Arrays.stream(RedisMessage.Type.values())
-                            .map(type -> type.getMessageChannel(clusterId))
-                            .toArray(String[]::new)
-            );
+        boolean reconnected = false;
+        while (enabled && !Thread.interrupted() && jedisPool != null && !jedisPool.isClosed()) {
+            try (Jedis jedis = jedisPool.getResource()) {
+                if (reconnected) {
+                    plugin.log(Level.INFO, "Redis connection is alive again");
+                }
+                // Subscribe channels and lock the thread
+                jedis.subscribe(
+                        this,
+                        Arrays.stream(RedisMessage.Type.values())
+                                .map(type -> type.getMessageChannel(clusterId))
+                                .toArray(String[]::new)
+                );
+            } catch (Throwable t) {
+                // Thread was unlocked due error
+                if (enabled) {
+                    if (reconnected) {
+                        plugin.log(Level.WARNING, "Redis connection dropped, automatic reconnection in 8 seconds", t);
+                    }
+                    try {
+                        this.unsubscribe();
+                    } catch (Throwable ignored) {
+                        // empty catch
+                    }
+
+                    // Make an instant subscribe if ocurrs any error on initialization
+                    if (!reconnected) {
+                        reconnected = true;
+                    } else {
+                        try {
+                            Thread.sleep(8000);
+                        } catch (InterruptedException e) {
+                            Thread.currentThread().interrupt();
+                        }
+                    }
+                } else {
+                    return;
+                }
+            }
         }
     }
 
@@ -134,6 +169,16 @@ public class RedisManager extends JedisPubSub {
                 }
             }
         }
+    }
+
+    @Override
+    public void onSubscribe(String channel, int subscribedChannels) {
+        plugin.log(Level.INFO, "Redis subscribed to channel '" + channel + "'");
+    }
+
+    @Override
+    public void onUnsubscribe(String channel, int subscribedChannels) {
+        plugin.log(Level.INFO, "Redis unsubscribed from channel '" + channel + "'");
     }
 
     @Blocking
@@ -329,6 +374,7 @@ public class RedisManager extends JedisPubSub {
 
     @Blocking
     public void terminate() {
+        enabled = false;
         if (jedisPool != null) {
             if (!jedisPool.isClosed()) {
                 jedisPool.close();
