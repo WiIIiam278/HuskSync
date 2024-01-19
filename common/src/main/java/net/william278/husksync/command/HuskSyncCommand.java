@@ -79,8 +79,9 @@ public class HuskSyncCommand extends Command implements TabProvider {
                         AboutMenu.Credit.of("DJelly4K").description("Simplified Chinese (zh-cn)"),
                         AboutMenu.Credit.of("Thourgard").description("Ukrainian (uk-ua)"),
                         AboutMenu.Credit.of("xF3d3").description("Italian (it-it)"),
-                        AboutMenu.Credit.of("cada3141").description("Korean (ko-kr)"))
-                        AboutMenu.Credit.of("Wirayuda5620").description("Bahasa Indonesia (id-id)"))
+                        AboutMenu.Credit.of("cada3141").description("Korean (ko-kr)"),
+                        AboutMenu.Credit.of("Wirayuda5620").description("Indonesian (id-id)"),
+                        AboutMenu.Credit.of("WinTone01").description("Turkish (tr-tr)"))
                 .buttons(
                         AboutMenu.Link.of("https://william278.net/docs/husksync").text("Documentation").icon("⛏"),
                         AboutMenu.Link.of("https://github.com/WiIIiam278/HuskSync/issues").text("Issues").icon("❌").color(TextColor.color(0xff9f0f)),
