@@ -48,6 +48,7 @@ public class RedisManager extends JedisPubSub {
     private final Map<UUID, CompletableFuture<Optional<DataSnapshot.Packed>>> pendingRequests;
 
     private boolean enabled;
+    private boolean reconnected;
 
     public RedisManager(@NotNull HuskSync plugin) {
         this.plugin = plugin;
@@ -96,7 +97,6 @@ public class RedisManager extends JedisPubSub {
 
     @Blocking
     private void subscribe() {
-        boolean reconnected = false;
         while (enabled && !Thread.interrupted() && jedisPool != null && !jedisPool.isClosed()) {
             try (Jedis jedis = jedisPool.getResource()) {
                 if (reconnected) {
@@ -111,28 +111,31 @@ public class RedisManager extends JedisPubSub {
                 );
             } catch (Throwable t) {
                 // Thread was unlocked due error
-                if (enabled) {
-                    if (reconnected) {
-                        plugin.log(Level.WARNING, "Redis connection dropped, automatic reconnection in 8 seconds", t);
-                    }
-                    try {
-                        this.unsubscribe();
-                    } catch (Throwable ignored) {
-                        // empty catch
-                    }
+                onThreadUnlock(t);
+            }
+        }
+    }
 
-                    // Make an instant subscribe if ocurrs any error on initialization
-                    if (!reconnected) {
-                        reconnected = true;
-                    } else {
-                        try {
-                            Thread.sleep(8000);
-                        } catch (InterruptedException e) {
-                            Thread.currentThread().interrupt();
-                        }
-                    }
-                } else {
-                    return;
+    private void onThreadUnlock(Throwable t) {
+        if (enabled) {
+            if (reconnected) {
+                plugin.log(Level.WARNING,
+                        "Connection to the Redis server was lost. Attempting reconnection in 8 seconds...", t);
+            }
+            try {
+                this.unsubscribe();
+            } catch (Throwable ignored) {
+                // empty catch
+            }
+
+            // Make an instant subscribe if occurs any error on initialization
+            if (!reconnected) {
+                reconnected = true;
+            } else {
+                try {
+                    Thread.sleep(8000);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
                 }
             }
         }
