@@ -41,6 +41,7 @@ import java.util.logging.Level;
 public class RedisManager extends JedisPubSub {
 
     protected static final String KEY_NAMESPACE = "husksync:";
+    private static final int RECONNECTION_TIME = 8000;
 
     private final HuskSync plugin;
     private final String clusterId;
@@ -133,7 +134,7 @@ public class RedisManager extends JedisPubSub {
                 reconnected = true;
             } else {
                 try {
-                    Thread.sleep(8000);
+                    Thread.sleep(RECONNECTION_TIME);
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                 }
