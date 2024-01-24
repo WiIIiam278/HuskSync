@@ -77,14 +77,6 @@ public class BukkitHuskSyncAPI extends HuskSyncAPI {
     }
 
     /**
-     * <b>(Internal use only)</b> - Unregister the API for this platform.
-     */
-    @ApiStatus.Internal
-    public static void unregister() {
-        instance = null;
-    }
-
-    /**
      * Returns a {@link OnlineUser} instance for the given bukkit {@link Player}.
      *
      * @param player the bukkit player to get the {@link OnlineUser} instance for

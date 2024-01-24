@@ -78,6 +78,14 @@ public class HuskSyncAPI {
     }
 
     /**
+     * <b>(Internal use only)</b> - Unregister the API for this platform.
+     */
+    @ApiStatus.Internal
+    public static void unregister() {
+        instance = null;
+    }
+
+    /**
      * Get a {@link User} by their UUID
      *
      * @param uuid The UUID of the user to get
