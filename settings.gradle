@@ -8,6 +8,5 @@ rootProject.name = 'HuskSync'
 include(
         'common',
         'bukkit',
-        'paper',
-        'plugin'
+        'paper'
 )

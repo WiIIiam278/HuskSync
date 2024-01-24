@@ -20,7 +20,7 @@ class Parameters:
     backend_ports = [25567, 25568]
     backend_type = 'paper'
     backend_ram = 2048
-    backend_plugins = ['../target/HuskSync-Plugin-*.jar']
+    backend_plugins = ['../target/HuskSync-Paper-*.jar']
     backend_plugin_folders = ['./HuskSync']
     operator_names = ['William278']
     operator_uuids = ['5dfb0558-e306-44f4-bb9a-f9218d4eb787']
