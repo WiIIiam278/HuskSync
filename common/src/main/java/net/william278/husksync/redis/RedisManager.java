@@ -117,27 +117,29 @@ public class RedisManager extends JedisPubSub {
         }
     }
 
-    private void onThreadUnlock(Throwable t) {
-        if (enabled) {
-            if (reconnected) {
-                plugin.log(Level.WARNING,
-                        "Connection to the Redis server was lost. Attempting reconnection in 8 seconds...", t);
-            }
-            try {
-                this.unsubscribe();
-            } catch (Throwable ignored) {
-                // empty catch
-            }
+    private void onThreadUnlock(@NotNull Throwable t) {
+        if (!enabled) {
+            return;
+        }
 
-            // Make an instant subscribe if occurs any error on initialization
-            if (!reconnected) {
-                reconnected = true;
-            } else {
-                try {
-                    Thread.sleep(RECONNECTION_TIME);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                }
+        if (reconnected) {
+            plugin.log(Level.WARNING, "Redis Server connection lost. Attempting reconnect in %ss..."
+                    .formatted(RECONNECTION_TIME / 1000), t);
+        }
+        try {
+            this.unsubscribe();
+        } catch (Throwable ignored) {
+            // empty catch
+        }
+
+        // Make an instant subscribe if occurs any error on initialization
+        if (!reconnected) {
+            reconnected = true;
+        } else {
+            try {
+                Thread.sleep(RECONNECTION_TIME);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
             }
         }
     }
