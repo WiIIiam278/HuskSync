@@ -129,14 +129,29 @@ subprojects {
         shadowJar.dependsOn(sourcesJar, javadocJar)
 
         publishing {
-            publications {
-                mavenJavaCommon(MavenPublication) {
-                    groupId = 'net.william278.husksync'
-                    artifactId = "husksync-${project.name}"
-                    version = "$rootProject.version"
-                    artifact shadowJar
-                    artifact sourcesJar
-                    artifact javadocJar
+            if (['common'].contains(project.name)) {
+                publications {
+                    mavenJavaCommon(MavenPublication) {
+                        groupId = 'net.william278.husksync'
+                        artifactId = 'husksync-common'
+                        version = "$rootProject.version"
+                        artifact shadowJar
+                        artifact sourcesJar
+                        artifact javadocJar
+                    }
+                }
+            }
+
+            if (['bukkit'].contains(project.name)) {
+                publications {
+                    mavenJavaBukkit(MavenPublication) {
+                        groupId = 'net.william278.husksync'
+                        artifactId = 'husksync-bukkit'
+                        version = "$rootProject.version"
+                        artifact shadowJar
+                        artifact sourcesJar
+                        artifact javadocJar
+                    }
                 }
             }
         }
