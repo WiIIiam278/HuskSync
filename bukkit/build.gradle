@@ -56,4 +56,6 @@ shadowJar {
     relocate 'net.william278.annotaml', 'net.william278.husksync.libraries.annotaml'
     relocate 'space.arim.morepaperlib', 'net.william278.husksync.libraries.paperlib'
     relocate 'de.tr7zw.changeme.nbtapi', 'net.william278.husksync.libraries.nbtapi'
+
+    minimize()
 }
