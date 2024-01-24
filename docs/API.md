@@ -14,7 +14,7 @@ The HuskSync API shares version numbering with the plugin itself for consistency
 ### Platforms
 > **Note:** For versions older than `v3.3`, the HuskSync API was only distributed for the Bukkit platform (as `net.william278:husksync`) 
 
-The HuskClaims API is available for the following platforms:
+The HuskSync API is available for the following platforms:
 
 * `bukkit` - Bukkit, Spigot, Paper, etc. Provides Bukkit API event listeners and adapters to `org.bukkit` objects.
 * `common` - Common API for all platforms.
