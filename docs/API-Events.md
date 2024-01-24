@@ -1,8 +1,10 @@
 HuskSync provides three API events your plugin can listen to when certain parts of the data synchronization process are performed. These events deal with HuskSync class types, so you may want to familiarize yourself with the [API basics](API) first. Two of the events can be cancelled (thus aborting the synchronization process at certain stages), and some events expose methods letting you affect their outcome (such as modifying the data that is saved during the process).
 
-Consult the Javadocs for more information&mdash;and don't forget to register your listener when listening for these event calls. Please note that carrying out expensive blocking operations during these events is strongly discouraged as this may affect plugin performance.
+Consult the Javadocs for more information. Please note that carrying out expensive blocking operations during these events is strongly discouraged as this may affect plugin performance.
 
-## List of API Events
+## Bukkit Platform Events
+> **Tip:** Don't forget to register your listener when listening for these event calls.
+> 
 | Bukkit Event class        | Cancellable | Description                                                                                 |
 |---------------------------|:-----------:|---------------------------------------------------------------------------------------------|
 | `BukkitDataSaveEvent`     |      ✅      | Called when player data snapshot is created, saved and cached due to a DataSaveCause        |

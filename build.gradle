@@ -21,6 +21,37 @@ ext {
     set 'snappy_version', snappy_version.toString()
 }
 
+publishing {
+    repositories {
+        if (System.getenv("RELEASES_MAVEN_USERNAME") != null) {
+            maven {
+                name = "william278-releases"
+                url = "https://repo.william278.net/releases"
+                credentials {
+                    username = System.getenv("RELEASES_MAVEN_USERNAME")
+                    password = System.getenv("RELEASES_MAVEN_PASSWORD")
+                }
+                authentication {
+                    basic(BasicAuthentication)
+                }
+            }
+        }
+        if (System.getenv("SNAPSHOTS_MAVEN_USERNAME") != null) {
+            maven {
+                name = "william278-snapshots"
+                url = "https://repo.william278.net/snapshots"
+                credentials {
+                    username = System.getenv("SNAPSHOTS_MAVEN_USERNAME")
+                    password = System.getenv("SNAPSHOTS_MAVEN_PASSWORD")
+                }
+                authentication {
+                    basic(BasicAuthentication)
+                }
+            }
+        }
+    }
+}
+
 import org.apache.tools.ant.filters.ReplaceTokens
 
 allprojects {
@@ -88,7 +119,7 @@ subprojects {
         }
 
         // API publishing
-        if ('bukkit'.contains(project.name)) {
+        if (['common', 'bukkit'].contains(project.name)) {
             java {
                 withSourcesJar()
                 withJavadocJar()
@@ -102,43 +133,14 @@ subprojects {
             shadowJar.dependsOn(sourcesJar, javadocJar)
 
             publishing {
-                repositories {
-                    if (System.getenv("RELEASES_MAVEN_USERNAME") != null) {
-                        maven {
-                            name = "william278-releases"
-                            url = "https://repo.william278.net/releases"
-                            credentials {
-                                username = System.getenv("RELEASES_MAVEN_USERNAME")
-                                password = System.getenv("RELEASES_MAVEN_PASSWORD")
-                            }
-                            authentication {
-                                basic(BasicAuthentication)
-                            }
-                        }
-                    }
-                    if (System.getenv("SNAPSHOTS_MAVEN_USERNAME") != null) {
-                        maven {
-                            name = "william278-snapshots"
-                            url = "https://repo.william278.net/snapshots"
-                            credentials {
-                                username = System.getenv("SNAPSHOTS_MAVEN_USERNAME")
-                                password = System.getenv("SNAPSHOTS_MAVEN_PASSWORD")
-                            }
-                            authentication {
-                                basic(BasicAuthentication)
-                            }
-                        }
-                    }
-                }
-
                 publications {
-                    mavenJava(MavenPublication) {
-                        groupId = 'net.william278'
-                        artifactId = 'husksync'
+                    mavenJavaCommon(MavenPublication) {
+                        groupId = 'net.william278.husksync'
+                        artifactId = "husksync-${project.name}"
                         version = "$rootProject.version"
                         artifact shadowJar
-                        artifact javadocJar
                         artifact sourcesJar
+                        artifact javadocJar
                     }
                 }
             }
