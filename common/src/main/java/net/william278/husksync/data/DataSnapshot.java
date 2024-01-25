@@ -821,8 +821,7 @@ public class DataSnapshot {
 
         @NotNull
         public String getDisplayName() {
-            return Locales.truncate(name().toLowerCase(Locale.ENGLISH)
-                    .replaceAll("_", " "), 18);
+            return name().toLowerCase(Locale.ENGLISH);
         }
 
         @NotNull

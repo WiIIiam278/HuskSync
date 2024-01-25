@@ -24,7 +24,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.platform.AudienceProvider;
-import net.william278.annotaml.Annotaml;
 import net.william278.desertwell.util.ThrowingConsumer;
 import net.william278.desertwell.util.UpdateChecker;
 import net.william278.desertwell.util.Version;
@@ -319,37 +318,6 @@ public interface HuskSync extends Task.Supplier, EventDispatcher {
      * @return the {@link LegacyConverter}
      */
     Optional<LegacyConverter> getLegacyConverter();
-
-    /**
-     * Reloads the {@link Settings} and {@link Locales} from their respective config files.
-     */
-    default void loadConfigs() {
-        try {
-            // Load settings
-            setSettings(Annotaml.create(
-                    new File(getDataFolder(), "config.yml"),
-                    Settings.class
-            ).get());
-
-            // Load server name
-            setServer(Annotaml.create(
-                    new File(getDataFolder(), "server.yml"),
-                    Server.getDefault(this)
-            ).get());
-
-            // Load locales from language preset default
-            final Locales languagePresets = Annotaml.create(
-                    Locales.class,
-                    Objects.requireNonNull(getResource(String.format("locales/%s.yml", getSettings().getLanguage())))
-            ).get();
-            setLocales(Annotaml.create(new File(
-                    getDataFolder(),
-                    String.format("messages_%s.yml", getSettings().getLanguage())
-            ), languagePresets).get());
-        } catch (IOException | InvocationTargetException | InstantiationException | IllegalAccessException e) {
-            throw new FailedToLoadException("Failed to load config or message files", e);
-        }
-    }
 
     @NotNull
     default UpdateChecker getUpdateChecker() {

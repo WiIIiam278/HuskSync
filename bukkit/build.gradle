@@ -13,15 +13,17 @@ dependencies {
     implementation 'de.tr7zw:item-nbt-api:2.12.2'
 
     compileOnly 'org.spigotmc:spigot-api:1.17.1-R0.1-SNAPSHOT'
+    compileOnly 'org.projectlombok:lombok:1.18.30'
     compileOnly 'commons-io:commons-io:2.15.1'
     compileOnly 'org.json:json:20231013'
     compileOnly 'de.themoep:minedown-adventure:1.7.2-SNAPSHOT'
-    compileOnly 'dev.dejvokep:boosted-yaml:1.3.1'
+    compileOnly 'com.github.Exlll.ConfigLib:configlib-yaml:v4.3.0'
     compileOnly 'com.zaxxer:HikariCP:5.1.0'
     compileOnly 'net.william278:DesertWell:2.0.4'
-    compileOnly 'net.william278:annotaml:2.0.7'
     compileOnly 'net.william278:AdvancementAPI:97a9583413'
     compileOnly "redis.clients:jedis:$jedis_version"
+
+    annotationProcessor 'org.projectlombok:lombok:1.18.30'
 }
 
 shadowJar {
@@ -50,10 +52,10 @@ shadowJar {
     relocate 'me.lucko.commodore', 'net.william278.husksync.libraries.commodore'
     relocate 'net.byteflux.libby', 'net.william278.husksync.libraries.libby'
     relocate 'org.bstats', 'net.william278.husksync.libraries.bstats'
+    relocate 'de.exlll', 'net.william278.huskclaims.libraries'
     relocate 'dev.triumphteam.gui', 'net.william278.husksync.libraries.triumphgui'
     relocate 'net.william278.mpdbconverter', 'net.william278.husksync.libraries.mpdbconverter'
     relocate 'net.william278.hslmigrator', 'net.william278.husksync.libraries.hslconverter'
-    relocate 'net.william278.annotaml', 'net.william278.husksync.libraries.annotaml'
     relocate 'space.arim.morepaperlib', 'net.william278.husksync.libraries.paperlib'
     relocate 'de.tr7zw.changeme.nbtapi', 'net.william278.husksync.libraries.nbtapi'
 

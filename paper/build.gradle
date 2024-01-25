@@ -31,10 +31,10 @@ shadowJar {
     relocate 'me.lucko.commodore', 'net.william278.husksync.libraries.commodore'
     relocate 'net.byteflux.libby', 'net.william278.husksync.libraries.libby'
     relocate 'org.bstats', 'net.william278.husksync.libraries.bstats'
+    relocate 'de.exlll', 'net.william278.huskclaims.libraries'
     relocate 'dev.triumphteam.gui', 'net.william278.husksync.libraries.triumphgui'
     relocate 'net.william278.mpdbconverter', 'net.william278.husksync.libraries.mpdbconverter'
     relocate 'net.william278.hslmigrator', 'net.william278.husksync.libraries.hslconverter'
-    relocate 'net.william278.annotaml', 'net.william278.husksync.libraries.annotaml'
     relocate 'space.arim.morepaperlib', 'net.william278.husksync.libraries.paperlib'
     relocate 'de.tr7zw.changeme.nbtapi', 'net.william278.husksync.libraries.nbtapi'
 
