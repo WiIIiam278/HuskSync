@@ -22,7 +22,6 @@ package net.william278.husksync.migrator;
 import com.zaxxer.hikari.HikariDataSource;
 import net.william278.husksync.BukkitHuskSync;
 import net.william278.husksync.HuskSync;
-import net.william278.husksync.config.Settings;
 import net.william278.husksync.data.BukkitData;
 import net.william278.husksync.data.DataSnapshot;
 import net.william278.husksync.user.User;

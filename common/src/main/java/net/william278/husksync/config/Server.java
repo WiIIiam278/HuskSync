@@ -25,7 +25,6 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import net.william278.husksync.HuskSync;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;

@@ -31,7 +31,10 @@ import net.william278.husksync.listener.EventListener;
 import net.william278.husksync.sync.DataSyncer;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 /**
  * Plugin settings, read from config.yml
