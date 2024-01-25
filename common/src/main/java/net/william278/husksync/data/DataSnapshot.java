@@ -19,6 +19,7 @@
 
 package net.william278.husksync.data;
 
+import com.google.common.collect.Maps;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 import de.themoep.minedown.adventure.MineDown;
@@ -426,7 +427,7 @@ public class DataSnapshot {
         private Builder(@NotNull HuskSync plugin) {
             this.plugin = plugin;
             this.pinned = false;
-            this.data = new HashMap<>();
+            this.data = Maps.newHashMap();
             this.timestamp = OffsetDateTime.now();
             this.id = UUID.randomUUID();
             this.serverName = plugin.getServerName();

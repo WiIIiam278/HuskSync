@@ -19,6 +19,7 @@
 
 package net.william278.husksync.config;
 
+import com.google.common.collect.Maps;
 import de.exlll.configlib.Configuration;
 import de.themoep.minedown.adventure.MineDown;
 import lombok.AccessLevel;
@@ -30,7 +31,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Optional;
-import java.util.TreeMap;
 
 /**
  * Plugin locale configuration
@@ -54,7 +54,7 @@ public class Locales {
     protected static final String DEFAULT_LOCALE = "en-gb";
 
     // The raw set of locales loaded from yaml
-    Map<String, String> locales = new TreeMap<>();
+    Map<String, String> locales = Maps.newTreeMap();
 
     /**
      * Returns a raw, un-formatted locale loaded from the locales file

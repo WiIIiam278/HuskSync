@@ -19,6 +19,7 @@
 
 package net.william278.husksync.config;
 
+import com.google.common.collect.Lists;
 import de.exlll.configlib.Comment;
 import de.exlll.configlib.Configuration;
 import lombok.AccessLevel;
@@ -162,7 +163,7 @@ public class Settings {
             @Comment("The master set name for the Redis sentinel.")
             private String master = "";
             @Comment("List of host:port pairs")
-            private List<String> nodes = new ArrayList<>();
+            private List<String> nodes = Lists.newArrayList();
             private String password = "";
         }
 

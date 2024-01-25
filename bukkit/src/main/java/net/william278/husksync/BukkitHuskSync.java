@@ -252,19 +252,11 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
 
     @NotNull
     @Override
-    @SuppressWarnings("unchecked")
-    public Map<Identifier, Serializer<? extends Data>> getSerializers() {
-        return serializers;
-    }
-
-
-    @NotNull
-    @Override
     public Map<Identifier, Data> getPlayerCustomDataStore(@NotNull OnlineUser user) {
         if (playerCustomDataStore.containsKey(user.getUuid())) {
             return playerCustomDataStore.get(user.getUuid());
         }
-        final Map<Identifier, Data> data = new HashMap<>();
+        final Map<Identifier, Data> data = Maps.newHashMap();
         playerCustomDataStore.put(user.getUuid(), data);
         return data;
     }

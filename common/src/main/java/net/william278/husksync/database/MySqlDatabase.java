@@ -19,6 +19,7 @@
 
 package net.william278.husksync.database;
 
+import com.google.common.collect.Lists;
 import com.zaxxer.hikari.HikariDataSource;
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.adapter.DataAdapter;
@@ -250,7 +251,7 @@ public class MySqlDatabase extends Database {
     @Override
     @NotNull
     public List<DataSnapshot.Packed> getAllSnapshots(@NotNull User user) {
-        final List<DataSnapshot.Packed> retrievedData = new ArrayList<>();
+        final List<DataSnapshot.Packed> retrievedData = Lists.newArrayList();
         try (Connection connection = getConnection()) {
             try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
                     SELECT `version_uuid`, `timestamp`,  `data`

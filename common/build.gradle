@@ -27,9 +27,10 @@ dependencies {
     compileOnly "org.mariadb.jdbc:mariadb-java-client:$mariadb_driver_version"
     compileOnly "org.xerial.snappy:snappy-java:$snappy_version"
 
-    testImplementation 'com.github.plan-player-analytics:Plan:5.5.2272'
     testImplementation "redis.clients:jedis:$jedis_version"
     testImplementation "org.xerial.snappy:snappy-java:$snappy_version"
+    testImplementation 'com.google.guava:guava:33.0.0-jre'
+    testImplementation 'com.github.plan-player-analytics:Plan:5.5.2272'
     testCompileOnly 'com.github.Exlll.ConfigLib:configlib-yaml:v4.3.0'
     testCompileOnly 'org.jetbrains:annotations:24.1.0'
 

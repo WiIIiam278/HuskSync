@@ -19,11 +19,11 @@
 
 package net.william278.husksync.command;
 
+import com.google.common.collect.Maps;
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.user.CommandUser;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -36,7 +36,7 @@ public abstract class Command extends Node {
                       @NotNull HuskSync plugin) {
         super(name, aliases, plugin);
         this.usage = usage;
-        this.additionalPermissions = new HashMap<>();
+        this.additionalPermissions = Maps.newHashMap();
     }
 
     @Override

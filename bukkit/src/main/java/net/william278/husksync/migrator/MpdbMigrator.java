@@ -19,6 +19,7 @@
 
 package net.william278.husksync.migrator;
 
+import com.google.common.collect.Lists;
 import com.zaxxer.hikari.HikariDataSource;
 import net.william278.husksync.BukkitHuskSync;
 import net.william278.husksync.HuskSync;
@@ -98,7 +99,7 @@ public class MpdbMigrator extends Migrator {
                 connectionPool.setPoolName((getIdentifier() + "_migrator_pool").toUpperCase(Locale.ENGLISH));
 
                 plugin.log(Level.INFO, "Downloading raw data from the MySQLPlayerDataBridge database (this might take a while)...");
-                final List<MpdbData> dataToMigrate = new ArrayList<>();
+                final List<MpdbData> dataToMigrate = Lists.newArrayList();
                 try (final Connection connection = connectionPool.getConnection()) {
                     try (final PreparedStatement statement = connection.prepareStatement("""
                             SELECT `%source_inventory_table%`.`player_uuid`, `%source_inventory_table%`.`player_name`, `inventory`, `armor`, `enderchest`, `exp_lvl`, `exp`, `total_exp`
