@@ -155,29 +155,6 @@ public class Locales {
         return value.toString().replace("__", "_\\_");
     }
 
-    @NotNull
-    public String truncateText(@NotNull String string, int truncateAfter) {
-        if (string.isBlank()) {
-            return string;
-        }
-        return string.length() > truncateAfter ? string.substring(0, truncateAfter) + "…" : string;
-    }
-
-    @NotNull
-    public String getNotApplicable() {
-        return getRawLocale("not_applicable").orElse("N/A");
-    }
-
-    @NotNull
-    public String getListJoiner() {
-        return getRawLocale("list_separator").orElse(", ");
-    }
-
-    @NotNull
-    public String getNone() {
-        return getRawLocale("none").orElse("(none)");
-    }
-
     /**
      * Returns the base list options to use for a paginated chat list
      *
