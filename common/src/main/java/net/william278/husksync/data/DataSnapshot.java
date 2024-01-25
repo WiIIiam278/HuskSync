@@ -23,8 +23,6 @@ import com.google.common.collect.Maps;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 import de.themoep.minedown.adventure.MineDown;
-import lombok.Getter;
-import lombok.Setter;
 import net.william278.desertwell.util.Version;
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.adapter.Adaptable;
@@ -54,21 +52,6 @@ public class DataSnapshot {
     @SerializedName("id")
     protected UUID id;
 
-    /**
-     * -- GETTER --
-     *  Get whether the snapshot is pinned
-     *
-     * @return Whether the snapshot is pinned
-     *
-     * -- SETTER --
-     *  Set whether the snapshot is pinned
-     *
-     * @param pinned Whether the snapshot is pinned
-     *
-
-     */
-    @Setter
-    @Getter
     @SerializedName("pinned")
     protected boolean pinned;
 
@@ -87,14 +70,6 @@ public class DataSnapshot {
     @SerializedName("platform_type")
     protected String platformType;
 
-    /**
-     * -- GETTER --
-     *  Get the format version of the snapshot (indicating the version of HuskSync that created it)
-     *
-     * @return The format version of the snapshot
-     *
-     */
-    @Getter
     @SerializedName("format_version")
     protected int formatVersion;
 
@@ -194,6 +169,26 @@ public class DataSnapshot {
     }
 
     /**
+     * Get whether the snapshot is pinned
+     *
+     * @return Whether the snapshot is pinned
+     * @since 3.0
+     */
+    public boolean isPinned() {
+        return pinned;
+    }
+
+    /**
+     * Set whether the snapshot is pinned
+     *
+     * @param pinned Whether the snapshot is pinned
+     * @since 3.0
+     */
+    public void setPinned(boolean pinned) {
+        this.pinned = pinned;
+    }
+
+    /**
      * Get why the snapshot was created
      *
      * @return The {@link SaveCause data save cause} of the snapshot
@@ -258,6 +253,16 @@ public class DataSnapshot {
     @NotNull
     public String getPlatformType() {
         return platformType;
+    }
+
+    /**
+     * Get the format version of the snapshot (indicating the version of HuskSync that created it)
+     *
+     * @return The format version of the snapshot
+     * @since 3.0
+     */
+    public int getFormatVersion() {
+        return formatVersion;
     }
 
     /**
