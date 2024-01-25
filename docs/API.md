@@ -1,7 +1,7 @@
 The HuskSync API (v3) provides methods for retrieving and updating [data snapshots](Data-Snapshot-API), a number of [[API Events]] for tracking when user data is synced and saved, and infrastructure for registering serializers to [synchronise custom data types](Custom-Data-API).
 
 ## Compatibility
-[![Maven](https://repo.william278.net/api/badge/latest/releases/net/william278/husksync?color=00fb9a&name=Maven&prefix=v)](https://repo.william278.net/#/releases/net/william278/husksync/)
+[![Maven](https://repo.william278.net/api/badge/latest/releases/net/william278/husksync/husksync-common?color=00fb9a&name=Maven&prefix=v)](https://repo.william278.net/#/releases/net/william278/husksync/)
 
 The HuskSync API shares version numbering with the plugin itself for consistency and convenience. Please note minor and patch plugin releases may make API additions and deprecations, but will not introduce breaking changes without notice.
 
@@ -11,10 +11,20 @@ The HuskSync API shares version numbering with the plugin itself for consistency
 |    v2.x     | _v2.0&mdash;v2.2.8_  |     ❌     |
 |    v1.x     | _v1.0&mdash;v1.4.1_  |    ❌️     |
 
+### Platforms
+> **Note:** For versions older than `v3.3`, the HuskSync API was only distributed for the Bukkit platform (as `net.william278:husksync`) 
+
+The HuskSync API is available for the following platforms:
+
+* `bukkit` - Bukkit, Spigot, Paper, etc. Provides Bukkit API event listeners and adapters to `org.bukkit` objects.
+* `common` - Common API for all platforms.
+
+
 <details>
 <summary>Targeting older versions</summary>
 
-HuskSync versions prior to `v2.2.5` are distributed on [JitPack](https://jitpack.io/#/net/william278/HuskSync), and you will need to use the `https://jitpack.io` repository instead.
+* The HuskSync API was only distributed for the Bukkit module prior to `v3.3`; the artifact ID was `net.william278:husksync` instead of `net.william278.husksync:husksync-PLATFORM`. 
+* HuskSync versions prior to `v2.2.5` are distributed on [JitPack](https://jitpack.io/#/net/william278/HuskSync), and you will need to use the `https://jitpack.io` repository instead.
 </details>
 
 ## Table of Contents
@@ -44,8 +54,8 @@ Add the repository to your `pom.xml` as per below. You can alternatively specify
 Add the dependency to your `pom.xml` as per below. Replace `VERSION` with the latest version of HuskSync (without the v): ![Latest version](https://img.shields.io/github/v/tag/WiIIiam278/HuskSync?color=%23282828&label=%20&style=flat-square)
 ```xml
 <dependency>
-    <groupId>net.william278</groupId>
-    <artifactId>husksync</artifactId>
+    <groupId>net.william278.husksync</groupId>
+    <artifactId>husksync-PLATFORM</artifactId>
     <version>VERSION</version>
     <scope>provided</scope>
 </dependency>
@@ -68,7 +78,7 @@ Add the dependency as per below. Replace `VERSION` with the latest version of Hu
 
 ```groovy
 dependencies {
-    compileOnly 'net.william278:husksync:VERSION'
+    compileOnly 'net.william278.husksync:husksync-PLATFORM:VERSION'
 }
 ```
 </details>
@@ -117,9 +127,10 @@ public class MyPlugin extends JavaPlugin {
 
 ## 5. Getting an instance of the API
 - You can now get the API instance by calling `HuskSyncAPI#getInstance()`
+- If targeting the Bukkit platform, you can also use `BukkitHuskSyncAPI#getBukkitInstance()` to get the Bukkit-extended API instance (recommended)
 
 ```java
-import net.william278.husksync.api.BukkitHuskSyncAPI;
+import net.william278.husksync.api.HuskSyncAPI;
 
 public class HuskSyncAPIHook {
 

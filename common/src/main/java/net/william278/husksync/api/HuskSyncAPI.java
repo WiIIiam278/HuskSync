@@ -38,14 +38,17 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * The base implementation of the HuskSync API, containing cross-platform API calls.
+ * The common implementation of the HuskSync API, containing cross-platform API calls.
  * </p>
- * This class should not be used directly, but rather through platform-specific extending API classes.
+ * Retrieve an instance of the API class via {@link #getInstance()}.
  *
  * @since 2.0
  */
 @SuppressWarnings("unused")
-public abstract class HuskSyncAPI {
+public class HuskSyncAPI {
+
+    // Instance of the plugin
+    protected static HuskSyncAPI instance;
 
     /**
      * <b>(Internal use only)</b> - Instance of the implementing plugin.
@@ -58,6 +61,28 @@ public abstract class HuskSyncAPI {
     @ApiStatus.Internal
     protected HuskSyncAPI(@NotNull HuskSync plugin) {
         this.plugin = plugin;
+    }
+
+    /**
+     * Entrypoint to the HuskSync API on the common platform - returns an instance of the API
+     *
+     * @return instance of the HuskSync API
+     * @since 3.3
+     */
+    @NotNull
+    public static HuskSyncAPI getInstance() {
+        if (instance == null) {
+            throw new NotRegisteredException();
+        }
+        return instance;
+    }
+
+    /**
+     * <b>(Internal use only)</b> - Unregister the API for this platform.
+     */
+    @ApiStatus.Internal
+    public static void unregister() {
+        instance = null;
     }
 
     /**

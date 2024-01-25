@@ -43,9 +43,6 @@ import java.util.function.Consumer;
 @SuppressWarnings("unused")
 public class BukkitHuskSyncAPI extends HuskSyncAPI {
 
-    // Instance of the plugin
-    private static BukkitHuskSyncAPI instance;
-
     /**
      * <b>(Internal use only)</b> - Constructor, instantiating the API.
      */
@@ -55,7 +52,7 @@ public class BukkitHuskSyncAPI extends HuskSyncAPI {
     }
 
     /**
-     * Entrypoint to the HuskSync API - returns an instance of the API
+     * Entrypoint to the HuskSync API on the bukkit platform - returns an instance of the API
      *
      * @return instance of the HuskSync API
      * @since 3.0
@@ -65,7 +62,7 @@ public class BukkitHuskSyncAPI extends HuskSyncAPI {
         if (instance == null) {
             throw new NotRegisteredException();
         }
-        return instance;
+        return (BukkitHuskSyncAPI) instance;
     }
 
     /**
@@ -77,14 +74,6 @@ public class BukkitHuskSyncAPI extends HuskSyncAPI {
     @ApiStatus.Internal
     public static void register(@NotNull BukkitHuskSync plugin) {
         instance = new BukkitHuskSyncAPI(plugin);
-    }
-
-    /**
-     * <b>(Internal use only)</b> - Unregister the API for this platform.
-     */
-    @ApiStatus.Internal
-    public static void unregister() {
-        instance = null;
     }
 
     /**
