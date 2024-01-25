@@ -20,6 +20,7 @@
 package net.william278.husksync.redis;
 
 import net.william278.husksync.HuskSync;
+import net.william278.husksync.config.Settings;
 import net.william278.husksync.data.DataSnapshot;
 import net.william278.husksync.user.User;
 import org.jetbrains.annotations.Blocking;
@@ -62,25 +63,28 @@ public class RedisManager extends JedisPubSub {
      */
     @Blocking
     public void initialize() throws IllegalStateException {
-        final String password = plugin.getSettings().getRedisPassword();
-        final String host = plugin.getSettings().getRedisHost();
-        final int port = plugin.getSettings().getRedisPort();
-        final boolean useSSL = plugin.getSettings().redisUseSsl();
+        final Settings.RedisSettings.RedisCredentials credentials = plugin.getSettings().getRedis().getCredentials();
+        final String password = credentials.getPassword();
+        final String host = credentials.getHost();
+        final int port = credentials.getPort();
+        final boolean useSSL = credentials.isUseSsl();
 
         // Create the jedis pool
         final JedisPoolConfig config = new JedisPoolConfig();
         config.setMaxIdle(0);
         config.setTestOnBorrow(true);
         config.setTestOnReturn(true);
-        Set<String> redisSentinelNodes = new HashSet<>(plugin.getSettings().getRedisSentinelNodes());
+
+        final Settings.RedisSettings.RedisSentinel sentinel = plugin.getSettings().getRedis().getSentinel();
+        Set<String> redisSentinelNodes = new HashSet<>(sentinel.getNodes());
         if (redisSentinelNodes.isEmpty()) {
             this.jedisPool = password.isEmpty()
                     ? new JedisPool(config, host, port, 0, useSSL)
                     : new JedisPool(config, host, port, 0, password, useSSL);
         } else {
-            String sentinelPassword = plugin.getSettings().getRedisSentinelPassword();
-            String redisSentinelMaster = plugin.getSettings().getRedisSentinelMaster();
-            this.jedisPool = new JedisSentinelPool(redisSentinelMaster, redisSentinelNodes, password.isEmpty() ? null : password, sentinelPassword.isEmpty() ? null : sentinelPassword);
+            final String sentinelPassword = sentinel.getPassword();
+            this.jedisPool = new JedisSentinelPool(sentinel.getMaster(), redisSentinelNodes, password.isEmpty()
+                    ? null : password, sentinelPassword.isEmpty() ? null : sentinelPassword);
         }
 
         // Ping the server to check the connection
@@ -219,8 +223,9 @@ public class RedisManager extends JedisPubSub {
             );
             redisMessage.dispatch(plugin, RedisMessage.Type.REQUEST_USER_DATA);
         });
-        return future.orTimeout(
-                        plugin.getSettings().getNetworkLatencyMilliseconds(),
+        return future
+                .orTimeout(
+                        plugin.getSettings().getSynchronization().getNetworkLatencyMilliseconds(),
                         TimeUnit.MILLISECONDS
                 )
                 .exceptionally(throwable -> {

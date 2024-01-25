@@ -822,7 +822,7 @@ public abstract class BukkitData implements Data {
             // Set max health
             final AttributeInstance maxHealth = getMaxHealthAttribute(player);
             try {
-                if (plugin.getSettings().doSynchronizeMaxHealth() && this.maxHealth != 0) {
+                if (plugin.getSettings().getSynchronization().isSynchronizeMaxHealth() && this.maxHealth != 0) {
                     maxHealth.setBaseValue(this.maxHealth);
                 }
             } catch (Throwable e) {

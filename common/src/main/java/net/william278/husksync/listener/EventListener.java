@@ -30,6 +30,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import static net.william278.husksync.config.Settings.SynchronizationSettings.SaveOnDeathSettings;
+
 /**
  * Handles what should happen when events are fired
  */
@@ -74,7 +76,7 @@ public abstract class EventListener {
      * @param usersInWorld a list of users in the world that is being saved
      */
     protected final void saveOnWorldSave(@NotNull List<OnlineUser> usersInWorld) {
-        if (plugin.isDisabling() || !plugin.getSettings().doSaveOnWorldSave()) {
+        if (plugin.isDisabling() || !plugin.getSettings().getSynchronization().isSaveOnWorldSave()) {
             return;
         }
         usersInWorld.stream()
@@ -91,8 +93,9 @@ public abstract class EventListener {
      * @param items The items that should be saved for this user on their death
      */
     protected void saveOnPlayerDeath(@NotNull OnlineUser user, @NotNull Data.Items items) {
-        if (plugin.isDisabling() || !plugin.getSettings().doSaveOnDeath() || plugin.isLocked(user.getUuid())
-                || user.isNpc() || (!plugin.getSettings().doSaveEmptyDeathItems() && items.isEmpty())) {
+        final SaveOnDeathSettings settings = plugin.getSettings().getSynchronization().getSaveOnDeath();
+        if (plugin.isDisabling() || !settings.isEnabled() || plugin.isLocked(user.getUuid())
+                || user.isNpc() || (!settings.isSaveEmptyItems() && items.isEmpty())) {
             return;
         }
 

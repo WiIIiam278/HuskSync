@@ -26,7 +26,6 @@ import net.william278.desertwell.util.Version;
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.adapter.Adaptable;
 import net.william278.husksync.adapter.DataAdapter;
-import net.william278.husksync.config.Locales;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -718,7 +717,7 @@ public class DataSnapshot {
             }
             return new Unpacked(
                     id,
-                    pinned || plugin.getSettings().doAutoPin(saveCause),
+                    pinned || plugin.getSettings().getSynchronization().doAutoPin(saveCause),
                     timestamp,
                     saveCause,
                     serverName,
@@ -821,8 +820,7 @@ public class DataSnapshot {
 
         @NotNull
         public String getDisplayName() {
-            return Locales.truncate(name().toLowerCase(Locale.ENGLISH)
-                    .replaceAll("_", " "), 18);
+            return name().toLowerCase(Locale.ENGLISH);
         }
 
         @NotNull

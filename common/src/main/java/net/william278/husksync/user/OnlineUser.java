@@ -147,7 +147,7 @@ public abstract class OnlineUser extends User implements CommandUser, UserDataHo
      */
     public void completeSync(boolean succeeded, @NotNull DataSnapshot.UpdateCause cause, @NotNull HuskSync plugin) {
         if (succeeded) {
-            switch (plugin.getSettings().getNotificationDisplaySlot()) {
+            switch (plugin.getSettings().getSynchronization().getNotificationDisplaySlot()) {
                 case CHAT -> cause.getCompletedLocale(plugin).ifPresent(this::sendMessage);
                 case ACTION_BAR -> cause.getCompletedLocale(plugin).ifPresent(this::sendActionBar);
                 case TOAST -> cause.getCompletedLocale(plugin)

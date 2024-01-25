@@ -41,6 +41,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
 
+import static net.william278.husksync.config.Settings.DatabaseSettings;
+
 /**
  * A migrator for migrating MySQLPlayerDataBridge data to HuskSync {@link DataSnapshot}s
  */
@@ -62,11 +64,12 @@ public class MpdbMigrator extends Migrator {
                 Bukkit.getPluginManager().getPlugin("MySQLPlayerDataBridge"),
                 "MySQLPlayerDataBridge dependency not found!"
         ));
-        this.sourceHost = plugin.getSettings().getMySqlHost();
-        this.sourcePort = plugin.getSettings().getMySqlPort();
-        this.sourceUsername = plugin.getSettings().getMySqlUsername();
-        this.sourcePassword = plugin.getSettings().getMySqlPassword();
-        this.sourceDatabase = plugin.getSettings().getMySqlDatabase();
+        final DatabaseSettings.DatabaseCredentials credentials = plugin.getSettings().getDatabase().getCredentials();
+        this.sourceHost = credentials.getHost();
+        this.sourcePort = credentials.getPort();
+        this.sourceUsername = credentials.getUsername();
+        this.sourcePassword = credentials.getPassword();
+        this.sourceDatabase = credentials.getDatabase();
         this.sourceInventoryTable = "mpdb_inventory";
         this.sourceEnderChestTable = "mpdb_enderchest";
         this.sourceExperienceTable = "mpdb_experience";

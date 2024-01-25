@@ -57,13 +57,13 @@ public class BukkitEventListener extends EventListener implements BukkitJoinEven
 
     public BukkitEventListener(@NotNull BukkitHuskSync huskSync) {
         super(huskSync);
-        this.blacklistedCommands = huskSync.getSettings().getBlacklistedCommandsWhileLocked();
+        this.blacklistedCommands = huskSync.getSettings().getSynchronization().getBlacklistedCommandsWhileLocked();
         Bukkit.getServer().getPluginManager().registerEvents(this, huskSync);
     }
 
     @Override
     public boolean handleEvent(@NotNull ListenerType type, @NotNull Priority priority) {
-        return plugin.getSettings().getEventPriority(type).equals(priority);
+        return plugin.getSettings().getSynchronization().getEventPriority(type).equals(priority);
     }
 
     @Override
@@ -92,7 +92,7 @@ public class BukkitEventListener extends EventListener implements BukkitJoinEven
         }
 
         // Handle saving player data snapshots on death
-        if (!plugin.getSettings().doSaveOnDeath()) {
+        if (!plugin.getSettings().getSynchronization().getSaveOnDeath().isEnabled()) {
             return;
         }
 
@@ -106,7 +106,7 @@ public class BukkitEventListener extends EventListener implements BukkitJoinEven
 
     @EventHandler(ignoreCancelled = true)
     public void onWorldSave(@NotNull WorldSaveEvent event) {
-        if (!plugin.getSettings().doSaveOnWorldSave()) {
+        if (!plugin.getSettings().getSynchronization().isSaveOnWorldSave()) {
             return;
         }
 
@@ -118,7 +118,7 @@ public class BukkitEventListener extends EventListener implements BukkitJoinEven
 
     @EventHandler(ignoreCancelled = true)
     public void onMapInitialize(@NotNull MapInitializeEvent event) {
-        if (plugin.getSettings().doPersistLockedMaps() && event.getMap().isLocked()) {
+        if (plugin.getSettings().getSynchronization().isPersistLockedMaps() && event.getMap().isLocked()) {
             getPlugin().runAsync(() -> ((BukkitHuskSync) plugin).renderMapFromFile(event.getMap()));
         }
     }

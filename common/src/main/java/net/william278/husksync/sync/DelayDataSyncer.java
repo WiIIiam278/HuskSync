@@ -53,7 +53,7 @@ public class DelayDataSyncer extends DataSyncer {
                             }).orElse(false)
                     );
                 },
-                Math.max(0, plugin.getSettings().getNetworkLatencyMilliseconds() / 50L)
+                Math.max(0, plugin.getSettings().getSynchronization().getNetworkLatencyMilliseconds() / 50L)
         );
     }
 

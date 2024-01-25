@@ -42,6 +42,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
 
+import static net.william278.husksync.config.Settings.DatabaseSettings;
+
 public class LegacyMigrator extends Migrator {
 
     private final HSLConverter hslConverter;
@@ -56,11 +58,13 @@ public class LegacyMigrator extends Migrator {
     public LegacyMigrator(@NotNull HuskSync plugin) {
         super(plugin);
         this.hslConverter = HSLConverter.getInstance();
-        this.sourceHost = plugin.getSettings().getMySqlHost();
-        this.sourcePort = plugin.getSettings().getMySqlPort();
-        this.sourceUsername = plugin.getSettings().getMySqlUsername();
-        this.sourcePassword = plugin.getSettings().getMySqlPassword();
-        this.sourceDatabase = plugin.getSettings().getMySqlDatabase();
+
+        final DatabaseSettings.DatabaseCredentials credentials = plugin.getSettings().getDatabase().getCredentials();
+        this.sourceHost = credentials.getHost();
+        this.sourcePort = credentials.getPort();
+        this.sourceUsername = credentials.getUsername();
+        this.sourcePassword = credentials.getPassword();
+        this.sourceDatabase = credentials.getDatabase();
         this.sourcePlayersTable = "husksync_players";
         this.sourceDataTable = "husksync_data";
     }
