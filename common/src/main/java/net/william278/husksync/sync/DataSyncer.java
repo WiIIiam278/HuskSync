@@ -90,7 +90,8 @@ public abstract class DataSyncer {
     // Calculates the max attempts the system should listen for user data for based on the latency value
     private long getMaxListenAttempts() {
         return BASE_LISTEN_ATTEMPTS + (
-                (Math.max(100, plugin.getSettings().getNetworkLatencyMilliseconds()) / 1000) * 20 / LISTEN_DELAY
+                (Math.max(100, plugin.getSettings().getSynchronization().getNetworkLatencyMilliseconds()) / 1000)
+                        * 20 / LISTEN_DELAY
         );
     }
 

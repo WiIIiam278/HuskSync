@@ -19,12 +19,12 @@
 
 package net.william278.husksync;
 
+import de.exlll.configlib.Configuration;
+import de.exlll.configlib.YamlConfigurations;
 import io.papermc.paper.plugin.loader.PluginClasspathBuilder;
 import io.papermc.paper.plugin.loader.PluginLoader;
 import io.papermc.paper.plugin.loader.library.impl.MavenLibraryResolver;
-import net.william278.annotaml.Annotaml;
-import net.william278.annotaml.YamlFile;
-import net.william278.annotaml.YamlKey;
+import lombok.NoArgsConstructor;
 import org.eclipse.aether.artifact.DefaultArtifact;
 import org.eclipse.aether.graph.Dependency;
 import org.eclipse.aether.repository.RemoteRepository;
@@ -35,12 +35,13 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.Objects;
 
-@SuppressWarnings({"UnstableApiUsage", "unused"})
+@NoArgsConstructor
+@SuppressWarnings("UnstableApiUsage")
 public class PaperHuskSyncLoader implements PluginLoader {
 
     @Override
     public void classloader(@NotNull PluginClasspathBuilder classpathBuilder) {
-        MavenLibraryResolver resolver = new MavenLibraryResolver();
+        final MavenLibraryResolver resolver = new MavenLibraryResolver();
 
         resolveLibraries(classpathBuilder).stream()
                 .map(DefaultArtifact::new)
@@ -55,8 +56,11 @@ public class PaperHuskSyncLoader implements PluginLoader {
     @NotNull
     private static List<String> resolveLibraries(@NotNull PluginClasspathBuilder classpathBuilder) {
         try (InputStream input = getLibraryListFile()) {
-            return Annotaml.create(PaperLibraries.class, Objects.requireNonNull(input)).get().libraries;
-        } catch (Exception e) {
+            return YamlConfigurations.read(
+                    Objects.requireNonNull(input, "Failed to read libraries file"),
+                    PaperLibraries.class
+            ).libraries;
+        } catch (Throwable e) {
             classpathBuilder.getContext().getLogger().error("Failed to resolve libraries", e);
         }
         return List.of();
@@ -67,15 +71,11 @@ public class PaperHuskSyncLoader implements PluginLoader {
         return PaperHuskSyncLoader.class.getClassLoader().getResourceAsStream("paper-libraries.yml");
     }
 
-    @YamlFile(header = "Dependencies for HuskSync on Paper")
+    @Configuration
+    @NoArgsConstructor
     public static class PaperLibraries {
 
-        @YamlKey("libraries")
         private List<String> libraries;
-
-        @SuppressWarnings("unused")
-        private PaperLibraries() {
-        }
 
     }
 

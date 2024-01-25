@@ -718,7 +718,7 @@ public class DataSnapshot {
             }
             return new Unpacked(
                     id,
-                    pinned || plugin.getSettings().doAutoPin(saveCause),
+                    pinned || plugin.getSettings().getSynchronization().doAutoPin(saveCause),
                     timestamp,
                     saveCause,
                     serverName,

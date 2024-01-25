@@ -43,7 +43,7 @@ public interface UserDataHolder extends DataHolder {
     @NotNull
     default Map<Identifier, Data> getData() {
         return getPlugin().getRegisteredDataTypes().stream()
-                .filter(type -> type.isCustom() || getPlugin().getSettings().isSyncFeatureEnabled(type))
+                .filter(type -> type.isCustom() || getPlugin().getSettings().getSynchronization().isFeatureEnabled(type))
                 .map(id -> Map.entry(id, getData(id)))
                 .filter(data -> data.getValue().isPresent())
                 .collect(HashMap::new, (map, data) -> map.put(data.getKey(), data.getValue().get()), HashMap::putAll);
@@ -105,7 +105,7 @@ public interface UserDataHolder extends DataHolder {
             try {
                 for (Map.Entry<Identifier, Data> entry : unpacked.getData().entrySet()) {
                     final Identifier identifier = entry.getKey();
-                    if (plugin.getSettings().isSyncFeatureEnabled(identifier)) {
+                    if (plugin.getSettings().getSynchronization().isFeatureEnabled(identifier)) {
                         if (identifier.isCustom()) {
                             getCustomDataStore().put(identifier, entry.getValue());
                         }

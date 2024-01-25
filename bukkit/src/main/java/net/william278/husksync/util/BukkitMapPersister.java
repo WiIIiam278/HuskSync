@@ -62,7 +62,7 @@ public interface BukkitMapPersister {
      */
     @NotNull
     default ItemStack[] persistLockedMaps(@NotNull ItemStack[] items, @NotNull Player delegateRenderer) {
-        if (!getPlugin().getSettings().doPersistLockedMaps()) {
+        if (!getPlugin().getSettings().getSynchronization().isPersistLockedMaps()) {
             return items;
         }
         return forEachMap(items, map -> this.persistMapView(map, delegateRenderer));
@@ -76,7 +76,7 @@ public interface BukkitMapPersister {
      */
     @NotNull
     default ItemStack[] setMapViews(@NotNull ItemStack[] items) {
-        if (!getPlugin().getSettings().doPersistLockedMaps()) {
+        if (!getPlugin().getSettings().getSynchronization().isPersistLockedMaps()) {
             return items;
         }
         return forEachMap(items, this::applyMapView);

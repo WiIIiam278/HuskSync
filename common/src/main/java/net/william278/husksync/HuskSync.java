@@ -28,6 +28,7 @@ import net.william278.desertwell.util.ThrowingConsumer;
 import net.william278.desertwell.util.UpdateChecker;
 import net.william278.desertwell.util.Version;
 import net.william278.husksync.adapter.DataAdapter;
+import net.william278.husksync.config.ConfigProvider;
 import net.william278.husksync.config.Locales;
 import net.william278.husksync.config.Server;
 import net.william278.husksync.config.Settings;
@@ -56,7 +57,7 @@ import java.util.logging.Level;
 /**
  * Abstract implementation of the HuskSync plugin.
  */
-public interface HuskSync extends Task.Supplier, EventDispatcher {
+public interface HuskSync extends Task.Supplier, EventDispatcher, ConfigProvider {
 
     int SPIGOT_RESOURCE_ID = 97144;
 
@@ -194,7 +195,7 @@ public interface HuskSync extends Task.Supplier, EventDispatcher {
     @NotNull
     String getServerName();
 
-    void setServer(@NotNull Server server);
+    void setServerName(@NotNull Server serverName);
 
     /**
      * Returns the plugin {@link Locales}
@@ -246,7 +247,7 @@ public interface HuskSync extends Task.Supplier, EventDispatcher {
      * @param throwable a throwable to log
      */
     default void debug(@NotNull String message, @NotNull Throwable... throwable) {
-        if (getSettings().doDebugLogging()) {
+        if (getSettings().isDebugLogging()) {
             log(Level.INFO, getDebugString(message), throwable);
         }
     }
@@ -329,7 +330,7 @@ public interface HuskSync extends Task.Supplier, EventDispatcher {
     }
 
     default void checkForUpdates() {
-        if (getSettings().doCheckForUpdates()) {
+        if (getSettings().isCheckForUpdates()) {
             getUpdateChecker().check().thenAccept(checked -> {
                 if (!checked.isUpToDate()) {
                     log(Level.WARNING, String.format(

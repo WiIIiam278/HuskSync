@@ -30,6 +30,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.stream.Stream;
 
 @Getter
@@ -46,7 +47,7 @@ public class Server {
             ┣╸ This file should contain the ID of this server as defined in your proxy config.
             ┗╸ If you join it using /server alpha, then set it to 'alpha' (case-sensitive)""";
 
-    private String name = "server";
+    private String name = getDefault();
 
     @NotNull
     public static Server of(@NotNull String name) {
@@ -57,16 +58,19 @@ public class Server {
      * Find a sensible default name for the server name property
      */
     @NotNull
-    protected static Server getDefault(@NotNull HuskSync plugin) {
-        return Stream.of("HuskHomes", "HuskTowns", "HuskClaims")
-                .map(s -> Path.of(plugin.getDataFolder().getParent(), s, "server.yml").toFile())
+    private static String getDefault() {
+        final String serverFolder = System.getProperty("user.dir");
+        return serverFolder == null ? "server" : Stream
+                .of("HuskHomes", "HuskTowns", "HuskClaims")
+                .map(s -> Paths.get(serverFolder, "plugins", s, "server.yml").toFile())
                 .filter(File::exists).findFirst()
                 .map(file -> YamlConfigurations.load(
                         file.toPath(),
                         Server.class,
                         ConfigProvider.YAML_CONFIGURATION_PROPERTIES.header(CONFIG_HEADER).build()
                 ))
-                .orElse(of(Path.of(System.getProperty("user.dir")).getFileName().toString().trim()));
+                .map(Server::getName)
+                .orElse(Path.of(serverFolder).getFileName().toString().trim());
     }
 
     @Override

@@ -147,7 +147,9 @@ public class UserDataCommand extends Command implements TabProvider {
                 data.edit(plugin, (unpacked -> {
                     unpacked.getHealth().ifPresent(status -> status.setHealth(Math.max(1, status.getHealth())));
                     unpacked.setSaveCause(DataSnapshot.SaveCause.BACKUP_RESTORE);
-                    unpacked.setPinned(plugin.getSettings().doAutoPin(DataSnapshot.SaveCause.BACKUP_RESTORE));
+                    unpacked.setPinned(
+                            plugin.getSettings().getSynchronization().doAutoPin(DataSnapshot.SaveCause.BACKUP_RESTORE)
+                    );
                 }));
 
                 // Set the user's data and send a message

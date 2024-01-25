@@ -19,6 +19,7 @@
 
 package net.william278.husksync.database;
 
+import lombok.Getter;
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.config.Settings;
 import net.william278.husksync.data.DataSnapshot;
@@ -31,10 +32,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.OffsetDateTime;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * An abstract representation of the plugin database, storing player data.
@@ -71,8 +69,9 @@ public abstract class Database {
      */
     @NotNull
     protected final String formatStatementTables(@NotNull String sql) {
-        return sql.replaceAll("%users_table%", plugin.getSettings().getTableName(Settings.TableName.USERS))
-                .replaceAll("%user_data_table%", plugin.getSettings().getTableName(Settings.TableName.USER_DATA));
+        final Settings.DatabaseSettings settings = plugin.getSettings().getDatabase();
+        return sql.replaceAll("%users_table%", settings.getTableName(TableName.USERS))
+                .replaceAll("%user_data_table%", settings.getTableName(TableName.USER_DATA));
     }
 
     /**
@@ -193,7 +192,7 @@ public abstract class Database {
      */
     @Blocking
     private void addAndRotateSnapshot(@NotNull User user, @NotNull DataSnapshot.Packed snapshot) {
-        final int backupFrequency = plugin.getSettings().getBackupFrequency();
+        final int backupFrequency = plugin.getSettings().getSynchronization().getSnapshotBackupFrequency();
         if (!snapshot.isPinned() && backupFrequency > 0) {
             this.rotateLatestSnapshot(user, snapshot.getTimestamp().minusHours(backupFrequency));
         }
@@ -297,4 +296,31 @@ public abstract class Database {
         }
     }
 
+    /**
+     * Represents the names of tables in the database
+     */
+    @Getter
+    public enum TableName {
+        USERS("husksync_users"),
+        USER_DATA("husksync_user_data");
+
+        private final String defaultName;
+
+        TableName(@NotNull String defaultName) {
+            this.defaultName = defaultName;
+        }
+
+        @NotNull
+        private Map.Entry<String, String> toEntry() {
+            return Map.entry(name().toLowerCase(Locale.ENGLISH), defaultName);
+        }
+
+        @SuppressWarnings("unchecked")
+        @NotNull
+        public static Map<String, String> getDefaults() {
+            return Map.ofEntries(Arrays.stream(values())
+                    .map(TableName::toEntry)
+                    .toArray(Map.Entry[]::new));
+        }
+    }
 }

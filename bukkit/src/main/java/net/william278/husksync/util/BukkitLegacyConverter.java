@@ -276,7 +276,7 @@ public class BukkitLegacyConverter extends LegacyConverter {
 
 
     private boolean shouldImport(@NotNull Identifier type) {
-        return plugin.getSettings().isSyncFeatureEnabled(type);
+        return plugin.getSettings().getSynchronization().isFeatureEnabled(type);
     }
 
     @NotNull
