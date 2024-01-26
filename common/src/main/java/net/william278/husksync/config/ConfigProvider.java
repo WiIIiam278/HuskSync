@@ -101,7 +101,7 @@ public interface ConfigProvider {
         );
         // Read existing locales if present
         final Path path = getConfigDirectory().resolve(String.format("messages-%s.yml", getSettings().getLanguage()));
-        if (!Files.exists(path)) {
+        if (Files.exists(path)) {
             setLocales(store.load(path));
             return;
         }
