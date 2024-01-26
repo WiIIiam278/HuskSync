@@ -71,7 +71,6 @@ import space.arim.morepaperlib.scheduling.AsynchronousScheduler;
 import space.arim.morepaperlib.scheduling.GracefulScheduling;
 import space.arim.morepaperlib.scheduling.RegionalScheduler;
 
-import javax.naming.ConfigurationException;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.logging.Level;

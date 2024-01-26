@@ -381,7 +381,7 @@ public interface HuskSync extends Task.Supplier, EventDispatcher, ConfigProvider
                                 
                 1) Make sure you've entered your MySQL or MariaDB database details correctly in config.yml
                 2) Make sure your Redis server details are also correct in config.yml
-                3) Make sure your config is up-to-date (https://william278.net/docs/husksync/config-files)
+                3) Make sure your config is up-to-date (https://william278.net/docs/husksync/config-file)
                 4) Check the error below for more details
                                 
                 Caused by: %s""";
