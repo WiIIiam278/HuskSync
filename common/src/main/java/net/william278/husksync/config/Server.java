@@ -20,17 +20,13 @@
 package net.william278.husksync.config;
 
 import de.exlll.configlib.Configuration;
-import de.exlll.configlib.YamlConfigurations;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.stream.Stream;
 
 @Getter
 @Configuration
@@ -59,17 +55,7 @@ public class Server {
     @NotNull
     private static String getDefault() {
         final String serverFolder = System.getProperty("user.dir");
-        return serverFolder == null ? "server" : Stream
-                .of("HuskHomes", "HuskTowns", "HuskClaims")
-                .map(s -> Paths.get(serverFolder, "plugins", s, "server.yml").toFile())
-                .filter(File::exists).findFirst()
-                .map(file -> YamlConfigurations.load(
-                        file.toPath(),
-                        Server.class,
-                        ConfigProvider.YAML_CONFIGURATION_PROPERTIES.header(CONFIG_HEADER).build()
-                ))
-                .map(Server::getName)
-                .orElse(Path.of(serverFolder).getFileName().toString().trim());
+        return serverFolder == null ? "server" : Path.of(serverFolder).getFileName().toString().trim();
     }
 
     @Override
