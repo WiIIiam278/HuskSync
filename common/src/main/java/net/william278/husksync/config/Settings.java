@@ -56,7 +56,7 @@ public class Settings {
             ┗╸ Documentation: https://william278.net/docs/husksync""";
 
     // Top-level settings
-    @Comment("Locale of the default language file to use. Docs: https://william278.net/docs/husksync/translations")
+    @Comment({"Locale of the default language file to use.", "Docs: https://william278.net/docs/husksync/translations"})
     private String language = Locales.DEFAULT_LOCALE;
 
     @Comment("Whether to automatically check for plugin updates on startup")
@@ -72,7 +72,7 @@ public class Settings {
     @Comment("Whether to provide modern, rich TAB suggestions for commands (if available)")
     private boolean brigadierTabCompletion = false;
 
-    @Comment("Whether to enable the Player Analytics hook. Docs: https://william278.net/docs/husksync/plan-hook")
+    @Comment({"Whether to enable the Player Analytics hook.", "Docs: https://william278.net/docs/husksync/plan-hook"})
     private boolean enablePlanHook = true;
 
 
@@ -105,8 +105,7 @@ public class Settings {
                     "useUnicode=true", "characterEncoding=UTF-8");
         }
 
-        @Comment({"MYSQL / MARIADB database Hikari connection pool properties.",
-                "Don't modify this unless you know what you're doing!"})
+        @Comment("MYSQL / MARIADB database Hikari connection pool properties. Don't modify this unless you know what you're doing!")
         private PoolSettings connectionPool = new PoolSettings();
 
         @Getter
@@ -152,8 +151,7 @@ public class Settings {
             private boolean useSsl = false;
         }
 
-        @Comment({"Advanced configuration for users of Redis sentinel.",
-                "If you don't know what this is, do not modify anything in this section."})
+        @Comment("Options for if you're using Redis sentinel. Don't modify this unless you know what you're doing!")
         private RedisSentinel sentinel = new RedisSentinel();
 
         @Getter
@@ -178,8 +176,8 @@ public class Settings {
     @NoArgsConstructor(access = AccessLevel.PRIVATE)
     public static class SynchronizationSettings {
 
-        @Comment("The data synchronization mode to use (LOCKSTEP or DELAY). LOCKSTEP is recommended for most networks."
-                + " Docs: https://william278.net/docs/husksync/sync-modes")
+        @Comment({"The data synchronization mode to use (LOCKSTEP or DELAY). LOCKSTEP is recommended for most networks.",
+                "Docs: https://william278.net/docs/husksync/sync-modes"})
         private DataSyncer.Mode mode = DataSyncer.Mode.LOCKSTEP;
 
         @Comment("The number of data snapshot backups that should be kept at once per user")
@@ -188,8 +186,8 @@ public class Settings {
         @Comment("Number of hours between new snapshots being saved as backups (Use \"0\" to backup all snapshots)")
         private int snapshotBackupFrequency = 4;
 
-        @Comment("List of save cause IDs for which a snapshot will be automatically pinned (so it won't be rotated)."
-                + " Docs: https://william278.net/docs/husksync/data-rotation#save-causes")
+        @Comment({"List of save cause IDs for which a snapshot will be automatically pinned (so it won't be rotated).",
+                "Docs: https://william278.net/docs/husksync/data-rotation#save-causes"})
         @Getter(AccessLevel.NONE)
         private List<String> autoPinnedSaveCauses = List.of(
                 DataSnapshot.SaveCause.INVENTORY_COMMAND.name(),
@@ -213,7 +211,7 @@ public class Settings {
             private boolean enabled = false;
 
             @Comment("What items to save in death snapshots? (DROPS or ITEMS_TO_KEEP). "
-                    + " Note that ITEMS_TO_KEEP (suggested for keepInventory servers) requires a Paper 1.19.4+ server.")
+                    + "Note that ITEMS_TO_KEEP (suggested for keepInventory servers) requires a Paper 1.19.4+ server.")
             private DeathItemsMode itemsToSave = DeathItemsMode.DROPS;
 
             @Comment("Should a death snapshot still be created even if the items to save on the player's death are empty?")
@@ -247,7 +245,7 @@ public class Settings {
                 + "pulling data from the database instead (i.e., if the user did not change servers).")
         private int networkLatencyMilliseconds = 500;
 
-        @Comment("Which data types to synchronize (Docs: https://william278.net/docs/husksync/sync-features)")
+        @Comment({"Which data types to synchronize.", "Docs: https://william278.net/docs/husksync/sync-features"})
         @Getter(AccessLevel.NONE)
         private Map<String, Boolean> features = Identifier.getConfigMap();
 
@@ -261,6 +259,7 @@ public class Settings {
         public boolean doAutoPin(@NotNull DataSnapshot.SaveCause cause) {
             return autoPinnedSaveCauses.contains(cause.name());
         }
+
         public boolean isFeatureEnabled(@NotNull Identifier id) {
             return id.isCustom() || features.getOrDefault(id.getKeyValue(), id.isEnabledByDefault());
         }
