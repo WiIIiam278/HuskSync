@@ -9,26 +9,30 @@ dependencies {
     api 'org.json:json:20231013'
     api 'com.google.code.gson:gson:2.10.1'
     api 'com.fatboyindustrial.gson-javatime-serialisers:gson-javatime-serialisers:1.1.2'
-    api 'dev.dejvokep:boosted-yaml:1.3.1'
-    api 'net.william278:annotaml:2.0.7'
+    api 'com.github.Exlll.ConfigLib:configlib-yaml:v4.4.0'
     api 'net.william278:DesertWell:2.0.4'
     api 'net.william278:PagineDown:1.1'
     api('com.zaxxer:HikariCP:5.1.0') {
         exclude module: 'slf4j-api'
     }
 
+    compileOnly 'org.projectlombok:lombok:1.18.30'
+    compileOnly 'org.jetbrains:annotations:24.1.0'
     compileOnly 'net.kyori:adventure-api:4.15.0'
     compileOnly 'net.kyori:adventure-platform-api:4.3.2'
-    compileOnly 'org.jetbrains:annotations:24.1.0'
+    compileOnly 'com.google.guava:guava:33.0.0-jre'
     compileOnly 'com.github.plan-player-analytics:Plan:5.5.2272'
     compileOnly "redis.clients:jedis:$jedis_version"
     compileOnly "com.mysql:mysql-connector-j:$mysql_driver_version"
     compileOnly "org.mariadb.jdbc:mariadb-java-client:$mariadb_driver_version"
     compileOnly "org.xerial.snappy:snappy-java:$snappy_version"
 
-    testImplementation 'com.github.plan-player-analytics:Plan:5.5.2272'
     testImplementation "redis.clients:jedis:$jedis_version"
     testImplementation "org.xerial.snappy:snappy-java:$snappy_version"
-    testCompileOnly 'dev.dejvokep:boosted-yaml:1.3.1'
+    testImplementation 'com.google.guava:guava:33.0.0-jre'
+    testImplementation 'com.github.plan-player-analytics:Plan:5.5.2272'
+    testCompileOnly 'com.github.Exlll.ConfigLib:configlib-yaml:v4.4.0'
     testCompileOnly 'org.jetbrains:annotations:24.1.0'
+
+    annotationProcessor 'org.projectlombok:lombok:1.18.30'
 }

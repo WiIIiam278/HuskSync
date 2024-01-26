@@ -81,9 +81,11 @@ public class InventoryCommand extends ItemsCommand {
         // Create and pack the snapshot with the updated inventory
         final DataSnapshot.Packed snapshot = latestData.get().copy();
         snapshot.edit(plugin, (data) -> {
-            data.setSaveCause(DataSnapshot.SaveCause.INVENTORY_COMMAND);
-            data.setPinned(plugin.getSettings().doAutoPin(DataSnapshot.SaveCause.INVENTORY_COMMAND));
             data.getInventory().ifPresent(inventory -> inventory.setContents(items));
+            data.setSaveCause(DataSnapshot.SaveCause.INVENTORY_COMMAND);
+            data.setPinned(
+                    plugin.getSettings().getSynchronization().doAutoPin(DataSnapshot.SaveCause.INVENTORY_COMMAND)
+            );
         });
         plugin.getDatabase().addSnapshot(user, snapshot);
         plugin.getRedisManager().sendUserDataUpdate(user, snapshot);

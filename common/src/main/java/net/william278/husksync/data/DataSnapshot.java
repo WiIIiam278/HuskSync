@@ -19,6 +19,7 @@
 
 package net.william278.husksync.data;
 
+import com.google.common.collect.Maps;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 import de.themoep.minedown.adventure.MineDown;
@@ -26,7 +27,6 @@ import net.william278.desertwell.util.Version;
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.adapter.Adaptable;
 import net.william278.husksync.adapter.DataAdapter;
-import net.william278.husksync.config.Locales;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -304,7 +304,6 @@ public class DataSnapshot {
             );
         }
 
-        @NotNull
         @ApiStatus.Internal
         public byte[] asBytes(@NotNull HuskSync plugin) throws DataAdapter.AdaptionException {
             return plugin.getDataAdapter().toBytes(this);
@@ -427,7 +426,7 @@ public class DataSnapshot {
         private Builder(@NotNull HuskSync plugin) {
             this.plugin = plugin;
             this.pinned = false;
-            this.data = new HashMap<>();
+            this.data = Maps.newHashMap();
             this.timestamp = OffsetDateTime.now();
             this.id = UUID.randomUUID();
             this.serverName = plugin.getServerName();
@@ -718,7 +717,7 @@ public class DataSnapshot {
             }
             return new Unpacked(
                     id,
-                    pinned || plugin.getSettings().doAutoPin(saveCause),
+                    pinned || plugin.getSettings().getSynchronization().doAutoPin(saveCause),
                     timestamp,
                     saveCause,
                     serverName,
@@ -821,8 +820,7 @@ public class DataSnapshot {
 
         @NotNull
         public String getDisplayName() {
-            return Locales.truncate(name().toLowerCase(Locale.ENGLISH)
-                    .replaceAll("_", " "), 18);
+            return name().toLowerCase(Locale.ENGLISH);
         }
 
         @NotNull

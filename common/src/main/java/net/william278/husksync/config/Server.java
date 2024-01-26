@@ -19,64 +19,43 @@
 
 package net.william278.husksync.config;
 
-import net.william278.annotaml.Annotaml;
-import net.william278.annotaml.YamlFile;
-import net.william278.annotaml.YamlKey;
-import net.william278.husksync.HuskSync;
+import de.exlll.configlib.Configuration;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
 import java.nio.file.Path;
-import java.util.List;
 
-/**
- * Represents a server on a proxied network.
- */
-@YamlFile(header = """
-        ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-        ┃   HuskSync Server ID config  ┃
-        ┃    Developed by William278   ┃
-        ┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
-        ┣╸ This file should contain the ID of this server as defined in your proxy config.
-        ┗╸ If you join it using /server alpha, then set it to 'alpha' (case-sensitive)""")
+@Getter
+@Configuration
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class Server {
 
-    @YamlKey("name")
-    private String serverName;
+    static final String CONFIG_HEADER = """
+            ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+            ┃     HuskSync - Server ID     ┃
+            ┃    Developed by William278   ┃
+            ┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+            ┣╸ This file should contain the ID of this server as defined in your proxy config.
+            ┗╸ If you join it using /server alpha, then set it to 'alpha' (case-sensitive)""";
 
-    private Server(@NotNull String serverName) {
-        this.serverName = serverName;
-    }
-
-    @SuppressWarnings("unused")
-    private Server() {
-    }
+    private String name = getDefault();
 
     @NotNull
-    public static Server getDefault(@NotNull HuskSync plugin) {
-        return new Server(getDefaultServerName(plugin));
+    public static Server of(@NotNull String name) {
+        return new Server(name);
     }
 
     /**
      * Find a sensible default name for the server name property
      */
     @NotNull
-    private static String getDefaultServerName(@NotNull HuskSync plugin) {
-        try {
-            // Fetch server default from supported plugins if present
-            for (String s : List.of("HuskHomes", "HuskTowns")) {
-                final File serverFile = Path.of(plugin.getDataFolder().getParent(), s, "server.yml").toFile();
-                if (serverFile.exists()) {
-                    return Annotaml.create(serverFile, Server.class).get().getName();
-                }
-            }
-
-            // Fetch server default from user dir name
-            final Path serverDirectory = Path.of(System.getProperty("user.dir"));
-            return serverDirectory.getFileName().toString().trim();
-        } catch (Throwable e) {
-            return "server";
-        }
+    private static String getDefault() {
+        final String serverFolder = System.getProperty("user.dir");
+        return serverFolder == null ? "server" : Path.of(serverFolder).getFileName().toString().trim();
     }
 
     @Override
@@ -86,14 +65,6 @@ public class Server {
             return server.getName().equalsIgnoreCase(this.getName());
         }
         return super.equals(other);
-    }
-
-    /**
-     * Proxy-defined name of this server.
-     */
-    @NotNull
-    public String getName() {
-        return serverName;
     }
 
 }

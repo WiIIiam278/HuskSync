@@ -24,11 +24,11 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.platform.AudienceProvider;
-import net.william278.annotaml.Annotaml;
 import net.william278.desertwell.util.ThrowingConsumer;
 import net.william278.desertwell.util.UpdateChecker;
 import net.william278.desertwell.util.Version;
 import net.william278.husksync.adapter.DataAdapter;
+import net.william278.husksync.config.ConfigProvider;
 import net.william278.husksync.config.Locales;
 import net.william278.husksync.config.Server;
 import net.william278.husksync.config.Settings;
@@ -47,9 +47,7 @@ import net.william278.husksync.util.Task;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.InvocationTargetException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.logging.Level;
@@ -57,7 +55,7 @@ import java.util.logging.Level;
 /**
  * Abstract implementation of the HuskSync plugin.
  */
-public interface HuskSync extends Task.Supplier, EventDispatcher {
+public interface HuskSync extends Task.Supplier, EventDispatcher, ConfigProvider {
 
     int SPIGOT_RESOURCE_ID = 97144;
 
@@ -195,7 +193,7 @@ public interface HuskSync extends Task.Supplier, EventDispatcher {
     @NotNull
     String getServerName();
 
-    void setServer(@NotNull Server server);
+    void setServerName(@NotNull Server serverName);
 
     /**
      * Returns the plugin {@link Locales}
@@ -247,7 +245,7 @@ public interface HuskSync extends Task.Supplier, EventDispatcher {
      * @param throwable a throwable to log
      */
     default void debug(@NotNull String message, @NotNull Throwable... throwable) {
-        if (getSettings().doDebugLogging()) {
+        if (getSettings().isDebugLogging()) {
             log(Level.INFO, getDebugString(message), throwable);
         }
     }
@@ -320,37 +318,6 @@ public interface HuskSync extends Task.Supplier, EventDispatcher {
      */
     Optional<LegacyConverter> getLegacyConverter();
 
-    /**
-     * Reloads the {@link Settings} and {@link Locales} from their respective config files.
-     */
-    default void loadConfigs() {
-        try {
-            // Load settings
-            setSettings(Annotaml.create(
-                    new File(getDataFolder(), "config.yml"),
-                    Settings.class
-            ).get());
-
-            // Load server name
-            setServer(Annotaml.create(
-                    new File(getDataFolder(), "server.yml"),
-                    Server.getDefault(this)
-            ).get());
-
-            // Load locales from language preset default
-            final Locales languagePresets = Annotaml.create(
-                    Locales.class,
-                    Objects.requireNonNull(getResource(String.format("locales/%s.yml", getSettings().getLanguage())))
-            ).get();
-            setLocales(Annotaml.create(new File(
-                    getDataFolder(),
-                    String.format("messages_%s.yml", getSettings().getLanguage())
-            ), languagePresets).get());
-        } catch (IOException | InvocationTargetException | InstantiationException | IllegalAccessException e) {
-            throw new FailedToLoadException("Failed to load config or message files", e);
-        }
-    }
-
     @NotNull
     default UpdateChecker getUpdateChecker() {
         return UpdateChecker.builder()
@@ -361,7 +328,7 @@ public interface HuskSync extends Task.Supplier, EventDispatcher {
     }
 
     default void checkForUpdates() {
-        if (getSettings().doCheckForUpdates()) {
+        if (getSettings().isCheckForUpdates()) {
             getUpdateChecker().check().thenAccept(checked -> {
                 if (!checked.isUpToDate()) {
                     log(Level.WARNING, String.format(
@@ -414,7 +381,7 @@ public interface HuskSync extends Task.Supplier, EventDispatcher {
                                 
                 1) Make sure you've entered your MySQL or MariaDB database details correctly in config.yml
                 2) Make sure your Redis server details are also correct in config.yml
-                3) Make sure your config is up-to-date (https://william278.net/docs/husksync/config-files)
+                3) Make sure your config is up-to-date (https://william278.net/docs/husksync/config-file)
                 4) Check the error below for more details
                                 
                 Caused by: %s""";

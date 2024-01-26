@@ -19,6 +19,7 @@
 
 package net.william278.husksync.util;
 
+import com.google.common.collect.Lists;
 import de.tr7zw.changeme.nbtapi.NBT;
 import de.tr7zw.changeme.nbtapi.iface.ReadWriteNBT;
 import de.tr7zw.changeme.nbtapi.iface.ReadableNBT;
@@ -62,7 +63,7 @@ public interface BukkitMapPersister {
      */
     @NotNull
     default ItemStack[] persistLockedMaps(@NotNull ItemStack[] items, @NotNull Player delegateRenderer) {
-        if (!getPlugin().getSettings().doPersistLockedMaps()) {
+        if (!getPlugin().getSettings().getSynchronization().isPersistLockedMaps()) {
             return items;
         }
         return forEachMap(items, map -> this.persistMapView(map, delegateRenderer));
@@ -76,7 +77,7 @@ public interface BukkitMapPersister {
      */
     @NotNull
     default ItemStack[] setMapViews(@NotNull ItemStack[] items) {
-        if (!getPlugin().getSettings().doPersistLockedMaps()) {
+        if (!getPlugin().getSettings().getSynchronization().isPersistLockedMaps()) {
             return items;
         }
         return forEachMap(items, this::applyMapView);
@@ -416,7 +417,7 @@ public interface BukkitMapPersister {
          */
         @NotNull
         private MapData extractMapData() {
-            final List<MapBanner> banners = new ArrayList<>();
+            final List<MapBanner> banners = Lists.newArrayList();
             final String BANNER_PREFIX = "banner_";
             for (int i = 0; i < getCursors().size(); i++) {
                 final MapCursor cursor = getCursors().getCursor(i);

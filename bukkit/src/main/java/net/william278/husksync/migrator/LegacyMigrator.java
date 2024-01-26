@@ -19,6 +19,8 @@
 
 package net.william278.husksync.migrator;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.zaxxer.hikari.HikariDataSource;
 import me.william278.husksync.bukkit.data.DataSerializer;
 import net.william278.hslmigrator.HSLConverter;
@@ -42,6 +44,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
 
+import static net.william278.husksync.config.Settings.DatabaseSettings;
+
 public class LegacyMigrator extends Migrator {
 
     private final HSLConverter hslConverter;
@@ -56,11 +60,13 @@ public class LegacyMigrator extends Migrator {
     public LegacyMigrator(@NotNull HuskSync plugin) {
         super(plugin);
         this.hslConverter = HSLConverter.getInstance();
-        this.sourceHost = plugin.getSettings().getMySqlHost();
-        this.sourcePort = plugin.getSettings().getMySqlPort();
-        this.sourceUsername = plugin.getSettings().getMySqlUsername();
-        this.sourcePassword = plugin.getSettings().getMySqlPassword();
-        this.sourceDatabase = plugin.getSettings().getMySqlDatabase();
+
+        final DatabaseSettings.DatabaseCredentials credentials = plugin.getSettings().getDatabase().getCredentials();
+        this.sourceHost = credentials.getHost();
+        this.sourcePort = credentials.getPort();
+        this.sourceUsername = credentials.getUsername();
+        this.sourcePassword = credentials.getPassword();
+        this.sourceDatabase = credentials.getDatabase();
         this.sourcePlayersTable = "husksync_players";
         this.sourceDataTable = "husksync_data";
     }
@@ -87,7 +93,7 @@ public class LegacyMigrator extends Migrator {
                 connectionPool.setPoolName((getIdentifier() + "_migrator_pool").toUpperCase(Locale.ENGLISH));
 
                 plugin.log(Level.INFO, "Downloading raw data from the legacy database (this might take a while)...");
-                final List<LegacyData> dataToMigrate = new ArrayList<>();
+                final List<LegacyData> dataToMigrate = Lists.newArrayList();
                 try (final Connection connection = connectionPool.getConnection()) {
                     try (final PreparedStatement statement = connection.prepareStatement("""
                             SELECT `uuid`, `username`, `inventory`, `ender_chest`, `health`, `max_health`, `health_scale`, `hunger`, `saturation`, `saturation_exhaustion`, `selected_slot`, `status_effects`, `total_experience`, `exp_level`, `exp_progress`, `game_mode`, `statistics`, `is_flying`, `advancements`, `location`
@@ -338,7 +344,7 @@ public class LegacyMigrator extends Migrator {
         }
 
         private Map<String, Integer> convertStatisticMap(@NotNull HashMap<Statistic, Integer> rawMap) {
-            final HashMap<String, Integer> convertedMap = new HashMap<>();
+            final HashMap<String, Integer> convertedMap = Maps.newHashMap();
             for (Map.Entry<Statistic, Integer> entry : rawMap.entrySet()) {
                 convertedMap.put(entry.getKey().getKey().toString(), entry.getValue());
             }
@@ -346,7 +352,7 @@ public class LegacyMigrator extends Migrator {
         }
 
         private Map<String, Map<String, Integer>> convertMaterialStatisticMap(@NotNull HashMap<Statistic, HashMap<Material, Integer>> rawMap) {
-            final Map<String, Map<String, Integer>> convertedMap = new HashMap<>();
+            final Map<String, Map<String, Integer>> convertedMap = Maps.newHashMap();
             for (Map.Entry<Statistic, HashMap<Material, Integer>> entry : rawMap.entrySet()) {
                 for (Map.Entry<Material, Integer> materialEntry : entry.getValue().entrySet()) {
                     convertedMap.computeIfAbsent(entry.getKey().getKey().toString(), k -> new HashMap<>())
@@ -357,7 +363,7 @@ public class LegacyMigrator extends Migrator {
         }
 
         private Map<String, Map<String, Integer>> convertEntityStatisticMap(@NotNull HashMap<Statistic, HashMap<EntityType, Integer>> rawMap) {
-            final Map<String, Map<String, Integer>> convertedMap = new HashMap<>();
+            final Map<String, Map<String, Integer>> convertedMap = Maps.newHashMap();
             for (Map.Entry<Statistic, HashMap<EntityType, Integer>> entry : rawMap.entrySet()) {
                 for (Map.Entry<EntityType, Integer> materialEntry : entry.getValue().entrySet()) {
                     convertedMap.computeIfAbsent(entry.getKey().getKey().toString(), k -> new HashMap<>())

@@ -19,6 +19,8 @@
 
 package net.william278.husksync.data;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.gson.annotations.SerializedName;
 import de.tr7zw.changeme.nbtapi.NBTCompound;
 import de.tr7zw.changeme.nbtapi.NBTPersistentDataContainer;
@@ -313,10 +315,10 @@ public abstract class BukkitData implements Data {
         // Iterate through the server advancement set and add all advancements to the list
         @NotNull
         public static BukkitData.Advancements adapt(@NotNull Player player) {
-            final List<Advancement> advancements = new ArrayList<>();
+            final List<Advancement> advancements = Lists.newArrayList();
             forEachAdvancement(advancement -> {
                 final AdvancementProgress advancementProgress = player.getAdvancementProgress(advancement);
-                final Map<String, Date> awardedCriteria = new HashMap<>();
+                final Map<String, Date> awardedCriteria = Maps.newHashMap();
 
                 advancementProgress.getAwardedCriteria().forEach(criteriaKey -> awardedCriteria.put(criteriaKey,
                         advancementProgress.getDateAwarded(criteriaKey)));
@@ -827,7 +829,7 @@ public abstract class BukkitData implements Data {
             // Set max health
             final AttributeInstance maxHealth = getMaxHealthAttribute(player);
             try {
-                if (plugin.getSettings().doSynchronizeMaxHealth() && this.maxHealth != 0) {
+                if (plugin.getSettings().getSynchronization().isSynchronizeMaxHealth() && this.maxHealth != 0) {
                     maxHealth.setBaseValue(this.maxHealth);
                 }
             } catch (Throwable e) {

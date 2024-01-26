@@ -29,6 +29,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
+import static net.william278.husksync.config.Settings.SynchronizationSettings.SaveOnDeathSettings;
+
 public class PaperEventListener extends BukkitEventListener {
 
     public PaperEventListener(@NotNull BukkitHuskSync plugin) {
@@ -46,13 +48,14 @@ public class PaperEventListener extends BukkitEventListener {
         }
 
         // Handle saving player data snapshots on death
-        if (!plugin.getSettings().doSaveOnDeath()) {
+        final SaveOnDeathSettings settings = plugin.getSettings().getSynchronization().getSaveOnDeath();
+        if (!settings.isEnabled()) {
             return;
         }
 
         // Paper - support saving the player's items to keep if enabled
         final int maxInventorySize = BukkitData.Items.Inventory.INVENTORY_SLOT_COUNT;
-        final List<ItemStack> itemsToSave = switch (plugin.getSettings().getDeathItemsMode()) {
+        final List<ItemStack> itemsToSave = switch (settings.getItemsToSave()) {
             case DROPS -> event.getDrops();
             case ITEMS_TO_KEEP -> event.getItemsToKeep();
         };
