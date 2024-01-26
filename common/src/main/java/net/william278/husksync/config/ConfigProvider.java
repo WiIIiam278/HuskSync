@@ -28,6 +28,7 @@ import net.william278.husksync.HuskSync;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.logging.Level;
@@ -41,6 +42,7 @@ public interface ConfigProvider {
 
     @NotNull
     YamlConfigurationProperties.Builder<?> YAML_CONFIGURATION_PROPERTIES = YamlConfigurationProperties.newBuilder()
+            .charset(StandardCharsets.UTF_8)
             .setNameFormatter(NameFormatters.LOWER_UNDERSCORE);
 
     /**
