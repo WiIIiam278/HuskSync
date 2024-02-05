@@ -46,23 +46,26 @@ This approach is able to dramatically improve both synchronization performance a
 
 This is a very common request, but there's a good reason why HuskSync does not support this.
 
-The Vault API is designed to be a central "Vault" for storing user data. It's the role of economy plugins that *implement* vault to handle the data storage -- and, by extension, synchronization cross-server. Plugins that *hook into* Vault then expect to be able to use the Vault API to get the player's latest economy balance and data.
+Vault is a plugin that provides a common API for developers to do two things:
 
-Plugins such as MySQLPlayerDataBridge that support synchronizing Vault *hook into* Vault and as a result can violate this expectation&mdash;plugins that expect Vault to return the latest user data no longer can. As a result, plugins like MySQLPlayerDataBridge have to provide lots of manual hooks and tweaks for individual plugins to ensure compatibility. 
+1. Developers can _implement_ Vault to create economy plugins
+2. Developers can _target_ Vault to modify and check economy balances without having to write code to hook into individual economy plugins
 
-This causes all sorts of compatibility issues with unsupported plugins and increases plugin size and update workload.
+In essence, Vault is beneficial as it allows developers to write less code. A developer only needs to write code that targets the Vault API when you need to do stuff with player economy balances.
 
-As a result, I recommend using an economy plugin (that directly *implements* the Vault API), that works cross-server. XConomy is a popular choice for this, which I have personally had a good experience with in the past.
+_Vault itself, however, is not an Economy plugin_. The developers of Economy plugins that _implement_ are responsible for writing the implementation code and database systems for creating player economy accounts and updating balances. By extension, this also means it is the responsibility of Economy plugin developers to implement Vault's API in a way that allows that data to be synchronized cross-server; Vault itself does not contain API for doing so.
 
+Most Economy plugins do not support doing this, however, as cross-server support isn't (and historically hasn't) been a priority. _MySQLPlayerDataBridge_ allows you to workaround this and synchronize Vault balances &mdash; but as detailed above, since Vault itself is not an economy plugin, the way this works is MySQLPlayerDataBridge has to provide and continually maintain a bespoke laundry list of manual, individual hooks and tweaks for both Economy plugins that _implement_ Vault and other plugins that _target_ Vault.
+
+Implementing a similar system in HuskSync would considerably increase the size of the codebase, lengthen update times, and decrease overall system stability. The much better solution is to use an Economy plugin that _implements_ Vault in a way that works cross-server.
+
+Indeed, there exist economy plugins &mdash; such as [XConomy](https://github.com/YiC200333/XConomy) and [RedisEconomy](https://github.com/Emibergo02/RedisEconomy) which do just this, and this is my recommended solution. Need to move from an incompatible Economy plugin? Vault provides methods for transferring balances between Economy plugins (`/vault-convert`).
 </details>
 
 <details>
 <summary>&nbsp;<b>Is this better than MySQLPlayerDataBridge?</b></summary>
 
-I can't provide a fair answer to this question! What I can say is that your mileage may vary. The performance improvements offered by HuskSync's synchronization method will depend on your network environment and the economies of scale that come with your player count.
+I can't provide a fair answer to this question! What I can say is that your mileage will of course vary. 
 
-With that said, servers running plugins or mods that make use of custom items (such as MMOItems, SlimeFun) are not supported by HuskSync and so MySQLPlayerDataBridge may be a better choice for you.
-
-A migrator from MPDB is built-in to HuskSync.
-
+The performance improvements offered by HuskSync's synchronization method will depend on your network environment and the economies of scale that come with your player count. In terms of featureset, HuskSync does feature greater rollback and snapshot backup/management features if this is something you are looking for.
 </details>
