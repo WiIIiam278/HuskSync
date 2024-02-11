@@ -129,8 +129,6 @@ public abstract class DataSyncer {
         }
     }
 
-    ;
-
     // Calculates the max attempts the system should listen for user data for based on the latency value
     private long getMaxListenAttempts() {
         return BASE_LISTEN_ATTEMPTS + (
