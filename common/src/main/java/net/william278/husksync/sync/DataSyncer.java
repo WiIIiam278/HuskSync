@@ -25,13 +25,17 @@ import net.william278.husksync.data.DataSnapshot;
 import net.william278.husksync.database.Database;
 import net.william278.husksync.redis.RedisManager;
 import net.william278.husksync.user.OnlineUser;
+import net.william278.husksync.user.User;
 import net.william278.husksync.util.Task;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.Blocking;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -88,6 +92,44 @@ public abstract class DataSyncer {
      * @param user the user to save
      */
     public abstract void saveUserData(@NotNull OnlineUser user);
+
+    /**
+     * Save a {@link DataSnapshot.Packed user's data snapshot} to the database,
+     * first firing the {@link net.william278.husksync.event.DataSaveEvent}. This will not update data on Redis.
+     *
+     * @param user  the user to save the data for
+     * @param data  the data to save
+     * @param after a consumer to run after data has been saved. Will be run async (off the main thread).
+     * @apiNote Data will not be saved if the {@link net.william278.husksync.event.DataSaveEvent} is cancelled.
+     * Note that this method can also edit the data before saving it.
+     * @implNote Note that the {@link net.william278.husksync.event.DataSaveEvent} will <b>not</b> be fired if the
+     * save cause is {@link DataSnapshot.SaveCause#SERVER_SHUTDOWN}.
+     * @since 3.3.2
+     */
+    @Blocking
+    public void saveData(@NotNull User user, @NotNull DataSnapshot.Packed data,
+                         @Nullable BiConsumer<User, DataSnapshot.Packed> after) {
+        if (data.getSaveCause() == DataSnapshot.SaveCause.SERVER_SHUTDOWN) {
+            addSnapshotToDatabase(user, data, after);
+            return;
+        }
+        plugin.fireEvent(
+                plugin.getDataSaveEvent(user, data),
+                (event) -> addSnapshotToDatabase(user, data, after)
+        );
+    }
+
+    // Adds a snapshot to the database and runs the after consumer
+    @Blocking
+    private void addSnapshotToDatabase(@NotNull User user, @NotNull DataSnapshot.Packed data,
+                                       @Nullable BiConsumer<User, DataSnapshot.Packed> after) {
+        getDatabase().addSnapshot(user, data);
+        if (after != null) {
+            after.accept(user, data);
+        }
+    }
+
+    ;
 
     // Calculates the max attempts the system should listen for user data for based on the latency value
     private long getMaxListenAttempts() {

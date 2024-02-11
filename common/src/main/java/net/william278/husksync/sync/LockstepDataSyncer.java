@@ -58,15 +58,17 @@ public class LockstepDataSyncer extends DataSyncer {
     }
 
     @Override
-    public void saveUserData(@NotNull OnlineUser user) {
-        plugin.runAsync(() -> plugin.fireEvent(
-                plugin.getDataSaveEvent(user, user.createSnapshot(DataSnapshot.SaveCause.DISCONNECT)),
-                (event) -> {
-                    getRedis().setUserData(event.getUser(), event.getData(), RedisKeyType.TTL_1_YEAR);
-                    getRedis().setUserCheckedOut(event.getUser(), false);
-                    getDatabase().addAndRotateSnapshot(event.getUser(), event.getData());
-                }
-        ));
+    public void saveUserData(@NotNull OnlineUser onlineUser) {
+        plugin.runAsync(() -> {
+            getRedis().setUserServerSwitch(onlineUser);
+            saveData(
+                    onlineUser, onlineUser.createSnapshot(DataSnapshot.SaveCause.DISCONNECT),
+                    (user, data) -> {
+                        getRedis().setUserData(user, data, RedisKeyType.TTL_1_YEAR);
+                        getRedis().setUserCheckedOut(user, false);
+                    }
+            );
+        });
     }
 
 }

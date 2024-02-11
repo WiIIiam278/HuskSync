@@ -58,15 +58,12 @@ public class DelayDataSyncer extends DataSyncer {
     }
 
     @Override
-    public void saveUserData(@NotNull OnlineUser user) {
+    public void saveUserData(@NotNull OnlineUser onlineUser) {
         plugin.runAsync(() -> {
-            getRedis().setUserServerSwitch(user);
-            plugin.fireEvent(
-                    plugin.getDataSaveEvent(user, user.createSnapshot(DataSnapshot.SaveCause.DISCONNECT)),
-                    (event) -> {
-                        getRedis().setUserData(event.getUser(), event.getData(), RedisKeyType.TTL_10_SECONDS);
-                        getDatabase().addAndRotateSnapshot(event.getUser(), event.getData());
-                    }
+            getRedis().setUserServerSwitch(onlineUser);
+            saveData(
+                    onlineUser, onlineUser.createSnapshot(DataSnapshot.SaveCause.DISCONNECT),
+                    (user, data) -> getRedis().setUserData(user, data, RedisKeyType.TTL_10_SECONDS)
             );
         });
     }
