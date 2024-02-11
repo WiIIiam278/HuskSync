@@ -142,7 +142,7 @@ public class MpdbMigrator extends Migrator {
                 dataToMigrate.forEach(data -> {
                     final DataSnapshot.Packed convertedData = data.toUserData(mpdbConverter, plugin);
                     plugin.getDatabase().ensureUser(data.user());
-                    plugin.getDatabase().saveDataSnapshot(data.user(), convertedData);
+                    plugin.getDatabase().addSnapshot(data.user(), convertedData);
                     playersConverted.getAndIncrement();
                     if (playersConverted.get() % 50 == 0) {
                         plugin.log(Level.INFO, "Converted MySQLPlayerDataBridge data for " + playersConverted + " players...");

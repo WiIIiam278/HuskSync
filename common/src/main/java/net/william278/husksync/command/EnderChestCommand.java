@@ -91,7 +91,7 @@ public class EnderChestCommand extends ItemsCommand {
         });
 
         final RedisManager redis = plugin.getRedisManager();
-        plugin.getDatabase().saveDataSnapshot(user, snapshot);
+        plugin.getDatabase().addSnapshot(user, snapshot);
         redis.sendUserDataUpdate(user, snapshot);
         redis.getUserData(user).ifPresent(data -> redis.setUserData(user, snapshot, RedisKeyType.TTL_1_YEAR));
     }

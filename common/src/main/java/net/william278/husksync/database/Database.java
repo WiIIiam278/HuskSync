@@ -167,7 +167,7 @@ public abstract class Database {
      * @see UserDataHolder#createSnapshot(SaveCause)
      */
     @Blocking
-    public void saveDataSnapshot(@NotNull User user, @NotNull DataSnapshot.Packed snapshot) {
+    public void addSnapshot(@NotNull User user, @NotNull DataSnapshot.Packed snapshot) {
         if (snapshot.getSaveCause() != SaveCause.SERVER_SHUTDOWN) {
             plugin.fireEvent(
                     plugin.getDataSaveEvent(user, snapshot),
@@ -179,7 +179,7 @@ public abstract class Database {
     }
 
     /**
-     * <b>Internal</b> - Save user data to the database. This will:
+     * Save user data to the database.
      * <ol>
      *     <li>Delete their most recent snapshot, if it was created before the backup frequency time</li>
      *     <li>Create the snapshot</li>
@@ -188,6 +188,8 @@ public abstract class Database {
      *
      * @param user     The user to add data for
      * @param snapshot The {@link DataSnapshot} to set.
+     * @apiNote This will <b>not</b> fire the {@link net.william278.husksync.event.DataSaveEvent};
+     * use {@link #addSnapshot(User, DataSnapshot.Packed)} for that.
      */
     @Blocking
     public void addAndRotateSnapshot(@NotNull User user, @NotNull DataSnapshot.Packed snapshot) {

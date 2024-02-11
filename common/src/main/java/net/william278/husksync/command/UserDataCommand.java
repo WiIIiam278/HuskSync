@@ -153,7 +153,7 @@ public class UserDataCommand extends Command implements TabProvider {
                 }));
 
                 // Set the user's data and send a message
-                plugin.getDatabase().saveDataSnapshot(user, data);
+                plugin.getDatabase().addSnapshot(user, data);
                 plugin.getRedisManager().sendUserDataUpdate(user, data);
                 plugin.getLocales().getLocale("data_restored", user.getUsername(), user.getUuid().toString(),
                         data.getShortId(), data.getId().toString()).ifPresent(executor::sendMessage);
