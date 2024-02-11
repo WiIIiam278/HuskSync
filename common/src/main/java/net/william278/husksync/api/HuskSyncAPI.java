@@ -262,10 +262,11 @@ public class HuskSyncAPI {
      *
      * @param user     The user to save the data for
      * @param snapshot The snapshot to save
+     * @apiNote This will fire the {@link net.william278.husksync.event.DataSaveEvent} event
      * @since 3.0
      */
     public void addSnapshot(@NotNull User user, @NotNull DataSnapshot snapshot) {
-        plugin.runAsync(() -> plugin.getDatabase().saveDataSnapshot(
+        plugin.runAsync(() -> plugin.getDatabase().addSnapshot(
                 user, snapshot instanceof DataSnapshot.Unpacked unpacked
                         ? unpacked.pack(plugin) : (DataSnapshot.Packed) snapshot
         ));
