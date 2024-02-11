@@ -157,7 +157,7 @@ public abstract class Database {
     public abstract boolean deleteSnapshot(@NotNull User user, @NotNull UUID versionUuid);
 
     /**
-     * Save user data to the database
+     * Save user data to the database, firing the {@link net.william278.husksync.event.DataSaveEvent}.
      * </p>
      * This will remove the oldest data for the user if the amount of data exceeds the limit as configured
      *
@@ -167,15 +167,14 @@ public abstract class Database {
      * @see UserDataHolder#createSnapshot(SaveCause)
      */
     @Blocking
-    public void addSnapshot(@NotNull User user, @NotNull DataSnapshot.Packed snapshot) {
+    public void saveDataSnapshot(@NotNull User user, @NotNull DataSnapshot.Packed snapshot) {
         if (snapshot.getSaveCause() != SaveCause.SERVER_SHUTDOWN) {
             plugin.fireEvent(
                     plugin.getDataSaveEvent(user, snapshot),
-                    (event) -> this.addAndRotateSnapshot(user, snapshot)
+                    (event) -> this.addAndRotateSnapshot(event.getUser(), event.getData())
             );
             return;
         }
-
         this.addAndRotateSnapshot(user, snapshot);
     }
 
@@ -191,7 +190,7 @@ public abstract class Database {
      * @param snapshot The {@link DataSnapshot} to set.
      */
     @Blocking
-    private void addAndRotateSnapshot(@NotNull User user, @NotNull DataSnapshot.Packed snapshot) {
+    public void addAndRotateSnapshot(@NotNull User user, @NotNull DataSnapshot.Packed snapshot) {
         final int backupFrequency = plugin.getSettings().getSynchronization().getSnapshotBackupFrequency();
         if (!snapshot.isPinned() && backupFrequency > 0) {
             this.rotateLatestSnapshot(user, snapshot.getTimestamp().minusHours(backupFrequency));

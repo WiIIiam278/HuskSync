@@ -81,7 +81,7 @@ public abstract class EventListener {
         }
         usersInWorld.stream()
                 .filter(user -> !plugin.isLocked(user.getUuid()) && !user.isNpc())
-                .forEach(user -> plugin.getDatabase().addSnapshot(
+                .forEach(user -> plugin.getDatabase().saveDataSnapshot(
                         user, user.createSnapshot(DataSnapshot.SaveCause.WORLD_SAVE)
                 ));
     }
@@ -101,7 +101,7 @@ public abstract class EventListener {
 
         final DataSnapshot.Packed snapshot = user.createSnapshot(DataSnapshot.SaveCause.DEATH);
         snapshot.edit(plugin, (data -> data.getInventory().ifPresent(inventory -> inventory.setContents(items))));
-        plugin.getDatabase().addSnapshot(user, snapshot);
+        plugin.getDatabase().saveDataSnapshot(user, snapshot);
     }
 
     /**
@@ -123,7 +123,7 @@ public abstract class EventListener {
                 .filter(user -> !plugin.isLocked(user.getUuid()) && !user.isNpc())
                 .forEach(user -> {
                     plugin.lockPlayer(user.getUuid());
-                    plugin.getDatabase().addSnapshot(user, user.createSnapshot(DataSnapshot.SaveCause.SERVER_SHUTDOWN));
+                    plugin.getDatabase().saveDataSnapshot(user, user.createSnapshot(DataSnapshot.SaveCause.SERVER_SHUTDOWN));
                 });
 
         // Close outstanding connections

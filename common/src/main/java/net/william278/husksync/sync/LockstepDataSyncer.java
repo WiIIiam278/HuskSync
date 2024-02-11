@@ -33,21 +33,21 @@ public class LockstepDataSyncer extends DataSyncer {
 
     @Override
     public void initialize() {
-        plugin.getRedisManager().clearUsersCheckedOutOnServer();
+        getRedis().clearUsersCheckedOutOnServer();
     }
 
     @Override
     public void terminate() {
-        plugin.getRedisManager().clearUsersCheckedOutOnServer();
+        getRedis().clearUsersCheckedOutOnServer();
     }
 
     // Consume their data when they are checked in
     @Override
     public void setUserData(@NotNull OnlineUser user) {
         this.listenForRedisData(user, () -> {
-            if (plugin.getRedisManager().getUserCheckedOut(user).isEmpty()) {
-                plugin.getRedisManager().setUserCheckedOut(user, true);
-                plugin.getRedisManager().getUserData(user).ifPresentOrElse(
+            if (getRedis().getUserCheckedOut(user).isEmpty()) {
+                getRedis().setUserCheckedOut(user, true);
+                getRedis().getUserData(user).ifPresentOrElse(
                         data -> user.applySnapshot(data, DataSnapshot.UpdateCause.SYNCHRONIZED),
                         () -> this.setUserFromDatabase(user)
                 );
@@ -59,12 +59,14 @@ public class LockstepDataSyncer extends DataSyncer {
 
     @Override
     public void saveUserData(@NotNull OnlineUser user) {
-        plugin.runAsync(() -> {
-            final DataSnapshot.Packed data = user.createSnapshot(DataSnapshot.SaveCause.DISCONNECT);
-            plugin.getRedisManager().setUserData(user, data, RedisKeyType.TTL_1_YEAR);
-            plugin.getRedisManager().setUserCheckedOut(user, false);
-            plugin.getDatabase().addSnapshot(user, data);
-        });
+        plugin.runAsync(() -> plugin.fireEvent(
+                plugin.getDataSaveEvent(user, user.createSnapshot(DataSnapshot.SaveCause.DISCONNECT)),
+                (event) -> {
+                    getRedis().setUserData(event.getUser(), event.getData(), RedisKeyType.TTL_1_YEAR);
+                    getRedis().setUserCheckedOut(event.getUser(), false);
+                    getDatabase().addAndRotateSnapshot(event.getUser(), event.getData());
+                }
+        ));
     }
 
 }

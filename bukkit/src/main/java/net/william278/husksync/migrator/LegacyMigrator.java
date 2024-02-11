@@ -144,7 +144,7 @@ public class LegacyMigrator extends Migrator {
                     final DataSnapshot.Packed convertedData = data.toUserData(hslConverter, plugin);
                     plugin.getDatabase().ensureUser(data.user());
                     try {
-                        plugin.getDatabase().addSnapshot(data.user(), convertedData);
+                        plugin.getDatabase().saveDataSnapshot(data.user(), convertedData);
                     } catch (Throwable e) {
                         plugin.log(Level.SEVERE, "Failed to migrate legacy data for " + data.user().getUsername() + ": " + e.getMessage());
                         return;

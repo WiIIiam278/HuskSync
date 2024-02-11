@@ -39,7 +39,7 @@ public class DelayDataSyncer extends DataSyncer {
         plugin.runAsyncDelayed(
                 () -> {
                     // Fetch from the database if the user isn't changing servers
-                    if (!plugin.getRedisManager().getUserServerSwitch(user)) {
+                    if (!getRedis().getUserServerSwitch(user)) {
                         this.setUserFromDatabase(user);
                         return;
                     }
@@ -47,7 +47,7 @@ public class DelayDataSyncer extends DataSyncer {
                     // Listen for the data to be updated
                     this.listenForRedisData(
                             user,
-                            () -> plugin.getRedisManager().getUserData(user).map(data -> {
+                            () -> getRedis().getUserData(user).map(data -> {
                                 user.applySnapshot(data, DataSnapshot.UpdateCause.SYNCHRONIZED);
                                 return true;
                             }).orElse(false)
@@ -60,10 +60,14 @@ public class DelayDataSyncer extends DataSyncer {
     @Override
     public void saveUserData(@NotNull OnlineUser user) {
         plugin.runAsync(() -> {
-            plugin.getRedisManager().setUserServerSwitch(user);
-            final DataSnapshot.Packed data = user.createSnapshot(DataSnapshot.SaveCause.DISCONNECT);
-            plugin.getRedisManager().setUserData(user, data, RedisKeyType.TTL_10_SECONDS);
-            plugin.getDatabase().addSnapshot(user, data);
+            getRedis().setUserServerSwitch(user);
+            plugin.fireEvent(
+                    plugin.getDataSaveEvent(user, user.createSnapshot(DataSnapshot.SaveCause.DISCONNECT)),
+                    (event) -> {
+                        getRedis().setUserData(event.getUser(), event.getData(), RedisKeyType.TTL_10_SECONDS);
+                        getDatabase().addAndRotateSnapshot(event.getUser(), event.getData());
+                    }
+            );
         });
     }
 

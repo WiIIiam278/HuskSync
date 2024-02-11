@@ -265,7 +265,7 @@ public class HuskSyncAPI {
      * @since 3.0
      */
     public void addSnapshot(@NotNull User user, @NotNull DataSnapshot snapshot) {
-        plugin.runAsync(() -> plugin.getDatabase().addSnapshot(
+        plugin.runAsync(() -> plugin.getDatabase().saveDataSnapshot(
                 user, snapshot instanceof DataSnapshot.Unpacked unpacked
                         ? unpacked.pack(plugin) : (DataSnapshot.Packed) snapshot
         ));

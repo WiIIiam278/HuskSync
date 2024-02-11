@@ -22,6 +22,8 @@ package net.william278.husksync.sync;
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.api.HuskSyncAPI;
 import net.william278.husksync.data.DataSnapshot;
+import net.william278.husksync.database.Database;
+import net.william278.husksync.redis.RedisManager;
 import net.william278.husksync.user.OnlineUser;
 import net.william278.husksync.util.Task;
 import org.jetbrains.annotations.ApiStatus;
@@ -98,7 +100,7 @@ public abstract class DataSyncer {
     // Set a user's data from the database, or set them as a new user
     @ApiStatus.Internal
     protected void setUserFromDatabase(@NotNull OnlineUser user) {
-        plugin.getDatabase().getLatestSnapshot(user).ifPresentOrElse(
+        getDatabase().getLatestSnapshot(user).ifPresentOrElse(
                 snapshot -> user.applySnapshot(snapshot, DataSnapshot.UpdateCause.SYNCHRONIZED),
                 () -> user.completeSync(true, DataSnapshot.UpdateCause.NEW_USER, plugin)
         );
@@ -137,6 +139,16 @@ public abstract class DataSyncer {
         };
         task.set(plugin.getRepeatingTask(runnable, LISTEN_DELAY));
         task.get().run();
+    }
+
+    @NotNull
+    protected RedisManager getRedis() {
+        return plugin.getRedisManager();
+    }
+
+    @NotNull
+    protected Database getDatabase() {
+        return plugin.getDatabase();
     }
 
     /**
