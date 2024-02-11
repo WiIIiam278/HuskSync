@@ -60,7 +60,6 @@ import net.william278.husksync.util.BukkitMapPersister;
 import net.william278.husksync.util.BukkitTask;
 import net.william278.husksync.util.LegacyConverter;
 import org.bstats.bukkit.Metrics;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.map.MapView;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -229,7 +228,7 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
     @Override
     @NotNull
     public Set<OnlineUser> getOnlineUsers() {
-        return Bukkit.getOnlinePlayers().stream()
+        return getServer().getOnlinePlayers().stream()
                 .map(player -> BukkitUser.adapt(player, this))
                 .collect(Collectors.toSet());
     }
@@ -237,7 +236,7 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
     @Override
     @NotNull
     public Optional<OnlineUser> getOnlineUser(@NotNull UUID uuid) {
-        final Player player = Bukkit.getPlayer(uuid);
+        final Player player = getServer().getPlayer(uuid);
         if (player == null) {
             return Optional.empty();
         }
@@ -253,12 +252,10 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
     @NotNull
     @Override
     public Map<Identifier, Data> getPlayerCustomDataStore(@NotNull OnlineUser user) {
-        if (playerCustomDataStore.containsKey(user.getUuid())) {
-            return playerCustomDataStore.get(user.getUuid());
-        }
-        final Map<Identifier, Data> data = Maps.newHashMap();
-        playerCustomDataStore.put(user.getUuid(), data);
-        return data;
+        return playerCustomDataStore.compute(
+                user.getUuid(),
+                (uuid, data) -> data == null ? Maps.newHashMap() : data
+        );
     }
 
     @Override
@@ -269,7 +266,7 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
 
     @Override
     public boolean isDependencyLoaded(@NotNull String name) {
-        return Bukkit.getPluginManager().getPlugin(name) != null;
+        return getServer().getPluginManager().getPlugin(name) != null;
     }
 
     // Register bStats metrics
@@ -303,7 +300,7 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
     @NotNull
     @Override
     public Version getMinecraftVersion() {
-        return Version.fromString(Bukkit.getBukkitVersion());
+        return Version.fromString(getServer().getBukkitVersion());
     }
 
     @NotNull
@@ -347,7 +344,7 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
 
     @Override
     @NotNull
-    public HuskSync getPlugin() {
+    public BukkitHuskSync getPlugin() {
         return this;
     }
 

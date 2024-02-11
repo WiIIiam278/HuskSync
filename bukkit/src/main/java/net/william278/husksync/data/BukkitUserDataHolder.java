@@ -25,7 +25,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.PlayerInventory;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Map;
 import java.util.Optional;
 
 public interface BukkitUserDataHolder extends UserDataHolder {
@@ -139,9 +138,6 @@ public interface BukkitUserDataHolder extends UserDataHolder {
 
     @NotNull
     Player getBukkitPlayer();
-
-    @NotNull
-    Map<Identifier, Data> getCustomDataStore();
 
     @NotNull
     default BukkitMapPersister getMapPersister() {

@@ -25,7 +25,7 @@ import de.tr7zw.changeme.nbtapi.iface.ReadWriteNBT;
 import de.tr7zw.changeme.nbtapi.iface.ReadableNBT;
 import net.querz.nbt.io.NBTUtil;
 import net.querz.nbt.tag.CompoundTag;
-import net.william278.husksync.HuskSync;
+import net.william278.husksync.BukkitHuskSync;
 import net.william278.mapdataapi.MapBanner;
 import net.william278.mapdataapi.MapData;
 import org.bukkit.Bukkit;
@@ -85,7 +85,7 @@ public interface BukkitMapPersister {
 
     // Perform an operation on each map in an array of ItemStacks
     @NotNull
-    private ItemStack[] forEachMap(@NotNull ItemStack[] items, @NotNull Function<ItemStack, ItemStack> function) {
+    private ItemStack[] forEachMap(ItemStack[] items, @NotNull Function<ItemStack, ItemStack> function) {
         for (int i = 0; i < items.length; i++) {
             final ItemStack item = items[i];
             if (item == null) {
@@ -148,7 +148,7 @@ public interface BukkitMapPersister {
             // Search for an existing map view
             Optional<String> world = Optional.empty();
             for (String worldUid : mapIds.getKeys()) {
-                world = Bukkit.getWorlds().stream()
+                world = getPlugin().getServer().getWorlds().stream()
                         .map(w -> w.getUID().toString()).filter(u -> u.equals(worldUid))
                         .findFirst();
                 if (world.isPresent()) {
@@ -441,6 +441,6 @@ public interface BukkitMapPersister {
 
     @ApiStatus.Internal
     @NotNull
-    HuskSync getPlugin();
+    BukkitHuskSync getPlugin();
 
 }
