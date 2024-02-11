@@ -81,8 +81,8 @@ public abstract class EventListener {
         }
         usersInWorld.stream()
                 .filter(user -> !plugin.isLocked(user.getUuid()) && !user.isNpc())
-                .forEach(user -> plugin.getDatabase().addSnapshot(
-                        user, user.createSnapshot(DataSnapshot.SaveCause.WORLD_SAVE)
+                .forEach(user -> plugin.getDataSyncer().saveData(
+                        user, user.createSnapshot(DataSnapshot.SaveCause.WORLD_SAVE), null
                 ));
     }
 
@@ -101,7 +101,7 @@ public abstract class EventListener {
 
         final DataSnapshot.Packed snapshot = user.createSnapshot(DataSnapshot.SaveCause.DEATH);
         snapshot.edit(plugin, (data -> data.getInventory().ifPresent(inventory -> inventory.setContents(items))));
-        plugin.getDatabase().addSnapshot(user, snapshot);
+        plugin.getDataSyncer().saveData(user, snapshot, (u, d) -> plugin.getRedisManager().sendUserDataUpdate(u, d));
     }
 
     /**
@@ -123,7 +123,9 @@ public abstract class EventListener {
                 .filter(user -> !plugin.isLocked(user.getUuid()) && !user.isNpc())
                 .forEach(user -> {
                     plugin.lockPlayer(user.getUuid());
-                    plugin.getDatabase().addSnapshot(user, user.createSnapshot(DataSnapshot.SaveCause.SERVER_SHUTDOWN));
+                    plugin.getDataSyncer().saveData(
+                            user, user.createSnapshot(DataSnapshot.SaveCause.SERVER_SHUTDOWN), null
+                    );
                 });
 
         // Close outstanding connections
