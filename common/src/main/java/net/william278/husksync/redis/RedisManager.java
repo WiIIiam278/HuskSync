@@ -19,6 +19,7 @@
 
 package net.william278.husksync.redis;
 
+import com.google.common.collect.Sets;
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.config.Settings;
 import net.william278.husksync.data.DataSnapshot;
@@ -27,6 +28,8 @@ import org.jetbrains.annotations.Blocking;
 import org.jetbrains.annotations.NotNull;
 import redis.clients.jedis.*;
 import redis.clients.jedis.exceptions.JedisException;
+import redis.clients.jedis.params.ScanParams;
+import redis.clients.jedis.resps.ScanResult;
 import redis.clients.jedis.util.Pool;
 
 import java.nio.charset.StandardCharsets;
@@ -296,16 +299,20 @@ public class RedisManager extends JedisPubSub {
     public void clearUsersCheckedOutOnServer() {
         final String keyFormat = String.format("%s*", RedisKeyType.DATA_CHECKOUT.getKeyPrefix(clusterId));
         try (Jedis jedis = jedisPool.getResource()) {
-            final Set<String> keys = jedis.keys(keyFormat);
-            if (keys == null) {
-                plugin.log(Level.WARNING, "Checkout key returned null from Redis during clearing");
-                return;
-            }
-            for (String key : keys) {
-                if (jedis.get(key).equals(plugin.getServerName())) {
-                    jedis.del(key);
-                }
-            }
+            final Set<String> keys = Sets.newHashSet();
+
+            // Scan for keys
+            String nextCursor;
+            do {
+                final ScanResult<String> scanResult = jedis.scan(keyFormat, new ScanParams().match(keyFormat));
+                keys.addAll(scanResult.getResult());
+                nextCursor = scanResult.getCursor();
+            } while (!nextCursor.equals("0"));
+
+            // Delete matched keys
+            jedis.del(keys.stream()
+                    .filter(k -> jedis.get(k).equals(plugin.getServerName()))
+                    .toArray(String[]::new));
         } catch (Throwable e) {
             plugin.log(Level.SEVERE, "An exception occurred clearing this server's checkout keys on Redis", e);
         }
