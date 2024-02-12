@@ -19,7 +19,6 @@
 
 package net.william278.husksync.redis;
 
-import com.google.common.collect.Sets;
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.config.Settings;
 import net.william278.husksync.data.DataSnapshot;
@@ -28,8 +27,6 @@ import org.jetbrains.annotations.Blocking;
 import org.jetbrains.annotations.NotNull;
 import redis.clients.jedis.*;
 import redis.clients.jedis.exceptions.JedisException;
-import redis.clients.jedis.params.ScanParams;
-import redis.clients.jedis.resps.ScanResult;
 import redis.clients.jedis.util.Pool;
 
 import java.nio.charset.StandardCharsets;
