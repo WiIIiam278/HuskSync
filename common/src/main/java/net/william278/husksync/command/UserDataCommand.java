@@ -112,13 +112,14 @@ public class UserDataCommand extends Command implements TabProvider {
                     return;
                 }
 
-                // Delete user data by specified UUID
+                // Delete user data by specified UUID and clear their data cache
                 final UUID version = optionalUuid.get();
                 if (!plugin.getDatabase().deleteSnapshot(user, version)) {
                     plugin.getLocales().getLocale("error_invalid_version_uuid")
                             .ifPresent(executor::sendMessage);
                     return;
                 }
+                plugin.getRedisManager().clearUserData(user);
 
                 plugin.getLocales().getLocale("data_deleted",
                                 version.toString().split("-")[0],
