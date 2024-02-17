@@ -203,8 +203,8 @@ public class BukkitEventListener extends EventListener implements BukkitJoinEven
         }
     }
 
-    private void cancelPlayerEvent(@NotNull UUID userUuid, Cancellable event) {
-        if(cancelPlayerEvent(userUuid)) {
+    private void cancelPlayerEvent(@NotNull UUID uuid, @NotNull Cancellable event) {
+        if (cancelPlayerEvent(uuid)) {
             event.setCancelled(true);
         }
     }
