@@ -15,7 +15,7 @@ dependencies {
     compileOnly 'org.spigotmc:spigot-api:1.17.1-R0.1-SNAPSHOT'
     compileOnly 'org.projectlombok:lombok:1.18.30'
     compileOnly 'commons-io:commons-io:2.15.1'
-    compileOnly 'org.json:json:20231013'
+    compileOnly 'org.json:json:20240205'
     compileOnly 'de.themoep:minedown-adventure:1.7.2-SNAPSHOT'
     compileOnly 'com.github.Exlll.ConfigLib:configlib-yaml:v4.4.0'
     compileOnly 'com.zaxxer:HikariCP:5.1.0'

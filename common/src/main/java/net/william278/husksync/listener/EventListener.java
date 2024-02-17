@@ -82,7 +82,7 @@ public abstract class EventListener {
         usersInWorld.stream()
                 .filter(user -> !plugin.isLocked(user.getUuid()) && !user.isNpc())
                 .forEach(user -> plugin.getDataSyncer().saveData(
-                        user, user.createSnapshot(DataSnapshot.SaveCause.WORLD_SAVE), null
+                        user, user.createSnapshot(DataSnapshot.SaveCause.WORLD_SAVE)
                 ));
     }
 
@@ -101,7 +101,7 @@ public abstract class EventListener {
 
         final DataSnapshot.Packed snapshot = user.createSnapshot(DataSnapshot.SaveCause.DEATH);
         snapshot.edit(plugin, (data -> data.getInventory().ifPresent(inventory -> inventory.setContents(items))));
-        plugin.getDataSyncer().saveData(user, snapshot, (u, d) -> plugin.getRedisManager().sendUserDataUpdate(u, d));
+        plugin.getDataSyncer().saveData(user, snapshot);
     }
 
     /**
@@ -169,7 +169,6 @@ public abstract class EventListener {
         private Map.Entry<String, String> toEntry() {
             return Map.entry(name().toLowerCase(), defaultPriority.name());
         }
-
 
         @SuppressWarnings("unchecked")
         @NotNull

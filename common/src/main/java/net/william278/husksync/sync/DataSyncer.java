@@ -119,6 +119,22 @@ public abstract class DataSyncer {
         );
     }
 
+    /**
+     * Save a {@link DataSnapshot.Packed user's data snapshot} to the database,
+     * first firing the {@link net.william278.husksync.event.DataSaveEvent}. This will not update data on Redis.
+     *
+     * @param user the user to save the data for
+     * @param data the data to save
+     * @apiNote Data will not be saved if the {@link net.william278.husksync.event.DataSaveEvent} is cancelled.
+     * Note that this method can also edit the data before saving it.
+     * @implNote Note that the {@link net.william278.husksync.event.DataSaveEvent} will <b>not</b> be fired if the
+     * save cause is {@link DataSnapshot.SaveCause#SERVER_SHUTDOWN}.
+     * @since 3.3.3
+     */
+    public void saveData(@NotNull User user, @NotNull DataSnapshot.Packed data) {
+        saveData(user, data, null);
+    }
+
     // Adds a snapshot to the database and runs the after consumer
     @Blocking
     private void addSnapshotToDatabase(@NotNull User user, @NotNull DataSnapshot.Packed data,

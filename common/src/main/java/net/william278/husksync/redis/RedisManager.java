@@ -256,6 +256,18 @@ public class RedisManager extends JedisPubSub {
     }
 
     @Blocking
+    public void clearUserData(@NotNull User user) {
+        try (Jedis jedis = jedisPool.getResource()) {
+            jedis.del(
+                    getKey(RedisKeyType.LATEST_SNAPSHOT, user.getUuid(), clusterId)
+            );
+            plugin.debug(String.format("[%s] Cleared %s on Redis", user.getUsername(), RedisKeyType.LATEST_SNAPSHOT));
+        } catch (Throwable e) {
+            plugin.log(Level.SEVERE, "An exception occurred clearing user data on Redis", e);
+        }
+    }
+
+    @Blocking
     public void setUserCheckedOut(@NotNull User user, boolean checkedOut) {
         try (Jedis jedis = jedisPool.getResource()) {
             if (checkedOut) {
