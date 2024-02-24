@@ -25,6 +25,7 @@ dependencies {
     compileOnly "redis.clients:jedis:$jedis_version"
     compileOnly "com.mysql:mysql-connector-j:$mysql_driver_version"
     compileOnly "org.mariadb.jdbc:mariadb-java-client:$mariadb_driver_version"
+    compileOnly "org.mongodb:mongodb-driver:3.12.14"
     compileOnly "org.xerial.snappy:snappy-java:$snappy_version"
 
     testImplementation "redis.clients:jedis:$jedis_version"

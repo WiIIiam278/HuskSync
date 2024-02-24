@@ -254,15 +254,18 @@ public abstract class Database {
      * Identifies types of databases
      */
     public enum Type {
-        MYSQL("MySQL", "mysql"),
-        MARIADB("MariaDB", "mariadb");
+        MYSQL("MySQL", "mysql", true),
+        MARIADB("MariaDB", "mariadb", true),
+        MONGO("MongoDB", "", false);
 
         private final String displayName;
         private final String protocol;
+        private final Boolean isSqlBased;
 
-        Type(@NotNull String displayName, @NotNull String protocol) {
+        Type(@NotNull String displayName, @NotNull String protocol, @NotNull Boolean isSqlBased) {
             this.displayName = displayName;
             this.protocol = protocol;
+            this.isSqlBased = isSqlBased;
         }
 
         @NotNull
@@ -273,6 +276,10 @@ public abstract class Database {
         @NotNull
         public String getProtocol() {
             return protocol;
+        }
+        @NotNull
+        public Boolean isSqlBased() {
+            return isSqlBased;
         }
     }
 
