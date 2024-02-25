@@ -22,6 +22,7 @@ dependencies {
     compileOnly 'net.william278:DesertWell:2.0.4'
     compileOnly 'net.william278:AdvancementAPI:97a9583413'
     compileOnly "redis.clients:jedis:$jedis_version"
+    compileOnly 'org.mongodb:mongodb-driver:3.12.14'
 
     annotationProcessor 'org.projectlombok:lombok:1.18.30'
 }
@@ -39,7 +40,9 @@ shadowJar {
     relocate 'org.jetbrains', 'net.william278.husksync.libraries'
     relocate 'org.intellij', 'net.william278.husksync.libraries'
     relocate 'com.zaxxer', 'net.william278.husksync.libraries'
-    relocate 'de.exlll', 'net.william278.huskclaims.libraries'
+    relocate 'com.mongodb', 'net.william278.husksync.libraries.mongo'
+    relocate 'org.bson', 'net.william278.husksync.libraries.mongo'
+    relocate 'de.exlll', 'net.william278.husksync.libraries'
     relocate 'net.william278.desertwell', 'net.william278.husksync.libraries.desertwell'
     relocate 'net.william278.paginedown', 'net.william278.husksync.libraries.paginedown'
     relocate 'net.william278.mapdataapi', 'net.william278.husksync.libraries.mapdataapi'

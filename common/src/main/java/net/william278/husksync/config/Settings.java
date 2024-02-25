@@ -105,7 +105,7 @@ public class Settings {
                     "useUnicode=true", "characterEncoding=UTF-8");
         }
 
-        @Comment("Specify credentials here for your MONGO database")
+        @Comment("Specify credentials here for your MONGO database (This is only required if you have set the database type to \"MONGO\")")
         private MongoDatabaseCredentials mongoCredentials = new MongoDatabaseCredentials();
 
         @Getter
@@ -117,7 +117,7 @@ public class Settings {
             private String database = "HuskSync";
             private String username = "root";
             private String password = "pa55w0rd";
-            private String authDB = "admin";
+            private String authDb = "admin";
         }
 
         @Comment("MYSQL / MARIADB database Hikari connection pool properties. Don't modify this unless you know what you're doing!")

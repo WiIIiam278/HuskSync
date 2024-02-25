@@ -6,16 +6,13 @@ import org.bson.conversions.Bson;
 
 public class MongoCollectionHelper {
     private final MongoConnectionHandler database;
-    private final MongoCacheHandler cacheHandler;
 
     /**
      * Initialize the collection helper
      * @param database Instance of {@link MongoConnectionHandler}
-     * @param cacheHandler database Instance of {@link MongoCacheHandler}
      */
-    public MongoCollectionHelper(MongoConnectionHandler database, MongoCacheHandler cacheHandler) {
+    public MongoCollectionHelper(MongoConnectionHandler database) {
         this.database = database;
-        this.cacheHandler = cacheHandler;
     }
 
     /**
@@ -24,7 +21,6 @@ public class MongoCollectionHelper {
      */
     public void createCollection(String collectionName) {
         database.getDatabase().createCollection(collectionName);
-        cacheHandler.updateCache(collectionName);
     }
 
     /**
@@ -32,8 +28,7 @@ public class MongoCollectionHelper {
      * @param collectionName the collection name
      */
     public void deleteCollection(String collectionName) {
-        database.getDatabase().createCollection(collectionName);
-        cacheHandler.removeFromCache(collectionName);
+        database.getDatabase().getCollection(collectionName).drop();
     }
 
     /**
@@ -42,8 +37,7 @@ public class MongoCollectionHelper {
      * @return MongoCollection<Document>
      */
     public MongoCollection<Document> getCollection(String collectionName) {
-        if (cacheHandler.getCachedCollection(collectionName) == null) return null;
-        return cacheHandler.getCachedCollection(collectionName);
+        return database.getDatabase().getCollection(collectionName);
     }
 
     /**
@@ -54,7 +48,6 @@ public class MongoCollectionHelper {
     public void insertDocument(String collectionName, Document document) {
         MongoCollection<Document> collection = database.getDatabase().getCollection(collectionName);
         collection.insertOne(document);
-        cacheHandler.updateCache(collectionName);
     }
 
     /**
@@ -66,7 +59,6 @@ public class MongoCollectionHelper {
     public void updateDocument(String collectionName, Document document, Bson updates) {
         MongoCollection<Document> collection = database.getDatabase().getCollection(collectionName);
         collection.updateOne(document, updates);
-        cacheHandler.updateCache(collectionName);
     }
 
     /**
@@ -77,7 +69,5 @@ public class MongoCollectionHelper {
     public void deleteDocument(String collectionName, Document document) {
         MongoCollection<Document> collection = database.getDatabase().getCollection(collectionName);
         collection.deleteOne(document);
-        cacheHandler.removeFromCache(collectionName);
-        cacheHandler.updateCache(collectionName);
     }
 }

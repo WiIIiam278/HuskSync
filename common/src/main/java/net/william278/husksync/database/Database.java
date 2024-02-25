@@ -256,7 +256,7 @@ public abstract class Database {
     public enum Type {
         MYSQL("MySQL", "mysql", true),
         MARIADB("MariaDB", "mariadb", true),
-        MONGO("MongoDB", "", false);
+        MONGO("MongoDB", "mongo", false);
 
         private final String displayName;
         private final String protocol;
