@@ -18,7 +18,7 @@ dependencies {
 
     compileOnly 'org.projectlombok:lombok:1.18.30'
     compileOnly 'org.jetbrains:annotations:24.1.0'
-    compileOnly 'net.kyori:adventure-api:4.15.0'
+    compileOnly 'net.kyori:adventure-api:4.16.0'
     compileOnly 'net.kyori:adventure-platform-api:4.3.2'
     compileOnly 'com.google.guava:guava:33.0.0-jre'
     compileOnly 'com.github.plan-player-analytics:Plan:5.5.2272'
