@@ -9,7 +9,7 @@ dependencies {
     api 'org.json:json:20240205'
     api 'com.google.code.gson:gson:2.10.1'
     api 'com.fatboyindustrial.gson-javatime-serialisers:gson-javatime-serialisers:1.1.2'
-    api 'com.github.Exlll.ConfigLib:configlib-yaml:v4.4.0'
+    api 'com.github.Exlll.ConfigLib:configlib-yaml:v4.5.0'
     api 'net.william278:DesertWell:2.0.4'
     api 'net.william278:PagineDown:1.1'
     api('com.zaxxer:HikariCP:5.1.0') {
@@ -31,7 +31,7 @@ dependencies {
     testImplementation "org.xerial.snappy:snappy-java:$snappy_version"
     testImplementation 'com.google.guava:guava:33.0.0-jre'
     testImplementation 'com.github.plan-player-analytics:Plan:5.5.2272'
-    testCompileOnly 'com.github.Exlll.ConfigLib:configlib-yaml:v4.4.0'
+    testCompileOnly 'com.github.Exlll.ConfigLib:configlib-yaml:v4.5.0'
     testCompileOnly 'org.jetbrains:annotations:24.1.0'
 
     annotationProcessor 'org.projectlombok:lombok:1.18.30'
