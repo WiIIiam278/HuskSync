@@ -31,6 +31,8 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 import java.util.StringJoiner;
@@ -133,16 +135,13 @@ public class DataDumper {
      */
     @NotNull
     public String toFile() throws IOException {
-        final File filePath = getFilePath();
-
-        // Write the data from #getString to the file using a writer
-        try (final FileWriter writer = new FileWriter(filePath, StandardCharsets.UTF_8, false)) {
-            writer.write(toString());
+        final Path filePath = getFilePath();
+        try (final FileWriter writer = new FileWriter(filePath.toFile(), StandardCharsets.UTF_8, false)) {
+            writer.write(toString()); // Write the data from #getString to the file using a writer
+            return filePath.toString();
         } catch (IOException e) {
             throw new IOException("Failed to write data to file", e);
         }
-
-        return "~/plugins/HuskSync/dumps/" + filePath.getName();
     }
 
     /**
@@ -152,8 +151,8 @@ public class DataDumper {
      * @throws IOException if the prerequisite dumps parent folder could not be created
      */
     @NotNull
-    private File getFilePath() throws IOException {
-        return new File(getDumpsFolder(), getFileName());
+    private Path getFilePath() throws IOException {
+        return getDumpsFolder().resolve(getFileName());
     }
 
     /**
@@ -163,14 +162,12 @@ public class DataDumper {
      * @throws IOException if the folder could not be created
      */
     @NotNull
-    private File getDumpsFolder() throws IOException {
-        final File dumpsFolder = new File(plugin.getDataFolder(), "dumps");
-        if (!dumpsFolder.exists()) {
-            if (!dumpsFolder.mkdirs()) {
-                throw new IOException("Failed to create user data dumps folder");
-            }
+    private Path getDumpsFolder() throws IOException {
+        final Path dumps = plugin.getConfigDirectory().resolve("dumps");
+        if (!Files.exists(dumps)) {
+            Files.createDirectory(dumps);
         }
-        return dumpsFolder;
+        return dumps;
     }
 
     /**

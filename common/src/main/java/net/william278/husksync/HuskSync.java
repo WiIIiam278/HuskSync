@@ -46,7 +46,6 @@ import net.william278.husksync.util.LegacyConverter;
 import net.william278.husksync.util.Task;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -229,15 +228,7 @@ public interface HuskSync extends Task.Supplier, EventDispatcher, ConfigProvider
      * @param name the path to the resource
      * @return the {@link InputStream} of the resource
      */
-    InputStream getResource(@NotNull String name) throws IOException;
-
-    /**
-     * Returns the plugin data folder
-     *
-     * @return the plugin data folder as a {@link File}
-     */
-    @NotNull
-    File getDataFolder();
+    InputStream getResource(@NotNull String name);
 
     /**
      * Log a message to the console
