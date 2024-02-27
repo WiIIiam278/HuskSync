@@ -17,7 +17,7 @@ dependencies {
     compileOnly 'commons-io:commons-io:2.15.1'
     compileOnly 'org.json:json:20240205'
     compileOnly 'de.themoep:minedown-adventure:1.7.2-SNAPSHOT'
-    compileOnly 'com.github.Exlll.ConfigLib:configlib-yaml:v4.4.0'
+    compileOnly 'com.github.Exlll.ConfigLib:configlib-yaml:v4.5.0'
     compileOnly 'com.zaxxer:HikariCP:5.1.0'
     compileOnly 'net.william278:DesertWell:2.0.4'
     compileOnly 'net.william278:AdvancementAPI:97a9583413'
