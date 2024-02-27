@@ -22,7 +22,6 @@ package net.william278.husksync.data;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;
-
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
