@@ -88,7 +88,6 @@ public interface HuskSync extends Task.Supplier, EventDispatcher, ConfigProvider
      *
      * @return the {@link RedisManager} implementation
      */
-
     @NotNull
     RedisManager getRedisManager();
 
