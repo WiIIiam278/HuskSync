@@ -21,6 +21,9 @@ package net.william278.husksync.data;
 
 import com.google.gson.reflect.TypeToken;
 import com.mojang.brigadier.StringReader;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
@@ -38,23 +41,15 @@ import static net.william278.husksync.data.Data.Items.Inventory.HELD_ITEM_SLOT_T
 import static net.william278.husksync.data.Data.Items.Inventory.ITEMS_TAG;
 
 //TODO
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public abstract class FabricSerializer {
 
+    @Getter(onMethod_ = @ApiStatus.Internal)
     protected final HuskSync plugin;
-
-    private FabricSerializer(@NotNull HuskSync plugin) {
-        this.plugin = plugin;
-    }
 
     @SuppressWarnings("unused")
     public FabricSerializer(@NotNull HuskSyncAPI api) {
         this.plugin = api.getPlugin();
-    }
-
-    @ApiStatus.Internal
-    @NotNull
-    public HuskSync getPlugin() {
-        return plugin;
     }
 
     public static class Inventory extends FabricSerializer implements Serializer<FabricData.Items.Inventory> {

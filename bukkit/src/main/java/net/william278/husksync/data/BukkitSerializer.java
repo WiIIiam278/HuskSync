@@ -23,6 +23,9 @@ import com.google.gson.reflect.TypeToken;
 import de.tr7zw.changeme.nbtapi.NBT;
 import de.tr7zw.changeme.nbtapi.NBTContainer;
 import de.tr7zw.changeme.nbtapi.iface.ReadWriteNBT;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.adapter.Adaptable;
 import net.william278.husksync.api.HuskSyncAPI;
@@ -36,23 +39,15 @@ import static net.william278.husksync.data.BukkitData.Items.Inventory.INVENTORY_
 import static net.william278.husksync.data.Data.Items.Inventory.HELD_ITEM_SLOT_TAG;
 import static net.william278.husksync.data.Data.Items.Inventory.ITEMS_TAG;
 
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class BukkitSerializer {
 
+    @Getter(onMethod_ = @ApiStatus.Internal)
     protected final HuskSync plugin;
-
-    private BukkitSerializer(@NotNull HuskSync plugin) {
-        this.plugin = plugin;
-    }
 
     @SuppressWarnings("unused")
     public BukkitSerializer(@NotNull HuskSyncAPI api) {
         this.plugin = api.getPlugin();
-    }
-
-    @ApiStatus.Internal
-    @NotNull
-    public HuskSync getPlugin() {
-        return plugin;
     }
 
     public static class Inventory extends BukkitSerializer implements Serializer<BukkitData.Items.Inventory> {

@@ -20,6 +20,7 @@
 package net.william278.husksync.data;
 
 import com.google.gson.annotations.SerializedName;
+import lombok.*;
 import net.fabricmc.fabric.api.dimension.v1.FabricDimensions;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.effect.StatusEffectInstance;
@@ -36,6 +37,7 @@ import net.william278.husksync.HuskSync;
 import net.william278.husksync.adapter.Adaptable;
 import net.william278.husksync.user.FabricUser;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Range;
 
 import java.util.*;
 
@@ -48,6 +50,7 @@ public abstract class FabricData implements Data {
 
     protected abstract void apply(@NotNull FabricUser user, @NotNull FabricHuskSync plugin);
 
+    @Getter
     public static abstract class Items extends FabricData implements Data.Items {
 
         private final ItemStack[] contents;
@@ -58,7 +61,6 @@ public abstract class FabricData implements Data {
 
         @NotNull
         @Override
-        @SuppressWarnings({"DataFlowIssue", "NullableProblems"})
         public Stack[] getStack() {
             return Arrays.stream(contents)
                     .map(stack -> new Stack(
@@ -67,7 +69,7 @@ public abstract class FabricData implements Data {
                             stack.getName().getString(),
                             Optional.ofNullable(stack.getSubNbt(ItemStack.DISPLAY_KEY))
                                     .flatMap(display -> Optional.ofNullable(display.get(ItemStack.LORE_KEY))
-                                            .map(lore -> ((List<String>) lore).stream().toList()))
+                                            .map(lore -> ((List<String>) lore).stream().toList())) //todo check this is ok
                                     .orElse(null),
                             stack.getEnchantments().stream()
                                     .map(element -> EnchantmentHelper.getIdFromNbt((NbtCompound) element))
@@ -91,11 +93,6 @@ public abstract class FabricData implements Data {
             System.arraycopy(contents, 0, this.contents, 0, this.contents.length);
         }
 
-        @NotNull
-        public ItemStack[] getContents() {
-            return contents;
-        }
-
         @Override
         public boolean equals(Object obj) {
             if (obj instanceof FabricData.Items items) {
@@ -104,9 +101,12 @@ public abstract class FabricData implements Data {
             return false;
         }
 
+        @Getter
         public static class Inventory extends FabricData.Items implements Data.Items.Inventory {
 
             public static final int INVENTORY_SLOT_COUNT = 41;
+
+            @Setter(onMethod_ = @Range(from = 0, to = 8))
             private int heldItemSlot;
 
             public Inventory(@NotNull ItemStack[] contents, int heldItemSlot) {
@@ -130,11 +130,6 @@ public abstract class FabricData implements Data {
             }
 
             @Override
-            public int getSlotCount() {
-                return INVENTORY_SLOT_COUNT;
-            }
-
-            @Override
             public void apply(@NotNull FabricUser user, @NotNull FabricHuskSync plugin) throws IllegalStateException {
                 final ServerPlayerEntity player = user.getPlayer();
                 this.clearInventoryCraftingSlots(player);
@@ -154,18 +149,6 @@ public abstract class FabricData implements Data {
                 player.playerScreenHandler.clearCraftingSlots();
             }
 
-            @Override
-            public int getHeldItemSlot() {
-                return heldItemSlot;
-            }
-
-            @Override
-            public void setHeldItemSlot(int heldItemSlot) throws IllegalArgumentException {
-                if (heldItemSlot < 0 || heldItemSlot > 8) {
-                    throw new IllegalArgumentException("Held item slot must be between 0 and 8");
-                }
-                this.heldItemSlot = heldItemSlot;
-            }
         }
 
         public static class EnderChest extends FabricData.Items implements Data.Items.EnderChest {
@@ -228,13 +211,11 @@ public abstract class FabricData implements Data {
 
     }
 
+    @Getter
+    @AllArgsConstructor(access = AccessLevel.PRIVATE)
     public static class PotionEffects extends FabricData implements Data.PotionEffects {
 
         private final Collection<StatusEffectInstance> effects;
-
-        private PotionEffects(@NotNull Collection<StatusEffectInstance> effects) {
-            this.effects = effects;
-        }
 
         @NotNull
         public static FabricData.PotionEffects from(@NotNull Collection<StatusEffectInstance> effects) {
@@ -291,14 +272,14 @@ public abstract class FabricData implements Data {
                     .toList();
         }
 
-        @NotNull
-        public Collection<StatusEffectInstance> getEffects() {
-            return effects;
-        }
     }
 
     // TODO ADVANCEMENTS
 
+    @Getter
+    @Setter
+    @NoArgsConstructor(access = AccessLevel.PRIVATE)
+    @AllArgsConstructor(access = AccessLevel.PRIVATE)
     public static class Location extends FabricData implements Data.Location, Adaptable {
         @SerializedName("x")
         private double x;
@@ -312,19 +293,6 @@ public abstract class FabricData implements Data {
         private float pitch;
         @SerializedName("world")
         private World world;
-
-        private Location(double x, double y, double z, float yaw, float pitch, @NotNull World world) {
-            this.x = x;
-            this.y = y;
-            this.z = z;
-            this.yaw = yaw;
-            this.pitch = pitch;
-            this.world = world;
-        }
-
-        @SuppressWarnings("unused")
-        private Location() {
-        }
 
         @NotNull
         public static FabricData.Location from(double x, double y, double z,
@@ -375,67 +343,6 @@ public abstract class FabricData implements Data {
             } catch (Throwable e) {
                 throw new IllegalStateException("Failed to apply location", e);
             }
-        }
-
-        @Override
-        public double getX() {
-            return x;
-        }
-
-        @Override
-        public void setX(double x) {
-            this.x = x;
-        }
-
-        @Override
-        public double getY() {
-            return y;
-        }
-
-        @Override
-        public void setY(double y) {
-            this.y = y;
-        }
-
-        @Override
-        public double getZ() {
-            return z;
-        }
-
-        @Override
-        public void setZ(double z) {
-            this.z = z;
-        }
-
-        @Override
-        public float getYaw() {
-            return yaw;
-        }
-
-        @Override
-        public void setYaw(float yaw) {
-            this.yaw = yaw;
-        }
-
-        @Override
-        public float getPitch() {
-            return pitch;
-        }
-
-        @Override
-        public void setPitch(float pitch) {
-            this.pitch = pitch;
-        }
-
-        @NotNull
-        @Override
-        public World getWorld() {
-            return world;
-        }
-
-        @Override
-        public void setWorld(@NotNull World world) {
-            this.world = world;
         }
 
     }
