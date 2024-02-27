@@ -25,7 +25,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.PlayerInventory;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Map;
 import java.util.Optional;
 
 public interface BukkitUserDataHolder extends UserDataHolder {
@@ -62,7 +61,8 @@ public interface BukkitUserDataHolder extends UserDataHolder {
     @NotNull
     @Override
     default Optional<Data.Items.Inventory> getInventory() {
-        if ((isDead() && !getPlugin().getSettings().doSynchronizeDeadPlayersChangingServer())) {
+        if ((isDead() && !getPlugin().getSettings().getSynchronization().getSaveOnDeath()
+                .isSyncDeadPlayersChangingServer())) {
             return Optional.of(BukkitData.Items.Inventory.empty());
         }
         final PlayerInventory inventory = getPlayer().getInventory();
@@ -138,9 +138,6 @@ public interface BukkitUserDataHolder extends UserDataHolder {
 
     @NotNull
     Player getPlayer();
-
-    @NotNull
-    Map<Identifier, Data> getCustomDataStore();
 
     @NotNull
     default BukkitMapPersister getMapPersister() {

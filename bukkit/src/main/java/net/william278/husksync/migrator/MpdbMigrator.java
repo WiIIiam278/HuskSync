@@ -19,6 +19,7 @@
 
 package net.william278.husksync.migrator;
 
+import com.google.common.collect.Lists;
 import com.zaxxer.hikari.HikariDataSource;
 import net.william278.husksync.BukkitHuskSync;
 import net.william278.husksync.HuskSync;
@@ -35,11 +36,16 @@ import org.jetbrains.annotations.NotNull;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.util.*;
+import java.util.List;
+import java.util.Locale;
+import java.util.Objects;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
+
+import static net.william278.husksync.config.Settings.DatabaseSettings;
 
 /**
  * A migrator for migrating MySQLPlayerDataBridge data to HuskSync {@link DataSnapshot}s
@@ -62,11 +68,12 @@ public class MpdbMigrator extends Migrator {
                 Bukkit.getPluginManager().getPlugin("MySQLPlayerDataBridge"),
                 "MySQLPlayerDataBridge dependency not found!"
         ));
-        this.sourceHost = plugin.getSettings().getMySqlHost();
-        this.sourcePort = plugin.getSettings().getMySqlPort();
-        this.sourceUsername = plugin.getSettings().getMySqlUsername();
-        this.sourcePassword = plugin.getSettings().getMySqlPassword();
-        this.sourceDatabase = plugin.getSettings().getMySqlDatabase();
+        final DatabaseSettings.DatabaseCredentials credentials = plugin.getSettings().getDatabase().getCredentials();
+        this.sourceHost = credentials.getHost();
+        this.sourcePort = credentials.getPort();
+        this.sourceUsername = credentials.getUsername();
+        this.sourcePassword = credentials.getPassword();
+        this.sourceDatabase = credentials.getDatabase();
         this.sourceInventoryTable = "mpdb_inventory";
         this.sourceEnderChestTable = "mpdb_enderchest";
         this.sourceExperienceTable = "mpdb_experience";
@@ -95,7 +102,7 @@ public class MpdbMigrator extends Migrator {
                 connectionPool.setPoolName((getIdentifier() + "_migrator_pool").toUpperCase(Locale.ENGLISH));
 
                 plugin.log(Level.INFO, "Downloading raw data from the MySQLPlayerDataBridge database (this might take a while)...");
-                final List<MpdbData> dataToMigrate = new ArrayList<>();
+                final List<MpdbData> dataToMigrate = Lists.newArrayList();
                 try (final Connection connection = connectionPool.getConnection()) {
                     try (final PreparedStatement statement = connection.prepareStatement("""
                             SELECT `%source_inventory_table%`.`player_uuid`, `%source_inventory_table%`.`player_name`, `inventory`, `armor`, `enderchest`, `exp_lvl`, `exp`, `total_exp`

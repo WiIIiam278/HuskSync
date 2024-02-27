@@ -31,21 +31,26 @@ import net.william278.husksync.user.OnlineUser;
 import net.william278.husksync.user.User;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.BiConsumer;
 
 /**
- * The base implementation of the HuskSync API, containing cross-platform API calls.
+ * The common implementation of the HuskSync API, containing cross-platform API calls.
  * </p>
- * This class should not be used directly, but rather through platform-specific extending API classes.
+ * Retrieve an instance of the API class via {@link #getInstance()}.
  *
  * @since 2.0
  */
 @SuppressWarnings("unused")
-public abstract class HuskSyncAPI {
+public class HuskSyncAPI {
+
+    // Instance of the plugin
+    protected static HuskSyncAPI instance;
 
     /**
      * <b>(Internal use only)</b> - Instance of the implementing plugin.
@@ -58,6 +63,28 @@ public abstract class HuskSyncAPI {
     @ApiStatus.Internal
     protected HuskSyncAPI(@NotNull HuskSync plugin) {
         this.plugin = plugin;
+    }
+
+    /**
+     * Entrypoint to the HuskSync API on the common platform - returns an instance of the API
+     *
+     * @return instance of the HuskSync API
+     * @since 3.3
+     */
+    @NotNull
+    public static HuskSyncAPI getInstance() {
+        if (instance == null) {
+            throw new NotRegisteredException();
+        }
+        return instance;
+    }
+
+    /**
+     * <b>(Internal use only)</b> - Unregister the API for this platform.
+     */
+    @ApiStatus.Internal
+    public static void unregister() {
+        instance = null;
     }
 
     /**
@@ -237,13 +264,32 @@ public abstract class HuskSyncAPI {
      *
      * @param user     The user to save the data for
      * @param snapshot The snapshot to save
+     * @param callback A callback to run after the data has been saved (if the DataSaveEvent was not cancelled)
+     * @apiNote This will fire the {@link net.william278.husksync.event.DataSaveEvent} event, unless
+     * the save cause is {@link DataSnapshot.SaveCause#SERVER_SHUTDOWN}
+     * @since 3.3.2
+     */
+    public void addSnapshot(@NotNull User user, @NotNull DataSnapshot snapshot,
+                            @Nullable BiConsumer<User, DataSnapshot.Packed> callback) {
+        plugin.runAsync(() -> plugin.getDataSyncer().saveData(
+                user,
+                snapshot instanceof DataSnapshot.Unpacked unpacked
+                        ? unpacked.pack(plugin) : (DataSnapshot.Packed) snapshot,
+                callback
+        ));
+    }
+
+    /**
+     * Adds a data snapshot to the database
+     *
+     * @param user     The user to save the data for
+     * @param snapshot The snapshot to save
+     * @apiNote This will fire the {@link net.william278.husksync.event.DataSaveEvent} event, unless
+     * * the save cause is {@link DataSnapshot.SaveCause#SERVER_SHUTDOWN}
      * @since 3.0
      */
     public void addSnapshot(@NotNull User user, @NotNull DataSnapshot snapshot) {
-        plugin.runAsync(() -> plugin.getDatabase().addSnapshot(
-                user, snapshot instanceof DataSnapshot.Unpacked unpacked
-                        ? unpacked.pack(plugin) : (DataSnapshot.Packed) snapshot
-        ));
+        this.addSnapshot(user, snapshot, null);
     }
 
     /**

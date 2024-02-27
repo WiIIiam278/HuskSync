@@ -1,4 +1,4 @@
-HuskSync allows you to save and synchronize custom data through the existing versatile DataSnapshot format. This page assumes you've read the [[API]] introduction and are familiar with the aforementioned [[Data Snapshot API]].
+HuskSync allows you to save and synchronize custom data through the existing versatile DataSnapshot format. This page assumes you've read the [[API]] introduction and are familiar with the aforementioned [[Data Snapshot API]]. This page discusses API implementations that target the Bukkit platform.
 
 To do this, you create and register an implementation of a platform `Data` class (e.g., `BukkitData`) and a corresponding `Serializer` class (e.g., `BukkitSerializer`). You can then apply your custom data type to a user using the `OnlineUser#setData(Identifier, Data)` method.
 

@@ -27,6 +27,7 @@ import net.william278.husksync.user.OnlineUser;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
+import org.bukkit.event.Cancellable;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -49,6 +50,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 public class BukkitEventListener extends EventListener implements BukkitJoinEventListener, BukkitQuitEventListener,
@@ -57,13 +59,13 @@ public class BukkitEventListener extends EventListener implements BukkitJoinEven
 
     public BukkitEventListener(@NotNull BukkitHuskSync huskSync) {
         super(huskSync);
-        this.blacklistedCommands = huskSync.getSettings().getBlacklistedCommandsWhileLocked();
+        this.blacklistedCommands = huskSync.getSettings().getSynchronization().getBlacklistedCommandsWhileLocked();
         Bukkit.getServer().getPluginManager().registerEvents(this, huskSync);
     }
 
     @Override
     public boolean handleEvent(@NotNull ListenerType type, @NotNull Priority priority) {
-        return plugin.getSettings().getEventPriority(type).equals(priority);
+        return plugin.getSettings().getSynchronization().getEventPriority(type).equals(priority);
     }
 
     @Override
@@ -92,7 +94,7 @@ public class BukkitEventListener extends EventListener implements BukkitJoinEven
         }
 
         // Handle saving player data snapshots on death
-        if (!plugin.getSettings().doSaveOnDeath()) {
+        if (!plugin.getSettings().getSynchronization().getSaveOnDeath().isEnabled()) {
             return;
         }
 
@@ -106,7 +108,7 @@ public class BukkitEventListener extends EventListener implements BukkitJoinEven
 
     @EventHandler(ignoreCancelled = true)
     public void onWorldSave(@NotNull WorldSaveEvent event) {
-        if (!plugin.getSettings().doSaveOnWorldSave()) {
+        if (!plugin.getSettings().getSynchronization().isSaveOnWorldSave()) {
             return;
         }
 
@@ -118,7 +120,7 @@ public class BukkitEventListener extends EventListener implements BukkitJoinEven
 
     @EventHandler(ignoreCancelled = true)
     public void onMapInitialize(@NotNull MapInitializeEvent event) {
-        if (plugin.getSettings().doPersistLockedMaps() && event.getMap().isLocked()) {
+        if (plugin.getSettings().getSynchronization().isPersistLockedMaps() && event.getMap().isLocked()) {
             getPlugin().runAsync(() -> ((BukkitHuskSync) plugin).renderMapFromFile(event.getMap()));
         }
     }
@@ -132,52 +134,52 @@ public class BukkitEventListener extends EventListener implements BukkitJoinEven
     public void onProjectileLaunch(@NotNull ProjectileLaunchEvent event) {
         final Projectile projectile = event.getEntity();
         if (projectile.getShooter() instanceof Player player) {
-            event.setCancelled(cancelPlayerEvent(player.getUniqueId()));
+            cancelPlayerEvent(player.getUniqueId(), event);
         }
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onDropItem(@NotNull PlayerDropItemEvent event) {
-        event.setCancelled(cancelPlayerEvent(event.getPlayer().getUniqueId()));
+        cancelPlayerEvent(event.getPlayer().getUniqueId(), event);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onPickupItem(@NotNull EntityPickupItemEvent event) {
         if (event.getEntity() instanceof Player player) {
-            event.setCancelled(cancelPlayerEvent(player.getUniqueId()));
+            cancelPlayerEvent(player.getUniqueId(), event);
         }
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onPlayerInteract(@NotNull PlayerInteractEvent event) {
-        event.setCancelled(cancelPlayerEvent(event.getPlayer().getUniqueId()));
+        cancelPlayerEvent(event.getPlayer().getUniqueId(), event);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onPlayerInteractEntity(@NotNull PlayerInteractEntityEvent event) {
-        event.setCancelled(cancelPlayerEvent(event.getPlayer().getUniqueId()));
+        cancelPlayerEvent(event.getPlayer().getUniqueId(), event);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBlockPlace(@NotNull BlockPlaceEvent event) {
-        event.setCancelled(cancelPlayerEvent(event.getPlayer().getUniqueId()));
+        cancelPlayerEvent(event.getPlayer().getUniqueId(), event);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBlockBreak(@NotNull BlockBreakEvent event) {
-        event.setCancelled(cancelPlayerEvent(event.getPlayer().getUniqueId()));
+        cancelPlayerEvent(event.getPlayer().getUniqueId(), event);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onInventoryOpen(@NotNull InventoryOpenEvent event) {
         if (event.getPlayer() instanceof Player player) {
-            event.setCancelled(cancelPlayerEvent(player.getUniqueId()));
+            cancelPlayerEvent(player.getUniqueId(), event);
         }
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onInventoryClick(@NotNull InventoryClickEvent event) {
-        event.setCancelled(cancelPlayerEvent(event.getWhoClicked().getUniqueId()));
+        cancelPlayerEvent(event.getWhoClicked().getUniqueId(), event);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -187,7 +189,7 @@ public class BukkitEventListener extends EventListener implements BukkitJoinEven
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onPlayerTakeDamage(@NotNull EntityDamageEvent event) {
         if (event.getEntity() instanceof Player player) {
-            event.setCancelled(cancelPlayerEvent(player.getUniqueId()));
+            cancelPlayerEvent(player.getUniqueId(), event);
         }
     }
 
@@ -197,7 +199,13 @@ public class BukkitEventListener extends EventListener implements BukkitJoinEven
         final String commandLabel = commandArgs[0].toLowerCase(Locale.ENGLISH);
 
         if (blacklistedCommands.contains("*") || blacklistedCommands.contains(commandLabel)) {
-            event.setCancelled(cancelPlayerEvent(event.getPlayer().getUniqueId()));
+            cancelPlayerEvent(event.getPlayer().getUniqueId(), event);
+        }
+    }
+
+    private void cancelPlayerEvent(@NotNull UUID uuid, @NotNull Cancellable event) {
+        if (cancelPlayerEvent(uuid)) {
+            event.setCancelled(true);
         }
     }
 

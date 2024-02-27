@@ -19,11 +19,10 @@
 
 package net.william278.husksync.database;
 
+import lombok.Getter;
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.config.Settings;
 import net.william278.husksync.data.DataSnapshot;
-import net.william278.husksync.data.DataSnapshot.SaveCause;
-import net.william278.husksync.data.UserDataHolder;
 import net.william278.husksync.user.User;
 import org.jetbrains.annotations.Blocking;
 import org.jetbrains.annotations.NotNull;
@@ -31,10 +30,8 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.OffsetDateTime;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
+import java.util.function.BiConsumer;
 
 /**
  * An abstract representation of the plugin database, storing player data.
@@ -71,8 +68,9 @@ public abstract class Database {
      */
     @NotNull
     protected final String formatStatementTables(@NotNull String sql) {
-        return sql.replaceAll("%users_table%", plugin.getSettings().getTableName(Settings.TableName.USERS))
-                .replaceAll("%user_data_table%", plugin.getSettings().getTableName(Settings.TableName.USER_DATA));
+        final Settings.DatabaseSettings settings = plugin.getSettings().getDatabase();
+        return sql.replaceAll("%users_table%", settings.getTableName(TableName.USERS))
+                .replaceAll("%user_data_table%", settings.getTableName(TableName.USER_DATA));
     }
 
     /**
@@ -157,43 +155,24 @@ public abstract class Database {
     @Blocking
     public abstract boolean deleteSnapshot(@NotNull User user, @NotNull UUID versionUuid);
 
-    /**
-     * Save user data to the database
-     * </p>
-     * This will remove the oldest data for the user if the amount of data exceeds the limit as configured
-     *
-     * @param user     The user to add data for
-     * @param snapshot The {@link DataSnapshot} to set.
-     *                 The implementation should version it with a random UUID and the current timestamp during insertion.
-     * @see UserDataHolder#createSnapshot(SaveCause)
-     */
-    @Blocking
-    public void addSnapshot(@NotNull User user, @NotNull DataSnapshot.Packed snapshot) {
-        if (snapshot.getSaveCause() != SaveCause.SERVER_SHUTDOWN) {
-            plugin.fireEvent(
-                    plugin.getDataSaveEvent(user, snapshot),
-                    (event) -> this.addAndRotateSnapshot(user, snapshot)
-            );
-            return;
-        }
-
-        this.addAndRotateSnapshot(user, snapshot);
-    }
 
     /**
-     * <b>Internal</b> - Save user data to the database. This will:
+     * Save user data to the database, doing the following (in order):
      * <ol>
      *     <li>Delete their most recent snapshot, if it was created before the backup frequency time</li>
      *     <li>Create the snapshot</li>
      *     <li>Rotate snapshot backups</li>
      * </ol>
+     * This is an expensive blocking method and should be run off the main thread.
      *
      * @param user     The user to add data for
      * @param snapshot The {@link DataSnapshot} to set.
+     * @apiNote Prefer {@link net.william278.husksync.sync.DataSyncer#saveData(User, DataSnapshot.Packed, BiConsumer)}.
+     * </p>This method will not fire the {@link net.william278.husksync.event.DataSaveEvent}
      */
     @Blocking
-    private void addAndRotateSnapshot(@NotNull User user, @NotNull DataSnapshot.Packed snapshot) {
-        final int backupFrequency = plugin.getSettings().getBackupFrequency();
+    public void addSnapshot(@NotNull User user, @NotNull DataSnapshot.Packed snapshot) {
+        final int backupFrequency = plugin.getSettings().getSynchronization().getSnapshotBackupFrequency();
         if (!snapshot.isPinned() && backupFrequency > 0) {
             this.rotateLatestSnapshot(user, snapshot.getTimestamp().minusHours(backupFrequency));
         }
@@ -297,4 +276,31 @@ public abstract class Database {
         }
     }
 
+    /**
+     * Represents the names of tables in the database
+     */
+    @Getter
+    public enum TableName {
+        USERS("husksync_users"),
+        USER_DATA("husksync_user_data");
+
+        private final String defaultName;
+
+        TableName(@NotNull String defaultName) {
+            this.defaultName = defaultName;
+        }
+
+        @NotNull
+        private Map.Entry<String, String> toEntry() {
+            return Map.entry(name().toLowerCase(Locale.ENGLISH), defaultName);
+        }
+
+        @SuppressWarnings("unchecked")
+        @NotNull
+        public static Map<String, String> getDefaults() {
+            return Map.ofEntries(Arrays.stream(values())
+                    .map(TableName::toEntry)
+                    .toArray(Map.Entry[]::new));
+        }
+    }
 }

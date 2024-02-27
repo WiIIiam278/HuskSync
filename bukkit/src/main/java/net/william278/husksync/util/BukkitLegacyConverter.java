@@ -19,6 +19,7 @@
 
 package net.william278.husksync.util;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.adapter.DataAdapter;
@@ -54,7 +55,7 @@ public class BukkitLegacyConverter extends LegacyConverter {
 
     @NotNull
     @Override
-    public DataSnapshot.Packed convert(@NotNull byte[] data, @NotNull UUID id,
+    public DataSnapshot.Packed convert(byte[] data, @NotNull UUID id,
                                        @NotNull OffsetDateTime timestamp) throws DataAdapter.AdaptionException {
         final JSONObject object = new JSONObject(plugin.getDataAdapter().bytesToString(data));
         final int version = object.getInt("format_version");
@@ -82,7 +83,7 @@ public class BukkitLegacyConverter extends LegacyConverter {
         }
 
         final JSONObject status = object.getJSONObject("status_data");
-        final HashMap<Identifier, Data> containers = new HashMap<>();
+        final HashMap<Identifier, Data> containers = Maps.newHashMap();
         if (shouldImport(Identifier.HEALTH)) {
             containers.put(Identifier.HEALTH, BukkitData.Health.from(
                     status.getDouble("health"),
@@ -166,7 +167,7 @@ public class BukkitLegacyConverter extends LegacyConverter {
         }
 
         final JSONArray advancements = object.getJSONArray("advancements");
-        final List<Data.Advancements.Advancement> converted = new ArrayList<>();
+        final List<Data.Advancements.Advancement> converted = Lists.newArrayList();
         advancements.iterator().forEachRemaining(o -> {
             final JSONObject advancement = (JSONObject) JSONObject.wrap(o);
             final String key = advancement.getString("key");
@@ -213,7 +214,7 @@ public class BukkitLegacyConverter extends LegacyConverter {
         final Map<Statistic, Map<EntityType, Integer>> entityStats = Maps.newHashMap();
         entities.keys().forEachRemaining(stat -> {
             final JSONObject entityStat = entities.getJSONObject(stat);
-            final Map<EntityType, Integer> entityMap = new HashMap<>();
+            final Map<EntityType, Integer> entityMap = Maps.newHashMap();
             entityStat.keys().forEachRemaining(entity -> entityMap.put(matchEntityType(entity), entityStat.getInt(entity)));
             entityStats.put(matchStatistic(stat), entityMap);
         });
@@ -269,6 +270,7 @@ public class BukkitLegacyConverter extends LegacyConverter {
     }
 
     // Deserialize a single legacy item stack
+    @SuppressWarnings("unchecked")
     @Nullable
     private static ItemStack deserializeLegacyItemStack(@Nullable Object serializedItemStack) {
         return serializedItemStack != null ? ItemStack.deserialize((Map<String, Object>) serializedItemStack) : null;
@@ -276,7 +278,7 @@ public class BukkitLegacyConverter extends LegacyConverter {
 
 
     private boolean shouldImport(@NotNull Identifier type) {
-        return plugin.getSettings().isSyncFeatureEnabled(type);
+        return plugin.getSettings().getSynchronization().isFeatureEnabled(type);
     }
 
     @NotNull

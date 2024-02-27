@@ -81,7 +81,9 @@ public class HuskSyncCommand extends Command implements TabProvider {
                         AboutMenu.Credit.of("DJelly4K").description("Simplified Chinese (zh-cn)"),
                         AboutMenu.Credit.of("Thourgard").description("Ukrainian (uk-ua)"),
                         AboutMenu.Credit.of("xF3d3").description("Italian (it-it)"),
-                        AboutMenu.Credit.of("cada3141").description("Korean (ko-kr)"))
+                        AboutMenu.Credit.of("cada3141").description("Korean (ko-kr)"),
+                        AboutMenu.Credit.of("Wirayuda5620").description("Indonesian (id-id)"),
+                        AboutMenu.Credit.of("WinTone01").description("Turkish (tr-tr)"))
                 .buttons(
                         AboutMenu.Link.of("https://william278.net/docs/husksync").text("Documentation").icon("⛏"),
                         AboutMenu.Link.of("https://github.com/WiIIiam278/HuskSync/issues").text("Issues").icon("❌").color(TextColor.color(0xff9f0f)),
@@ -109,7 +111,9 @@ public class HuskSyncCommand extends Command implements TabProvider {
             }
             case "reload" -> {
                 try {
-                    plugin.loadConfigs();
+                    plugin.loadSettings();
+                    plugin.loadLocales();
+                    plugin.loadServer();
                     plugin.getLocales().getLocale("reload_complete").ifPresent(executor::sendMessage);
                 } catch (Throwable e) {
                     executor.sendMessage(new MineDown(
@@ -206,19 +210,31 @@ public class HuskSyncCommand extends Command implements TabProvider {
         MINECRAFT_VERSION(plugin -> Component.text(plugin.getMinecraftVersion().toString())),
         JAVA_VERSION(plugin -> Component.text(System.getProperty("java.version"))),
         JAVA_VENDOR(plugin -> Component.text(System.getProperty("java.vendor"))),
-        SYNC_MODE(plugin -> Component.text(WordUtils.capitalizeFully(plugin.getSettings().getSyncMode().toString()))),
-        DELAY_LATENCY(plugin -> Component.text(plugin.getSettings().getNetworkLatencyMilliseconds() + "ms")),
+        SYNC_MODE(plugin -> Component.text(WordUtils.capitalizeFully(
+                plugin.getSettings().getSynchronization().getMode().toString()
+        ))),
+        DELAY_LATENCY(plugin -> Component.text(
+                plugin.getSettings().getSynchronization().getNetworkLatencyMilliseconds() + "ms"
+        )),
         SERVER_NAME(plugin -> Component.text(plugin.getServerName())),
-        DATABASE_TYPE(plugin -> Component.text(plugin.getSettings().getDatabaseType().getDisplayName())),
-        IS_DATABASE_LOCAL(plugin -> getLocalhostBoolean(plugin.getSettings().getMySqlHost())),
-        USING_REDIS_SENTINEL(plugin -> getBoolean(!plugin.getSettings().getRedisSentinelMaster().isBlank())),
-        USING_REDIS_PASSWORD(plugin -> getBoolean(!plugin.getSettings().getRedisPassword().isBlank())),
-        REDIS_USING_SSL(plugin -> getBoolean(plugin.getSettings().redisUseSsl())),
-        IS_REDIS_LOCAL(plugin -> getLocalhostBoolean(plugin.getSettings().getRedisHost())),
+        DATABASE_TYPE(plugin -> Component.text(plugin.getSettings().getDatabase().getType().getDisplayName())),
+        IS_DATABASE_LOCAL(plugin -> getLocalhostBoolean(plugin.getSettings().getDatabase().getCredentials().getHost())),
+        USING_REDIS_SENTINEL(plugin -> getBoolean(
+                !plugin.getSettings().getRedis().getSentinel().getMaster().isBlank()
+        )),
+        USING_REDIS_PASSWORD(plugin -> getBoolean(
+                !plugin.getSettings().getRedis().getCredentials().getPassword().isBlank()
+        )),
+        REDIS_USING_SSL(plugin -> getBoolean(
+                plugin.getSettings().getRedis().getCredentials().isUseSsl()
+        )),
+        IS_REDIS_LOCAL(plugin -> getLocalhostBoolean(
+                plugin.getSettings().getRedis().getCredentials().getHost()
+        )),
         DATA_TYPES(plugin -> Component.join(
                 JoinConfiguration.commas(true),
                 plugin.getRegisteredDataTypes().stream().map(i -> {
-                    boolean enabled = plugin.getSettings().isSyncFeatureEnabled(i);
+                    boolean enabled = plugin.getSettings().getSynchronization().isFeatureEnabled(i);
                     return Component.textOfChildren(Component
                                     .text(i.toString()).appendSpace().append(Component.text(enabled ? '✔' : '❌')))
                             .color(enabled ? NamedTextColor.GREEN : NamedTextColor.RED)

@@ -23,6 +23,8 @@ import de.themoep.minedown.adventure.MineDown;
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.data.Data;
 import net.william278.husksync.data.DataSnapshot;
+import net.william278.husksync.redis.RedisKeyType;
+import net.william278.husksync.redis.RedisManager;
 import net.william278.husksync.user.OnlineUser;
 import net.william278.husksync.user.User;
 import org.jetbrains.annotations.NotNull;
@@ -70,8 +72,8 @@ public class EnderChestCommand extends ItemsCommand {
 
     // Creates a new snapshot with the updated enderChest
     @SuppressWarnings("DuplicatedCode")
-    private void updateItems(@NotNull OnlineUser viewer, @NotNull Data.Items.Items items, @NotNull User user) {
-        final Optional<DataSnapshot.Packed> latestData = plugin.getDatabase().getLatestSnapshot(user);
+    private void updateItems(@NotNull OnlineUser viewer, @NotNull Data.Items.Items items, @NotNull User holder) {
+        final Optional<DataSnapshot.Packed> latestData = plugin.getDatabase().getLatestSnapshot(holder);
         if (latestData.isEmpty()) {
             plugin.getLocales().getLocale("error_no_data_to_display")
                     .ifPresent(viewer::sendMessage);
@@ -81,12 +83,19 @@ public class EnderChestCommand extends ItemsCommand {
         // Create and pack the snapshot with the updated enderChest
         final DataSnapshot.Packed snapshot = latestData.get().copy();
         snapshot.edit(plugin, (data) -> {
-            data.setSaveCause(DataSnapshot.SaveCause.ENDERCHEST_COMMAND);
-            data.setPinned(plugin.getSettings().doAutoPin(DataSnapshot.SaveCause.ENDERCHEST_COMMAND));
             data.getEnderChest().ifPresent(enderChest -> enderChest.setContents(items));
+            data.setSaveCause(DataSnapshot.SaveCause.ENDERCHEST_COMMAND);
+            data.setPinned(
+                    plugin.getSettings().getSynchronization().doAutoPin(DataSnapshot.SaveCause.ENDERCHEST_COMMAND)
+            );
         });
-        plugin.getDatabase().addSnapshot(user, snapshot);
-        plugin.getRedisManager().sendUserDataUpdate(user, snapshot);
+
+        // Save data
+        final RedisManager redis = plugin.getRedisManager();
+        plugin.getDataSyncer().saveData(holder, snapshot, (user, data) -> {
+            redis.getUserData(user).ifPresent(d -> redis.setUserData(user, snapshot, RedisKeyType.TTL_1_YEAR));
+            redis.sendUserDataUpdate(user, data);
+        });
     }
 
 }

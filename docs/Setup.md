@@ -5,7 +5,7 @@ This will walk you through installing HuskSync on your network of Spigot servers
 
 * A MySQL Database (v8.0+)
 * A Redis Database (v5.0+) &mdash; see [[FAQs]] for more details.
-* Any number of Spigot servers, connected by a BungeeCord or Velocity-based proxy (Minecraft v1.16.5+, running Java 16+)
+* Any number of Spigot servers, connected by a BungeeCord or Velocity-based proxy (Minecraft v1.17.1+, running Java 17+)
 
 ## Setup Instructions
 ### 1. Install the jar

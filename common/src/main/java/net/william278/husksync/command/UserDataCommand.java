@@ -21,6 +21,8 @@ package net.william278.husksync.command;
 
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.data.DataSnapshot;
+import net.william278.husksync.redis.RedisKeyType;
+import net.william278.husksync.redis.RedisManager;
 import net.william278.husksync.user.CommandUser;
 import net.william278.husksync.user.User;
 import net.william278.husksync.util.DataDumper;
@@ -110,13 +112,14 @@ public class UserDataCommand extends Command implements TabProvider {
                     return;
                 }
 
-                // Delete user data by specified UUID
+                // Delete user data by specified UUID and clear their data cache
                 final UUID version = optionalUuid.get();
                 if (!plugin.getDatabase().deleteSnapshot(user, version)) {
                     plugin.getLocales().getLocale("error_invalid_version_uuid")
                             .ifPresent(executor::sendMessage);
                     return;
                 }
+                plugin.getRedisManager().clearUserData(user);
 
                 plugin.getLocales().getLocale("data_deleted",
                                 version.toString().split("-")[0],
@@ -147,14 +150,19 @@ public class UserDataCommand extends Command implements TabProvider {
                 data.edit(plugin, (unpacked -> {
                     unpacked.getHealth().ifPresent(status -> status.setHealth(Math.max(1, status.getHealth())));
                     unpacked.setSaveCause(DataSnapshot.SaveCause.BACKUP_RESTORE);
-                    unpacked.setPinned(plugin.getSettings().doAutoPin(DataSnapshot.SaveCause.BACKUP_RESTORE));
+                    unpacked.setPinned(
+                            plugin.getSettings().getSynchronization().doAutoPin(DataSnapshot.SaveCause.BACKUP_RESTORE)
+                    );
                 }));
 
-                // Set the user's data and send a message
-                plugin.getDatabase().addSnapshot(user, data);
-                plugin.getRedisManager().sendUserDataUpdate(user, data);
-                plugin.getLocales().getLocale("data_restored", user.getUsername(), user.getUuid().toString(),
-                        data.getShortId(), data.getId().toString()).ifPresent(executor::sendMessage);
+                // Save data
+                final RedisManager redis = plugin.getRedisManager();
+                plugin.getDataSyncer().saveData(user, data, (u, s) -> {
+                    redis.getUserData(u).ifPresent(d -> redis.setUserData(u, s, RedisKeyType.TTL_1_YEAR));
+                    redis.sendUserDataUpdate(u, s);
+                    plugin.getLocales().getLocale("data_restored", u.getUsername(), u.getUuid().toString(),
+                            s.getShortId(), s.getId().toString()).ifPresent(executor::sendMessage);
+                });
             }
 
             case "pin" -> {
