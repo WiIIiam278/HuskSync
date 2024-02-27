@@ -26,7 +26,6 @@ dependencies {
 
     compileOnly 'org.jetbrains:annotations:24.0.1'
     compileOnly 'net.william278:DesertWell:2.0.4'
-    compileOnly 'net.william278:Annotaml:2.0.1'
     compileOnly 'org.projectlombok:lombok:1.18.30'
 
     annotationProcessor 'org.projectlombok:lombok:1.18.30'
@@ -46,17 +45,15 @@ shadowJar {
     relocate 'org.apache.commons.text', 'net.william278.husksync.libraries.commons.text'
     relocate 'org.apache.commons.lang3', 'net.william278.husksync.libraries.commons.lang3'
     relocate 'com.google.gson', 'net.william278.husksync.libraries.gson'
-    relocate 'org.json', 'net.william278.husksync.libraries.json'
     relocate 'com.fatboyindustrial', 'net.william278.husksync.libraries'
     relocate 'de.themoep', 'net.william278.husksync.libraries'
     relocate 'org.jetbrains', 'net.william278.husksync.libraries'
     relocate 'org.intellij', 'net.william278.husksync.libraries'
     relocate 'com.zaxxer', 'net.william278.husksync.libraries'
-    relocate 'net.william278.annotaml', 'net.william278.husksync.libraries.annotaml'
-    relocate 'net.william278.paginedown', 'net.william278.husksync.libraries.paginedown'
+    relocate 'de.exlll', 'net.william278.huskclaims.libraries'
     relocate 'net.william278.desertwell', 'net.william278.husksync.libraries.desertwell'
-    relocate 'dev.dejvokep.boostedyaml', 'net.william278.husksync.libraries.boostedyaml'
-    relocate 'org.yaml.snakeyaml', 'net.william278.husksync.libraries.snakeyaml'
+    relocate 'net.william278.paginedown', 'net.william278.husksync.libraries.paginedown'
+    relocate 'org.json', 'net.william278.husksync.libraries.json'
 }
 
 remapJar {

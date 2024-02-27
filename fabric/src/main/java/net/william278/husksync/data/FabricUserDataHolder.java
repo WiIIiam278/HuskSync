@@ -22,10 +22,13 @@ package net.william278.husksync.data;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;
+
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
 import java.util.Optional;
+
+import static net.william278.husksync.config.Settings.SynchronizationSettings.SaveOnDeathSettings;
 
 public interface FabricUserDataHolder extends UserDataHolder {
 
@@ -49,6 +52,7 @@ public interface FabricUserDataHolder extends UserDataHolder {
         }
         return Optional.ofNullable(getCustomDataStore().get(id));
     }
+
     @Override
     default void setData(@NotNull Identifier id, @NotNull Data data) {
         if (id.isCustom()) {
@@ -60,7 +64,8 @@ public interface FabricUserDataHolder extends UserDataHolder {
     @NotNull
     @Override
     default Optional<Data.Items.Inventory> getInventory() {
-        if ((isDead() && !getPlugin().getSettings().doSynchronizeDeadPlayersChangingServer())) {
+        final SaveOnDeathSettings death = getPlugin().getSettings().getSynchronization().getSaveOnDeath();
+        if ((isDead() && !death.isSyncDeadPlayersChangingServer())) {
             return Optional.of(FabricData.Items.Inventory.empty());
         }
         final PlayerInventory inventory = getPlayer().getInventory();
@@ -73,7 +78,7 @@ public interface FabricUserDataHolder extends UserDataHolder {
     private ItemStack[] getCombinedInventory(@NotNull PlayerInventory inventory) {
         final ItemStack[] combined = new ItemStack[inventory.main.size() + inventory.armor.size() + inventory.offHand.size()];
         System.arraycopy(inventory.main.toArray(
-                new ItemStack[0]), 0, combined,
+                        new ItemStack[0]), 0, combined,
                 0, inventory.main.size()
         );
         System.arraycopy(
@@ -158,7 +163,7 @@ public interface FabricUserDataHolder extends UserDataHolder {
     }
 
     boolean isDead();
-    
+
     @NotNull
     ServerPlayerEntity getPlayer();
 
