@@ -34,6 +34,9 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Arrays;
 import java.util.List;
 
+import static net.william278.husksync.data.Data.Items.Inventory.HELD_ITEM_SLOT_TAG;
+import static net.william278.husksync.data.Data.Items.Inventory.ITEMS_TAG;
+
 //TODO
 public abstract class FabricSerializer {
 
@@ -55,8 +58,6 @@ public abstract class FabricSerializer {
     }
 
     public static class Inventory extends FabricSerializer implements Serializer<FabricData.Items.Inventory> {
-        private static final String ITEMS_TAG = "items";
-        private static final String HELD_ITEM_SLOT_TAG = "held_item_slot";
 
         public Inventory(@NotNull HuskSync plugin) {
             super(plugin);
