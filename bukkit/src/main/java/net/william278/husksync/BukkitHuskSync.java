@@ -163,11 +163,11 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
 
         // Initialize the database
         initialize(getSettings().getDatabase().getType().getDisplayName() + " database connection", (plugin) -> {
-            if (settings.getDatabase().getType().isSqlBased()) {
-                this.database = new MySqlDatabase(this);
-            } else {
-                this.database = new MongoDbDatabase(this);
-            }
+            this.database = switch (settings.getDatabase().getType()) {
+                case MYSQL, MARIADB -> new MySqlDatabase(this);
+                case MONGO -> new MongoDbDatabase(this);
+                default -> throw new IllegalStateException("Invalid database type");
+            };
             this.database.initialize();
         });
 

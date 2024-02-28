@@ -3,6 +3,7 @@ package net.william278.husksync.database.mongo;
 import com.mongodb.client.MongoCollection;
 import org.bson.Document;
 import org.bson.conversions.Bson;
+import org.jetbrains.annotations.NotNull;
 
 public class MongoCollectionHelper {
     private final MongoConnectionHandler database;
@@ -11,7 +12,7 @@ public class MongoCollectionHelper {
      * Initialize the collection helper
      * @param database Instance of {@link MongoConnectionHandler}
      */
-    public MongoCollectionHelper(MongoConnectionHandler database) {
+    public MongoCollectionHelper(@NotNull MongoConnectionHandler database) {
         this.database = database;
     }
 

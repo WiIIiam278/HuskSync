@@ -43,7 +43,7 @@ public class MongoDbDatabase extends Database {
      */
     @Override
     public void initialize() throws IllegalStateException {
-        final Settings.DatabaseSettings.MongoDatabaseCredentials credentials = plugin.getSettings().getDatabase().getMongoCredentials();
+        final Settings.DatabaseSettings.DatabaseCredentials credentials = plugin.getSettings().getDatabase().getCredentials();
         try {
             mongoConnectionHandler = new MongoConnectionHandler(
                     credentials.getHost(),
@@ -53,16 +53,16 @@ public class MongoDbDatabase extends Database {
                     credentials.getDatabase(),
                     credentials.getAuthDb()
             );
-        } catch (MongoException e) {
+            mongoCollectionHelper = new MongoCollectionHelper(mongoConnectionHandler);
+            if (mongoCollectionHelper.getCollection(usersTable) == null) {
+                mongoCollectionHelper.createCollection(usersTable);
+            }
+            if (mongoCollectionHelper.getCollection(userDataTable) == null) {
+                mongoCollectionHelper.createCollection(userDataTable);
+            }
+        } catch (Exception e) {
             throw new IllegalStateException("Failed to establish a connection to the MongoDB database. " +
                     "Please check the supplied database credentials in the config file", e);
-        }
-        mongoCollectionHelper = new MongoCollectionHelper(mongoConnectionHandler);
-        if (mongoCollectionHelper.getCollection(usersTable) == null) {
-            mongoCollectionHelper.createCollection(usersTable);
-        }
-        if (mongoCollectionHelper.getCollection(userDataTable) == null) {
-            mongoCollectionHelper.createCollection(userDataTable);
         }
     }
 

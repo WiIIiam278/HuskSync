@@ -100,24 +100,10 @@ public class Settings {
             private String database = "HuskSync";
             private String username = "root";
             private String password = "pa55w0rd";
+            private String authDb = "admin";
             private String parameters = String.join("&",
                     "?autoReconnect=true", "useSSL=false",
                     "useUnicode=true", "characterEncoding=UTF-8");
-        }
-
-        @Comment("Specify credentials here for your MONGO database (This is only required if you have set the database type to \"MONGO\")")
-        private MongoDatabaseCredentials mongoCredentials = new MongoDatabaseCredentials();
-
-        @Getter
-        @Configuration
-        @NoArgsConstructor(access = AccessLevel.PRIVATE)
-        public static class MongoDatabaseCredentials {
-            private String host = "localhost";
-            private int port = 27017;
-            private String database = "HuskSync";
-            private String username = "root";
-            private String password = "pa55w0rd";
-            private String authDb = "admin";
         }
 
         @Comment("MYSQL / MARIADB database Hikari connection pool properties. Don't modify this unless you know what you're doing!")
