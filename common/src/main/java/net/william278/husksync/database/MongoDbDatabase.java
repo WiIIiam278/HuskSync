@@ -51,7 +51,7 @@ public class MongoDbDatabase extends Database {
                     credentials.getUsername(),
                     credentials.getPassword(),
                     credentials.getDatabase(),
-                    credentials.getAuthDb()
+                    credentials.getMongoAuthDb()
             );
             mongoCollectionHelper = new MongoCollectionHelper(mongoConnectionHandler);
             if (mongoCollectionHelper.getCollection(usersTable) == null) {
