@@ -168,7 +168,8 @@ public class MongoDbDatabase extends Database {
      */
     @Blocking
     @Override
-    public @NotNull List<DataSnapshot.Packed> getAllSnapshots(@NotNull User user) {
+    @NotNull
+    public List<DataSnapshot.Packed> getAllSnapshots(@NotNull User user) {
         final List<DataSnapshot.Packed> retrievedData = Lists.newArrayList();
         Document filter = new Document("player_uuid", user.getUuid().toString());
         Document sort = new Document("timestamp", -1); // -1 = Descending
@@ -243,6 +244,7 @@ public class MongoDbDatabase extends Database {
      * @param user        The user to get data for
      * @param versionUuid The UUID of the {@link DataSnapshot} entry to delete
      */
+    @Blocking
     @Override
     public boolean deleteSnapshot(@NotNull User user, @NotNull UUID versionUuid) {
         try {
@@ -267,6 +269,7 @@ public class MongoDbDatabase extends Database {
      * @param user   The user to delete a snapshot for
      * @param within The time to delete a snapshot after
      */
+    @Blocking
     @Override
     protected void rotateLatestSnapshot(@NotNull User user, @NotNull OffsetDateTime within) {
         try {
@@ -296,8 +299,9 @@ public class MongoDbDatabase extends Database {
      * @param user The user to add data for
      * @param data The {@link DataSnapshot} to set.
      */
+    @Blocking
     @Override
-    protected void createSnapshot(@NotNull User user, DataSnapshot.@NotNull Packed data) {
+    protected void createSnapshot(@NotNull User user, @NotNull DataSnapshot.Packed data) {
         try {
             Document doc = new Document("player_uuid", user.getUuid().toString())
                     .append("version_uuid", data.getId().toString())
@@ -317,8 +321,9 @@ public class MongoDbDatabase extends Database {
      * @param user     The user whose data snapshot
      * @param data The {@link DataSnapshot} to update
      */
+    @Blocking
     @Override
-    public void updateSnapshot(@NotNull User user, DataSnapshot.@NotNull Packed data) {
+    public void updateSnapshot(@NotNull User user, @NotNull DataSnapshot.Packed data) {
         try {
             Document doc = new Document("player_uuid", user.getUuid().toString()).append("version_uuid", data.getId().toString());
             Bson updates = Updates.combine(
@@ -336,6 +341,7 @@ public class MongoDbDatabase extends Database {
      * Wipes <b>all</b> {@link User} entries from the database.
      * <b>This should only be used when preparing tables for a data migration.</b>
      */
+    @Blocking
     @Override
     public void wipeDatabase() {
         try {

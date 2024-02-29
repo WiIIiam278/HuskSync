@@ -20,7 +20,7 @@ public class MongoCollectionHelper {
      * Create a collection
      * @param collectionName the collection name
      */
-    public void createCollection(String collectionName) {
+    public void createCollection(@NotNull String collectionName) {
         database.getDatabase().createCollection(collectionName);
     }
 
@@ -28,7 +28,7 @@ public class MongoCollectionHelper {
      * Delete a collection
      * @param collectionName the collection name
      */
-    public void deleteCollection(String collectionName) {
+    public void deleteCollection(@NotNull String collectionName) {
         database.getDatabase().getCollection(collectionName).drop();
     }
 
@@ -37,7 +37,7 @@ public class MongoCollectionHelper {
      * @param collectionName the collection name
      * @return MongoCollection<Document>
      */
-    public MongoCollection<Document> getCollection(String collectionName) {
+    public MongoCollection<Document> getCollection(@NotNull String collectionName) {
         return database.getDatabase().getCollection(collectionName);
     }
 
@@ -46,7 +46,7 @@ public class MongoCollectionHelper {
      * @param collectionName collection to add to
      * @param document Document to add
      */
-    public void insertDocument(String collectionName, Document document) {
+    public void insertDocument(@NotNull String collectionName, @NotNull Document document) {
         MongoCollection<Document> collection = database.getDatabase().getCollection(collectionName);
         collection.insertOne(document);
     }
@@ -57,7 +57,7 @@ public class MongoCollectionHelper {
      * @param document filter of document
      * @param updates Bson of updates
      */
-    public void updateDocument(String collectionName, Document document, Bson updates) {
+    public void updateDocument(@NotNull String collectionName, @NotNull Document document, @NotNull Bson updates) {
         MongoCollection<Document> collection = database.getDatabase().getCollection(collectionName);
         collection.updateOne(document, updates);
     }
@@ -67,7 +67,7 @@ public class MongoCollectionHelper {
      * @param collectionName collection the document is in
      * @param document filter to remove
      */
-    public void deleteDocument(String collectionName, Document document) {
+    public void deleteDocument(@NotNull String collectionName, @NotNull Document document) {
         MongoCollection<Document> collection = database.getDatabase().getCollection(collectionName);
         collection.deleteOne(document);
     }

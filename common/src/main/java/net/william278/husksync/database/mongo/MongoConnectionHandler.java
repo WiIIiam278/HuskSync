@@ -26,10 +26,10 @@ public class MongoConnectionHandler {
      * @param authDb The database to authenticate with.
      */
     public MongoConnectionHandler(@NotNull String host, @NotNull Integer port, @NotNull String username, @NotNull String password, @NotNull  String databaseName, @NotNull String authDb) {
-        ServerAddress serverAddress = new ServerAddress(host, port);
-        MongoCredential credential = MongoCredential.createCredential(username, authDb, password.toCharArray());
+        final ServerAddress serverAddress = new ServerAddress(host, port);
+        final MongoCredential credential = MongoCredential.createCredential(username, authDb, password.toCharArray());
 
-        MongoClientSettings settings = MongoClientSettings.builder()
+        final MongoClientSettings settings = MongoClientSettings.builder()
                 .credential(credential)
                 .applyToClusterSettings(builder -> builder.hosts(Collections.singletonList(serverAddress)))
                 .build();
