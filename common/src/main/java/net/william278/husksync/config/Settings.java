@@ -30,6 +30,7 @@ import net.william278.husksync.data.Identifier;
 import net.william278.husksync.database.Database;
 import net.william278.husksync.listener.EventListener;
 import net.william278.husksync.sync.DataSyncer;
+import org.checkerframework.checker.units.qual.C;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -85,10 +86,10 @@ public class Settings {
     @NoArgsConstructor(access = AccessLevel.PRIVATE)
     public static class DatabaseSettings {
 
-        @Comment("Type of database to use (MYSQL, MARIADB)")
+        @Comment("Type of database to use (MYSQL, MARIADB, MONGO)")
         private Database.Type type = Database.Type.MYSQL;
 
-        @Comment("Specify credentials here for your MYSQL or MARIADB database")
+        @Comment("Specify credentials here for your MYSQL, MARIADB OR MONGO database")
         private DatabaseCredentials credentials = new DatabaseCredentials();
 
         @Getter
@@ -100,9 +101,12 @@ public class Settings {
             private String database = "HuskSync";
             private String username = "root";
             private String password = "pa55w0rd";
+            @Comment("Only change this if you have select MYSQL or MARIADB")
             private String parameters = String.join("&",
                     "?autoReconnect=true", "useSSL=false",
                     "useUnicode=true", "characterEncoding=UTF-8");
+            @Comment("Only change this if you have selected MONGO")
+            private String mongoAuthDb = "admin";
         }
 
         @Comment("MYSQL / MARIADB database Hikari connection pool properties. Don't modify this unless you know what you're doing!")
