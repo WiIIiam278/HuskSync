@@ -19,6 +19,7 @@
 
 package net.william278.husksync.database;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.config.Settings;
@@ -253,9 +254,11 @@ public abstract class Database {
     /**
      * Identifies types of databases
      */
+    @Getter
     public enum Type {
         MYSQL("MySQL", "mysql"),
-        MARIADB("MariaDB", "mariadb");
+        MARIADB("MariaDB", "mariadb"),
+        MONGO("MongoDB", "mongo");
 
         private final String displayName;
         private final String protocol;
@@ -263,16 +266,6 @@ public abstract class Database {
         Type(@NotNull String displayName, @NotNull String protocol) {
             this.displayName = displayName;
             this.protocol = protocol;
-        }
-
-        @NotNull
-        public String getDisplayName() {
-            return displayName;
-        }
-
-        @NotNull
-        public String getProtocol() {
-            return protocol;
         }
     }
 
