@@ -24,20 +24,25 @@ import net.fabricmc.fabric.api.event.EventFactory;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ActionResult;
+import org.jetbrains.annotations.NotNull;
 
 public interface ItemPickupCallback {
+
+    @NotNull
     Event<ItemPickupCallback> EVENT = EventFactory.createArrayBacked(ItemPickupCallback.class,
-        (listeners) -> (player, itemStack) -> {
-            for (ItemPickupCallback listener : listeners) {
-                ActionResult result = listener.interact(player, itemStack);
+            (listeners) -> (player, itemStack) -> {
+                for (ItemPickupCallback listener : listeners) {
+                    ActionResult result = listener.interact(player, itemStack);
 
-                if(result != ActionResult.PASS) {
-                    return result;
+                    if (result != ActionResult.PASS) {
+                        return result;
+                    }
                 }
-            }
 
-            return ActionResult.PASS;
-        });
+                return ActionResult.PASS;
+            });
 
+    @NotNull
     ActionResult interact(PlayerEntity player, ItemStack sheep);
+
 }

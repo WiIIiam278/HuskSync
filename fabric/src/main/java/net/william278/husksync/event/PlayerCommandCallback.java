@@ -23,20 +23,25 @@ import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.ActionResult;
+import org.jetbrains.annotations.NotNull;
 
 public interface PlayerCommandCallback {
+
+    @NotNull
     Event<PlayerCommandCallback> EVENT = EventFactory.createArrayBacked(PlayerCommandCallback.class,
-        (listeners) -> (player, command) -> {
-            for (PlayerCommandCallback listener : listeners) {
-                ActionResult result = listener.interact(player, command);
+            (listeners) -> (player, command) -> {
+                for (PlayerCommandCallback listener : listeners) {
+                    ActionResult result = listener.interact(player, command);
 
-                if(result != ActionResult.PASS) {
-                    return result;
+                    if (result != ActionResult.PASS) {
+                        return result;
+                    }
                 }
-            }
 
-            return ActionResult.PASS;
-        });
+                return ActionResult.PASS;
+            });
 
+    @NotNull
     ActionResult interact(PlayerEntity player, String command);
+
 }
