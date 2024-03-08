@@ -67,6 +67,7 @@ public class HuskSyncCommand extends Command implements TabProvider {
                 .credits("Contributors",
                         AboutMenu.Credit.of("HarvelsX").description("Code"),
                         AboutMenu.Credit.of("HookWoods").description("Code"),
+                        AboutMenu.Credit.of("Preva1l").description("Code"),
                         AboutMenu.Credit.of("hanbings").description("Code (Fabric porting)"),
                         AboutMenu.Credit.of("Stampede2011").description("Code (Fabric mixins)"))
                 .credits("Translators",

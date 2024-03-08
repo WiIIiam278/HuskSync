@@ -7,7 +7,7 @@ dependencies {
     api 'org.apache.commons:commons-text:1.11.0'
     api 'org.apache.commons:commons-pool2:2.12.0'
     api 'de.themoep:minedown-adventure:1.7.2-SNAPSHOT'
-    api 'org.json:json:20240205'
+    api 'org.json:json:20240303'
     api 'com.google.code.gson:gson:2.10.1'
     api 'com.fatboyindustrial.gson-javatime-serialisers:gson-javatime-serialisers:1.1.2'
     api 'com.github.Exlll.ConfigLib:configlib-yaml:v4.5.0'
@@ -26,6 +26,7 @@ dependencies {
     compileOnly "redis.clients:jedis:$jedis_version"
     compileOnly "com.mysql:mysql-connector-j:$mysql_driver_version"
     compileOnly "org.mariadb.jdbc:mariadb-java-client:$mariadb_driver_version"
+    compileOnly "org.mongodb:mongodb-driver:$mongodb_driver_version"
     compileOnly "org.xerial.snappy:snappy-java:$snappy_version"
 
     testImplementation "redis.clients:jedis:$jedis_version"

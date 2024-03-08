@@ -43,6 +43,7 @@ import net.william278.husksync.data.Data;
 import net.william278.husksync.data.Identifier;
 import net.william278.husksync.data.Serializer;
 import net.william278.husksync.database.Database;
+import net.william278.husksync.database.MongoDbDatabase;
 import net.william278.husksync.database.MySqlDatabase;
 import net.william278.husksync.event.BukkitEventDispatcher;
 import net.william278.husksync.hook.PlanHook;
@@ -162,7 +163,11 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
 
         // Initialize the database
         initialize(getSettings().getDatabase().getType().getDisplayName() + " database connection", (plugin) -> {
-            this.database = new MySqlDatabase(this);
+            this.database = switch (settings.getDatabase().getType()) {
+                case MYSQL, MARIADB -> new MySqlDatabase(this);
+                case MONGO -> new MongoDbDatabase(this);
+                default -> throw new IllegalStateException("Invalid database type");
+            };
             this.database.initialize();
         });
 
