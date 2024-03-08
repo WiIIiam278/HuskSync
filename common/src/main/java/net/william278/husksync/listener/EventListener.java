@@ -124,7 +124,9 @@ public abstract class EventListener {
                 .forEach(user -> {
                     plugin.lockPlayer(user.getUuid());
                     plugin.getDataSyncer().saveData(
-                            user, user.createSnapshot(DataSnapshot.SaveCause.SERVER_SHUTDOWN), null
+                            user,
+                            user.createSnapshot(DataSnapshot.SaveCause.SERVER_SHUTDOWN),
+                            (saved, data) -> plugin.getRedisManager().clearUserData(saved)
                     );
                 });
 

@@ -26,7 +26,7 @@
 </p>
 <br/>
 
-**HuskSync** is a modern, cross-server player data synchronization system that enables the comprehensive synchronization of your user's data across multiple proxied servers. It does this by making use of Redis and MySQL to optimally cache data while players change servers.
+**HuskSync** is a modern, cross-server player data synchronization system that enables the comprehensive synchronization of your user's data across multiple proxied servers. It does this by making use of Redis and MySQL/MongoDB to optimally cache data while players change servers.
 
 ## Features
 **⭐ Seamless synchronization** &mdash; Utilises optimised Redis caching when players change server to sync player data super quickly for a seamless experience.
@@ -44,11 +44,11 @@
 **Ready?** [It's syncing time!](https://william278.net/docs/husksync/setup)
 
 ## Setup
-Requires a MySQL (v8.0+) database, a Redis (v5.0+) server and any number of Spigot-based 1.17.1+ Minecraft servers, running Java 17+.
+Requires a MySQL (v8.0+) or MongoDB database, a Redis (v5.0+) server and any number of Spigot-based 1.17.1+ Minecraft servers, running Java 17+.
 
 1. Place the plugin jar file in the /plugins/ directory of each Spigot server. You do not need to install HuskSync as a proxy plugin.
 2. Start, then stop every server to let HuskSync generate the config file.
-3. Navigate to the HuskSync config file on each server (~/plugins/HuskSync/config.yml) and fill in both the MySQL and Redis database credentials.
+3. Navigate to the HuskSync config file on each server (~/plugins/HuskSync/config.yml) and fill in both your database and Redis server credentials.
 4. Start every server again and synchronization will begin.
 
 ## Development
