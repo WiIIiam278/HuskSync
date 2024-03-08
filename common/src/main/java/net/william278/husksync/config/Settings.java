@@ -86,10 +86,10 @@ public class Settings {
     @NoArgsConstructor(access = AccessLevel.PRIVATE)
     public static class DatabaseSettings {
 
-        @Comment("Type of database to use (MYSQL, MARIADB, MONGO)")
+        @Comment("Type of database to use (MYSQL, MARIADB, POSTGRES, MONGO)")
         private Database.Type type = Database.Type.MYSQL;
 
-        @Comment("Specify credentials here for your MYSQL, MARIADB OR MONGO database")
+        @Comment("Specify credentials here for your MYSQL, MARIADB, POSTGRES OR MONGO database")
         private DatabaseCredentials credentials = new DatabaseCredentials();
 
         @Getter
@@ -101,7 +101,7 @@ public class Settings {
             private String database = "HuskSync";
             private String username = "root";
             private String password = "pa55w0rd";
-            @Comment("Only change this if you have select MYSQL or MARIADB")
+            @Comment("Only change this if you have select MYSQL, MARIADB or POSTGRES")
             private String parameters = String.join("&",
                     "?autoReconnect=true", "useSSL=false",
                     "useUnicode=true", "characterEncoding=UTF-8");
@@ -109,7 +109,7 @@ public class Settings {
             private String mongoAuthDb = "admin";
         }
 
-        @Comment("MYSQL / MARIADB database Hikari connection pool properties. Don't modify this unless you know what you're doing!")
+        @Comment("MYSQL, MARIADB, POSTGRES database Hikari connection pool properties. Don't modify this unless you know what you're doing!")
         private PoolSettings connectionPool = new PoolSettings();
 
         @Getter

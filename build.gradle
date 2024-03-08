@@ -20,6 +20,7 @@ ext {
     set 'jedis_version', jedis_version.toString()
     set 'mysql_driver_version', mysql_driver_version.toString()
     set 'mariadb_driver_version', mariadb_driver_version.toString()
+    set 'postgres_driver_version', postgres_driver_version.toString()
     set 'mongodb_driver_version', mongodb_driver_version.toString()
     set 'snappy_version', snappy_version.toString()
 }

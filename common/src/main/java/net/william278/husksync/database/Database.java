@@ -258,6 +258,7 @@ public abstract class Database {
     public enum Type {
         MYSQL("MySQL", "mysql"),
         MARIADB("MariaDB", "mariadb"),
+        POSTGRES("PostgreSQL", "postgresql"),
         MONGO("MongoDB", "mongo");
 
         private final String displayName;
