@@ -41,10 +41,11 @@ import static net.william278.husksync.data.Data.Items.Inventory.HELD_ITEM_SLOT_T
 import static net.william278.husksync.data.Data.Items.Inventory.ITEMS_TAG;
 
 //TODO
+@Getter
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public abstract class FabricSerializer {
 
-    @Getter(onMethod_ = @ApiStatus.Internal)
+    @ApiStatus.Internal
     protected final HuskSync plugin;
 
     @SuppressWarnings("unused")
@@ -145,5 +146,5 @@ public abstract class FabricSerializer {
         }
 
     }
-    
+
 }

@@ -121,12 +121,13 @@ public abstract class BukkitData implements Data {
             return false;
         }
 
+        @Setter
         @Getter
         public static class Inventory extends BukkitData.Items implements Data.Items.Inventory {
 
             public static final int INVENTORY_SLOT_COUNT = 41;
 
-            @Setter(onMethod_ = @Range(from = 0, to = 8))
+            @Range(from = 0, to = 8)
             private int heldItemSlot;
 
             private Inventory(@NotNull ItemStack[] contents, int heldItemSlot) {
