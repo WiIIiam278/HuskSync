@@ -169,14 +169,11 @@ def versionMetadata() {
     // Get the last commit hash and if it's a clean head
     if (grgit == null) {
         return '-' + System.getenv("GITHUB_RUN_NUMBER") ? 'build.' + System.getenv("GITHUB_RUN_NUMBER") : 'unknown'
-        
+    }
     // If grgit DOES exist, get tag for this commit
     def tag = grgit.tag.list().find { it.commit.id == grgit.head().id }
     if (tag != null) {
         return ''
-    }
-
-
     }
     return '-' + grgit.head().abbreviatedId + (grgit.status().clean ? '' : '-indev')
 }
