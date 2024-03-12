@@ -172,8 +172,5 @@ def versionMetadata() {
     }
     // If grgit DOES exist, get tag for this commit
     def tag = grgit.tag.list().find { it.commit.id == grgit.head().id }
-    if (tag != null) {
-        return ''
-    }
     return '-' + grgit.head().abbreviatedId + (grgit.status().clean ? '' : '-indev')
 }
