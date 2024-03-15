@@ -26,7 +26,7 @@ dependencies {
     compileOnly "com.mysql:mysql-connector-j:$mysql_driver_version"
     compileOnly "org.mariadb.jdbc:mariadb-java-client:$mariadb_driver_version"
     compileOnly "org.postgresql:postgresql:$postgres_driver_version"
-    compileOnly "org.mongodb:mongodb-driver:$mongodb_driver_version"
+    compileOnly "org.mongodb:mongodb-driver-sync:$mongodb_driver_version"
     compileOnly "org.xerial.snappy:snappy-java:$snappy_version"
 
     testImplementation "redis.clients:jedis:$jedis_version"

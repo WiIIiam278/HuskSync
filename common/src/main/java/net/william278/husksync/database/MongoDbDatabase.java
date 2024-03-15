@@ -20,6 +20,7 @@
 package net.william278.husksync.database;
 
 import com.google.common.collect.Lists;
+import com.mongodb.ConnectionString;
 import com.mongodb.MongoException;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.model.Updates;
@@ -64,14 +65,22 @@ public class MongoDbDatabase extends Database {
     public void initialize() throws IllegalStateException {
         final Settings.DatabaseSettings.DatabaseCredentials credentials = plugin.getSettings().getDatabase().getCredentials();
         try {
-            mongoConnectionHandler = new MongoConnectionHandler(
-                    credentials.getHost(),
-                    credentials.getPort(),
-                    credentials.getUsername(),
-                    credentials.getPassword(),
-                    credentials.getDatabase(),
-                    credentials.getMongoAuthDb()
-            );
+            if (plugin.getSettings().getDatabase().getType() == Type.MONGO_ATLAS) {
+                String baseURI = "mongodb+srv://{0}:{1}@{2}/?retryWrites=true&w=majority";
+                baseURI = baseURI.replace("{0}", credentials.getUsername());
+                baseURI = baseURI.replace("{1}", credentials.getPassword());
+                baseURI = baseURI.replace("{2}", credentials.getHost());
+                mongoConnectionHandler = new MongoConnectionHandler(new ConnectionString(baseURI), credentials.getDatabase());
+            } else {
+                mongoConnectionHandler = new MongoConnectionHandler(
+                        credentials.getHost(),
+                        credentials.getPort(),
+                        credentials.getUsername(),
+                        credentials.getPassword(),
+                        credentials.getDatabase(),
+                        credentials.getMongoAuthDb()
+                );
+            }
             mongoCollectionHelper = new MongoCollectionHelper(mongoConnectionHandler);
             if (mongoCollectionHelper.getCollection(usersTable) == null) {
                 mongoCollectionHelper.createCollection(usersTable);
@@ -100,6 +109,9 @@ public class MongoDbDatabase extends Database {
                         try {
                             Document filter = new Document("uuid", existingUser.getUuid().toString());
                             Document doc = mongoCollectionHelper.getCollection(usersTable).find(filter).first();
+                            if (doc == null) {
+                                throw new MongoException("User document returned null!");
+                            }
 
                             Bson updates = Updates.set("uuid", user.getUuid().toString());
                             mongoCollectionHelper.updateDocument(usersTable, doc, updates);

@@ -30,7 +30,6 @@ import net.william278.husksync.data.Identifier;
 import net.william278.husksync.database.Database;
 import net.william278.husksync.listener.EventListener;
 import net.william278.husksync.sync.DataSyncer;
-import org.checkerframework.checker.units.qual.C;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -86,7 +85,7 @@ public class Settings {
     @NoArgsConstructor(access = AccessLevel.PRIVATE)
     public static class DatabaseSettings {
 
-        @Comment("Type of database to use (MYSQL, MARIADB, POSTGRES, MONGO)")
+        @Comment("Type of database to use (MYSQL, MARIADB, POSTGRES, MONGO, MONGO_ATLAS)")
         private Database.Type type = Database.Type.MYSQL;
 
         @Comment("Specify credentials here for your MYSQL, MARIADB, POSTGRES OR MONGO database")

@@ -19,6 +19,7 @@
 
 package net.william278.husksync.database.mongo;
 
+import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
 import com.mongodb.MongoCredential;
 import com.mongodb.ServerAddress;
@@ -26,6 +27,7 @@ import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoDatabase;
 import lombok.Getter;
+import org.bson.UuidRepresentation;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
@@ -51,6 +53,22 @@ public class MongoConnectionHandler {
         final MongoClientSettings settings = MongoClientSettings.builder()
                 .credential(credential)
                 .applyToClusterSettings(builder -> builder.hosts(Collections.singletonList(serverAddress)))
+                .uuidRepresentation(UuidRepresentation.STANDARD)
+                .build();
+
+        this.mongoClient = MongoClients.create(settings);
+        this.database = mongoClient.getDatabase(databaseName);
+    }
+
+    /**
+     * Initiate a connection to a Mongo Server
+     * @param uri The connection string
+     */
+    public MongoConnectionHandler(@NotNull ConnectionString uri, @NotNull  String databaseName) {
+
+        final MongoClientSettings settings = MongoClientSettings.builder()
+                .applyConnectionString(uri)
+                .uuidRepresentation(UuidRepresentation.STANDARD)
                 .build();
 
         this.mongoClient = MongoClients.create(settings);
