@@ -120,7 +120,7 @@ public class Settings {
             private long connectionTimeout = 5000;
         }
 
-        @Comment("Advanced MongoDB settings. Don't modify unless you know what your doing!")
+        @Comment("Advanced MongoDB settings. Don't modify unless you know what you're doing!")
         private MongoSettings mongoSettings = new MongoSettings();
 
         @Getter
