@@ -28,6 +28,7 @@ import net.kyori.adventure.text.format.TextColor;
 import net.william278.desertwell.about.AboutMenu;
 import net.william278.desertwell.util.UpdateChecker;
 import net.william278.husksync.HuskSync;
+import net.william278.husksync.database.Database;
 import net.william278.husksync.migrator.Migrator;
 import net.william278.husksync.user.CommandUser;
 import net.william278.husksync.user.OnlineUser;
@@ -216,7 +217,12 @@ public class HuskSyncCommand extends Command implements TabProvider {
                 plugin.getSettings().getSynchronization().getNetworkLatencyMilliseconds() + "ms"
         )),
         SERVER_NAME(plugin -> Component.text(plugin.getServerName())),
-        DATABASE_TYPE(plugin -> Component.text(plugin.getSettings().getDatabase().getType().getDisplayName())),
+        CLUSTER_ID(plugin -> Component.text(plugin.getSettings().getClusterId().isBlank() ? "None" : plugin.getSettings().getClusterId())),
+        DATABASE_TYPE(plugin ->
+                Component.text(plugin.getSettings().getDatabase().getType().getDisplayName() +
+                        (plugin.getSettings().getDatabase().getType() == Database.Type.MONGO ?
+                                (plugin.getSettings().getDatabase().getMongoSettings().isUsingAtlas() ? " Atlas" : "") : ""))
+        ),
         IS_DATABASE_LOCAL(plugin -> getLocalhostBoolean(plugin.getSettings().getDatabase().getCredentials().getHost())),
         USING_REDIS_SENTINEL(plugin -> getBoolean(
                 !plugin.getSettings().getRedis().getSentinel().getMaster().isBlank()
