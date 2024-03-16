@@ -35,23 +35,28 @@ brigadier_tab_completion: false
 enable_plan_hook: true
 # Database settings
 database:
-  # Type of database to use (MYSQL, MARIADB)
+  # Type of database to use (MYSQL, MARIADB, POSTGRES, MONGO)
   type: MYSQL
-  # Specify credentials here for your MYSQL or MARIADB database
+  # Specify credentials here for your MYSQL, MARIADB, POSTGRES OR MONGO database
   credentials:
     host: localhost
     port: 3306
     database: HuskSync
     username: root
     password: pa55w0rd
+    # Only change this if you have select MYSQL, MARIADB or POSTGRES
     parameters: ?autoReconnect=true&useSSL=false&useUnicode=true&characterEncoding=UTF-8
-  # MYSQL / MARIADB database Hikari connection pool properties. Don't modify this unless you know what you're doing!
+  # MYSQL, MARIADB, POSTGRES database Hikari connection pool properties. Don't modify this unless you know what you're doing!
   connection_pool:
     maximum_pool_size: 10
     minimum_idle: 10
     maximum_lifetime: 1800000
     keepalive_time: 0
     connection_timeout: 5000
+  # Advanced MongoDB settings. Don't modify unless you know what your doing!
+  mongo_settings:
+    using_atlas: false
+    parameters: ?retryWrites=true&w=majority&authSource=HuskSync
   # Names of tables to use on your database. Don't modify this unless you know what you're doing!
   table_names:
     users: husksync_users
@@ -113,25 +118,26 @@ synchronization:
   # Which data types to synchronize.
   # Docs: https://william278.net/docs/husksync/sync-features
   features:
-    persistent_data: true
-    inventory: true
-    game_mode: true
-    advancements: true
-    experience: true
-    ender_chest: true
     potion_effects: true
-    location: false
-    statistics: true
-    health: true
+    ender_chest: true
+    experience: true
+    advancements: true
+    game_mode: true
+    inventory: true
+    persistent_data: true
     hunger: true
+    health: true
+    statistics: true
+    location: false
   # Commands which should be blocked before a player has finished syncing (Use * to block all commands)
   blacklisted_commands_while_locked:
     - '*'
   # Event priorities for listeners (HIGHEST, NORMAL, LOWEST). Change if you encounter plugin conflicts
   event_priorities:
-    quit_listener: LOWEST
     join_listener: LOWEST
+    quit_listener: LOWEST
     death_listener: NORMAL
+
 ```
 
 </details>
