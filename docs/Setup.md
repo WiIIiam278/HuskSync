@@ -31,6 +31,7 @@ This will walk you through installing HuskSync on your network of Spigot servers
 
 - Navigate to the HuskSync config file on each server (`~/plugins/HuskSync/config.yml`)
 - Set `using_atlas` in the `mongo_settings` section to `true`. 
+- Remove `&authSource=HuskSync` from `parameters` in the `mongo_settings`. 
 
 (The `port` setting in `credentials` is disregarded when using Atlas.)
 </details>

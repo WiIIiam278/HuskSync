@@ -67,6 +67,7 @@ public class MongoDbDatabase extends Database {
         try {
             ConnectionString URI = createConnectionURI(credentials);
             mongoConnectionHandler = new MongoConnectionHandler(URI, credentials.getDatabase());
+            mongoCollectionHelper = new MongoCollectionHelper(mongoConnectionHandler);
             if (mongoCollectionHelper.getCollection(usersTable) == null) {
                 mongoCollectionHelper.createCollection(usersTable);
             }
