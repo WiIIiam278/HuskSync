@@ -17,7 +17,7 @@ This will walk you through installing HuskSync on your network of Spigot servers
 - Advanced users: If you'd prefer, you can just create one config.yml file and create symbolic links in each `/plugins/HuskSync/` folder to it to make updating it easier.
 ### 3. Enter Mysql & Redis database credentials
 - Navigate to the HuskSync config file on each server (`~/plugins/HuskSync/config.yml`)
-- Under `credentials` in the `database` section, enter the credentials of your MySQL Database. You shouldn't touch the `connection_pool` properties.
+- Under `credentials` in the `database` section, enter the credentials of your (MySQL/MariaDB/MongoDB/PostgreSQL) Database. You shouldn't touch the `connection_pool` properties.
 - Under `credentials` in the `redis` section, enter the credentials of your Redis Database. If your Redis server doesn't have a password, leave the password blank as it is.
 - Unless you want to have multiple clusters of servers within your network, each with separate user data, you should not change the value of `cluster_id`.
 <details>
