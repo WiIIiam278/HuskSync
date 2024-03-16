@@ -85,7 +85,7 @@ public class Settings {
     @NoArgsConstructor(access = AccessLevel.PRIVATE)
     public static class DatabaseSettings {
 
-        @Comment("Type of database to use (MYSQL, MARIADB, POSTGRES, MONGO, MONGO_ATLAS)")
+        @Comment("Type of database to use (MYSQL, MARIADB, POSTGRES, MONGO)")
         private Database.Type type = Database.Type.MYSQL;
 
         @Comment("Specify credentials here for your MYSQL, MARIADB, POSTGRES OR MONGO database")
@@ -104,8 +104,6 @@ public class Settings {
             private String parameters = String.join("&",
                     "?autoReconnect=true", "useSSL=false",
                     "useUnicode=true", "characterEncoding=UTF-8");
-            @Comment("Only change this if you have selected MONGO")
-            private String mongoAuthDb = "admin";
         }
 
         @Comment("MYSQL, MARIADB, POSTGRES database Hikari connection pool properties. Don't modify this unless you know what you're doing!")
@@ -120,6 +118,19 @@ public class Settings {
             private long maximumLifetime = 1800000;
             private long keepaliveTime = 0;
             private long connectionTimeout = 5000;
+        }
+
+        @Comment("Advanced MongoDB settings. Don't modify unless you know what your doing!")
+        private MongoSettings mongoSettings = new MongoSettings();
+
+        @Getter
+        @Configuration
+        @NoArgsConstructor(access = AccessLevel.PRIVATE)
+        public static class MongoSettings {
+            private boolean usingAtlas = false;
+            private String parameters = String.join("&",
+                    "?retryWrites=true", "w=majority",
+                    "authSource=HuskSync");
         }
 
         @Comment("Names of tables to use on your database. Don't modify this unless you know what you're doing!")

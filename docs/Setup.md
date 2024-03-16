@@ -26,14 +26,13 @@ This will walk you through installing HuskSync on your network of Spigot servers
 - Navigate to the HuskSync config file on each server (`~/plugins/HuskSync/config.yml`)
 - Set `type` in the `database` section to `MONGO`
 - Under `credentials` in the `database` section, enter the credentials of your MongoDB Database. You shouldn't touch the `connection_pool` properties.
-- Be sure to fill in the `mongo_auth_db` field with the database that the username and password is authenticated in. (In most cases this will {and should be} be the same database as the database your trying to connect to.)
 <details>
 <summary><b>MongoDB Atlas</b></summary>
 
 - Navigate to the HuskSync config file on each server (`~/plugins/HuskSync/config.yml`)
-- Set `type` in the `database` section to `MONGO_ATLAS`
-- Under `credentials` in the `database` section, enter the credentials of your MongoDB Database. You shouldn't touch the `connection_pool` properties.
-- The `port` and `mongo_auth_db` options are disregarded when using Atlas.
+- Set `using_atlas` in the `mongo_settings` section to `true`. 
+
+(The `port` setting in `credentials` is disregarded when using Atlas.)
 </details>
 
 </details>

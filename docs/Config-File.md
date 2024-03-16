@@ -35,7 +35,7 @@ brigadier_tab_completion: false
 enable_plan_hook: true
 # Database settings
 database:
-  # Type of database to use (MYSQL, MARIADB, POSTGRES, MONGO, MONGO_ATLAS)
+  # Type of database to use (MYSQL, MARIADB, POSTGRES, MONGO)
   type: MYSQL
   # Specify credentials here for your MYSQL, MARIADB, POSTGRES OR MONGO database
   credentials:
@@ -46,8 +46,6 @@ database:
     password: pa55w0rd
     # Only change this if you have select MYSQL, MARIADB or POSTGRES
     parameters: ?autoReconnect=true&useSSL=false&useUnicode=true&characterEncoding=UTF-8
-    # Only change this if you have selected MONGO
-    mongo_auth_db: admin
   # MYSQL, MARIADB, POSTGRES database Hikari connection pool properties. Don't modify this unless you know what you're doing!
   connection_pool:
     maximum_pool_size: 10
@@ -55,6 +53,10 @@ database:
     maximum_lifetime: 1800000
     keepalive_time: 0
     connection_timeout: 5000
+  # Advanced MongoDB settings. Don't modify unless you know what your doing!
+  mongo_settings:
+    using_atlas: false
+    parameters: ?retryWrites=true&w=majority&authSource=HuskSync
   # Names of tables to use on your database. Don't modify this unless you know what you're doing!
   table_names:
     users: husksync_users

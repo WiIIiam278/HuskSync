@@ -258,8 +258,7 @@ public abstract class Database {
         MYSQL("MySQL", "mysql"),
         MARIADB("MariaDB", "mariadb"),
         POSTGRES("PostgreSQL", "postgresql"),
-        MONGO("MongoDB", "mongo"),
-        MONGO_ATLAS("MongoDB", "atlas");
+        MONGO("MongoDB", "mongo");
 
         private final String displayName;
         private final String protocol;
