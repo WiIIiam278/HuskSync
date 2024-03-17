@@ -20,6 +20,7 @@
 package net.william278.husksync.database;
 
 import com.google.common.collect.Lists;
+import com.mongodb.ConnectionString;
 import com.mongodb.MongoException;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.model.Updates;
@@ -64,14 +65,8 @@ public class MongoDbDatabase extends Database {
     public void initialize() throws IllegalStateException {
         final Settings.DatabaseSettings.DatabaseCredentials credentials = plugin.getSettings().getDatabase().getCredentials();
         try {
-            mongoConnectionHandler = new MongoConnectionHandler(
-                    credentials.getHost(),
-                    credentials.getPort(),
-                    credentials.getUsername(),
-                    credentials.getPassword(),
-                    credentials.getDatabase(),
-                    credentials.getMongoAuthDb()
-            );
+            ConnectionString URI = createConnectionURI(credentials);
+            mongoConnectionHandler = new MongoConnectionHandler(URI, credentials.getDatabase());
             mongoCollectionHelper = new MongoCollectionHelper(mongoConnectionHandler);
             if (mongoCollectionHelper.getCollection(usersTable) == null) {
                 mongoCollectionHelper.createCollection(usersTable);
@@ -85,6 +80,19 @@ public class MongoDbDatabase extends Database {
         }
     }
 
+    @NotNull
+    private ConnectionString createConnectionURI(Settings.DatabaseSettings.DatabaseCredentials credentials) {
+        String baseURI = plugin.getSettings().getDatabase().getMongoSettings().isUsingAtlas() ?
+                "mongodb+srv://{0}:{1}@{2}/{4}{5}" : "mongodb://{0}:{1}@{2}:{3}/{4}{5}";
+        baseURI = baseURI.replace("{0}", credentials.getUsername());
+        baseURI = baseURI.replace("{1}", credentials.getPassword());
+        baseURI = baseURI.replace("{2}", credentials.getHost());
+        baseURI = baseURI.replace("{3}", String.valueOf(credentials.getPort()));
+        baseURI = baseURI.replace("{4}", credentials.getDatabase());
+        baseURI = baseURI.replace("{5}", plugin.getSettings().getDatabase().getMongoSettings().getParameters());
+        return new ConnectionString(baseURI);
+    }
+
     /**
      * Ensure a {@link User} has an entry in the database and that their username is up-to-date
      *
@@ -93,31 +101,38 @@ public class MongoDbDatabase extends Database {
     @Blocking
     @Override
     public void ensureUser(@NotNull User user) {
-        getUser(user.getUuid()).ifPresentOrElse(
-                existingUser -> {
-                    if (!existingUser.getUsername().equals(user.getUsername())) {
-                        // Update a user's name if it has changed in the database
-                        try {
-                            Document filter = new Document("uuid", existingUser.getUuid().toString());
-                            Document doc = mongoCollectionHelper.getCollection(usersTable).find(filter).first();
+        try {
+            getUser(user.getUuid()).ifPresentOrElse(
+                    existingUser -> {
+                        if (!existingUser.getUsername().equals(user.getUsername())) {
+                            // Update a user's name if it has changed in the database
+                            try {
+                                Document filter = new Document("uuid", existingUser.getUuid().toString());
+                                Document doc = mongoCollectionHelper.getCollection(usersTable).find(filter).first();
+                                if (doc == null) {
+                                    throw new MongoException("User document returned null!");
+                                }
 
-                            Bson updates = Updates.set("uuid", user.getUuid().toString());
-                            mongoCollectionHelper.updateDocument(usersTable, doc, updates);
+                                Bson updates = Updates.set("uuid", user.getUuid().toString());
+                                mongoCollectionHelper.updateDocument(usersTable, doc, updates);
+                            } catch (MongoException e) {
+                                plugin.log(Level.SEVERE, "Failed to insert a user into the database", e);
+                            }
+                        }
+                    },
+                    () -> {
+                        // Insert new player data into the database
+                        try {
+                            Document doc = new Document("uuid", user.getUuid().toString()).append("username", user.getUsername());
+                            mongoCollectionHelper.insertDocument(usersTable, doc);
                         } catch (MongoException e) {
                             plugin.log(Level.SEVERE, "Failed to insert a user into the database", e);
                         }
                     }
-                },
-                () -> {
-                    // Insert new player data into the database
-                    try {
-                        Document doc = new Document("uuid", user.getUuid().toString()).append("username", user.getUsername());
-                        mongoCollectionHelper.insertDocument(usersTable, doc);
-                    } catch (MongoException e) {
-                        plugin.log(Level.SEVERE, "Failed to insert a user into the database", e);
-                    }
-                }
-        );
+            );
+        } catch (MongoException e) {
+            plugin.log(Level.SEVERE, "Failed to ensure user data is in the database", e);
+        }
     }
 
     /**
@@ -129,13 +144,18 @@ public class MongoDbDatabase extends Database {
     @Blocking
     @Override
     public Optional<User> getUser(@NotNull UUID uuid) {
-        Document filter = new Document("uuid", uuid);
-        Document doc = mongoCollectionHelper.getCollection(usersTable).find(filter).first();
-        if (doc != null) {
-            return Optional.of(new User(UUID.fromString(doc.getString("uuid")),
-                    doc.getString("username")));
+        try {
+            Document filter = new Document("uuid", uuid);
+            Document doc = mongoCollectionHelper.getCollection(usersTable).find(filter).first();
+            if (doc != null) {
+                return Optional.of(new User(UUID.fromString(doc.getString("uuid")),
+                        doc.getString("username")));
+            }
+            return Optional.empty();
+        } catch (MongoException e) {
+            plugin.log(Level.SEVERE, "Failed to get user data from the database", e);
+            return Optional.empty();
         }
-        return Optional.empty();
     }
 
     /**
@@ -147,13 +167,18 @@ public class MongoDbDatabase extends Database {
     @Blocking
     @Override
     public Optional<User> getUserByName(@NotNull String username) {
-        Document filter = new Document("username", username);
-        Document doc = mongoCollectionHelper.getCollection(usersTable).find(filter).first();
-        if (doc != null) {
-            return Optional.of(new User(UUID.fromString(doc.getString("uuid")),
-                    doc.getString("username")));
+        try {
+            Document filter = new Document("username", username);
+            Document doc = mongoCollectionHelper.getCollection(usersTable).find(filter).first();
+            if (doc != null) {
+                return Optional.of(new User(UUID.fromString(doc.getString("uuid")),
+                        doc.getString("username")));
+            }
+            return Optional.empty();
+        } catch (MongoException e) {
+            plugin.log(Level.SEVERE, "Failed to get user data from the database", e);
+            return Optional.empty();
         }
-        return Optional.empty();
     }
 
     /**
@@ -165,18 +190,23 @@ public class MongoDbDatabase extends Database {
     @Blocking
     @Override
     public Optional<DataSnapshot.Packed> getLatestSnapshot(@NotNull User user) {
-        Document filter = new Document("player_uuid", user.getUuid().toString());
-        Document sort = new Document("timestamp", -1); // -1 = Descending
-        FindIterable<Document> iterable = mongoCollectionHelper.getCollection(userDataTable).find(filter).sort(sort);
-        Document doc = iterable.first();
-        if (doc != null) {
-            final UUID versionUuid = UUID.fromString(doc.getString("version_uuid"));
-            final OffsetDateTime timestamp = OffsetDateTime.ofInstant(Instant.ofEpochMilli((long) doc.get("timestamp")), TimeZone.getDefault().toZoneId());
-            final Binary bin = doc.get("data", Binary.class);
-            final byte[] dataByteArray = bin.getData();
-            return Optional.of(DataSnapshot.deserialize(plugin, dataByteArray, versionUuid, timestamp));
+        try {
+            Document filter = new Document("player_uuid", user.getUuid().toString());
+            Document sort = new Document("timestamp", -1); // -1 = Descending
+            FindIterable<Document> iterable = mongoCollectionHelper.getCollection(userDataTable).find(filter).sort(sort);
+            Document doc = iterable.first();
+            if (doc != null) {
+                final UUID versionUuid = UUID.fromString(doc.getString("version_uuid"));
+                final OffsetDateTime timestamp = OffsetDateTime.ofInstant(Instant.ofEpochMilli((long) doc.get("timestamp")), TimeZone.getDefault().toZoneId());
+                final Binary bin = doc.get("data", Binary.class);
+                final byte[] dataByteArray = bin.getData();
+                return Optional.of(DataSnapshot.deserialize(plugin, dataByteArray, versionUuid, timestamp));
+            }
+            return Optional.empty();
+        } catch (MongoException e) {
+            plugin.log(Level.SEVERE, "Failed to get latest snapshot from the database", e);
+            return Optional.empty();
         }
-        return Optional.empty();
     }
 
     /**
@@ -189,18 +219,23 @@ public class MongoDbDatabase extends Database {
     @Override
     @NotNull
     public List<DataSnapshot.Packed> getAllSnapshots(@NotNull User user) {
-        final List<DataSnapshot.Packed> retrievedData = Lists.newArrayList();
-        Document filter = new Document("player_uuid", user.getUuid().toString());
-        Document sort = new Document("timestamp", -1); // -1 = Descending
-        FindIterable<Document> iterable = mongoCollectionHelper.getCollection(userDataTable).find(filter).sort(sort);
-        for (Document doc : iterable) {
-            final UUID versionUuid = UUID.fromString(doc.getString("version_uuid"));
-            final OffsetDateTime timestamp = OffsetDateTime.ofInstant(Instant.ofEpochMilli((long) doc.get("timestamp")), TimeZone.getDefault().toZoneId());
-            final Binary bin = doc.get("data", Binary.class);
-            final byte[] dataByteArray = bin.getData();
-            retrievedData.add(DataSnapshot.deserialize(plugin, dataByteArray, versionUuid, timestamp));
+        try {
+            final List<DataSnapshot.Packed> retrievedData = Lists.newArrayList();
+            Document filter = new Document("player_uuid", user.getUuid().toString());
+            Document sort = new Document("timestamp", -1); // -1 = Descending
+            FindIterable<Document> iterable = mongoCollectionHelper.getCollection(userDataTable).find(filter).sort(sort);
+            for (Document doc : iterable) {
+                final UUID versionUuid = UUID.fromString(doc.getString("version_uuid"));
+                final OffsetDateTime timestamp = OffsetDateTime.ofInstant(Instant.ofEpochMilli((long) doc.get("timestamp")), TimeZone.getDefault().toZoneId());
+                final Binary bin = doc.get("data", Binary.class);
+                final byte[] dataByteArray = bin.getData();
+                retrievedData.add(DataSnapshot.deserialize(plugin, dataByteArray, versionUuid, timestamp));
+            }
+            return retrievedData;
+        } catch (MongoException e) {
+            plugin.log(Level.SEVERE, "Failed to get all snapshots from the database", e);
+            return Lists.newArrayList();
         }
-        return retrievedData;
     }
 
     /**
@@ -213,17 +248,22 @@ public class MongoDbDatabase extends Database {
     @Blocking
     @Override
     public Optional<DataSnapshot.Packed> getSnapshot(@NotNull User user, @NotNull UUID versionUuid) {
-        Document filter = new Document("player_uuid", user.getUuid().toString()).append("version_uuid", versionUuid.toString());
-        Document sort = new Document("timestamp", -1); // -1 = Descending
-        FindIterable<Document> iterable = mongoCollectionHelper.getCollection(userDataTable).find(filter).sort(sort);
-        Document doc = iterable.first();
-        if (doc != null) {
-            final OffsetDateTime timestamp = OffsetDateTime.ofInstant(Instant.ofEpochMilli((long) doc.get("timestamp")), TimeZone.getDefault().toZoneId());
-            final Binary bin = doc.get("data", Binary.class);
-            final byte[] dataByteArray = bin.getData();
-            return Optional.of(DataSnapshot.deserialize(plugin, dataByteArray, versionUuid, timestamp));
+        try {
+            Document filter = new Document("player_uuid", user.getUuid().toString()).append("version_uuid", versionUuid.toString());
+            Document sort = new Document("timestamp", -1); // -1 = Descending
+            FindIterable<Document> iterable = mongoCollectionHelper.getCollection(userDataTable).find(filter).sort(sort);
+            Document doc = iterable.first();
+            if (doc != null) {
+                final OffsetDateTime timestamp = OffsetDateTime.ofInstant(Instant.ofEpochMilli((long) doc.get("timestamp")), TimeZone.getDefault().toZoneId());
+                final Binary bin = doc.get("data", Binary.class);
+                final byte[] dataByteArray = bin.getData();
+                return Optional.of(DataSnapshot.deserialize(plugin, dataByteArray, versionUuid, timestamp));
+            }
+            return Optional.empty();
+        } catch (MongoException e) {
+            plugin.log(Level.SEVERE, "Failed to get snapshot from the database", e);
+            return Optional.empty();
         }
-        return Optional.empty();
     }
 
     /**
@@ -253,7 +293,7 @@ public class MongoDbDatabase extends Database {
                 }
             }
         } catch (MongoException e) {
-            plugin.log(Level.SEVERE, "Failed to prune user data from the database", e);
+            plugin.log(Level.SEVERE, "Failed to rotate snapshots", e);
         }
     }
 
@@ -308,7 +348,7 @@ public class MongoDbDatabase extends Database {
                 }
             }
         } catch (MongoException e) {
-            plugin.log(Level.SEVERE, "Failed to prune user data from the database", e);
+            plugin.log(Level.SEVERE, "Failed to rotate latest snapshot from the database", e);
         }
     }
 
@@ -352,7 +392,7 @@ public class MongoDbDatabase extends Database {
             );
             mongoCollectionHelper.updateDocument(userDataTable, doc, updates);
         } catch (MongoException e) {
-            plugin.log(Level.SEVERE, "Failed to pin user data in the database", e);
+            plugin.log(Level.SEVERE, "Failed to update snapshot in the database", e);
         }
     }
 
