@@ -19,12 +19,12 @@
 
 package net.william278.husksync.event;
 
-public interface Cancellable extends Event {
+import net.minecraft.util.ActionResult;
+import org.jetbrains.annotations.NotNull;
 
-    default boolean isCancelled() {
-        return false;
-    }
+public interface FabricEventCallback<E extends Event> {
 
-    void setCancelled(boolean cancelled);
+    @NotNull
+    ActionResult invoke(@NotNull E event);
 
 }

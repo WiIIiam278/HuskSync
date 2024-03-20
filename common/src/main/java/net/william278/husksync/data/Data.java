@@ -51,7 +51,7 @@ public interface Data {
      */
     interface Items extends Data {
 
-        @NotNull
+        @Nullable
         Stack[] getStack();
 
         default int getSlotCount() {
@@ -75,6 +75,9 @@ public interface Data {
          * A data container holding data for inventories and selected hotbar slot
          */
         interface Inventory extends Items {
+
+            String ITEMS_TAG = "items";
+            String HELD_ITEM_SLOT_TAG = "held_item_slot";
 
             int getHeldItemSlot();
 

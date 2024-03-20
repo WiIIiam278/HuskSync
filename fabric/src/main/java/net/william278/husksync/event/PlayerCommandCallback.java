@@ -19,30 +19,29 @@
 
 package net.william278.husksync.event;
 
-import net.william278.husksync.HuskSync;
-import net.william278.husksync.data.DataSnapshot;
-import org.jetbrains.annotations.ApiStatus;
+import net.fabricmc.fabric.api.event.Event;
+import net.fabricmc.fabric.api.event.EventFactory;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.util.ActionResult;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.function.Consumer;
-
-@SuppressWarnings("unused")
-public interface PreSyncEvent extends PlayerEvent, Cancellable {
+public interface PlayerCommandCallback {
 
     @NotNull
-    DataSnapshot.Packed getData();
+    Event<PlayerCommandCallback> EVENT = EventFactory.createArrayBacked(PlayerCommandCallback.class,
+            (listeners) -> (player, command) -> {
+                for (PlayerCommandCallback listener : listeners) {
+                    ActionResult result = listener.interact(player, command);
 
-    default void editData(@NotNull Consumer<DataSnapshot.Unpacked> editor) {
-        getData().edit(getPlugin(), editor);
-    }
+                    if (result != ActionResult.PASS) {
+                        return result;
+                    }
+                }
+
+                return ActionResult.PASS;
+            });
 
     @NotNull
-    default DataSnapshot.SaveCause getSaveCause() {
-        return getData().getSaveCause();
-    }
-
-    @NotNull
-    @ApiStatus.Internal
-    HuskSync getPlugin();
+    ActionResult interact(PlayerEntity player, String command);
 
 }

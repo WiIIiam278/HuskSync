@@ -69,6 +69,7 @@ allprojects {
     repositories {
         mavenLocal()
         mavenCentral()
+        maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
         maven { url 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/' }
         maven { url 'https://repo.codemc.io/repository/maven-public/' }
         maven { url 'https://repo.minebench.de/' }
@@ -117,7 +118,7 @@ subprojects {
     }
 
     // API publishing
-    if (['common', 'bukkit'].contains(project.name)) {
+    if (['common', 'bukkit', 'fabric'].contains(project.name)) {
         java {
             withSourcesJar()
             withJavadocJar()
@@ -149,6 +150,19 @@ subprojects {
                     mavenJavaBukkit(MavenPublication) {
                         groupId = 'net.william278.husksync'
                         artifactId = 'husksync-bukkit'
+                        version = "$rootProject.version"
+                        artifact shadowJar
+                        artifact sourcesJar
+                        artifact javadocJar
+                    }
+                }
+            }
+
+            if (['fabric'].contains(project.name)) {
+                publications {
+                    mavenJavaFabric(MavenPublication) {
+                        groupId = 'net.william278.husksync'
+                        artifactId = 'husksync-fabric'
                         version = "$rootProject.version"
                         artifact shadowJar
                         artifact sourcesJar

@@ -19,15 +19,17 @@
 
 package net.william278.husksync.data;
 
-import net.william278.husksync.BukkitHuskSync;
-import net.william278.husksync.util.BukkitMapPersister;
-import org.bukkit.entity.Player;
-import org.bukkit.inventory.PlayerInventory;
+import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.item.ItemStack;
+import net.minecraft.server.network.ServerPlayerEntity;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Map;
 import java.util.Optional;
 
-public interface BukkitUserDataHolder extends UserDataHolder {
+import static net.william278.husksync.config.Settings.SynchronizationSettings.SaveOnDeathSettings;
+
+public interface FabricUserDataHolder extends UserDataHolder {
 
     @Override
     default Optional<? extends Data> getData(@NotNull Identifier id) {
@@ -43,7 +45,7 @@ public interface BukkitUserDataHolder extends UserDataHolder {
                 case "hunger" -> getHunger();
                 case "experience" -> getExperience();
                 case "game_mode" -> getGameMode();
-                case "persistent_data" -> getPersistentData();
+                case "persistent_data" -> Optional.ofNullable(getCustomDataStore().get(id));
                 default -> throw new IllegalStateException(String.format("Unexpected data type: %s", id));
             };
         }
@@ -61,88 +63,111 @@ public interface BukkitUserDataHolder extends UserDataHolder {
     @NotNull
     @Override
     default Optional<Data.Items.Inventory> getInventory() {
-        if ((isDead() && !getPlugin().getSettings().getSynchronization().getSaveOnDeath()
-                .isSyncDeadPlayersChangingServer())) {
-            return Optional.of(BukkitData.Items.Inventory.empty());
+        final SaveOnDeathSettings death = getPlugin().getSettings().getSynchronization().getSaveOnDeath();
+        if ((isDead() && !death.isSyncDeadPlayersChangingServer())) {
+            return Optional.of(FabricData.Items.Inventory.empty());
         }
         final PlayerInventory inventory = getPlayer().getInventory();
-        return Optional.of(BukkitData.Items.Inventory.from(
-                getMapPersister().persistLockedMaps(inventory.getContents(), getPlayer()),
-                inventory.getHeldItemSlot()
+        return Optional.of(FabricData.Items.Inventory.from(
+                getCombinedInventory(inventory),
+                inventory.selectedSlot
         ));
+    }
+
+    private ItemStack[] getCombinedInventory(@NotNull PlayerInventory inventory) {
+        final ItemStack[] combined = new ItemStack[inventory.main.size() + inventory.armor.size() + inventory.offHand.size()];
+        System.arraycopy(inventory.main.toArray(
+                        new ItemStack[0]), 0, combined,
+                0, inventory.main.size()
+        );
+        System.arraycopy(
+                inventory.armor.toArray(new ItemStack[0]), 0, combined,
+                inventory.main.size(), inventory.armor.size()
+        );
+        System.arraycopy(
+                inventory.offHand.toArray(new ItemStack[0]), 0, combined,
+                inventory.main.size() + inventory.armor.size(), inventory.offHand.size()
+        );
+        return combined;
     }
 
     @NotNull
     @Override
     default Optional<Data.Items.EnderChest> getEnderChest() {
-        return Optional.of(BukkitData.Items.EnderChest.adapt(
-                getMapPersister().persistLockedMaps(getPlayer().getEnderChest().getContents(), getPlayer())
+        return Optional.of(FabricData.Items.EnderChest.adapt(
+                getPlayer().getEnderChestInventory().stacks
         ));
     }
 
     @NotNull
     @Override
     default Optional<Data.PotionEffects> getPotionEffects() {
-        return Optional.of(BukkitData.PotionEffects.from(getPlayer().getActivePotionEffects()));
+//        return Optional.of(FabricData.PotionEffects.from(getPlayer().getActiveStatusEffects()));
+        return Optional.empty();
     }
 
     @NotNull
     @Override
     default Optional<Data.Advancements> getAdvancements() {
-        return Optional.of(BukkitData.Advancements.adapt(getPlayer()));
+//        return Optional.of(FabricData.Advancements.adapt(getPlayer()));
+        return Optional.empty();
     }
 
     @NotNull
     @Override
     default Optional<Data.Location> getLocation() {
-        return Optional.of(BukkitData.Location.adapt(getPlayer().getLocation()));
+//        return Optional.of(FabricData.Location.adapt(getPlayer()));
+        return Optional.empty();
     }
 
     @NotNull
     @Override
     default Optional<Data.Statistics> getStatistics() {
-        return Optional.of(BukkitData.Statistics.adapt(getPlayer()));
+//        return Optional.of(FabricData.Statistics.adapt(getPlayer()));
+        return Optional.empty();
     }
 
     @NotNull
     @Override
     default Optional<Data.Health> getHealth() {
-        return Optional.of(BukkitData.Health.adapt(getPlayer()));
+//        return Optional.of(FabricData.Health.adapt(getPlayer()));
+        return Optional.empty();
     }
 
     @NotNull
     @Override
     default Optional<Data.Hunger> getHunger() {
-        return Optional.of(BukkitData.Hunger.adapt(getPlayer()));
+//        return Optional.of(FabricData.Hunger.adapt(getPlayer()));
+        return Optional.empty();
     }
 
     @NotNull
     @Override
     default Optional<Data.Experience> getExperience() {
-        return Optional.of(BukkitData.Experience.adapt(getPlayer()));
+//        return Optional.of(FabricData.Experience.adapt(getPlayer()));
+        return Optional.empty();
     }
 
     @NotNull
     @Override
     default Optional<Data.GameMode> getGameMode() {
-        return Optional.of(BukkitData.GameMode.adapt(getPlayer()));
+//        return Optional.of(FabricData.GameMode.adapt(getPlayer()));
+        return Optional.empty();
     }
 
     @NotNull
     @Override
     default Optional<Data.PersistentData> getPersistentData() {
-        return Optional.of(BukkitData.PersistentData.adapt(getPlayer().getPersistentDataContainer()));
+        return Optional.empty();
     }
 
     boolean isDead();
 
     @NotNull
-    Player getPlayer();
+    ServerPlayerEntity getPlayer();
 
     @NotNull
-    default BukkitMapPersister getMapPersister() {
-        return (BukkitHuskSync) getPlugin();
-    }
-
+    @Override
+    Map<Identifier, Data> getCustomDataStore();
 
 }
