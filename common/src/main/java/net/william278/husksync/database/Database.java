@@ -19,7 +19,6 @@
 
 package net.william278.husksync.database;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.config.Settings;
@@ -258,6 +257,7 @@ public abstract class Database {
     public enum Type {
         MYSQL("MySQL", "mysql"),
         MARIADB("MariaDB", "mariadb"),
+        POSTGRES("PostgreSQL", "postgresql"),
         MONGO("MongoDB", "mongo");
 
         private final String displayName;
