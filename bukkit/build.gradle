@@ -16,7 +16,7 @@ dependencies {
     compileOnly 'org.projectlombok:lombok:1.18.32'
     compileOnly 'commons-io:commons-io:2.16.0'
     compileOnly 'org.json:json:20240303'
-    compileOnly 'de.themoep:minedown-adventure:1.7.2-SNAPSHOT'
+    compileOnly 'net.william278:minedown:1.8.2'
     compileOnly 'de.exlll:configlib-yaml:4.5.0'
     compileOnly 'com.zaxxer:HikariCP:5.1.0'
     compileOnly 'net.william278:DesertWell:2.0.4'
