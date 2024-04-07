@@ -529,6 +529,7 @@ public abstract class BukkitData implements Data {
 
     }
 
+    // TODO: Consider using Paper's new-ish API for this instead (when it's merged)
     public static class Statistics extends BukkitData implements Data.Statistics {
         private Map<Statistic, Integer> genericStatistics;
         private Map<Statistic, Map<Material, Integer>> blockStatistics;
