@@ -28,6 +28,7 @@ import net.william278.husksync.user.User;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -61,7 +62,8 @@ public class DataSnapshotOverview {
                         dataOwner.getUsername(), dataOwner.getUuid().toString())
                 .ifPresent(user::sendMessage);
         locales.getLocale("data_manager_timestamp",
-                        snapshot.getTimestamp().format(DateTimeFormatter.ofPattern("MMM dd yyyy, HH:mm:ss.SSS")),
+                        snapshot.getTimestamp().format(DateTimeFormatter
+                                .ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.LONG)),
                         snapshot.getTimestamp().toString())
                 .ifPresent(user::sendMessage);
         if (snapshot.isPinned()) {

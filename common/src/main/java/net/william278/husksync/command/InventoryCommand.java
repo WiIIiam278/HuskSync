@@ -30,6 +30,7 @@ import net.william278.husksync.user.User;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
 import java.util.List;
 import java.util.Optional;
 
@@ -51,7 +52,8 @@ public class InventoryCommand extends ItemsCommand {
 
         // Display opening message
         plugin.getLocales().getLocale("inventory_viewer_opened", user.getUsername(),
-                        snapshot.getTimestamp().format(DateTimeFormatter.ofPattern("dd/MM/yyyy, HH:mm")))
+                        snapshot.getTimestamp().format(DateTimeFormatter
+                                .ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.SHORT)))
                 .ifPresent(viewer::sendMessage);
 
         // Show GUI

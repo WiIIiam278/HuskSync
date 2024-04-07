@@ -27,6 +27,7 @@ import net.william278.paginedown.PaginatedList;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -53,9 +54,9 @@ public class DataSnapshotList {
                                         snapshot.getShortId(),
                                         snapshot.isPinned() ? "※" : "  ",
                                         snapshot.getTimestamp().format(DateTimeFormatter
-                                                .ofPattern("dd/MM/yyyy, HH:mm")),
+                                                .ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.SHORT)),
                                         snapshot.getTimestamp().format(DateTimeFormatter
-                                                .ofPattern("MMM dd yyyy, HH:mm:ss.SSS")),
+                                                .ofLocalizedDateTime(FormatStyle.LONG, FormatStyle.LONG)),
                                         snapshot.getSaveCause().getLocale(plugin),
                                         String.format("%.2fKiB", snapshot.getFileSize(plugin) / 1024f))
                                 .orElse("• " + snapshot.getId())).toList(),
