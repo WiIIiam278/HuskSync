@@ -77,7 +77,7 @@ public class BukkitEventListener extends EventListener implements BukkitJoinEven
         if (!bukkitUser.isLocked() && !itemOnCursor.getType().isAir()) {
             player.setItemOnCursor(null);
             player.getWorld().dropItem(player.getLocation(), itemOnCursor);
-            plugin.debug("Dropped " + itemOnCursor.toString() + " for " + player.getName() + " on quit");
+            plugin.debug("Dropped " + itemOnCursor + " for " + player.getName() + " on quit");
         }
         super.handlePlayerQuit(bukkitUser);
     }
