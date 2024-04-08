@@ -152,7 +152,7 @@ public class Locales {
 
             value.append(c);
         }
-        return value.toString().replace("__", "_\\_");
+        return value.toString();
     }
 
     /**

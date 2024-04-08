@@ -44,8 +44,10 @@ import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerArmorStandManipulateEvent;
 import org.bukkit.event.server.MapInitializeEvent;
 import org.bukkit.event.world.WorldSaveEvent;
+import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -71,9 +73,11 @@ public class BukkitEventListener extends EventListener implements BukkitJoinEven
     @Override
     public void handlePlayerQuit(@NotNull BukkitUser bukkitUser) {
         final Player player = bukkitUser.getPlayer();
-        if (!bukkitUser.isLocked() && !player.getItemOnCursor().getType().isAir()) {
-            player.getWorld().dropItem(player.getLocation(), player.getItemOnCursor());
+        final ItemStack itemOnCursor = player.getItemOnCursor();
+        if (!bukkitUser.isLocked() && !itemOnCursor.getType().isAir()) {
             player.setItemOnCursor(null);
+            player.getWorld().dropItem(player.getLocation(), itemOnCursor);
+            plugin.debug("Dropped " + itemOnCursor + " for " + player.getName() + " on quit");
         }
         super.handlePlayerQuit(bukkitUser);
     }
@@ -157,6 +161,11 @@ public class BukkitEventListener extends EventListener implements BukkitJoinEven
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onPlayerInteractEntity(@NotNull PlayerInteractEntityEvent event) {
+        cancelPlayerEvent(event.getPlayer().getUniqueId(), event);
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onPlayerInteractArmorStand(@NotNull PlayerArmorStandManipulateEvent event) {
         cancelPlayerEvent(event.getPlayer().getUniqueId(), event);
     }
 

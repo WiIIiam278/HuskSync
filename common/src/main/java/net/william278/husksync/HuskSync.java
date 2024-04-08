@@ -378,12 +378,12 @@ public interface HuskSync extends Task.Supplier, EventDispatcher, ConfigProvider
         private static final String FORMAT = """
                 HuskSync has failed to load! The plugin will not be enabled and no data will be synchronized.
                 Please make sure the plugin has been setup correctly (https://william278.net/docs/husksync/setup):
-                                
+                
                 1) Make sure you've entered your MySQL, MariaDB or MongoDB database details correctly in config.yml
                 2) Make sure your Redis server details are also correct in config.yml
                 3) Make sure your config is up-to-date (https://william278.net/docs/husksync/config-file)
                 4) Check the error below for more details
-                                
+                
                 Caused by: %s""";
 
         FailedToLoadException(@NotNull String message, @NotNull Throwable cause) {
