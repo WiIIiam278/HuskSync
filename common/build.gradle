@@ -5,7 +5,7 @@ plugins {
 dependencies {
     api 'commons-io:commons-io:2.16.0'
     api 'org.apache.commons:commons-text:1.11.0'
-    api 'net.william278:minedown:1.8.2'
+    api 'net.william278:minedown:1.8.2-9323e27'
     api 'org.json:json:20240303'
     api 'com.google.code.gson:gson:2.10.1'
     api 'com.fatboyindustrial.gson-javatime-serialisers:gson-javatime-serialisers:1.1.2'
