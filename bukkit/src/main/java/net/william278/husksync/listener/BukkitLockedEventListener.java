@@ -16,7 +16,10 @@ import org.bukkit.event.entity.ProjectileLaunchEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.inventory.PrepareItemCraftEvent;
-import org.bukkit.event.player.*;
+import org.bukkit.event.player.PlayerArmorStandManipulateEvent;
+import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.event.player.PlayerInteractEntityEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
@@ -96,13 +99,6 @@ public class BukkitLockedEventListener implements LockedHandler, Listener {
     public void onPlayerTakeDamage(@NotNull EntityDamageEvent event) {
         if (event.getEntity() instanceof Player player) {
             cancelPlayerEvent(player.getUniqueId(), event);
-        }
-    }
-
-    @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
-    public void onPermissionCommand(@NotNull PlayerCommandPreprocessEvent event) {
-        if (isCommandDisabled(event.getMessage().substring(1).split(" ")[0])) {
-            cancelPlayerEvent(event.getPlayer().getUniqueId(), event);
         }
     }
 

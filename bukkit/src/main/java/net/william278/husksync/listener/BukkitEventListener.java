@@ -26,8 +26,10 @@ import net.william278.husksync.user.BukkitUser;
 import net.william278.husksync.user.OnlineUser;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.server.MapInitializeEvent;
 import org.bukkit.event.world.WorldSaveEvent;
 import org.bukkit.inventory.ItemStack;
@@ -116,6 +118,17 @@ public class BukkitEventListener extends EventListener implements BukkitJoinEven
     public void onMapInitialize(@NotNull MapInitializeEvent event) {
         if (plugin.getSettings().getSynchronization().isPersistLockedMaps() && event.getMap().isLocked()) {
             getPlugin().runAsync(() -> ((BukkitHuskSync) plugin).renderMapFromFile(event.getMap()));
+        }
+    }
+
+    // We handle commands here to allow specific command handling on ProtocolLib servers
+    @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
+    public void onCommandProcessed(@NotNull PlayerCommandPreprocessEvent event) {
+        if (!lockedHandler.isCommandDisabled(event.getMessage().substring(1).split(" ")[0])) {
+            return;
+        }
+        if (lockedHandler.cancelPlayerEvent(event.getPlayer().getUniqueId())) {
+            event.setCancelled(true);
         }
     }
 
