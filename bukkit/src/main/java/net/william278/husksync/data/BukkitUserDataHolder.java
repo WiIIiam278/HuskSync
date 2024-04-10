@@ -41,6 +41,7 @@ public interface BukkitUserDataHolder extends UserDataHolder {
                 case "statistics" -> getStatistics();
                 case "health" -> getHealth();
                 case "hunger" -> getHunger();
+                case "attributes" -> getAttributes();
                 case "experience" -> getExperience();
                 case "game_mode" -> getGameMode();
                 case "flight_status" -> getFlightStatus();
@@ -115,6 +116,12 @@ public interface BukkitUserDataHolder extends UserDataHolder {
     @Override
     default Optional<Data.Hunger> getHunger() {
         return Optional.of(BukkitData.Hunger.adapt(getBukkitPlayer()));
+    }
+
+    @NotNull
+    @Override
+    default Optional<Data.Attributes> getAttributes() {
+        return Optional.of(BukkitData.Attributes.adapt(getBukkitPlayer()));
     }
 
     @NotNull

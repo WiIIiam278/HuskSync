@@ -29,9 +29,6 @@ import net.william278.desertwell.util.UpdateChecker;
 import net.william278.desertwell.util.Version;
 import net.william278.husksync.adapter.DataAdapter;
 import net.william278.husksync.config.ConfigProvider;
-import net.william278.husksync.config.Locales;
-import net.william278.husksync.config.Server;
-import net.william278.husksync.config.Settings;
 import net.william278.husksync.data.Data;
 import net.william278.husksync.data.Identifier;
 import net.william278.husksync.data.Serializer;
@@ -179,31 +176,6 @@ public interface HuskSync extends Task.Supplier, EventDispatcher, ConfigProvider
         }
         log(Level.INFO, "Successfully initialized " + name);
     }
-
-    /**
-     * Returns the plugin {@link Settings}
-     *
-     * @return the {@link Settings}
-     */
-    @NotNull
-    Settings getSettings();
-
-    void setSettings(@NotNull Settings settings);
-
-    @NotNull
-    String getServerName();
-
-    void setServerName(@NotNull Server serverName);
-
-    /**
-     * Returns the plugin {@link Locales}
-     *
-     * @return the {@link Locales}
-     */
-    @NotNull
-    Locales getLocales();
-
-    void setLocales(@NotNull Locales locales);
 
     /**
      * Returns if a dependency is loaded

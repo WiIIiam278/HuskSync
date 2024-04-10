@@ -32,11 +32,12 @@ import net.william278.husksync.adapter.Adaptable;
 import net.william278.husksync.user.BukkitUser;
 import org.bukkit.*;
 import org.bukkit.advancement.AdvancementProgress;
-import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
+import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryType;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.potion.PotionEffect;
@@ -431,7 +432,7 @@ public abstract class BukkitData implements Data {
 
     }
 
-    // TODO: Consider using Paper's new-ish API for this instead (when it's merged)
+    // TODO: Move to using Registry.STATISTIC as soon as possible!
     @AllArgsConstructor(access = AccessLevel.PRIVATE)
     @NoArgsConstructor(access = AccessLevel.PRIVATE)
     public static class Statistics extends BukkitData implements Data.Statistics {
@@ -667,6 +668,73 @@ public abstract class BukkitData implements Data {
             container.mergeCompound(persistentData);
         }
 
+    }
+
+    @Getter
+    @AllArgsConstructor(access = AccessLevel.PRIVATE)
+    @NoArgsConstructor(access = AccessLevel.PRIVATE)
+    public static class Attributes extends BukkitData implements Data.Attributes, Adaptable {
+
+        private List<Attribute> attributes;
+
+        @NotNull
+        public static BukkitData.Attributes adapt(@NotNull Player player) {
+            final List<Attribute> attributes = Lists.newArrayList();
+            Registry.ATTRIBUTE.forEach(id -> {
+                final AttributeInstance instance = player.getAttribute(id);
+                if (instance == null) {
+                    return;
+                }
+                attributes.add(adapt(instance));
+            });
+            return new BukkitData.Attributes(attributes);
+        }
+
+        public Optional<Attribute> getAttribute(@NotNull org.bukkit.attribute.Attribute id) {
+            return attributes.stream().filter(attribute -> attribute.name().equals(id.getKey().toString())).findFirst();
+        }
+
+        @NotNull
+        private static Attribute adapt(@NotNull AttributeInstance instance) {
+            return new Attribute(
+                    instance.getAttribute().getKey().toString(),
+                    instance.getBaseValue(),
+                    instance.getModifiers().stream().map(BukkitData.Attributes::adapt).toList()
+            );
+        }
+
+        @NotNull
+        private static Modifier adapt(@NotNull AttributeModifier modifier) {
+            return new Modifier(
+                    modifier.getUniqueId(),
+                    modifier.getName(),
+                    modifier.getAmount(),
+                    modifier.getOperation().ordinal(),
+                    modifier.getSlot() != null ? modifier.getSlot().ordinal() : -1
+            );
+        }
+
+        @Override
+        public void apply(@NotNull BukkitUser user, @NotNull BukkitHuskSync plugin) throws IllegalStateException {
+            Registry.ATTRIBUTE.forEach(id -> applyAttribute(user.getPlayer().getAttribute(id), getAttribute(id).orElse(null)));
+        }
+
+        private static void applyAttribute(@Nullable AttributeInstance instance, @Nullable Attribute attribute) {
+            if (instance == null) {
+                return;
+            }
+            instance.setBaseValue(attribute == null ? instance.getDefaultValue() : instance.getBaseValue());
+            instance.getModifiers().forEach(instance::removeModifier);
+            if (attribute != null) {
+                attribute.modifiers().forEach(modifier -> instance.addModifier(new AttributeModifier(
+                        modifier.uuid(),
+                        modifier.name(),
+                        modifier.amount(),
+                        AttributeModifier.Operation.values()[modifier.operationType()],
+                        modifier.equipmentSlot() != -1 ? EquipmentSlot.values()[modifier.equipmentSlot()] : null
+                )));
+            }
+        }
 
     }
 
@@ -677,86 +745,53 @@ public abstract class BukkitData implements Data {
     public static class Health extends BukkitData implements Data.Health, Adaptable {
         @SerializedName("health")
         private double health;
-        @SerializedName("max_health")
-        private double maxHealth;
         @SerializedName("health_scale")
         private double healthScale;
 
         @NotNull
+        public static BukkitData.Health from(double health, double healthScale) {
+            return new BukkitData.Health(health, healthScale);
+        }
+
+        @NotNull
+        @Deprecated(forRemoval = true, since = "3.5")
+        @SuppressWarnings("unused")
         public static BukkitData.Health from(double health, double maxHealth, double healthScale) {
-            return new BukkitData.Health(health, maxHealth, healthScale);
+            return from(health, healthScale);
         }
 
         @NotNull
         public static BukkitData.Health adapt(@NotNull Player player) {
             return from(
                     player.getHealth(),
-                    getMaxHealth(player),
                     player.isHealthScaled() ? player.getHealthScale() : 0d
             );
         }
 
         @Override
+        @SuppressWarnings("deprecation")
         public void apply(@NotNull BukkitUser user, @NotNull BukkitHuskSync plugin) throws IllegalStateException {
             final Player player = user.getPlayer();
 
-            // Set max health
-            final AttributeInstance maxHealth = getMaxHealthAttribute(player);
-            try {
-                if (plugin.getSettings().getSynchronization().isSynchronizeMaxHealth() && this.maxHealth != 0) {
-                    maxHealth.setBaseValue(this.maxHealth);
-                }
-            } catch (Throwable e) {
-                plugin.log(Level.WARNING, String.format("Failed setting the max health of %s to %s",
-                        player.getName(), this.maxHealth), e);
-            }
-
             // Set health
             try {
-                final double health = player.getHealth();
-                player.setHealth(Math.min(health, maxHealth.getBaseValue()));
+                player.setHealth(Math.min(health, player.getMaxHealth()));
             } catch (Throwable e) {
-                plugin.log(Level.WARNING, String.format("Failed setting the health of %s to %s",
-                        player.getName(), this.maxHealth), e);
+                plugin.log(Level.WARNING, "Error setting %s's health to %s".formatted(player.getName(), health), e);
             }
 
             // Set health scale
             try {
-                if (this.healthScale != 0d) {
+                if (healthScale != 0d) {
                     player.setHealthScaled(true);
-                    player.setHealthScale(this.healthScale);
+                    player.setHealthScale(healthScale);
                 } else {
                     player.setHealthScaled(false);
-                    player.setHealthScale(this.maxHealth);
+                    player.setHealthScale(player.getMaxHealth());
                 }
             } catch (Throwable e) {
-                plugin.log(Level.WARNING, String.format("Failed setting the health scale of %s to %s",
-                        player.getName(), this.healthScale), e);
+                plugin.log(Level.WARNING, "Error setting %s's health scale to %s".formatted(player.getName(), healthScale), e);
             }
-        }
-
-        // Returns the max health of a player, accounting for health boost potion effects
-        private static double getMaxHealth(@NotNull Player player) {
-            // Get the base value of the attribute (ignore armor, items that give health boosts, etc.)
-            double maxHealth = getMaxHealthAttribute(player).getBaseValue();
-
-            // Subtract health boost potion effects from stored max health
-            if (player.hasPotionEffect(PotionEffectType.HEALTH_BOOST) && maxHealth > 20d) {
-                final PotionEffect healthBoost = Objects.requireNonNull(
-                        player.getPotionEffect(PotionEffectType.HEALTH_BOOST), "Health boost effect was null"
-                );
-                maxHealth -= (4 * (healthBoost.getAmplifier() + 1));
-            }
-
-            return maxHealth;
-        }
-
-        // Returns the max health attribute of a player
-        @NotNull
-        private static AttributeInstance getMaxHealthAttribute(@NotNull Player player) {
-            return Objects.requireNonNull(
-                    player.getAttribute(Attribute.GENERIC_MAX_HEALTH), "Max health attribute was null"
-            );
         }
 
     }
