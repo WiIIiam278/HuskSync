@@ -62,9 +62,8 @@ public class BukkitLockedPacketListener implements LockedHandler {
 
         @Override
         public void onPacketReceiving(@NotNull PacketEvent event) {
-            if (listener.cancelPlayerEvent(event.getPlayer().getUniqueId())) {
+            if (listener.cancelPlayerEvent(event.getPlayer().getUniqueId()) && !event.isReadOnly()) {
                 event.setCancelled(true);
-                listener.getPlugin().debug("Cancelled packet " + event.getPacketType() + " from locked player " + event.getPlayer().getName());
             }
         }
 

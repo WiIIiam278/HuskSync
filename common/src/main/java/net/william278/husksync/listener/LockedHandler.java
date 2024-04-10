@@ -23,6 +23,7 @@ import net.william278.husksync.HuskSync;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
 
@@ -35,11 +36,8 @@ public interface LockedHandler {
      * Get if a command should be disabled while the user is locked
      */
     default boolean isCommandDisabled(@NotNull String label) {
-        if (label.trim().equalsIgnoreCase("*")) {
-            return true;
-        }
-        return getPlugin().getSettings().getSynchronization().getBlacklistedCommandsWhileLocked()
-                .contains(label.toLowerCase(Locale.ENGLISH));
+        final List<String> blocked = getPlugin().getSettings().getSynchronization().getBlacklistedCommandsWhileLocked();
+        return blocked.contains("*") || blocked.contains(label.toLowerCase(Locale.ENGLISH));
     }
 
     /**
