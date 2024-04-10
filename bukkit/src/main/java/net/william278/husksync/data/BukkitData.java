@@ -678,12 +678,14 @@ public abstract class BukkitData implements Data {
         private List<Attribute> attributes;
 
         @NotNull
-        public static BukkitData.Attributes adapt(@NotNull Player player) {
+        public static BukkitData.Attributes adapt(@NotNull Player player, @NotNull HuskSync plugin) {
             final List<Attribute> attributes = Lists.newArrayList();
             Registry.ATTRIBUTE.forEach(id -> {
                 final AttributeInstance instance = player.getAttribute(id);
-                if (instance == null || instance.getValue() == instance.getDefaultValue()) {
-                    return; // We don't sync unmodified attributes
+                if (instance == null || instance.getValue() == instance.getDefaultValue() || plugin
+                        .getSettings().getSynchronization().isIgnoredAttribute(id.getKey().toString())) {
+                    // We don't sync unmodified or disabled attributes
+                    return;
                 }
                 attributes.add(adapt(instance));
             });

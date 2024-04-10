@@ -121,7 +121,7 @@ public interface BukkitUserDataHolder extends UserDataHolder {
     @NotNull
     @Override
     default Optional<Data.Attributes> getAttributes() {
-        return Optional.of(BukkitData.Attributes.adapt(getBukkitPlayer()));
+        return Optional.of(BukkitData.Attributes.adapt(getBukkitPlayer(), getPlugin()));
     }
 
     @NotNull
