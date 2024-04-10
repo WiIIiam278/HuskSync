@@ -334,7 +334,8 @@ public class LegacyMigrator extends Migrator {
                         .health(BukkitData.Health.from(health, maxHealth, healthScale))
                         .hunger(BukkitData.Hunger.from(hunger, saturation, saturationExhaustion))
                         .experience(BukkitData.Experience.from(totalExp, expLevel, expProgress))
-                        .gameMode(BukkitData.GameMode.from(gameMode, isFlying, isFlying))
+                        .gameMode(BukkitData.GameMode.from(gameMode))
+                        .flightStatus(BukkitData.FlightStatus.from(isFlying, isFlying))
 
                         // Build & pack into new format
                         .saveCause(DataSnapshot.SaveCause.LEGACY_MIGRATION).buildAndPack();

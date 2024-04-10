@@ -107,7 +107,11 @@ public class BukkitLegacyConverter extends LegacyConverter {
         }
         if (shouldImport(Identifier.GAME_MODE)) {
             containers.put(Identifier.GAME_MODE, BukkitData.GameMode.from(
-                    status.getString("game_mode"),
+                    status.getString("game_mode")
+            ));
+        }
+        if (shouldImport(Identifier.FLIGHT_STATUS)) {
+            containers.put(Identifier.FLIGHT_STATUS, BukkitData.FlightStatus.from(
                     status.getBoolean("is_flying"),
                     status.getBoolean("is_flying")
             ));

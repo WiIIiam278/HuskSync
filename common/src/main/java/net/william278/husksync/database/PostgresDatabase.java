@@ -28,7 +28,6 @@ import net.william278.husksync.user.User;
 import org.jetbrains.annotations.Blocking;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.sql.*;
 import java.time.OffsetDateTime;

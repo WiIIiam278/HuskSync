@@ -51,7 +51,7 @@ public interface Data {
      */
     interface Items extends Data {
 
-        @NotNull
+        @Nullable
         Stack[] getStack();
 
         default int getSlotCount() {
@@ -75,6 +75,9 @@ public interface Data {
          * A data container holding data for inventories and selected hotbar slot
          */
         interface Inventory extends Items {
+
+            String ITEMS_TAG = "items";
+            String HELD_ITEM_SLOT_TAG = "held_item_slot";
 
             int getHeldItemSlot();
 
@@ -341,12 +344,7 @@ public interface Data {
     }
 
     /**
-     * A data container holding data for:
-     * <ul>
-     *     <li>Game mode</li>
-     *     <li>Allow flight</li>
-     *     <li>Is flying</li>
-     * </ul>
+     * Data container holding data for the player's game mode
      */
     interface GameMode extends Data {
 
@@ -355,13 +353,37 @@ public interface Data {
 
         void setGameMode(@NotNull String gameMode);
 
-        boolean getAllowFlight();
+        @Deprecated(forRemoval = true, since = "3.5")
+        default boolean getAllowFlight() {
+            return false;
+        }
+
+        @Deprecated(forRemoval = true, since = "3.5")
+        default void setAllowFlight(boolean allowFlight) {
+        }
+
+        @Deprecated(forRemoval = true, since = "3.5")
+        default boolean getIsFlying() {
+            return false;
+        }
+
+        @Deprecated(forRemoval = true, since = "3.5")
+        default void setIsFlying(boolean isFlying) {
+        }
+
+    }
+
+    /**
+     * Data container holding data for the player's flight status
+     */
+    interface FlightStatus extends Data {
+        boolean isAllowFlight();
 
         void setAllowFlight(boolean allowFlight);
 
-        boolean getIsFlying();
+        boolean isFlying();
 
-        void setIsFlying(boolean isFlying);
+        void setFlying(boolean isFlying);
     }
 
 

@@ -23,6 +23,8 @@ import com.google.gson.reflect.TypeToken;
 import de.tr7zw.changeme.nbtapi.NBT;
 import de.tr7zw.changeme.nbtapi.NBTContainer;
 import de.tr7zw.changeme.nbtapi.iface.ReadWriteNBT;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.adapter.Adaptable;
 import net.william278.husksync.api.HuskSyncAPI;
@@ -34,13 +36,10 @@ import java.util.List;
 
 import static net.william278.husksync.data.BukkitData.Items.Inventory.INVENTORY_SLOT_COUNT;
 
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class BukkitSerializer {
 
     protected final HuskSync plugin;
-
-    private BukkitSerializer(@NotNull HuskSync plugin) {
-        this.plugin = plugin;
-    }
 
     @SuppressWarnings("unused")
     public BukkitSerializer(@NotNull HuskSyncAPI api) {
@@ -207,44 +206,11 @@ public class BukkitSerializer {
         }
 
     }
-
-    public static class Health extends Json<BukkitData.Health> implements Serializer<BukkitData.Health> {
-
-        public Health(@NotNull HuskSync plugin) {
-            super(plugin, BukkitData.Health.class);
-        }
-
-    }
-
-    public static class Hunger extends Json<BukkitData.Hunger> implements Serializer<BukkitData.Hunger> {
-
-        public Hunger(@NotNull HuskSync plugin) {
-            super(plugin, BukkitData.Hunger.class);
-        }
-
-    }
-
-    public static class Experience extends Json<BukkitData.Experience> implements Serializer<BukkitData.Experience> {
-
-        public Experience(@NotNull HuskSync plugin) {
-            super(plugin, BukkitData.Experience.class);
-        }
-
-    }
-
-    public static class GameMode extends Json<BukkitData.GameMode> implements Serializer<BukkitData.GameMode> {
-
-        public GameMode(@NotNull HuskSync plugin) {
-            super(plugin, BukkitData.GameMode.class);
-        }
-
-    }
-
-    public static abstract class Json<T extends Data & Adaptable> extends BukkitSerializer implements Serializer<T> {
+    public static class Json<T extends Data & Adaptable> extends BukkitSerializer implements Serializer<T> {
 
         private final Class<T> type;
 
-        protected Json(@NotNull HuskSync plugin, Class<T> type) {
+        public Json(@NotNull HuskSync plugin, Class<T> type) {
             super(plugin);
             this.type = type;
         }
