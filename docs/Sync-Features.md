@@ -5,23 +5,24 @@ You can customise how much data HuskSync saves about a player by [turning each s
 ## Feature table
 ✅&mdash;Supported&nbsp; ❌&mdash;Unsupported&nbsp; ⚠️&mdash;Experimental
 
-| Name                      | Description                                                 | Availability |
-|---------------------------|-------------------------------------------------------------|:------------:|
-| Inventories               | Items in player inventories & selected hotbar slot          |      ✅       |
-| Ender chests              | Items in ender chests&midast;                               |      ✅       |
-| Health                    | Player health points                                        |      ✅       |
-| Max health                | Player max health points and health scale                   |      ✅       |
-| Hunger                    | Player hunger, saturation & exhaustion                      |      ✅       |
-| Experience                | Player level, experience points & score                     |      ✅       |
-| Potion effects            | Active status effects on players                            |      ✅       |
-| Advancements              | Player advancements, recipes & progress                     |      ✅       |
-| Game modes                | Player's current game mode                                  |      ✅       |
-| Statistics                | Player's in-game stats (ESC -> Statistics)                  |      ✅       |
-| Location                  | Player's current coordinate positon and world&dagger;       |      ✅       |
-| Persistent Data Container | Custom plugin persistent data key map                       |      ✅️      |
-| Locked maps               | Maps/treasure maps locked in a cartography table            |      ⚠️      |
-| Unlocked maps             | Regular, unlocked maps/treasure maps ([why?](#map-syncing)) |      ❌       |
-| Economy balances          | Vault economy balance. ([why?](#economy-syncing))           |      ❌       |
+| Name                      | Description                                                                                 | Availability |
+|---------------------------|---------------------------------------------------------------------------------------------|:------------:|
+| Inventories               | Items in player inventories & selected hotbar slot                                          |      ✅       |
+| Ender chests              | Items in ender chests&midast;                                                               |      ✅       |
+| Health                    | Player health points and scale                                                              |      ✅       |
+| Hunger                    | Player hunger, saturation & exhaustion                                                      |      ✅       |
+| Attributes                | Player max health, movement speed, reach, etc. ([wiki](https://minecraft.wiki/w/Attribute)) |      ✅       |
+| Experience                | Player level, experience points & score                                                     |      ✅       |
+| Potion effects            | Active status effects on players                                                            |      ✅       |
+| Advancements              | Player advancements, recipes & progress                                                     |      ✅       |
+| Game modes                | Player's current game mode                                                                  |      ✅       |
+| Flight status             | If the player is currently flying / can fly                                                 |      ✅       |
+| Statistics                | Player's in-game stats (ESC -> Statistics)                                                  |      ✅       |
+| Location                  | Player's current coordinate position and world&dagger;                                      |      ✅       |
+| Persistent Data Container | Custom plugin persistent data key map                                                       |      ✅️      |
+| Locked maps               | Maps/treasure maps locked in a cartography table                                            |      ✅       |
+| Unlocked maps             | Regular, unlocked maps/treasure maps ([why?](#map-syncing))                                 |      ❌       |
+| Economy balances          | Vault economy balance. ([why?](#economy-syncing))                                           |      ❌       |
 
 What about modded items? Or custom item plugins such as MMOItems or SlimeFun? These items are **not compatible**&mdash;check the [[FAQs]] for more information.
 
