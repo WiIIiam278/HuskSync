@@ -19,6 +19,7 @@
 
 package net.william278.husksync.data;
 
+import com.google.common.collect.Lists;
 import com.google.gson.annotations.SerializedName;
 import net.kyori.adventure.key.Key;
 import net.william278.husksync.HuskSync;
@@ -321,6 +322,15 @@ public interface Data {
                 double baseValue,
                 @NotNull List<Modifier> modifiers
         ) {
+
+            public double getValue() {
+                double value = baseValue;
+                for (Modifier modifier : modifiers) {
+                    value = modifier.modify(value);
+                }
+                return value;
+            }
+
         }
 
         record Modifier(
@@ -335,14 +345,36 @@ public interface Data {
             public boolean equals(Object obj) {
                 return obj instanceof Modifier modifier && modifier.uuid.equals(uuid);
             }
+
+            public double modify(double value) {
+                return switch (operationType) {
+                    case 0 -> value + amount;
+                    case 1 -> value * amount;
+                    case 2 -> value * (1 + amount);
+                    default -> value;
+                };
+            }
+        }
+
+        default Optional<Attribute> getAttribute(@NotNull Key key) {
+            return getAttributes().stream()
+                    .filter(attribute -> attribute.name().equals(key.asString()))
+                    .findFirst();
+        }
+
+        default void removeAttribute(@NotNull Key key) {
+            getAttributes().removeIf(attribute -> attribute.name().equals(key.asString()));
         }
 
         default double getMaxHealth() {
-            return 20.0; // TODO - WIP
+            return getAttribute(MAX_HEALTH_KEY)
+                    .map(Attribute::getValue)
+                    .orElse(20.0);
         }
 
         default void setMaxHealth(double maxHealth) {
-            // TODO - WIP
+            removeAttribute(MAX_HEALTH_KEY);
+            getAttributes().add(new Attribute(MAX_HEALTH_KEY.asString(), maxHealth, Lists.newArrayList()));
         }
 
     }
