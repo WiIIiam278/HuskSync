@@ -43,6 +43,7 @@ public interface BukkitUserDataHolder extends UserDataHolder {
                 case "hunger" -> getHunger();
                 case "experience" -> getExperience();
                 case "game_mode" -> getGameMode();
+                case "flight_status" -> getFlightStatus();
                 case "persistent_data" -> getPersistentData();
                 default -> throw new IllegalStateException(String.format("Unexpected data type: %s", id));
             };
