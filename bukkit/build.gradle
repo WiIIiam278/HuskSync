@@ -13,6 +13,7 @@ dependencies {
     implementation 'de.tr7zw:item-nbt-api:2.12.3'
 
     compileOnly 'org.spigotmc:spigot-api:1.17.1-R0.1-SNAPSHOT'
+    compileOnly 'com.comphenix.protocol:ProtocolLib:5.1.0'
     compileOnly 'org.projectlombok:lombok:1.18.32'
     compileOnly 'commons-io:commons-io:2.16.0'
     compileOnly 'org.json:json:20240303'

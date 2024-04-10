@@ -6,6 +6,7 @@ author: 'William278'
 description: '${description}'
 website: 'https://william278.net'
 softdepend:
+  - 'ProtocolLib'
   - 'MysqlPlayerDataBridge'
   - 'Plan'
 libraries:
