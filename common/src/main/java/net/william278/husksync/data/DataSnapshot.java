@@ -660,6 +660,21 @@ public class DataSnapshot {
         }
 
         /**
+         * Set the attributes of the snapshot
+         * <p>
+         * Equivalent to {@code data(Identifier.ATTRIBUTES, attributes)}
+         * </p>
+         *
+         * @param attributes The user's attributes
+         * @return The builder
+         * @since 3.5
+         */
+        @NotNull
+        public Builder attributes(@NotNull Data.Attributes attributes) {
+            return data(Identifier.ATTRIBUTES, attributes);
+        }
+
+        /**
          * Set the experience of the snapshot
          * <p>
          * Equivalent to {@code data(Identifier.EXPERIENCE, experience)}
