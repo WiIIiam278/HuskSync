@@ -32,7 +32,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Set;
 import java.util.logging.Level;
 
-import static com.comphenix.protocol.PacketType.Play.Server;
+import static com.comphenix.protocol.PacketType.Play.Client;
 
 @Getter
 public class BukkitLockedPacketListener implements LockedHandler {
@@ -49,9 +49,8 @@ public class BukkitLockedPacketListener implements LockedHandler {
 
         // Packets we want the player to still be able to SEND to the server
         private static final Set<PacketType> ALLOWED_PACKETS = Set.of(
-                Server.KEEP_ALIVE, Server.LOGIN, Server.KICK_DISCONNECT, // Connection packets are OK
-                Server.PLAYER_LIST_HEADER_FOOTER, Server.PLAYER_INFO, Server.PLAYER_INFO_REMOVE, // TAB stuff is OK
-                Server.COMMANDS // Handled elsewhere
+                Client.KEEP_ALIVE, Client.PONG, // Keepalive packets
+                Client.CHAT_COMMAND, Client.CHAT, Client.CHAT_SESSION_UPDATE // Handled by the command listener
         );
 
         private final BukkitLockedPacketListener listener;
@@ -62,16 +61,17 @@ public class BukkitLockedPacketListener implements LockedHandler {
         }
 
         @Override
-        public void onPacketSending(@NotNull PacketEvent event) {
+        public void onPacketReceiving(@NotNull PacketEvent event) {
             if (listener.cancelPlayerEvent(event.getPlayer().getUniqueId())) {
                 event.setCancelled(true);
+                listener.getPlugin().debug("Cancelled packet " + event.getPacketType() + " from locked player " + event.getPlayer().getName());
             }
         }
 
         // Returns the set of ALL Server packets, excluding the set of allowed packets
         @NotNull
         private static Set<PacketType> getPacketsToListenFor() {
-            return Sets.difference(Server.getInstance().values(), ALLOWED_PACKETS);
+            return Sets.difference(Client.getInstance().values(), ALLOWED_PACKETS);
         }
 
     }
