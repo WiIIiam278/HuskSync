@@ -34,7 +34,6 @@ import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.entity.ProjectileLaunchEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
-import org.bukkit.event.inventory.PrepareItemCraftEvent;
 import org.bukkit.event.player.PlayerArmorStandManipulateEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
@@ -46,7 +45,7 @@ import java.util.UUID;
 @Getter
 public class BukkitLockedEventListener implements LockedHandler, Listener {
 
-    private final BukkitHuskSync plugin;
+    protected final BukkitHuskSync plugin;
 
     protected BukkitLockedEventListener(@NotNull BukkitHuskSync plugin) {
         this.plugin = plugin;
@@ -108,10 +107,6 @@ public class BukkitLockedEventListener implements LockedHandler, Listener {
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onInventoryClick(@NotNull InventoryClickEvent event) {
         cancelPlayerEvent(event.getWhoClicked().getUniqueId(), event);
-    }
-
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    public void onCraftItem(@NotNull PrepareItemCraftEvent event) {
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)

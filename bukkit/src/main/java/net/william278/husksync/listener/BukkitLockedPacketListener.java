@@ -25,7 +25,6 @@ import com.comphenix.protocol.events.ListenerPriority;
 import com.comphenix.protocol.events.PacketAdapter;
 import com.comphenix.protocol.events.PacketEvent;
 import com.google.common.collect.Sets;
-import lombok.Getter;
 import net.william278.husksync.BukkitHuskSync;
 import org.jetbrains.annotations.NotNull;
 
@@ -34,23 +33,21 @@ import java.util.logging.Level;
 
 import static com.comphenix.protocol.PacketType.Play.Client;
 
-@Getter
-public class BukkitLockedPacketListener implements LockedHandler {
-
-    private final BukkitHuskSync plugin;
+public class BukkitLockedPacketListener extends BukkitLockedEventListener implements LockedHandler {
 
     protected BukkitLockedPacketListener(@NotNull BukkitHuskSync plugin) {
-        this.plugin = plugin;
+        super(plugin);
         ProtocolLibrary.getProtocolManager().addPacketListener(new PlayerPacketAdapter(this));
         plugin.log(Level.INFO, "Using ProtocolLib to cancel packets for locked players");
     }
 
     private static class PlayerPacketAdapter extends PacketAdapter {
 
-        // Packets we want the player to still be able to SEND to the server
+        // Packets we want the player to still be able to send/receiver to/from the server
         private static final Set<PacketType> ALLOWED_PACKETS = Set.of(
-                Client.KEEP_ALIVE, Client.PONG, // Keepalive packets
-                Client.CHAT_COMMAND, Client.CHAT, Client.CHAT_SESSION_UPDATE // Handled by the command listener
+                Client.KEEP_ALIVE, Client.PONG, // Connection packets
+                Client.CHAT_COMMAND, Client.CHAT, Client.CHAT_SESSION_UPDATE, // Chat / command packets
+                Client.POSITION, Client.POSITION_LOOK, Client.LOOK
         );
 
         private final BukkitLockedPacketListener listener;
@@ -62,6 +59,13 @@ public class BukkitLockedPacketListener implements LockedHandler {
 
         @Override
         public void onPacketReceiving(@NotNull PacketEvent event) {
+            if (listener.cancelPlayerEvent(event.getPlayer().getUniqueId()) && !event.isReadOnly()) {
+                event.setCancelled(true);
+            }
+        }
+
+        @Override
+        public void onPacketSending(PacketEvent event) {
             if (listener.cancelPlayerEvent(event.getPlayer().getUniqueId()) && !event.isReadOnly()) {
                 event.setCancelled(true);
             }
