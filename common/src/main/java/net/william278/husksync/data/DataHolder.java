@@ -111,6 +111,15 @@ public interface DataHolder {
     }
 
     @NotNull
+    default Optional<Data.Attributes> getAttributes() {
+        return Optional.ofNullable((Data.Attributes) getData().get(Identifier.ATTRIBUTES));
+    }
+
+    default void setAttributes(@NotNull Data.Attributes attributes) {
+        getData().put(Identifier.ATTRIBUTES, attributes);
+    }
+
+    @NotNull
     default Optional<Data.Experience> getExperience() {
         return Optional.ofNullable((Data.Experience) getData().get(Identifier.EXPERIENCE));
     }

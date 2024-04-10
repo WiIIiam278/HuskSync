@@ -19,7 +19,9 @@
 
 package net.william278.husksync.data;
 
+import com.google.common.collect.Sets;
 import com.google.gson.annotations.SerializedName;
+import net.kyori.adventure.key.Key;
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.user.OnlineUser;
 import org.jetbrains.annotations.NotNull;
@@ -286,13 +288,95 @@ public interface Data {
 
         void setHealth(double health);
 
-        double getMaxHealth();
+        /**
+         * @deprecated Use {@link Attributes#getMaxHealth()} instead
+         */
+        @Deprecated(forRemoval = true, since = "3.5")
+        default double getMaxHealth() {
+            return getHealth();
+        }
 
-        void setMaxHealth(double maxHealth);
+        /**
+         * @deprecated Use {@link Attributes#setMaxHealth(double)} instead
+         */
+        @Deprecated(forRemoval = true, since = "3.5")
+        default void setMaxHealth(double maxHealth) {
+        }
 
         double getHealthScale();
 
         void setHealthScale(double healthScale);
+    }
+
+    /**
+     * A data container holding player attribute data
+     */
+    interface Attributes extends Data {
+
+        Key MAX_HEALTH_KEY = Key.key("generic.max_health");
+
+        List<Attribute> getAttributes();
+
+        record Attribute(
+                @NotNull String name,
+                double baseValue,
+                @NotNull Set<Modifier> modifiers
+        ) {
+
+            public double getValue() {
+                double value = baseValue;
+                for (Modifier modifier : modifiers) {
+                    value = modifier.modify(value);
+                }
+                return value;
+            }
+
+        }
+
+        record Modifier(
+                @NotNull UUID uuid,
+                @NotNull String name,
+                double amount,
+                @SerializedName("operation") int operationType,
+                @SerializedName("equipment_slot") int equipmentSlot
+        ) {
+
+            @Override
+            public boolean equals(Object obj) {
+                return obj instanceof Modifier modifier && modifier.uuid.equals(uuid);
+            }
+
+            public double modify(double value) {
+                return switch (operationType) {
+                    case 0 -> value + amount;
+                    case 1 -> value * amount;
+                    case 2 -> value * (1 + amount);
+                    default -> value;
+                };
+            }
+        }
+
+        default Optional<Attribute> getAttribute(@NotNull Key key) {
+            return getAttributes().stream()
+                    .filter(attribute -> attribute.name().equals(key.asString()))
+                    .findFirst();
+        }
+
+        default void removeAttribute(@NotNull Key key) {
+            getAttributes().removeIf(attribute -> attribute.name().equals(key.asString()));
+        }
+
+        default double getMaxHealth() {
+            return getAttribute(MAX_HEALTH_KEY)
+                    .map(Attribute::getValue)
+                    .orElse(20.0);
+        }
+
+        default void setMaxHealth(double maxHealth) {
+            removeAttribute(MAX_HEALTH_KEY);
+            getAttributes().add(new Attribute(MAX_HEALTH_KEY.asString(), maxHealth, Sets.newHashSet()));
+        }
+
     }
 
     /**
