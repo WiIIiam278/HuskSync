@@ -67,7 +67,7 @@ public class BukkitLockedPacketListener extends BukkitLockedEventListener implem
         }
 
         @Override
-        public void onPacketSending(PacketEvent event) {
+        public void onPacketSending(@NotNull PacketEvent event) {
             if (listener.cancelPlayerEvent(event.getPlayer().getUniqueId()) && !event.isReadOnly()) {
                 event.setCancelled(true);
             }
