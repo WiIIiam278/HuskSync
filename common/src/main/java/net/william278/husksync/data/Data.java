@@ -52,7 +52,7 @@ public interface Data {
     interface Items extends Data {
 
         @Nullable
-        Stack @NotNull[] getStack();
+        Stack @NotNull [] getStack();
 
         default int getSlotCount() {
             return getStack().length;
@@ -344,7 +344,7 @@ public interface Data {
     }
 
     /**
-     * Data container holding data for the player's game mode
+     * Data container holding data for the player's current game mode
      */
     interface GameMode extends Data {
 
@@ -353,20 +353,46 @@ public interface Data {
 
         void setGameMode(@NotNull String gameMode);
 
+        /**
+         * Get if the player can fly.
+         *
+         * @return {@code false} since v3.5
+         * @deprecated Moved to its own data type. This will always return {@code false}.
+         * Use {@link FlightStatus#isAllowFlight()} instead
+         */
         @Deprecated(forRemoval = true, since = "3.5")
         default boolean getAllowFlight() {
             return false;
         }
 
+        /**
+         * Set if the player can fly.
+         *
+         * @deprecated Moved to its own data type.
+         * Use {@link FlightStatus#setAllowFlight(boolean)} instead
+         */
         @Deprecated(forRemoval = true, since = "3.5")
         default void setAllowFlight(boolean allowFlight) {
         }
 
+        /**
+         * Get if the player is flying.
+         *
+         * @return {@code false} since v3.5
+         * @deprecated Moved to its own data type. This will always return {@code false}.
+         * Use {@link FlightStatus#isFlying()} instead
+         */
         @Deprecated(forRemoval = true, since = "3.5")
         default boolean getIsFlying() {
             return false;
         }
 
+        /**
+         * Set if the player is flying.
+         *
+         * @deprecated Moved to its own data type.
+         * Use {@link FlightStatus#setFlying(boolean)} instead
+         */
         @Deprecated(forRemoval = true, since = "3.5")
         default void setIsFlying(boolean isFlying) {
         }
@@ -375,6 +401,8 @@ public interface Data {
 
     /**
      * Data container holding data for the player's flight status
+     *
+     * @since 3.5
      */
     interface FlightStatus extends Data {
         boolean isAllowFlight();
