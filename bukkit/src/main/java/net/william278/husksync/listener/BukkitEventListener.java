@@ -40,7 +40,7 @@ import java.util.stream.Collectors;
 public class BukkitEventListener extends EventListener implements BukkitJoinEventListener, BukkitQuitEventListener,
         BukkitDeathEventListener, Listener {
 
-    private final LockedHandler lockedHandler;
+    protected final LockedHandler lockedHandler;
 
     public BukkitEventListener(@NotNull BukkitHuskSync plugin) {
         super(plugin);
