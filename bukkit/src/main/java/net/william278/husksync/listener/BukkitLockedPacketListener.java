@@ -63,7 +63,6 @@ public class BukkitLockedPacketListener extends BukkitLockedEventListener implem
         public void onPacketReceiving(@NotNull PacketEvent event) {
             if (listener.cancelPlayerEvent(event.getPlayer().getUniqueId()) && !event.isReadOnly()) {
                 event.setCancelled(true);
-                listener.getPlugin().debug("Cancelled receive packet " + event.getPacketType() + " from " + event.getPlayer().getName());
             }
         }
 
@@ -71,7 +70,6 @@ public class BukkitLockedPacketListener extends BukkitLockedEventListener implem
         public void onPacketSending(PacketEvent event) {
             if (listener.cancelPlayerEvent(event.getPlayer().getUniqueId()) && !event.isReadOnly()) {
                 event.setCancelled(true);
-                listener.getPlugin().debug("Cancelled send packet " + event.getPacketType() + " to " + event.getPlayer().getName());
             }
         }
 
