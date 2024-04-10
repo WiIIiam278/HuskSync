@@ -26,7 +26,6 @@ public class BukkitLockedPacketListener implements LockedHandler {
         plugin.log(Level.INFO, "Using ProtocolLib to cancel packets for locked players");
     }
 
-    @Getter
     private static class PlayerPacketAdapter extends PacketAdapter {
 
         // Packets we want the player to still be able to SEND to the server
