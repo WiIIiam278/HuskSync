@@ -46,9 +46,10 @@ public class BukkitLockedPacketListener extends BukkitLockedEventListener implem
 
         // Packets we want the player to still be able to send/receiver to/from the server
         private static final Set<PacketType> ALLOWED_PACKETS = Set.of(
-                Client.KEEP_ALIVE, Client.PONG, // Connection packets
-                Client.CHAT_COMMAND, Client.CHAT, Client.CHAT_SESSION_UPDATE, // Chat / command packets
-                Client.POSITION, Client.POSITION_LOOK, Client.LOOK
+                Client.KEEP_ALIVE, Client.PONG, Client.CUSTOM_PAYLOAD, // Connection packets
+                Client.CHAT_COMMAND, Client.CLIENT_COMMAND, Client.CHAT, Client.CHAT_SESSION_UPDATE, // Chat / command packets
+                Client.POSITION, Client.POSITION_LOOK, Client.LOOK, // Movement packets
+                Client.HELD_ITEM_SLOT, Client.ARM_ANIMATION, Client.TELEPORT_ACCEPT // Animation packets
         );
 
         private final BukkitLockedPacketListener listener;
@@ -62,6 +63,7 @@ public class BukkitLockedPacketListener extends BukkitLockedEventListener implem
         public void onPacketReceiving(@NotNull PacketEvent event) {
             if (listener.cancelPlayerEvent(event.getPlayer().getUniqueId()) && !event.isReadOnly()) {
                 event.setCancelled(true);
+                listener.getPlugin().debug("Cancelled receive packet " + event.getPacketType() + " from " + event.getPlayer().getName());
             }
         }
 
@@ -69,6 +71,7 @@ public class BukkitLockedPacketListener extends BukkitLockedEventListener implem
         public void onPacketSending(PacketEvent event) {
             if (listener.cancelPlayerEvent(event.getPlayer().getUniqueId()) && !event.isReadOnly()) {
                 event.setCancelled(true);
+                listener.getPlugin().debug("Cancelled send packet " + event.getPacketType() + " to " + event.getPlayer().getName());
             }
         }
 
