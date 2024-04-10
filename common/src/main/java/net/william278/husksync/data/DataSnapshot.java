@@ -162,6 +162,16 @@ public class DataSnapshot {
     }
 
     /**
+     * <b>Internal use only</b> Set the ID of the snapshot
+     * @param id The snapshot ID
+     * @since 3.0
+     */
+    @ApiStatus.Internal
+    public void setId(@NotNull UUID id) {
+        this.id = id;
+    }
+
+    /**
      * Get the short display ID of the snapshot
      *
      * @return The short display ID
@@ -826,7 +836,7 @@ public class DataSnapshot {
          *
          * @since 2.0
          */
-        public static final SaveCause SERVER_SHUTDOWN = of("SERVER_SHUTDOWN");
+        public static final SaveCause SERVER_SHUTDOWN = of("SERVER_SHUTDOWN", false);
 
         /**
          * Indicates data was saved by editing inventory contents via the {@code /inventory} command
@@ -861,24 +871,26 @@ public class DataSnapshot {
          *
          * @since 2.0
          */
-        public static final SaveCause MPDB_MIGRATION = of("MPDB_MIGRATION");
+        public static final SaveCause MPDB_MIGRATION = of("MPDB_MIGRATION", false);
 
         /**
          * Indicates data was saved from being imported from a legacy version (v1.x -> v2.x)
          *
          * @since 2.0
          */
-        public static final SaveCause LEGACY_MIGRATION = of("LEGACY_MIGRATION");
+        public static final SaveCause LEGACY_MIGRATION = of("LEGACY_MIGRATION", false);
 
         /**
          * Indicates data was saved from being imported from a legacy version (v2.x -> v3.x)
          *
          * @since 3.0
          */
-        public static final SaveCause CONVERTED_FROM_V2 = of("CONVERTED_FROM_V2");
+        public static final SaveCause CONVERTED_FROM_V2 = of("CONVERTED_FROM_V2", false);
 
         @NotNull
         private final String name;
+
+        private final boolean fireDataSaveEvent;
 
         /**
          * Get or create a {@link SaveCause} from a name
@@ -888,13 +900,24 @@ public class DataSnapshot {
          */
         @NotNull
         public static SaveCause of(@NotNull String name) {
-            return new SaveCause(name.length() > 32 ? name.substring(0, 31) : name);
+            return new SaveCause(name.length() > 32 ? name.substring(0, 31) : name, true);
+        }
+
+        /**
+         * Get or create a {@link SaveCause} from a name and whether it should fire a save event
+         * @param name the name to be displayed
+         * @param firesSaveEvent whether the cause should fire a save event
+         * @return the cause
+         */
+        @NotNull
+        public static SaveCause of(@NotNull String name, boolean firesSaveEvent) {
+            return new SaveCause(name.length() > 32 ? name.substring(0, 31) : name, firesSaveEvent);
         }
 
         @NotNull
         public String getLocale(@NotNull HuskSync plugin) {
             return plugin.getLocales()
-                    .getRawLocale("save_cause_" + name().toLowerCase(Locale.ENGLISH))
+                    .getRawLocale("save_cause_%s".formatted(name().toLowerCase(Locale.ENGLISH)))
                     .orElse(getDisplayName());
         }
 

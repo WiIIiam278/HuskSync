@@ -101,16 +101,16 @@ public abstract class DataSyncer {
      * @param user  the user to save the data for
      * @param data  the data to save
      * @param after a consumer to run after data has been saved. Will be run async (off the main thread).
-     * @apiNote Data will not be saved if the {@link net.william278.husksync.event.DataSaveEvent} is cancelled.
+     * @apiNote Data will not be saved if the {@link net.william278.husksync.event.DataSaveEvent} is canceled.
      * Note that this method can also edit the data before saving it.
-     * @implNote Note that the {@link net.william278.husksync.event.DataSaveEvent} will <b>not</b> be fired if the
-     * save cause is {@link DataSnapshot.SaveCause#SERVER_SHUTDOWN}.
+     * @implNote Note that the {@link net.william278.husksync.event.DataSaveEvent} will <b>not</b> be fired if
+     * {@link DataSnapshot.SaveCause#fireDataSaveEvent()} is {@code false} (e.g., with the SERVER_SHUTDOWN cause).
      * @since 3.3.2
      */
     @Blocking
     public void saveData(@NotNull User user, @NotNull DataSnapshot.Packed data,
                          @Nullable BiConsumer<User, DataSnapshot.Packed> after) {
-        if (data.getSaveCause() == DataSnapshot.SaveCause.SERVER_SHUTDOWN) {
+        if (!data.getSaveCause().fireDataSaveEvent()) {
             addSnapshotToDatabase(user, data, after);
             return;
         }
@@ -126,10 +126,10 @@ public abstract class DataSyncer {
      *
      * @param user the user to save the data for
      * @param data the data to save
-     * @apiNote Data will not be saved if the {@link net.william278.husksync.event.DataSaveEvent} is cancelled.
+     * @apiNote Data will not be saved if the {@link net.william278.husksync.event.DataSaveEvent} is canceled.
      * Note that this method can also edit the data before saving it.
-     * @implNote Note that the {@link net.william278.husksync.event.DataSaveEvent} will <b>not</b> be fired if the
-     * save cause is {@link DataSnapshot.SaveCause#SERVER_SHUTDOWN}.
+     * @implNote Note that the {@link net.william278.husksync.event.DataSaveEvent} will <b>not</b> be fired if
+     * {@link DataSnapshot.SaveCause#fireDataSaveEvent()} is {@code false} (e.g., with the SERVER_SHUTDOWN cause).
      * @since 3.3.3
      */
     public void saveData(@NotNull User user, @NotNull DataSnapshot.Packed data) {
