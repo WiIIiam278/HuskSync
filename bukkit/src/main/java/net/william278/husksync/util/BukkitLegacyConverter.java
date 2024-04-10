@@ -53,9 +53,9 @@ public class BukkitLegacyConverter extends LegacyConverter {
         super(plugin);
     }
 
-    @NotNull
     @Override
-    public DataSnapshot.Packed convert(byte[] data, @NotNull UUID id,
+    @NotNull
+    public DataSnapshot.Packed convert(byte @NotNull [] data, @NotNull UUID id,
                                        @NotNull OffsetDateTime timestamp) throws DataAdapter.AdaptionException {
         final JSONObject object = new JSONObject(plugin.getDataAdapter().bytesToString(data));
         final int version = object.getInt("format_version");

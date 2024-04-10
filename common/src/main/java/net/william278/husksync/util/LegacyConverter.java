@@ -36,7 +36,7 @@ public abstract class LegacyConverter {
     }
 
     @NotNull
-    public abstract DataSnapshot.Packed convert(@NotNull byte[] data, @NotNull UUID id,
+    public abstract DataSnapshot.Packed convert(byte @NotNull [] data, @NotNull UUID id,
                                                 @NotNull OffsetDateTime timestamp) throws DataAdapter.AdaptionException;
 
 }
