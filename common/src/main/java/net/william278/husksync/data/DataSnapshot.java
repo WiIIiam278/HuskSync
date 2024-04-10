@@ -47,6 +47,7 @@ import java.util.stream.Collectors;
  *
  * @since 3.0
  */
+@SuppressWarnings({"LombokSetterMayBeUsed", "LombokGetterMayBeUsed"})
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class DataSnapshot {
 
@@ -686,6 +687,21 @@ public class DataSnapshot {
         @NotNull
         public Builder gameMode(@NotNull Data.GameMode gameMode) {
             return data(Identifier.GAME_MODE, gameMode);
+        }
+
+        /**
+         * Set the flight status of the snapshot
+         * <p>
+         * Equivalent to {@code data(Identifier.FLIGHT_STATUS, flightStatus)}
+         * </p>
+         *
+         * @param flightStatus The flight status
+         * @return The builder
+         * @since 3.5
+         */
+        @NotNull
+        public Builder flightStatus(@NotNull Data.FlightStatus flightStatus) {
+            return data(Identifier.FLIGHT_STATUS, flightStatus);
         }
 
         /**

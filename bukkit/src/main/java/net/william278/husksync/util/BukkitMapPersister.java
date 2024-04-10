@@ -37,6 +37,7 @@ import org.bukkit.inventory.meta.MapMeta;
 import org.bukkit.map.*;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.io.File;
@@ -75,8 +76,8 @@ public interface BukkitMapPersister {
      * @param items the array of {@link ItemStack}s to apply persisted locked maps to
      * @return the array of {@link ItemStack}s with persisted locked maps applied
      */
-    @NotNull
-    default ItemStack[] setMapViews(@NotNull ItemStack[] items) {
+    @Nullable
+    default ItemStack @NotNull [] setMapViews(@Nullable ItemStack @NotNull [] items) {
         if (!getPlugin().getSettings().getSynchronization().isPersistLockedMaps()) {
             return items;
         }

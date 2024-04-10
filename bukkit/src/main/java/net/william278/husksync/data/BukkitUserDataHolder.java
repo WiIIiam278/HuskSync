@@ -130,6 +130,12 @@ public interface BukkitUserDataHolder extends UserDataHolder {
 
     @NotNull
     @Override
+    default Optional<Data.FlightStatus> getFlightStatus() {
+        return Optional.of(BukkitData.FlightStatus.adapt(getBukkitPlayer()));
+    }
+
+    @NotNull
+    @Override
     default Optional<Data.PersistentData> getPersistentData() {
         return Optional.of(BukkitData.PersistentData.adapt(getBukkitPlayer().getPersistentDataContainer()));
     }

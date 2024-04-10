@@ -43,6 +43,7 @@ public class Identifier {
     public static Identifier HUNGER = huskSync("hunger", true);
     public static Identifier EXPERIENCE = huskSync("experience", true);
     public static Identifier GAME_MODE = huskSync("game_mode", true);
+    public static Identifier FLIGHT_STATUS = huskSync("flight_status", true);
     public static Identifier PERSISTENT_DATA = huskSync("persistent_data", true);
 
     private final Key key;
@@ -114,7 +115,7 @@ public class Identifier {
     public static Map<String, Boolean> getConfigMap() {
         return Map.ofEntries(Stream.of(
                         INVENTORY, ENDER_CHEST, POTION_EFFECTS, ADVANCEMENTS, LOCATION,
-                        STATISTICS, HEALTH, HUNGER, EXPERIENCE, GAME_MODE, PERSISTENT_DATA
+                        STATISTICS, HEALTH, HUNGER, EXPERIENCE, GAME_MODE, FLIGHT_STATUS, PERSISTENT_DATA
                 )
                 .map(Identifier::getConfigEntry)
                 .toArray(Map.Entry[]::new));

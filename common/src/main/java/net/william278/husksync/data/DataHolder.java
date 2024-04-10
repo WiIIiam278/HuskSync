@@ -129,6 +129,15 @@ public interface DataHolder {
     }
 
     @NotNull
+    default Optional<Data.FlightStatus> getFlightStatus() {
+        return Optional.ofNullable((Data.FlightStatus) getData().get(Identifier.FLIGHT_STATUS));
+    }
+
+    default void setFlightStatus(@NotNull Data.FlightStatus flightStatus) {
+        getData().put(Identifier.FLIGHT_STATUS, flightStatus);
+    }
+
+    @NotNull
     default Optional<Data.PersistentData> getPersistentData() {
         return Optional.ofNullable((Data.PersistentData) getData().get(Identifier.PERSISTENT_DATA));
     }
