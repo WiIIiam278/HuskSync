@@ -845,6 +845,7 @@ public abstract class BukkitData implements Data {
 
         @NotNull
         @Deprecated(forRemoval = true, since = "3.5")
+        @SuppressWarnings("unused")
         public static BukkitData.GameMode from(@NotNull String gameMode, boolean allowFlight, boolean isFlying) {
             return new BukkitData.GameMode(gameMode);
         }
