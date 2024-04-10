@@ -143,7 +143,7 @@ public class Settings {
         }
     }
 
-    // Redis settings
+    // 𝓡𝓮𝓭𝓲𝓼 settings
     @Comment("Redis settings")
     private RedisSettings redis = new RedisSettings();
 
