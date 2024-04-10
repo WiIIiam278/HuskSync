@@ -30,6 +30,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
 
 import static com.comphenix.protocol.PacketType.Play.Client;
 
@@ -74,7 +75,10 @@ public class BukkitLockedPacketListener extends BukkitLockedEventListener implem
         // Returns the set of ALL Server packets, excluding the set of allowed packets
         @NotNull
         private static Set<PacketType> getPacketsToListenFor() {
-            return Sets.difference(Client.getInstance().values(), ALLOWED_PACKETS);
+            return Sets.difference(
+                    Client.getInstance().values().stream().filter(PacketType::isSupported).collect(Collectors.toSet()),
+                    ALLOWED_PACKETS
+            );
         }
 
     }
