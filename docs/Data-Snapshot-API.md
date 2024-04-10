@@ -211,9 +211,9 @@ huskSyncAPI.getCurrentData(user).thenAccept(optionalSnapshot -> {
     // Get the health data
     Data.Health health = healthOptional.get();
     double currentHealth = health.getCurrentHealth(); // Current health
-    double maxHealth = health.getMaxHealth(); // Max health
     double healthScale = health.getHealthScale(); // Health scale (e.g., 20 for 20 hearts)
-    snapshot.setHealth(BukkitData.Health.from(20, 20, 20));
+    snapshot.setHealth(BukkitData.Health.from(20, 20));
+    // Need max health? Look at the Attributes data type.
     
     // Get the game mode data
     Data.GameMode gameMode = gameModeOptional.get();
