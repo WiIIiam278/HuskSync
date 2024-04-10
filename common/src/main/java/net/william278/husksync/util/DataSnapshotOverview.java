@@ -63,7 +63,7 @@ public class DataSnapshotOverview {
                 .ifPresent(user::sendMessage);
         locales.getLocale("data_manager_timestamp",
                         snapshot.getTimestamp().format(DateTimeFormatter
-                                .ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.LONG)),
+                                .ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.SHORT)),
                         snapshot.getTimestamp().toString())
                 .ifPresent(user::sendMessage);
         if (snapshot.isPinned()) {
