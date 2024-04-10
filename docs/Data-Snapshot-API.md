@@ -201,6 +201,11 @@ huskSyncAPI.getCurrentData(user).thenAccept(optionalSnapshot -> {
         System.out.println("User has no game mode data!");
         return;
     }
+    Optional<Data.FlightStatus> flightStatusOptional = snapshot.getFlightStatus();
+    if (flightStatusOptional.isEmpty()) {
+        System.out.println("User has no flight status data!");
+        return;
+    }
     // getExperience() and getHunger() work similarly
         
     // Get the health data
@@ -213,9 +218,13 @@ huskSyncAPI.getCurrentData(user).thenAccept(optionalSnapshot -> {
     // Get the game mode data
     Data.GameMode gameMode = gameModeOptional.get();
     String gameModeName = gameMode.getGameModeName(); // Game mode name (e.g., "SURVIVAL")
-    boolean isFlying = gameMode.isFlying(); // Whether the player is *currently* flying
-    boolean canFly = gameMode.canFly(); // Whether the player *can* fly
-    snapshot.setGameMode(BukkitData.GameMode.from("SURVIVAL", false, false));
+    snapshot.setGameMode(BukkitData.GameMode.from("SURVIVAL"));
+    
+    // Get flight data
+    Data.FlightStatus flightStatus = flightStatusOptional.get(); // Whether the player is flying
+    boolean isFlying = flightStatus.isFlying(); // Whether the player is *currently* flying
+    boolean canFly = flightStatus.isAllowFlight(); // Whether the player *can* fly
+    snapshot.setFlightStatus(BukkitData.FlightStatus.from(false, false));
     
     // Save the snapshot - This will update the player if online and save the snapshot to the database
     huskSyncAPI.setCurrentData(user, snapshot);
