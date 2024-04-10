@@ -100,7 +100,7 @@ public class Settings {
             private String database = "HuskSync";
             private String username = "root";
             private String password = "pa55w0rd";
-            @Comment("Only change this if you have select MYSQL, MARIADB or POSTGRES")
+            @Comment("Only change this if you're using MARIADB or POSTGRES")
             private String parameters = String.join("&",
                     "?autoReconnect=true", "useSSL=false",
                     "useUnicode=true", "characterEncoding=UTF-8");
