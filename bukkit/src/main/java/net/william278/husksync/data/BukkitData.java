@@ -878,6 +878,11 @@ public abstract class BukkitData implements Data {
             return new BukkitData.FlightStatus(allowFlight, allowFlight && flying);
         }
 
+        @NotNull
+        public static BukkitData.FlightStatus adapt(@NotNull Player player) {
+            return from(player.getAllowFlight(), player.isFlying());
+        }
+
         @Override
         public void apply(@NotNull BukkitUser user, @NotNull BukkitHuskSync plugin) throws IllegalStateException {
             final Player player = user.getPlayer();

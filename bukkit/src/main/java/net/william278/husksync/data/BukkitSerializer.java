@@ -206,6 +206,7 @@ public class BukkitSerializer {
         }
 
     }
+
     public static class Json<T extends Data & Adaptable> extends BukkitSerializer implements Serializer<T> {
 
         private final Class<T> type;
