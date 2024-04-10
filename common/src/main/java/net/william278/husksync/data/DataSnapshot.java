@@ -111,14 +111,14 @@ public class DataSnapshot {
                                                   @Nullable OffsetDateTime timestamp) throws IllegalStateException {
         final DataSnapshot.Packed snapshot = plugin.getDataAdapter().fromBytes(data, DataSnapshot.Packed.class);
         if (snapshot.getMinecraftVersion().compareTo(plugin.getMinecraftVersion()) > 0) {
-            throw new IllegalStateException(String.format("Cannot set data for user because the Minecraft version of " +
-                            "their user data (%s) is newer than the server's Minecraft version (%s)." +
+            throw new IllegalStateException(String.format("Cannot deserialize data because the Minecraft version of " +
+                            "the data snapshot (%s) is newer than the server's Minecraft version (%s)." +
                             "Please ensure each server is running the same version of Minecraft.",
                     snapshot.getMinecraftVersion(), plugin.getMinecraftVersion()));
         }
         if (snapshot.getFormatVersion() > CURRENT_FORMAT_VERSION) {
-            throw new IllegalStateException(String.format("Cannot set data for user because the format version of " +
-                            "their user data (%s) is newer than the current format version (%s). " +
+            throw new IllegalStateException(String.format("Cannot deserialize data because the format version of " +
+                            "the data snapshot (%s) is newer than the current format version (%s). " +
                             "Please ensure each server is running the latest version of HuskSync.",
                     snapshot.getFormatVersion(), CURRENT_FORMAT_VERSION));
         }
@@ -135,8 +135,8 @@ public class DataSnapshot {
             ));
         }
         if (!snapshot.getPlatformType().equalsIgnoreCase(plugin.getPlatformType())) {
-            throw new IllegalStateException(String.format("Cannot set data for user because the platform type of " +
-                            "their user data (%s) is different to the server platform type (%s). " +
+            throw new IllegalStateException(String.format("Cannot deserialize data because the platform type of " +
+                            "the data snapshot (%s) is different to the server platform type (%s). " +
                             "Please ensure each server is running the same platform type.",
                     snapshot.getPlatformType(), plugin.getPlatformType()));
         }

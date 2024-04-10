@@ -38,6 +38,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.logging.Level;
 
 /**
  * Handles the synchronization of data when a player changes servers or logs in
@@ -156,10 +157,15 @@ public abstract class DataSyncer {
     // Set a user's data from the database, or set them as a new user
     @ApiStatus.Internal
     protected void setUserFromDatabase(@NotNull OnlineUser user) {
-        getDatabase().getLatestSnapshot(user).ifPresentOrElse(
-                snapshot -> user.applySnapshot(snapshot, DataSnapshot.UpdateCause.SYNCHRONIZED),
-                () -> user.completeSync(true, DataSnapshot.UpdateCause.NEW_USER, plugin)
-        );
+        try {
+            getDatabase().getLatestSnapshot(user).ifPresentOrElse(
+                    snapshot -> user.applySnapshot(snapshot, DataSnapshot.UpdateCause.SYNCHRONIZED),
+                    () -> user.completeSync(true, DataSnapshot.UpdateCause.NEW_USER, plugin)
+            );
+        } catch (Throwable e) {
+            plugin.log(Level.WARNING, "Failed to set %s's data from the database".formatted(user.getUsername()), e);
+            user.completeSync(false, DataSnapshot.UpdateCause.SYNCHRONIZED, plugin);
+        }
     }
 
     // Continuously listen for data from Redis
