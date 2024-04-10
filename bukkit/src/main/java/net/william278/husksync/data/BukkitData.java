@@ -65,17 +65,17 @@ public abstract class BukkitData implements Data {
     @Getter
     public static abstract class Items extends BukkitData implements Data.Items {
 
-        private final ItemStack[] contents;
+        private final @Nullable ItemStack @NotNull [] contents;
 
-        private Items(@NotNull ItemStack[] contents) {
+        private Items(@Nullable ItemStack @NotNull [] contents) {
             this.contents = Arrays.stream(contents)
                     .map(i -> i == null || i.getType() == Material.AIR ? null : i)
                     .toArray(ItemStack[]::new);
         }
 
-        @NotNull
+        @Nullable
         @Override
-        public Stack[] getStack() {
+        public Stack @NotNull [] getStack() {
             return Arrays.stream(contents)
                     .map(stack -> stack != null ? new Stack(
                             stack.getType().getKey().toString(),
@@ -105,7 +105,7 @@ public abstract class BukkitData implements Data {
             this.setContents(((BukkitData.Items) contents).getContents());
         }
 
-        public void setContents(@NotNull ItemStack[] contents) {
+        public void setContents(@Nullable ItemStack @NotNull [] contents) {
             // Ensure the array is the correct length for the inventory
             if (contents.length != this.contents.length) {
                 contents = Arrays.copyOf(contents, this.contents.length);

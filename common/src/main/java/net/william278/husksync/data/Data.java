@@ -52,7 +52,7 @@ public interface Data {
     interface Items extends Data {
 
         @Nullable
-        Stack[] getStack();
+        Stack @Nullable[] getStack();
 
         default int getSlotCount() {
             return getStack().length;
