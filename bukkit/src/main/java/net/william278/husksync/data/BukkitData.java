@@ -699,7 +699,7 @@ public abstract class BukkitData implements Data {
             return new Attribute(
                     instance.getAttribute().getKey().toString(),
                     instance.getBaseValue(),
-                    instance.getModifiers().stream().map(BukkitData.Attributes::adapt).toList()
+                    instance.getModifiers().stream().map(BukkitData.Attributes::adapt).collect(Collectors.toSet())
             );
         }
 

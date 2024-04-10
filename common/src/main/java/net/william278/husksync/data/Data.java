@@ -19,7 +19,7 @@
 
 package net.william278.husksync.data;
 
-import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.google.gson.annotations.SerializedName;
 import net.kyori.adventure.key.Key;
 import net.william278.husksync.HuskSync;
@@ -320,7 +320,7 @@ public interface Data {
         record Attribute(
                 @NotNull String name,
                 double baseValue,
-                @NotNull List<Modifier> modifiers
+                @NotNull Set<Modifier> modifiers
         ) {
 
             public double getValue() {
@@ -374,7 +374,7 @@ public interface Data {
 
         default void setMaxHealth(double maxHealth) {
             removeAttribute(MAX_HEALTH_KEY);
-            getAttributes().add(new Attribute(MAX_HEALTH_KEY.asString(), maxHealth, Lists.newArrayList()));
+            getAttributes().add(new Attribute(MAX_HEALTH_KEY.asString(), maxHealth, Sets.newHashSet()));
         }
 
     }
