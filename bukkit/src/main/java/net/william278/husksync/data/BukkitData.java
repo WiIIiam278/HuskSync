@@ -682,8 +682,8 @@ public abstract class BukkitData implements Data {
             final List<Attribute> attributes = Lists.newArrayList();
             Registry.ATTRIBUTE.forEach(id -> {
                 final AttributeInstance instance = player.getAttribute(id);
-                if (instance == null) {
-                    return;
+                if (instance == null || instance.getValue() == instance.getDefaultValue()) {
+                    return; // We don't sync unmodified attributes
                 }
                 attributes.add(adapt(instance));
             });
