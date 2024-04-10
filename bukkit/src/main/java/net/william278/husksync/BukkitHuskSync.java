@@ -166,7 +166,6 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
                 case MYSQL, MARIADB -> new MySqlDatabase(this);
                 case POSTGRES -> new PostgresDatabase(this);
                 case MONGO -> new MongoDbDatabase(this);
-                default -> throw new IllegalStateException("Invalid database type");
             };
             this.database.initialize();
         });

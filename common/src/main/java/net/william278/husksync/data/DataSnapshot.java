@@ -47,6 +47,7 @@ import java.util.stream.Collectors;
  *
  * @since 3.0
  */
+@SuppressWarnings({"LombokSetterMayBeUsed", "LombokGetterMayBeUsed"})
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class DataSnapshot {
 
