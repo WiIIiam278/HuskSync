@@ -320,7 +320,7 @@ public class MpdbMigrator extends Migrator {
                     .inventory(BukkitData.Items.Inventory.from(inventory.getContents(), 0))
                     .enderChest(BukkitData.Items.EnderChest.adapt(enderChest))
                     .experience(BukkitData.Experience.from(totalExp, expLevel, expProgress))
-                    .gameMode(BukkitData.GameMode.from("SURVIVAL", false, false))
+                    .gameMode(BukkitData.GameMode.from("SURVIVAL"))
                     .saveCause(DataSnapshot.SaveCause.MPDB_MIGRATION)
                     .buildAndPack();
         }

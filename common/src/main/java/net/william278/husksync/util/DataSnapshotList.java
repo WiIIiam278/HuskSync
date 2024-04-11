@@ -56,7 +56,7 @@ public class DataSnapshotList {
                                         snapshot.getTimestamp().format(DateTimeFormatter
                                                 .ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.SHORT)),
                                         snapshot.getTimestamp().format(DateTimeFormatter
-                                                .ofLocalizedDateTime(FormatStyle.LONG, FormatStyle.LONG)),
+                                                .ofLocalizedDateTime(FormatStyle.LONG, FormatStyle.MEDIUM)),
                                         snapshot.getSaveCause().getLocale(plugin),
                                         String.format("%.2fKiB", snapshot.getFileSize(plugin) / 1024f))
                                 .orElse("• " + snapshot.getId())).toList(),

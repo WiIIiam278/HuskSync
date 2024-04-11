@@ -24,19 +24,20 @@ import com.google.common.collect.Maps;
 import com.google.gson.annotations.SerializedName;
 import de.tr7zw.changeme.nbtapi.NBTCompound;
 import de.tr7zw.changeme.nbtapi.NBTPersistentDataContainer;
+import lombok.*;
 import net.william278.desertwell.util.ThrowingConsumer;
 import net.william278.husksync.BukkitHuskSync;
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.adapter.Adaptable;
 import net.william278.husksync.user.BukkitUser;
-import org.apache.commons.lang.NotImplementedException;
 import org.bukkit.*;
 import org.bukkit.advancement.AdvancementProgress;
-import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
+import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryType;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.potion.PotionEffect;
@@ -44,6 +45,7 @@ import org.bukkit.potion.PotionEffectType;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Range;
 
 import java.util.*;
 import java.util.logging.Level;
@@ -61,19 +63,20 @@ public abstract class BukkitData implements Data {
 
     public abstract void apply(@NotNull BukkitUser user, @NotNull BukkitHuskSync plugin) throws IllegalStateException;
 
+    @Getter
     public static abstract class Items extends BukkitData implements Data.Items {
 
-        private final ItemStack[] contents;
+        private final @Nullable ItemStack @NotNull [] contents;
 
-        private Items(@NotNull ItemStack[] contents) {
+        private Items(@Nullable ItemStack @NotNull [] contents) {
             this.contents = Arrays.stream(contents)
                     .map(i -> i == null || i.getType() == Material.AIR ? null : i)
                     .toArray(ItemStack[]::new);
         }
 
-        @NotNull
+        @Nullable
         @Override
-        public Stack[] getStack() {
+        public Stack @NotNull [] getStack() {
             return Arrays.stream(contents)
                     .map(stack -> stack != null ? new Stack(
                             stack.getType().getKey().toString(),
@@ -103,17 +106,12 @@ public abstract class BukkitData implements Data {
             this.setContents(((BukkitData.Items) contents).getContents());
         }
 
-        public void setContents(@NotNull ItemStack[] contents) {
+        public void setContents(@Nullable ItemStack @NotNull [] contents) {
             // Ensure the array is the correct length for the inventory
             if (contents.length != this.contents.length) {
                 contents = Arrays.copyOf(contents, this.contents.length);
             }
             System.arraycopy(contents, 0, this.contents, 0, this.contents.length);
-        }
-
-        @NotNull
-        public ItemStack[] getContents() {
-            return contents;
         }
 
         @Override
@@ -124,9 +122,13 @@ public abstract class BukkitData implements Data {
             return false;
         }
 
+        @Setter
+        @Getter
         public static class Inventory extends BukkitData.Items implements Data.Items.Inventory {
 
             public static final int INVENTORY_SLOT_COUNT = 41;
+
+            @Range(from = 0, to = 8)
             private int heldItemSlot;
 
             private Inventory(@NotNull ItemStack[] contents, int heldItemSlot) {
@@ -166,19 +168,6 @@ public abstract class BukkitData implements Data {
                         inventory.setItem(slot, null);
                     }
                 }
-            }
-
-            @Override
-            public int getHeldItemSlot() {
-                return heldItemSlot;
-            }
-
-            @Override
-            public void setHeldItemSlot(int heldItemSlot) throws IllegalArgumentException {
-                if (heldItemSlot < 0 || heldItemSlot > 8) {
-                    throw new IllegalArgumentException("Held item slot must be between 0 and 8");
-                }
-                this.heldItemSlot = heldItemSlot;
             }
 
         }
@@ -226,20 +215,19 @@ public abstract class BukkitData implements Data {
 
             @Override
             public void apply(@NotNull BukkitUser user, @NotNull BukkitHuskSync plugin) throws IllegalStateException {
-                throw new NotImplementedException("A generic item array cannot be applied to a player");
+                throw new UnsupportedOperationException("A generic item array cannot be applied to a player");
             }
 
         }
 
     }
 
+    @Getter
+    @Setter
+    @AllArgsConstructor(access = AccessLevel.PRIVATE)
     public static class PotionEffects extends BukkitData implements Data.PotionEffects {
 
         private final Collection<PotionEffect> effects;
-
-        private PotionEffects(@NotNull Collection<PotionEffect> effects) {
-            this.effects = effects;
-        }
 
         @NotNull
         public static BukkitData.PotionEffects from(@NotNull Collection<PotionEffect> effects) {
@@ -297,20 +285,15 @@ public abstract class BukkitData implements Data {
                     .toList();
         }
 
-        @NotNull
-        public Collection<PotionEffect> getEffects() {
-            return effects;
-        }
-
     }
 
+    @Getter
+    @Setter
+    @AllArgsConstructor(access = AccessLevel.PRIVATE)
+    @NoArgsConstructor(access = AccessLevel.PRIVATE)
     public static class Advancements extends BukkitData implements Data.Advancements {
 
         private List<Advancement> completed;
-
-        private Advancements(@NotNull List<Advancement> advancements) {
-            this.completed = advancements;
-        }
 
         // Iterate through the server advancement set and add all advancements to the list
         @NotNull
@@ -392,20 +375,14 @@ public abstract class BukkitData implements Data {
             Bukkit.getServer().advancementIterator().forEachRemaining(consumer);
         }
 
-        @NotNull
-        @Override
-        public List<Advancement> getCompleted() {
-            return completed;
-        }
-
-        @Override
-        public void setCompleted(@NotNull List<Advancement> completed) {
-            this.completed = completed;
-        }
-
     }
 
+    @Getter
+    @Setter
+    @AllArgsConstructor(access = AccessLevel.PRIVATE)
+    @NoArgsConstructor(access = AccessLevel.PRIVATE)
     public static class Location extends BukkitData implements Data.Location, Adaptable {
+
         @SerializedName("x")
         private double x;
         @SerializedName("y")
@@ -418,19 +395,6 @@ public abstract class BukkitData implements Data {
         private float pitch;
         @SerializedName("world")
         private World world;
-
-        private Location(double x, double y, double z, float yaw, float pitch, @NotNull World world) {
-            this.x = x;
-            this.y = y;
-            this.z = z;
-            this.yaw = yaw;
-            this.pitch = pitch;
-            this.world = world;
-        }
-
-        @SuppressWarnings("unused")
-        private Location() {
-        }
 
         @NotNull
         public static BukkitData.Location from(double x, double y, double z,
@@ -466,89 +430,16 @@ public abstract class BukkitData implements Data {
             }
         }
 
-        @Override
-        public double getX() {
-            return x;
-        }
-
-        @Override
-        public void setX(double x) {
-            this.x = x;
-        }
-
-        @Override
-        public double getY() {
-            return y;
-        }
-
-        @Override
-        public void setY(double y) {
-            this.y = y;
-        }
-
-        @Override
-        public double getZ() {
-            return z;
-        }
-
-        @Override
-        public void setZ(double z) {
-            this.z = z;
-        }
-
-        @Override
-        public float getYaw() {
-            return yaw;
-        }
-
-        @Override
-        public void setYaw(float yaw) {
-            this.yaw = yaw;
-        }
-
-        @Override
-        public float getPitch() {
-            return pitch;
-        }
-
-        @Override
-        public void setPitch(float pitch) {
-            this.pitch = pitch;
-        }
-
-        @NotNull
-        @Override
-        public World getWorld() {
-            return world;
-        }
-
-        @Override
-        public void setWorld(@NotNull World world) {
-            this.world = world;
-        }
-
     }
 
-    // TODO: Consider using Paper's new-ish API for this instead (when it's merged)
+    // TODO: Move to using Registry.STATISTIC as soon as possible!
+    @AllArgsConstructor(access = AccessLevel.PRIVATE)
+    @NoArgsConstructor(access = AccessLevel.PRIVATE)
     public static class Statistics extends BukkitData implements Data.Statistics {
         private Map<Statistic, Integer> genericStatistics;
         private Map<Statistic, Map<Material, Integer>> blockStatistics;
         private Map<Statistic, Map<Material, Integer>> itemStatistics;
         private Map<Statistic, Map<EntityType, Integer>> entityStatistics;
-
-        private Statistics(@NotNull Map<Statistic, Integer> genericStatistics,
-                           @NotNull Map<Statistic, Map<Material, Integer>> blockStatistics,
-                           @NotNull Map<Statistic, Map<Material, Integer>> itemStatistics,
-                           @NotNull Map<Statistic, Map<EntityType, Integer>> entityStatistics) {
-            this.genericStatistics = genericStatistics;
-            this.blockStatistics = blockStatistics;
-            this.itemStatistics = itemStatistics;
-            this.entityStatistics = entityStatistics;
-        }
-
-        @SuppressWarnings("unused")
-        private Statistics() {
-        }
 
         @NotNull
         public static BukkitData.Statistics adapt(@NotNull Player player) {
@@ -758,12 +649,10 @@ public abstract class BukkitData implements Data {
 
     }
 
+    @Getter
+    @AllArgsConstructor(access = AccessLevel.PRIVATE)
     public static class PersistentData extends BukkitData implements Data.PersistentData {
         private final NBTCompound persistentData;
-
-        private PersistentData(@NotNull NBTCompound persistentData) {
-            this.persistentData = persistentData;
-        }
 
         @NotNull
         public static BukkitData.PersistentData adapt(@NotNull PersistentDataContainer persistentData) {
@@ -784,140 +673,140 @@ public abstract class BukkitData implements Data {
             container.mergeCompound(persistentData);
         }
 
+    }
+
+    @Getter
+    @AllArgsConstructor(access = AccessLevel.PRIVATE)
+    @NoArgsConstructor(access = AccessLevel.PRIVATE)
+    public static class Attributes extends BukkitData implements Data.Attributes, Adaptable {
+
+        private List<Attribute> attributes;
+
         @NotNull
-        public NBTCompound getPersistentData() {
-            return persistentData;
+        public static BukkitData.Attributes adapt(@NotNull Player player, @NotNull HuskSync plugin) {
+            final List<Attribute> attributes = Lists.newArrayList();
+            Registry.ATTRIBUTE.forEach(id -> {
+                final AttributeInstance instance = player.getAttribute(id);
+                if (instance == null || instance.getValue() == instance.getDefaultValue() || plugin
+                        .getSettings().getSynchronization().isIgnoredAttribute(id.getKey().toString())) {
+                    // We don't sync unmodified or disabled attributes
+                    return;
+                }
+                attributes.add(adapt(instance));
+            });
+            return new BukkitData.Attributes(attributes);
+        }
+
+        public Optional<Attribute> getAttribute(@NotNull org.bukkit.attribute.Attribute id) {
+            return attributes.stream().filter(attribute -> attribute.name().equals(id.getKey().toString())).findFirst();
+        }
+
+        @NotNull
+        private static Attribute adapt(@NotNull AttributeInstance instance) {
+            return new Attribute(
+                    instance.getAttribute().getKey().toString(),
+                    instance.getBaseValue(),
+                    instance.getModifiers().stream().map(BukkitData.Attributes::adapt).collect(Collectors.toSet())
+            );
+        }
+
+        @NotNull
+        private static Modifier adapt(@NotNull AttributeModifier modifier) {
+            return new Modifier(
+                    modifier.getUniqueId(),
+                    modifier.getName(),
+                    modifier.getAmount(),
+                    modifier.getOperation().ordinal(),
+                    modifier.getSlot() != null ? modifier.getSlot().ordinal() : -1
+            );
+        }
+
+        @Override
+        public void apply(@NotNull BukkitUser user, @NotNull BukkitHuskSync plugin) throws IllegalStateException {
+            Registry.ATTRIBUTE.forEach(id -> applyAttribute(user.getPlayer().getAttribute(id), getAttribute(id).orElse(null)));
+        }
+
+        private static void applyAttribute(@Nullable AttributeInstance instance, @Nullable Attribute attribute) {
+            if (instance == null) {
+                return;
+            }
+            instance.setBaseValue(attribute == null ? instance.getDefaultValue() : instance.getBaseValue());
+            instance.getModifiers().forEach(instance::removeModifier);
+            if (attribute != null) {
+                attribute.modifiers().forEach(modifier -> instance.addModifier(new AttributeModifier(
+                        modifier.uuid(),
+                        modifier.name(),
+                        modifier.amount(),
+                        AttributeModifier.Operation.values()[modifier.operationType()],
+                        modifier.equipmentSlot() != -1 ? EquipmentSlot.values()[modifier.equipmentSlot()] : null
+                )));
+            }
         }
 
     }
 
+    @Getter
+    @Setter
+    @AllArgsConstructor(access = AccessLevel.PRIVATE)
+    @NoArgsConstructor(access = AccessLevel.PRIVATE)
     public static class Health extends BukkitData implements Data.Health, Adaptable {
         @SerializedName("health")
         private double health;
-        @SerializedName("max_health")
-        private double maxHealth;
         @SerializedName("health_scale")
         private double healthScale;
 
-        private Health(double health, double maxHealth, double healthScale) {
-            this.health = health;
-            this.maxHealth = maxHealth;
-            this.healthScale = healthScale;
-        }
-
-        @SuppressWarnings("unused")
-        private Health() {
+        @NotNull
+        public static BukkitData.Health from(double health, double healthScale) {
+            return new BukkitData.Health(health, healthScale);
         }
 
         @NotNull
+        @Deprecated(forRemoval = true, since = "3.5")
+        @SuppressWarnings("unused")
         public static BukkitData.Health from(double health, double maxHealth, double healthScale) {
-            return new BukkitData.Health(health, maxHealth, healthScale);
+            return from(health, healthScale);
         }
 
         @NotNull
         public static BukkitData.Health adapt(@NotNull Player player) {
             return from(
                     player.getHealth(),
-                    getMaxHealth(player),
                     player.isHealthScaled() ? player.getHealthScale() : 0d
             );
         }
 
         @Override
+        @SuppressWarnings("deprecation")
         public void apply(@NotNull BukkitUser user, @NotNull BukkitHuskSync plugin) throws IllegalStateException {
             final Player player = user.getPlayer();
 
-            // Set max health
-            final AttributeInstance maxHealth = getMaxHealthAttribute(player);
-            try {
-                if (plugin.getSettings().getSynchronization().isSynchronizeMaxHealth() && this.maxHealth != 0) {
-                    maxHealth.setBaseValue(this.maxHealth);
-                }
-            } catch (Throwable e) {
-                plugin.log(Level.WARNING, String.format("Failed setting the max health of %s to %s",
-                        player.getName(), this.maxHealth), e);
-            }
-
             // Set health
             try {
-                final double health = player.getHealth();
-                player.setHealth(Math.min(health, maxHealth.getBaseValue()));
+                player.setHealth(Math.min(health, player.getMaxHealth()));
             } catch (Throwable e) {
-                plugin.log(Level.WARNING, String.format("Failed setting the health of %s to %s",
-                        player.getName(), this.maxHealth), e);
+                plugin.log(Level.WARNING, "Error setting %s's health to %s".formatted(player.getName(), health), e);
             }
 
             // Set health scale
             try {
-                if (this.healthScale != 0d) {
+                if (healthScale != 0d) {
                     player.setHealthScaled(true);
-                    player.setHealthScale(this.healthScale);
+                    player.setHealthScale(healthScale);
                 } else {
                     player.setHealthScaled(false);
-                    player.setHealthScale(this.maxHealth);
+                    player.setHealthScale(player.getMaxHealth());
                 }
             } catch (Throwable e) {
-                plugin.log(Level.WARNING, String.format("Failed setting the health scale of %s to %s",
-                        player.getName(), this.healthScale), e);
+                plugin.log(Level.WARNING, "Error setting %s's health scale to %s".formatted(player.getName(), healthScale), e);
             }
-        }
-
-        // Returns the max health of a player, accounting for health boost potion effects
-        private static double getMaxHealth(@NotNull Player player) {
-            // Get the base value of the attribute (ignore armor, items that give health boosts, etc.)
-            double maxHealth = getMaxHealthAttribute(player).getBaseValue();
-
-            // Subtract health boost potion effects from stored max health
-            if (player.hasPotionEffect(PotionEffectType.HEALTH_BOOST) && maxHealth > 20d) {
-                final PotionEffect healthBoost = Objects.requireNonNull(
-                        player.getPotionEffect(PotionEffectType.HEALTH_BOOST), "Health boost effect was null"
-                );
-                maxHealth -= (4 * (healthBoost.getAmplifier() + 1));
-            }
-
-            return maxHealth;
-        }
-
-        // Returns the max health attribute of a player
-        @NotNull
-        private static AttributeInstance getMaxHealthAttribute(@NotNull Player player) {
-            return Objects.requireNonNull(
-                    player.getAttribute(Attribute.GENERIC_MAX_HEALTH), "Max health attribute was null"
-            );
-        }
-
-        @Override
-        public double getHealth() {
-            return health;
-        }
-
-        @Override
-        public void setHealth(double health) {
-            this.health = health;
-        }
-
-        @Override
-        public double getMaxHealth() {
-            return maxHealth;
-        }
-
-        @Override
-        public void setMaxHealth(double maxHealth) {
-            this.maxHealth = maxHealth;
-        }
-
-        @Override
-        public double getHealthScale() {
-            return healthScale;
-        }
-
-        @Override
-        public void setHealthScale(double healthScale) {
-            this.healthScale = healthScale;
         }
 
     }
 
+    @Getter
+    @Setter
+    @AllArgsConstructor(access = AccessLevel.PRIVATE)
+    @NoArgsConstructor(access = AccessLevel.PRIVATE)
     public static class Hunger extends BukkitData implements Data.Hunger, Adaptable {
 
         @SerializedName("food_level")
@@ -926,16 +815,6 @@ public abstract class BukkitData implements Data {
         private float saturation;
         @SerializedName("exhaustion")
         private float exhaustion;
-
-        private Hunger(int foodLevel, float saturation, float exhaustion) {
-            this.foodLevel = foodLevel;
-            this.saturation = saturation;
-            this.exhaustion = exhaustion;
-        }
-
-        @SuppressWarnings("unused")
-        private Hunger() {
-        }
 
         @NotNull
         public static BukkitData.Hunger adapt(@NotNull Player player) {
@@ -955,37 +834,12 @@ public abstract class BukkitData implements Data {
             player.setExhaustion(exhaustion);
         }
 
-        @Override
-        public int getFoodLevel() {
-            return foodLevel;
-        }
-
-        @Override
-        public void setFoodLevel(int foodLevel) {
-            this.foodLevel = foodLevel;
-        }
-
-        @Override
-        public float getSaturation() {
-            return saturation;
-        }
-
-        @Override
-        public void setSaturation(float saturation) {
-            this.saturation = saturation;
-        }
-
-        @Override
-        public float getExhaustion() {
-            return exhaustion;
-        }
-
-        @Override
-        public void setExhaustion(float exhaustion) {
-            this.exhaustion = exhaustion;
-        }
     }
 
+    @Getter
+    @Setter
+    @AllArgsConstructor(access = AccessLevel.PRIVATE)
+    @NoArgsConstructor(access = AccessLevel.PRIVATE)
     public static class Experience extends BukkitData implements Data.Experience, Adaptable {
 
         @SerializedName("total_experience")
@@ -996,16 +850,6 @@ public abstract class BukkitData implements Data {
 
         @SerializedName("exp_progress")
         private float expProgress;
-
-        private Experience(int totalExperience, int expLevel, float expProgress) {
-            this.totalExperience = totalExperience;
-            this.expLevel = expLevel;
-            this.expProgress = expProgress;
-        }
-
-        @SuppressWarnings("unused")
-        private Experience() {
-        }
 
         @NotNull
         public static BukkitData.Experience from(int totalExperience, int expLevel, float expProgress) {
@@ -1025,100 +869,67 @@ public abstract class BukkitData implements Data {
             player.setExp(expProgress);
         }
 
-        @Override
-        public int getTotalExperience() {
-            return totalExperience;
-        }
-
-        @Override
-        public void setTotalExperience(int totalExperience) {
-            this.totalExperience = totalExperience;
-        }
-
-        @Override
-        public int getExpLevel() {
-            return expLevel;
-        }
-
-        @Override
-        public void setExpLevel(int expLevel) {
-            this.expLevel = expLevel;
-        }
-
-        @Override
-        public float getExpProgress() {
-            return expProgress;
-        }
-
-        @Override
-        public void setExpProgress(float expProgress) {
-            this.expProgress = expProgress;
-        }
-
     }
 
+    @Getter
+    @Setter
+    @AllArgsConstructor(access = AccessLevel.PRIVATE)
+    @NoArgsConstructor(access = AccessLevel.PRIVATE)
     public static class GameMode extends BukkitData implements Data.GameMode, Adaptable {
 
         @SerializedName("game_mode")
         private String gameMode;
-        @SerializedName("allow_flight")
-        private boolean allowFlight;
-        @SerializedName("is_flying")
-        private boolean isFlying;
 
-        private GameMode(@NotNull String gameMode, boolean allowFlight, boolean isFlying) {
-            this.gameMode = gameMode;
-            this.allowFlight = allowFlight;
-            this.isFlying = isFlying;
+        @NotNull
+        public static BukkitData.GameMode from(@NotNull String gameMode) {
+            return new BukkitData.GameMode(gameMode);
         }
 
         @NotNull
+        @Deprecated(forRemoval = true, since = "3.5")
+        @SuppressWarnings("unused")
         public static BukkitData.GameMode from(@NotNull String gameMode, boolean allowFlight, boolean isFlying) {
-            return new BukkitData.GameMode(gameMode, allowFlight, isFlying);
+            return new BukkitData.GameMode(gameMode);
         }
 
         @NotNull
         public static BukkitData.GameMode adapt(@NotNull Player player) {
-            return from(player.getGameMode().name(), player.getAllowFlight(), player.isFlying());
+            return from(player.getGameMode().name());
+        }
+
+        @Override
+        public void apply(@NotNull BukkitUser user, @NotNull BukkitHuskSync plugin) throws IllegalStateException {
+            user.getPlayer().setGameMode(org.bukkit.GameMode.valueOf(gameMode));
+        }
+
+    }
+
+    @Getter
+    @Setter
+    @AllArgsConstructor(access = AccessLevel.PRIVATE)
+    @NoArgsConstructor(access = AccessLevel.PRIVATE)
+    public static class FlightStatus extends BukkitData implements Data.FlightStatus, Adaptable {
+
+        @SerializedName("allow_flight")
+        private boolean allowFlight;
+        @SerializedName("is_flying")
+        private boolean flying;
+
+        @NotNull
+        public static BukkitData.FlightStatus from(boolean allowFlight, boolean flying) {
+            return new BukkitData.FlightStatus(allowFlight, allowFlight && flying);
+        }
+
+        @NotNull
+        public static BukkitData.FlightStatus adapt(@NotNull Player player) {
+            return from(player.getAllowFlight(), player.isFlying());
         }
 
         @Override
         public void apply(@NotNull BukkitUser user, @NotNull BukkitHuskSync plugin) throws IllegalStateException {
             final Player player = user.getPlayer();
-            player.setGameMode(org.bukkit.GameMode.valueOf(gameMode));
             player.setAllowFlight(allowFlight);
-            player.setFlying(allowFlight && isFlying);
-        }
-
-        @NotNull
-        @Override
-        public String getGameMode() {
-            return gameMode;
-        }
-
-        @Override
-        public void setGameMode(@NotNull String gameMode) {
-            this.gameMode = gameMode;
-        }
-
-        @Override
-        public boolean getAllowFlight() {
-            return allowFlight;
-        }
-
-        @Override
-        public void setAllowFlight(boolean allowFlight) {
-            this.allowFlight = allowFlight;
-        }
-
-        @Override
-        public boolean getIsFlying() {
-            return isFlying;
-        }
-
-        @Override
-        public void setIsFlying(boolean isFlying) {
-            this.isFlying = isFlying;
+            player.setFlying(allowFlight && flying);
         }
 
     }

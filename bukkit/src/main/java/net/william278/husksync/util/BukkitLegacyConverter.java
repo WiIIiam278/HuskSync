@@ -53,9 +53,9 @@ public class BukkitLegacyConverter extends LegacyConverter {
         super(plugin);
     }
 
-    @NotNull
     @Override
-    public DataSnapshot.Packed convert(byte[] data, @NotNull UUID id,
+    @NotNull
+    public DataSnapshot.Packed convert(byte @NotNull [] data, @NotNull UUID id,
                                        @NotNull OffsetDateTime timestamp) throws DataAdapter.AdaptionException {
         final JSONObject object = new JSONObject(plugin.getDataAdapter().bytesToString(data));
         final int version = object.getInt("format_version");
@@ -87,7 +87,6 @@ public class BukkitLegacyConverter extends LegacyConverter {
         if (shouldImport(Identifier.HEALTH)) {
             containers.put(Identifier.HEALTH, BukkitData.Health.from(
                     status.getDouble("health"),
-                    status.getDouble("max_health"),
                     status.getDouble("health_scale")
             ));
         }
@@ -107,7 +106,11 @@ public class BukkitLegacyConverter extends LegacyConverter {
         }
         if (shouldImport(Identifier.GAME_MODE)) {
             containers.put(Identifier.GAME_MODE, BukkitData.GameMode.from(
-                    status.getString("game_mode"),
+                    status.getString("game_mode")
+            ));
+        }
+        if (shouldImport(Identifier.FLIGHT_STATUS)) {
+            containers.put(Identifier.FLIGHT_STATUS, BukkitData.FlightStatus.from(
                     status.getBoolean("is_flying"),
                     status.getBoolean("is_flying")
             ));

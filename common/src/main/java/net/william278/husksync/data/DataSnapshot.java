@@ -47,6 +47,7 @@ import java.util.stream.Collectors;
  *
  * @since 3.0
  */
+@SuppressWarnings({"LombokSetterMayBeUsed", "LombokGetterMayBeUsed"})
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class DataSnapshot {
 
@@ -110,14 +111,14 @@ public class DataSnapshot {
                                                   @Nullable OffsetDateTime timestamp) throws IllegalStateException {
         final DataSnapshot.Packed snapshot = plugin.getDataAdapter().fromBytes(data, DataSnapshot.Packed.class);
         if (snapshot.getMinecraftVersion().compareTo(plugin.getMinecraftVersion()) > 0) {
-            throw new IllegalStateException(String.format("Cannot set data for user because the Minecraft version of " +
-                            "their user data (%s) is newer than the server's Minecraft version (%s)." +
+            throw new IllegalStateException(String.format("Cannot deserialize data because the Minecraft version of " +
+                            "the data snapshot (%s) is newer than the server's Minecraft version (%s)." +
                             "Please ensure each server is running the same version of Minecraft.",
                     snapshot.getMinecraftVersion(), plugin.getMinecraftVersion()));
         }
         if (snapshot.getFormatVersion() > CURRENT_FORMAT_VERSION) {
-            throw new IllegalStateException(String.format("Cannot set data for user because the format version of " +
-                            "their user data (%s) is newer than the current format version (%s). " +
+            throw new IllegalStateException(String.format("Cannot deserialize data because the format version of " +
+                            "the data snapshot (%s) is newer than the current format version (%s). " +
                             "Please ensure each server is running the latest version of HuskSync.",
                     snapshot.getFormatVersion(), CURRENT_FORMAT_VERSION));
         }
@@ -134,8 +135,8 @@ public class DataSnapshot {
             ));
         }
         if (!snapshot.getPlatformType().equalsIgnoreCase(plugin.getPlatformType())) {
-            throw new IllegalStateException(String.format("Cannot set data for user because the platform type of " +
-                            "their user data (%s) is different to the server platform type (%s). " +
+            throw new IllegalStateException(String.format("Cannot deserialize data because the platform type of " +
+                            "the data snapshot (%s) is different to the server platform type (%s). " +
                             "Please ensure each server is running the same platform type.",
                     snapshot.getPlatformType(), plugin.getPlatformType()));
         }
@@ -158,6 +159,16 @@ public class DataSnapshot {
     @NotNull
     public UUID getId() {
         return id;
+    }
+
+    /**
+     * <b>Internal use only</b> Set the ID of the snapshot
+     * @param id The snapshot ID
+     * @since 3.0
+     */
+    @ApiStatus.Internal
+    public void setId(@NotNull UUID id) {
+        this.id = id;
     }
 
     /**
@@ -659,6 +670,21 @@ public class DataSnapshot {
         }
 
         /**
+         * Set the attributes of the snapshot
+         * <p>
+         * Equivalent to {@code data(Identifier.ATTRIBUTES, attributes)}
+         * </p>
+         *
+         * @param attributes The user's attributes
+         * @return The builder
+         * @since 3.5
+         */
+        @NotNull
+        public Builder attributes(@NotNull Data.Attributes attributes) {
+            return data(Identifier.ATTRIBUTES, attributes);
+        }
+
+        /**
          * Set the experience of the snapshot
          * <p>
          * Equivalent to {@code data(Identifier.EXPERIENCE, experience)}
@@ -686,6 +712,21 @@ public class DataSnapshot {
         @NotNull
         public Builder gameMode(@NotNull Data.GameMode gameMode) {
             return data(Identifier.GAME_MODE, gameMode);
+        }
+
+        /**
+         * Set the flight status of the snapshot
+         * <p>
+         * Equivalent to {@code data(Identifier.FLIGHT_STATUS, flightStatus)}
+         * </p>
+         *
+         * @param flightStatus The flight status
+         * @return The builder
+         * @since 3.5
+         */
+        @NotNull
+        public Builder flightStatus(@NotNull Data.FlightStatus flightStatus) {
+            return data(Identifier.FLIGHT_STATUS, flightStatus);
         }
 
         /**
@@ -795,7 +836,7 @@ public class DataSnapshot {
          *
          * @since 2.0
          */
-        public static final SaveCause SERVER_SHUTDOWN = of("SERVER_SHUTDOWN");
+        public static final SaveCause SERVER_SHUTDOWN = of("SERVER_SHUTDOWN", false);
 
         /**
          * Indicates data was saved by editing inventory contents via the {@code /inventory} command
@@ -830,24 +871,26 @@ public class DataSnapshot {
          *
          * @since 2.0
          */
-        public static final SaveCause MPDB_MIGRATION = of("MPDB_MIGRATION");
+        public static final SaveCause MPDB_MIGRATION = of("MPDB_MIGRATION", false);
 
         /**
          * Indicates data was saved from being imported from a legacy version (v1.x -> v2.x)
          *
          * @since 2.0
          */
-        public static final SaveCause LEGACY_MIGRATION = of("LEGACY_MIGRATION");
+        public static final SaveCause LEGACY_MIGRATION = of("LEGACY_MIGRATION", false);
 
         /**
          * Indicates data was saved from being imported from a legacy version (v2.x -> v3.x)
          *
          * @since 3.0
          */
-        public static final SaveCause CONVERTED_FROM_V2 = of("CONVERTED_FROM_V2");
+        public static final SaveCause CONVERTED_FROM_V2 = of("CONVERTED_FROM_V2", false);
 
         @NotNull
         private final String name;
+
+        private final boolean fireDataSaveEvent;
 
         /**
          * Get or create a {@link SaveCause} from a name
@@ -857,13 +900,24 @@ public class DataSnapshot {
          */
         @NotNull
         public static SaveCause of(@NotNull String name) {
-            return new SaveCause(name.length() > 32 ? name.substring(0, 31) : name);
+            return new SaveCause(name.length() > 32 ? name.substring(0, 31) : name, true);
+        }
+
+        /**
+         * Get or create a {@link SaveCause} from a name and whether it should fire a save event
+         * @param name the name to be displayed
+         * @param firesSaveEvent whether the cause should fire a save event
+         * @return the cause
+         */
+        @NotNull
+        public static SaveCause of(@NotNull String name, boolean firesSaveEvent) {
+            return new SaveCause(name.length() > 32 ? name.substring(0, 31) : name, firesSaveEvent);
         }
 
         @NotNull
         public String getLocale(@NotNull HuskSync plugin) {
             return plugin.getLocales()
-                    .getRawLocale("save_cause_" + name().toLowerCase(Locale.ENGLISH))
+                    .getRawLocale("save_cause_%s".formatted(name().toLowerCase(Locale.ENGLISH)))
                     .orElse(getDisplayName());
         }
 

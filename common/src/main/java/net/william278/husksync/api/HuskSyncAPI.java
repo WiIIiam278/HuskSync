@@ -174,6 +174,7 @@ public class HuskSyncAPI {
     public void editCurrentData(@NotNull User user, @NotNull ThrowingConsumer<DataSnapshot.Unpacked> editor) {
         getCurrentData(user).thenAccept(optional -> optional.ifPresent(data -> {
             editor.accept(data);
+            data.setId(UUID.randomUUID());
             setCurrentData(user, data);
         }));
     }
@@ -264,9 +265,9 @@ public class HuskSyncAPI {
      *
      * @param user     The user to save the data for
      * @param snapshot The snapshot to save
-     * @param callback A callback to run after the data has been saved (if the DataSaveEvent was not cancelled)
-     * @apiNote This will fire the {@link net.william278.husksync.event.DataSaveEvent} event, unless
-     * the save cause is {@link DataSnapshot.SaveCause#SERVER_SHUTDOWN}
+     * @param callback A callback to run after the data has been saved (if the DataSaveEvent was not canceled)
+     * @implNote Note that the {@link net.william278.husksync.event.DataSaveEvent} will be fired unless the
+     * {@link DataSnapshot.SaveCause#fireDataSaveEvent()} is {@code false}
      * @since 3.3.2
      */
     public void addSnapshot(@NotNull User user, @NotNull DataSnapshot snapshot,
@@ -284,8 +285,8 @@ public class HuskSyncAPI {
      *
      * @param user     The user to save the data for
      * @param snapshot The snapshot to save
-     * @apiNote This will fire the {@link net.william278.husksync.event.DataSaveEvent} event, unless
-     * * the save cause is {@link DataSnapshot.SaveCause#SERVER_SHUTDOWN}
+     * @implNote Note that the {@link net.william278.husksync.event.DataSaveEvent} will be fired unless the
+     * {@link DataSnapshot.SaveCause#fireDataSaveEvent()} is {@code false}
      * @since 3.0
      */
     public void addSnapshot(@NotNull User user, @NotNull DataSnapshot snapshot) {

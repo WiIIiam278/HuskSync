@@ -41,8 +41,10 @@ public interface BukkitUserDataHolder extends UserDataHolder {
                 case "statistics" -> getStatistics();
                 case "health" -> getHealth();
                 case "hunger" -> getHunger();
+                case "attributes" -> getAttributes();
                 case "experience" -> getExperience();
                 case "game_mode" -> getGameMode();
+                case "flight_status" -> getFlightStatus();
                 case "persistent_data" -> getPersistentData();
                 default -> throw new IllegalStateException(String.format("Unexpected data type: %s", id));
             };
@@ -118,6 +120,12 @@ public interface BukkitUserDataHolder extends UserDataHolder {
 
     @NotNull
     @Override
+    default Optional<Data.Attributes> getAttributes() {
+        return Optional.of(BukkitData.Attributes.adapt(getBukkitPlayer(), getPlugin()));
+    }
+
+    @NotNull
+    @Override
     default Optional<Data.Experience> getExperience() {
         return Optional.of(BukkitData.Experience.adapt(getBukkitPlayer()));
     }
@@ -126,6 +134,12 @@ public interface BukkitUserDataHolder extends UserDataHolder {
     @Override
     default Optional<Data.GameMode> getGameMode() {
         return Optional.of(BukkitData.GameMode.adapt(getBukkitPlayer()));
+    }
+
+    @NotNull
+    @Override
+    default Optional<Data.FlightStatus> getFlightStatus() {
+        return Optional.of(BukkitData.FlightStatus.adapt(getBukkitPlayer()));
     }
 
     @NotNull

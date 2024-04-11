@@ -172,6 +172,11 @@ public interface UserDataHolder extends DataHolder {
     }
 
     @Override
+    default void setFlightStatus(@NotNull Data.FlightStatus flightStatus) {
+        this.setData(Identifier.FLIGHT_STATUS, flightStatus);
+    }
+
+    @Override
     default void setPersistentData(@NotNull Data.PersistentData persistentData) {
         this.setData(Identifier.PERSISTENT_DATA, persistentData);
     }

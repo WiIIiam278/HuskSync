@@ -44,7 +44,7 @@ public class PaperEventListener extends BukkitEventListener {
     public void handlePlayerDeath(@NotNull PlayerDeathEvent event) {
         // If the player is locked or the plugin disabling, clear their drops
         final OnlineUser user = BukkitUser.adapt(event.getEntity(), plugin);
-        if (cancelPlayerEvent(user.getUuid())) {
+        if (lockedHandler.cancelPlayerEvent(user.getUuid())) {
             event.getDrops().clear();
             event.getItemsToKeep().clear();
             return;

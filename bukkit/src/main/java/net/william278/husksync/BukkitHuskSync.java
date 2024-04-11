@@ -38,10 +38,7 @@ import net.william278.husksync.command.BukkitCommand;
 import net.william278.husksync.config.Locales;
 import net.william278.husksync.config.Server;
 import net.william278.husksync.config.Settings;
-import net.william278.husksync.data.BukkitSerializer;
-import net.william278.husksync.data.Data;
-import net.william278.husksync.data.Identifier;
-import net.william278.husksync.data.Serializer;
+import net.william278.husksync.data.*;
 import net.william278.husksync.database.Database;
 import net.william278.husksync.database.MongoDbDatabase;
 import net.william278.husksync.database.MySqlDatabase;
@@ -144,12 +141,14 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
             registerSerializer(Identifier.ENDER_CHEST, new BukkitSerializer.EnderChest(this));
             registerSerializer(Identifier.ADVANCEMENTS, new BukkitSerializer.Advancements(this));
             registerSerializer(Identifier.LOCATION, new BukkitSerializer.Location(this));
-            registerSerializer(Identifier.HEALTH, new BukkitSerializer.Health(this));
-            registerSerializer(Identifier.HUNGER, new BukkitSerializer.Hunger(this));
-            registerSerializer(Identifier.GAME_MODE, new BukkitSerializer.GameMode(this));
+            registerSerializer(Identifier.HEALTH, new BukkitSerializer.Json<>(this, BukkitData.Health.class));
+            registerSerializer(Identifier.HUNGER, new BukkitSerializer.Json<>(this, BukkitData.Hunger.class));
+            registerSerializer(Identifier.ATTRIBUTES, new BukkitSerializer.Json<>(this, BukkitData.Attributes.class));
+            registerSerializer(Identifier.GAME_MODE, new BukkitSerializer.Json<>(this, BukkitData.GameMode.class));
+            registerSerializer(Identifier.FLIGHT_STATUS, new BukkitSerializer.Json<>(this, BukkitData.FlightStatus.class));
             registerSerializer(Identifier.POTION_EFFECTS, new BukkitSerializer.PotionEffects(this));
             registerSerializer(Identifier.STATISTICS, new BukkitSerializer.Statistics(this));
-            registerSerializer(Identifier.EXPERIENCE, new BukkitSerializer.Experience(this));
+            registerSerializer(Identifier.EXPERIENCE, new BukkitSerializer.Json<>(this, BukkitData.Experience.class));
             registerSerializer(Identifier.PERSISTENT_DATA, new BukkitSerializer.PersistentData(this));
         });
 
@@ -168,7 +167,6 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
                 case MYSQL, MARIADB -> new MySqlDatabase(this);
                 case POSTGRES -> new PostgresDatabase(this);
                 case MONGO -> new MongoDbDatabase(this);
-                default -> throw new IllegalStateException("Invalid database type");
             };
             this.database.initialize();
         });

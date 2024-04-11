@@ -75,6 +75,9 @@ public class Settings {
     @Comment({"Whether to enable the Player Analytics hook.", "Docs: https://william278.net/docs/husksync/plan-hook"})
     private boolean enablePlanHook = true;
 
+    @Comment("Whether to cancel game event packets directly when handling locked players if ProtocolLib is installed")
+    private boolean cancelPackets = true;
+
 
     // Database settings
     @Comment("Database settings")
@@ -100,7 +103,7 @@ public class Settings {
             private String database = "HuskSync";
             private String username = "root";
             private String password = "pa55w0rd";
-            @Comment("Only change this if you have select MYSQL, MARIADB or POSTGRES")
+            @Comment("Only change this if you're using MARIADB or POSTGRES")
             private String parameters = String.join("&",
                     "?autoReconnect=true", "useSSL=false",
                     "useUnicode=true", "characterEncoding=UTF-8");
@@ -143,7 +146,7 @@ public class Settings {
         }
     }
 
-    // Redis settings
+    // 𝓡𝓮𝓭𝓲𝓼 settings
     @Comment("Redis settings")
     private RedisSettings redis = new RedisSettings();
 
@@ -252,9 +255,6 @@ public class Settings {
         @Comment("Persist maps locked in a Cartography Table to let them be viewed on any server")
         private boolean persistLockedMaps = true;
 
-        @Comment("Whether to synchronize player max health (requires health syncing to be enabled)")
-        private boolean synchronizeMaxHealth = true;
-
         @Comment("If using the DELAY sync method, how long should this server listen for Redis key data updates before "
                 + "pulling data from the database instead (i.e., if the user did not change servers).")
         private int networkLatencyMilliseconds = 500;
@@ -270,12 +270,21 @@ public class Settings {
         @Getter(AccessLevel.NONE)
         private Map<String, String> eventPriorities = EventListener.ListenerType.getDefaults();
 
+        @Comment({"For attribute syncing, which attributes should be ignored/skipped when syncing",
+                "(e.g. \"minecraft:generic.max_health\", \"minecraft:generic.attack_damage\")"})
+        @Getter(AccessLevel.NONE)
+        private List<String> ignoredAttributes = new ArrayList<>(List.of(""));
+
         public boolean doAutoPin(@NotNull DataSnapshot.SaveCause cause) {
             return autoPinnedSaveCauses.contains(cause.name());
         }
 
         public boolean isFeatureEnabled(@NotNull Identifier id) {
             return id.isCustom() || features.getOrDefault(id.getKeyValue(), id.isEnabledByDefault());
+        }
+
+        public boolean isIgnoredAttribute(@NotNull String attribute) {
+            return ignoredAttributes.contains(attribute);
         }
 
         @NotNull
