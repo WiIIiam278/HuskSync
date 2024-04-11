@@ -478,12 +478,7 @@ public abstract class BukkitData implements Data {
                             .filter(stat -> stat.getType() == Statistic.Type.ENTITY)
                             .map(stat -> Map.entry(stat, Arrays.stream(EntityType.values())
                                     .filter(EntityType::isAlive)
-                                    .filter(entityType -> {
-                                        try {
-                                            return player.getStatistic(stat, entityType) != 0;
-                                        } catch (Exception e) {}
-                                        return false;
-                                    })
+                                    .filter(entityType -> player.getStatistic(stat, entityType) != 0)
                                     .map(entityType -> Map.entry(entityType, player.getStatistic(stat, entityType)))
                                     .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))))
                             .filter(entry -> !entry.getValue().isEmpty())
