@@ -448,9 +448,8 @@ public abstract class BukkitData implements Data {
         @NotNull
         public static BukkitData.Statistics adapt(@NotNull Player player) {
             final Map<String, Integer> generic = Maps.newHashMap();
-            final Map<String, Map<String, Integer>> blocks = Maps.newHashMap();
-            final Map<String, Map<String, Integer>> items = Maps.newHashMap();
-            final Map<String, Map<String, Integer>> entities = Maps.newHashMap();
+            final Map<String, Map<String, Integer>> blocks = Maps.newHashMap(),
+                    items = Maps.newHashMap(), entities = Maps.newHashMap();
             Registry.STATISTIC.forEach(id -> {
                 switch (id.getType()) {
                     case UNTYPED -> addStatistic(player, id, generic);
@@ -585,8 +584,13 @@ public abstract class BukkitData implements Data {
             return attributes.stream().filter(attribute -> attribute.name().equals(id.getKey().toString())).findFirst();
         }
 
+        @SuppressWarnings("unused")
         public Optional<Attribute> getAttribute(@NotNull String key) {
-            return getAttribute(matchAttribute(key));
+            final org.bukkit.attribute.Attribute attribute = matchAttribute(key);
+            if (attribute == null) {
+                return Optional.empty();
+            }
+            return getAttribute(attribute);
         }
 
         @NotNull
