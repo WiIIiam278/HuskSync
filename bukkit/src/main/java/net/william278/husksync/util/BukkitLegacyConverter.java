@@ -27,9 +27,6 @@ import net.william278.husksync.data.BukkitData;
 import net.william278.husksync.data.Data;
 import net.william278.husksync.data.DataSnapshot;
 import net.william278.husksync.data.Identifier;
-import org.bukkit.Material;
-import org.bukkit.Statistic;
-import org.bukkit.entity.EntityType;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.io.BukkitObjectInputStream;
 import org.jetbrains.annotations.NotNull;
@@ -45,7 +42,8 @@ import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.logging.Level;
 
-import static net.william278.husksync.util.BukkitKeyedAdapter.*;
+import static net.william278.husksync.util.BukkitKeyedAdapter.matchEntityType;
+import static net.william278.husksync.util.BukkitKeyedAdapter.matchMaterial;
 
 public class BukkitLegacyConverter extends LegacyConverter {
 
@@ -205,39 +203,42 @@ public class BukkitLegacyConverter extends LegacyConverter {
     private BukkitData.Statistics readStatisticMaps(@NotNull JSONObject untyped, @NotNull JSONObject blocks,
                                                     @NotNull JSONObject items, @NotNull JSONObject entities) {
         // Read generic stats
-        final Map<Statistic, Integer> genericStats = Maps.newHashMap();
-        untyped.keys().forEachRemaining(stat -> genericStats.put(matchStatistic(stat), untyped.getInt(stat)));
+        final Map<String, Integer> genericStats = Maps.newHashMap();
+        untyped.keys().forEachRemaining(stat -> genericStats.put(stat, untyped.getInt(stat)));
 
         // Read block & item stats
-        final Map<Statistic, Map<Material, Integer>> blockStats, itemStats;
+        final Map<String, Map<String, Integer>> blockStats, itemStats, entityStats;
         blockStats = readMaterialStatistics(blocks);
         itemStats = readMaterialStatistics(items);
 
         // Read entity stats
-        final Map<Statistic, Map<EntityType, Integer>> entityStats = Maps.newHashMap();
+        entityStats = Maps.newHashMap();
         entities.keys().forEachRemaining(stat -> {
             final JSONObject entityStat = entities.getJSONObject(stat);
-            final Map<EntityType, Integer> entityMap = Maps.newHashMap();
-            entityStat.keys().forEachRemaining(entity -> entityMap.put(matchEntityType(entity), entityStat.getInt(entity)));
-            entityStats.put(matchStatistic(stat), entityMap);
+            final Map<String, Integer> entityMap = Maps.newHashMap();
+            entityStat.keys().forEachRemaining(entity -> {
+                if (matchEntityType(entity) != null) {
+                    entityMap.put(entity, entityStat.getInt(entity));
+                }
+            });
+            entityStats.put(stat, entityMap);
         });
 
         return BukkitData.Statistics.from(genericStats, blockStats, itemStats, entityStats);
     }
 
     @NotNull
-    private Map<Statistic, Map<Material, Integer>> readMaterialStatistics(@NotNull JSONObject items) {
-        final Map<Statistic, Map<Material, Integer>> itemStats = Maps.newHashMap();
+    private Map<String, Map<String, Integer>> readMaterialStatistics(@NotNull JSONObject items) {
+        final Map<String, Map<String, Integer>> itemStats = Maps.newHashMap();
         items.keys().forEachRemaining(stat -> {
             final JSONObject itemStat = items.getJSONObject(stat);
-            final Map<Material, Integer> itemMap = Maps.newHashMap();
+            final Map<String, Integer> itemMap = Maps.newHashMap();
             itemStat.keys().forEachRemaining(item -> {
-                final Material material = matchMaterial(item);
-                if (material != null) {
-                    itemMap.put(material, itemStat.getInt(item));
+                if (matchMaterial(item) != null) {
+                    itemMap.put(item, itemStat.getInt(item));
                 }
             });
-            itemStats.put(matchStatistic(stat), itemMap);
+            itemStats.put(stat, itemMap);
         });
         return itemStats;
     }

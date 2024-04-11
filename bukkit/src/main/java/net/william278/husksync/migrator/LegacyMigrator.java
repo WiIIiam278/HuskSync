@@ -323,12 +323,11 @@ public class LegacyMigrator extends Migrator {
 
                         // Stats
                         .statistics(BukkitData.Statistics.from(
-                                BukkitData.Statistics.createStatisticsMap(
-                                        convertStatisticMap(stats.untypedStatisticValues()),
-                                        convertMaterialStatisticMap(stats.blockStatisticValues()),
-                                        convertMaterialStatisticMap(stats.itemStatisticValues()),
-                                        convertEntityStatisticMap(stats.entityStatisticValues())
-                                )))
+                                convertStatisticMap(stats.untypedStatisticValues()),
+                                convertMaterialStatisticMap(stats.blockStatisticValues()),
+                                convertMaterialStatisticMap(stats.itemStatisticValues()),
+                                convertEntityStatisticMap(stats.entityStatisticValues())
+                        ))
 
                         // Health, hunger, experience & game mode
                         .health(BukkitData.Health.from(health, healthScale))

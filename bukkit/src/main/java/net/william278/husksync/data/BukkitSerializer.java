@@ -148,46 +148,6 @@ public class BukkitSerializer {
         }
     }
 
-    public static class Location extends BukkitSerializer implements Serializer<BukkitData.Location> {
-
-        public Location(@NotNull HuskSync plugin) {
-            super(plugin);
-        }
-
-        @Override
-        public BukkitData.Location deserialize(@NotNull String serialized) throws DeserializationException {
-            return plugin.getDataAdapter().fromJson(serialized, BukkitData.Location.class);
-        }
-
-        @NotNull
-        @Override
-        public String serialize(@NotNull BukkitData.Location element) throws SerializationException {
-            return plugin.getDataAdapter().toJson(element);
-        }
-    }
-
-    public static class Statistics extends BukkitSerializer implements Serializer<BukkitData.Statistics> {
-
-        public Statistics(@NotNull HuskSync plugin) {
-            super(plugin);
-        }
-
-        @Override
-        public BukkitData.Statistics deserialize(@NotNull String serialized) throws DeserializationException {
-            return BukkitData.Statistics.from(plugin.getGson().fromJson(
-                    serialized,
-                    BukkitData.Statistics.StatisticsMap.class
-            ));
-        }
-
-        @NotNull
-        @Override
-        public String serialize(@NotNull BukkitData.Statistics element) throws SerializationException {
-            return plugin.getGson().toJson(element.getStatisticsSet());
-        }
-
-    }
-
     public static class PersistentData extends BukkitSerializer implements Serializer<BukkitData.PersistentData> {
 
         public PersistentData(@NotNull HuskSync plugin) {

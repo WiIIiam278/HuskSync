@@ -19,56 +19,38 @@
 
 package net.william278.husksync.util;
 
-import org.bukkit.Keyed;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
+import org.bukkit.Registry;
 import org.bukkit.Statistic;
+import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.EntityType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Arrays;
-import java.util.Optional;
+import java.util.Objects;
 
 // Utility class for adapting "Keyed" Bukkit objects
 public final class BukkitKeyedAdapter {
 
     @Nullable
     public static Statistic matchStatistic(@NotNull String key) {
-        try {
-            return Arrays.stream(Statistic.values())
-                    .filter(stat -> stat.getKey().toString().equals(key))
-                    .findFirst().orElse(null);
-        } catch (Throwable e) {
-            return null;
-        }
+        return Registry.STATISTIC.get(Objects.requireNonNull(NamespacedKey.fromString(key), "Null key"));
     }
 
     @Nullable
     public static EntityType matchEntityType(@NotNull String key) {
-        try {
-            return Arrays.stream(EntityType.values())
-                    .filter(entityType -> entityType.getKey().toString().equals(key))
-                    .findFirst().orElse(null);
-        } catch (Throwable e) {
-            return null;
-        }
+        return Registry.ENTITY_TYPE.get(Objects.requireNonNull(NamespacedKey.fromString(key), "Null key"));
     }
 
     @Nullable
     public static Material matchMaterial(@NotNull String key) {
-        try {
-            return Material.matchMaterial(key);
-        } catch (Throwable e) {
-            return null;
-        }
+        return Registry.MATERIAL.get(Objects.requireNonNull(NamespacedKey.fromString(key), "Null key"));
     }
 
-    public static Optional<String> getKeyName(@NotNull Keyed keyed) {
-        try {
-            return Optional.of(keyed.getKey().toString());
-        } catch (Throwable e) {
-            return Optional.empty();
-        }
+    @Nullable
+    public static Attribute matchAttribute(@NotNull String key) {
+        return Registry.ATTRIBUTE.get(Objects.requireNonNull(NamespacedKey.fromString(key), "Null key"));
     }
 
 }
