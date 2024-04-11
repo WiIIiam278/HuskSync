@@ -45,15 +45,15 @@ public class LockstepDataSyncer extends DataSyncer {
     @Override
     public void setUserData(@NotNull OnlineUser user) {
         this.listenForRedisData(user, () -> {
-            if (getRedis().getUserCheckedOut(user).isEmpty()) {
-                getRedis().setUserCheckedOut(user, true);
-                getRedis().getUserData(user).ifPresentOrElse(
-                        data -> user.applySnapshot(data, DataSnapshot.UpdateCause.SYNCHRONIZED),
-                        () -> this.setUserFromDatabase(user)
-                );
-                return true;
+            if (getRedis().getUserCheckedOut(user).isPresent()) {
+                return false;
             }
-            return false;
+            getRedis().setUserCheckedOut(user, true);
+            getRedis().getUserData(user).ifPresentOrElse(
+                    data -> user.applySnapshot(data, DataSnapshot.UpdateCause.SYNCHRONIZED),
+                    () -> this.setUserFromDatabase(user)
+            );
+            return true;
         });
     }
 

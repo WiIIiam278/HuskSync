@@ -12,14 +12,16 @@ HuskSync supports synchronising a wide range of different data elements, each of
 <details>
 <summary>&nbsp;<b>Are modded items supported?</b></summary>
 
-Modded items are not supported.
+If you're running HuskSync on Arclight or similar, please note we will not be able to provide you with support, but have been reported to save & sync correctly with HuskSync v3.x+.
+
+**TL;DR** &mdash; modded items may work, but since we can't guarantee compatibility, we do not officially mark them as supported. Be sure to test thoroughly before deploying on production!
 
 </details>
 
 <details>
 <summary>&nbsp;<b>Are MMOItems / SlimeFun / ItemsAdder items supported?</b></summary>
 
-These plugins, which provide custom items, should be supported as of HuskSync v3.x; but do note we cannot guarantee compatibility with all methods of injecting custom data to create custom items. Be sure to test thoroughly before deploying on production!
+These plugins, which provide custom items, should be supported as of HuskSync v3.x+; but do note we cannot guarantee compatibility with all methods of injecting custom data to create custom items. Be sure to test thoroughly before deploying on production!
 
 </details>
 

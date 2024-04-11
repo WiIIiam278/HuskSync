@@ -125,7 +125,7 @@ public abstract class OnlineUser extends User implements CommandUser, UserDataHo
         getPlugin().fireEvent(getPlugin().getPreSyncEvent(this, snapshot), (event) -> {
             if (!isOffline()) {
                 getPlugin().debug(String.format("Applying snapshot (%s) to %s (cause: %s)",
-                        snapshot.getShortId(), getUsername(), cause
+                        snapshot.getShortId(), getUsername(), cause.getDisplayName()
                 ));
                 UserDataHolder.super.applySnapshot(
                         event.getData(), (succeeded) -> completeSync(succeeded, cause, getPlugin())
