@@ -266,6 +266,10 @@ public interface Data {
 
         @NotNull
         Map<String, Map<String, Integer>> getEntityStatistics();
+
+        record StatisticsMap(
+        ) {
+        }
     }
 
     /**

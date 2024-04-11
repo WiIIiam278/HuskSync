@@ -42,7 +42,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
@@ -50,9 +49,9 @@ import org.jetbrains.annotations.Range;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-import static net.william278.husksync.util.BukkitKeyedAdapter.*;
+import static net.william278.husksync.util.BukkitKeyedAdapter.matchAttribute;
+import static net.william278.husksync.util.BukkitKeyedAdapter.matchStatistic;
 
 public abstract class BukkitData implements Data {
 
@@ -432,214 +431,104 @@ public abstract class BukkitData implements Data {
 
     }
 
-    // TODO: Move to using Registry.STATISTIC as soon as possible!
+    @Getter
     @AllArgsConstructor(access = AccessLevel.PRIVATE)
     @NoArgsConstructor(access = AccessLevel.PRIVATE)
-    public static class Statistics extends BukkitData implements Data.Statistics {
-        private Map<Statistic, Integer> genericStatistics;
-        private Map<Statistic, Map<Material, Integer>> blockStatistics;
-        private Map<Statistic, Map<Material, Integer>> itemStatistics;
-        private Map<Statistic, Map<EntityType, Integer>> entityStatistics;
+    public static class Statistics extends BukkitData implements Data.Statistics, Adaptable {
+
+        @SerializedName("generic")
+        private Map<String, Integer> genericStatistics;
+        @SerializedName("blocks")
+        private Map<String, Map<String, Integer>> blockStatistics;
+        @SerializedName("items")
+        private Map<String, Map<String, Integer>> itemStatistics;
+        @SerializedName("entities")
+        private Map<String, Map<String, Integer>> entityStatistics;
 
         @NotNull
         public static BukkitData.Statistics adapt(@NotNull Player player) {
-            return new BukkitData.Statistics(
-                    // Generic (untyped) stats
-                    Arrays.stream(Statistic.values())
-                            .filter(stat -> stat.getType() == Statistic.Type.UNTYPED)
-                            .filter(stat -> player.getStatistic(stat) != 0)
-                            .map(stat -> Map.entry(stat, player.getStatistic(stat)))
-                            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)),
-
-                    // Block stats
-                    Arrays.stream(Statistic.values())
-                            .filter(stat -> stat.getType() == Statistic.Type.BLOCK)
-                            .map(stat -> Map.entry(stat, Arrays.stream(Material.values())
-                                    .filter(Material::isBlock)
-                                    .filter(material -> player.getStatistic(stat, material) != 0)
-                                    .map(material -> Map.entry(material, player.getStatistic(stat, material)))
-                                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))))
-                            .filter(entry -> !entry.getValue().isEmpty())
-                            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)),
-
-                    // Item stats
-                    Arrays.stream(Statistic.values())
-                            .filter(stat -> stat.getType() == Statistic.Type.ITEM)
-                            .map(stat -> Map.entry(stat, Arrays.stream(Material.values())
-                                    .filter(Material::isItem)
-                                    .filter(material -> player.getStatistic(stat, material) != 0)
-                                    .map(material -> Map.entry(material, player.getStatistic(stat, material)))
-                                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))))
-                            .filter(entry -> !entry.getValue().isEmpty())
-                            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)),
-
-                    // Entity stats
-                    Arrays.stream(Statistic.values())
-                            .filter(stat -> stat.getType() == Statistic.Type.ENTITY)
-                            .map(stat -> Map.entry(stat, Arrays.stream(EntityType.values())
-                                    .filter(EntityType::isAlive)
-                                    .filter(entityType -> player.getStatistic(stat, entityType) != 0)
-                                    .map(entityType -> Map.entry(entityType, player.getStatistic(stat, entityType)))
-                                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))))
-                            .filter(entry -> !entry.getValue().isEmpty())
-                            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))
-            );
-        }
-
-        @NotNull
-        public static BukkitData.Statistics from(@NotNull StatisticsMap stats) {
-            return new BukkitData.Statistics(
-                    stats.genericStats().entrySet().stream()
-                            .flatMap(entry -> {
-                                Statistic statistic = matchStatistic(entry.getKey());
-                                return statistic != null ? Stream.of(new AbstractMap.SimpleEntry<>(statistic, entry.getValue())) : Stream.empty();
-                            })
-                            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)),
-                    stats.blockStats().entrySet().stream()
-                            .flatMap(entry -> {
-                                Statistic statistic = matchStatistic(entry.getKey());
-                                return statistic != null ? Stream.of(new AbstractMap.SimpleEntry<>(statistic, entry.getValue())) : Stream.empty();
-                            })
-                            .collect(Collectors.toMap(
-                                    Map.Entry::getKey,
-                                    entry -> entry.getValue().entrySet().stream()
-                                            .flatMap(blockEntry -> {
-                                                Material material = matchMaterial(blockEntry.getKey());
-                                                return material != null ? Stream.of(new AbstractMap.SimpleEntry<>(material, blockEntry.getValue())) : Stream.empty();
-                                            })
-                                            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))
-                            )),
-                    stats.itemStats().entrySet().stream()
-                            .flatMap(entry -> {
-                                Statistic statistic = matchStatistic(entry.getKey());
-                                return statistic != null ? Stream.of(new AbstractMap.SimpleEntry<>(statistic, entry.getValue())) : Stream.empty();
-                            })
-                            .collect(Collectors.toMap(
-                                    Map.Entry::getKey,
-                                    entry -> entry.getValue().entrySet().stream()
-                                            .flatMap(itemEntry -> {
-                                                Material material = matchMaterial(itemEntry.getKey());
-                                                return material != null ? Stream.of(new AbstractMap.SimpleEntry<>(material, itemEntry.getValue())) : Stream.empty();
-                                            })
-                                            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))
-                            )),
-                    stats.entityStats().entrySet().stream()
-                            .flatMap(entry -> {
-                                Statistic statistic = matchStatistic(entry.getKey());
-                                return statistic != null ? Stream.of(new AbstractMap.SimpleEntry<>(statistic, entry.getValue())) : Stream.empty();
-                            })
-                            .collect(Collectors.toMap(
-                                    Map.Entry::getKey,
-                                    entry -> entry.getValue().entrySet().stream()
-                                            .flatMap(itemEntry -> {
-                                                EntityType entityType = matchEntityType(itemEntry.getKey());
-                                                return entityType != null ? Stream.of(new AbstractMap.SimpleEntry<>(entityType, itemEntry.getValue())) : Stream.empty();
-                                            })
-                                            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))
-                            ))
-            );
-        }
-
-        @NotNull
-        public static BukkitData.Statistics from(@NotNull Map<Statistic, Integer> genericStats,
-                                                 @NotNull Map<Statistic, Map<Material, Integer>> blockStats,
-                                                 @NotNull Map<Statistic, Map<Material, Integer>> itemStats,
-                                                 @NotNull Map<Statistic, Map<EntityType, Integer>> entityStats) {
-            return new BukkitData.Statistics(genericStats, blockStats, itemStats, entityStats);
-        }
-
-        @NotNull
-        @ApiStatus.Internal
-        public static StatisticsMap createStatisticsMap(@NotNull Map<String, Integer> genericStats,
-                                                        @NotNull Map<String, Map<String, Integer>> blockStats,
-                                                        @NotNull Map<String, Map<String, Integer>> itemStats,
-                                                        @NotNull Map<String, Map<String, Integer>> entityStats) {
-            return new StatisticsMap(genericStats, blockStats, itemStats, entityStats);
-        }
-
-        @Override
-        public void apply(@NotNull BukkitUser user, @NotNull BukkitHuskSync plugin) throws IllegalStateException {
-            genericStatistics.forEach((stat, value) -> applyStat(user, stat, null, value));
-            blockStatistics.forEach((stat, m) -> m.forEach((block, value) -> applyStat(user, stat, block, value)));
-            itemStatistics.forEach((stat, m) -> m.forEach((item, value) -> applyStat(user, stat, item, value)));
-            entityStatistics.forEach((stat, m) -> m.forEach((entity, value) -> applyStat(user, stat, entity, value)));
-        }
-
-        private void applyStat(@NotNull UserDataHolder user, @NotNull Statistic stat, @Nullable Object type, int value) {
-            try {
-                final Player player = ((BukkitUser) user).getPlayer();
-                if (type == null) {
-                    player.setStatistic(stat, value);
-                } else if (type instanceof Material) {
-                    player.setStatistic(stat, (Material) type, value);
-                } else if (type instanceof EntityType) {
-                    player.setStatistic(stat, (EntityType) type, value);
+            final Map<String, Integer> generic = Maps.newHashMap();
+            final Map<String, Map<String, Integer>> blocks = Maps.newHashMap();
+            final Map<String, Map<String, Integer>> items = Maps.newHashMap();
+            final Map<String, Map<String, Integer>> entities = Maps.newHashMap();
+            Registry.STATISTIC.forEach(id -> {
+                switch (id.getType()) {
+                    case UNTYPED -> addStatistic(player, id, generic);
+                    case BLOCK -> addMaterialStatistic(player, id, blocks, true);
+                    case ITEM -> addMaterialStatistic(player, id, items, false);
+                    case ENTITY -> addEntityStatistic(player, id, entities);
                 }
-            } catch (IllegalArgumentException ignored) {
+            });
+            return new BukkitData.Statistics(generic, blocks, items, entities);
+        }
+
+        @NotNull
+        public static BukkitData.Statistics from(@NotNull Map<String, Integer> generic,
+                                                 @NotNull Map<String, Map<String, Integer>> blocks,
+                                                 @NotNull Map<String, Map<String, Integer>> items,
+                                                 @NotNull Map<String, Map<String, Integer>> entities) {
+            return new BukkitData.Statistics(generic, blocks, items, entities);
+        }
+
+        private static void addStatistic(@NotNull Player p, @NotNull Statistic id, @NotNull Map<String, Integer> map) {
+            final int stat = p.getStatistic(id);
+            if (stat != 0) {
+                map.put(id.getKey().getKey(), stat);
             }
         }
 
-        @NotNull
+        private static void addMaterialStatistic(@NotNull Player p, @NotNull Statistic id,
+                                                 @NotNull Map<String, Map<String, Integer>> map, boolean isBlock) {
+            Registry.MATERIAL.forEach(material -> {
+                if ((material.isBlock() && !isBlock) || (material.isItem() && isBlock)) {
+                    return;
+                }
+                final int stat = p.getStatistic(id, material);
+                if (stat != 0) {
+                    map.computeIfAbsent(id.getKey().getKey(), k -> Maps.newHashMap())
+                            .put(material.getKey().getKey(), stat);
+                }
+            });
+        }
+
+        private static void addEntityStatistic(@NotNull Player p, @NotNull Statistic id,
+                                               @NotNull Map<String, Map<String, Integer>> map) {
+            Registry.ENTITY_TYPE.forEach(entity -> {
+                if (!entity.isAlive()) {
+                    return;
+                }
+                final int stat = p.getStatistic(id, entity);
+                if (stat != 0) {
+                    map.computeIfAbsent(id.getKey().getKey(), k -> Maps.newHashMap())
+                            .put(entity.getKey().getKey(), stat);
+                }
+            });
+        }
+
         @Override
-        public Map<String, Integer> getGenericStatistics() {
-            return convertStatistics(genericStatistics);
+        public void apply(@NotNull BukkitUser user, @NotNull BukkitHuskSync plugin) {
+            genericStatistics.forEach((id, v) -> applyStat(user, id, Statistic.Type.UNTYPED, v));
+            blockStatistics.forEach((id, m) -> m.forEach((b, v) -> applyStat(user, id, Statistic.Type.BLOCK, v, b)));
+            itemStatistics.forEach((id, m) -> m.forEach((i, v) -> applyStat(user, id, Statistic.Type.ITEM, v, i)));
+            entityStatistics.forEach((id, m) -> m.forEach((e, v) -> applyStat(user, id, Statistic.Type.ENTITY, v, e)));
         }
 
-        @NotNull
-        @Override
-        public Map<String, Map<String, Integer>> getBlockStatistics() {
-            return blockStatistics.entrySet().stream().filter(entry -> entry.getKey() != null).collect(
-                    TreeMap::new,
-                    (m, e) -> getKeyName(e.getKey()).ifPresent(key -> m.put(key, convertStatistics(e.getValue()))),
-                    TreeMap::putAll
-            );
-        }
+        private void applyStat(@NotNull UserDataHolder user, @NotNull String id, @NotNull Statistic.Type type,
+                               int value, @NotNull Object... object) {
+            final Player player = ((BukkitUser) user).getPlayer();
+            final Statistic stat = matchStatistic(id);
+            if (stat == null) {
+                return;
+            }
 
-        @NotNull
-        @Override
-        public Map<String, Map<String, Integer>> getItemStatistics() {
-            return itemStatistics.entrySet().stream().filter(entry -> entry.getKey() != null).collect(
-                    TreeMap::new,
-                    (m, e) -> getKeyName(e.getKey()).ifPresent(key -> m.put(key, convertStatistics(e.getValue()))),
-                    TreeMap::putAll
-            );
-        }
-
-        @NotNull
-        @Override
-        public Map<String, Map<String, Integer>> getEntityStatistics() {
-            return entityStatistics.entrySet().stream().filter(entry -> entry.getKey() != null).collect(
-                    TreeMap::new,
-                    (m, e) -> getKeyName(e.getKey()).ifPresent(key -> m.put(key, convertStatistics(e.getValue()))),
-                    TreeMap::putAll
-            );
-        }
-
-        @NotNull
-        private <T extends Keyed> Map<String, Integer> convertStatistics(@NotNull Map<T, Integer> stats) {
-            return stats.entrySet().stream().filter(entry -> entry.getKey() != null).collect(
-                    TreeMap::new,
-                    (m, e) -> getKeyName(e.getKey()).ifPresent(key -> m.put(key, e.getValue())),
-                    TreeMap::putAll
-            );
-        }
-
-        @NotNull
-        protected StatisticsMap getStatisticsSet() {
-            return new StatisticsMap(
-                    getGenericStatistics(),
-                    getBlockStatistics(),
-                    getItemStatistics(),
-                    getEntityStatistics()
-            );
-        }
-
-        public record StatisticsMap(
-                @SerializedName("generic") @NotNull Map<String, Integer> genericStats,
-                @SerializedName("blocks") @NotNull Map<String, Map<String, Integer>> blockStats,
-                @SerializedName("items") @NotNull Map<String, Map<String, Integer>> itemStats,
-                @SerializedName("entities") @NotNull Map<String, Map<String, Integer>> entityStats
-        ) {
+            try {
+                switch (type) {
+                    case UNTYPED -> player.setStatistic(stat, value);
+                    case BLOCK, ITEM -> player.setStatistic(stat, (Material) object[0], value);
+                    case ENTITY -> player.setStatistic(stat, (EntityType) object[0], value);
+                }
+            } catch (IllegalArgumentException ignored) {
+            }
         }
 
     }
@@ -694,6 +583,10 @@ public abstract class BukkitData implements Data {
 
         public Optional<Attribute> getAttribute(@NotNull org.bukkit.attribute.Attribute id) {
             return attributes.stream().filter(attribute -> attribute.name().equals(id.getKey().toString())).findFirst();
+        }
+
+        public Optional<Attribute> getAttribute(@NotNull String key) {
+            return getAttribute(matchAttribute(key));
         }
 
         @NotNull
