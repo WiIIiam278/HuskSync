@@ -84,6 +84,11 @@ public class DataSnapshot {
     @SerializedName("data")
     protected Map<String, String> data;
 
+    // If the snapshot is invalid, this will be set to the validation exception
+    @Nullable
+    @Expose(serialize = false, deserialize = false)
+    transient DataException.Reason exception = null;
+
     private DataSnapshot(@NotNull UUID id, boolean pinned, @NotNull OffsetDateTime timestamp,
                          @NotNull String saveCause, @NotNull String serverName, @NotNull Map<String, String> data,
                          @NotNull Version minecraftVersion, @NotNull String platformType, int formatVersion) {
@@ -108,37 +113,25 @@ public class DataSnapshot {
     @NotNull
     @ApiStatus.Internal
     public static DataSnapshot.Packed deserialize(@NotNull HuskSync plugin, byte[] data, @Nullable UUID id,
-                                                  @Nullable OffsetDateTime timestamp) throws IllegalStateException {
+                                                  @Nullable OffsetDateTime timestamp) {
         final DataSnapshot.Packed snapshot = plugin.getDataAdapter().fromBytes(data, DataSnapshot.Packed.class);
         if (snapshot.getMinecraftVersion().compareTo(plugin.getMinecraftVersion()) > 0) {
-            throw new IllegalStateException(String.format("Cannot deserialize data because the Minecraft version of " +
-                            "the data snapshot (%s) is newer than the server's Minecraft version (%s)." +
-                            "Please ensure each server is running the same version of Minecraft.",
-                    snapshot.getMinecraftVersion(), plugin.getMinecraftVersion()));
+            return snapshot.invalid(DataException.Reason.INVALID_MINECRAFT_VERSION);
         }
         if (snapshot.getFormatVersion() > CURRENT_FORMAT_VERSION) {
-            throw new IllegalStateException(String.format("Cannot deserialize data because the format version of " +
-                            "the data snapshot (%s) is newer than the current format version (%s). " +
-                            "Please ensure each server is running the latest version of HuskSync.",
-                    snapshot.getFormatVersion(), CURRENT_FORMAT_VERSION));
+            return snapshot.invalid(DataException.Reason.INVALID_FORMAT_VERSION);
         }
         if (snapshot.getFormatVersion() < 4) {
             if (plugin.getLegacyConverter().isPresent()) {
                 return plugin.getLegacyConverter().get().convert(
-                        data,
-                        Objects.requireNonNull(id, "Attempted legacy conversion with null UUID!"),
+                        data, Objects.requireNonNull(id, "Attempted legacy conversion with null UUID!"),
                         Objects.requireNonNull(timestamp, "Attempted legacy conversion with null timestamp!")
                 );
             }
-            throw new IllegalStateException(String.format(
-                    "No legacy converter to convert format version: %s", snapshot.getFormatVersion()
-            ));
+            return snapshot.invalid(DataException.Reason.NO_LEGACY_CONVERTER);
         }
         if (!snapshot.getPlatformType().equalsIgnoreCase(plugin.getPlatformType())) {
-            throw new IllegalStateException(String.format("Cannot deserialize data because the platform type of " +
-                            "the data snapshot (%s) is different to the server platform type (%s). " +
-                            "Please ensure each server is running the same platform type.",
-                    snapshot.getPlatformType(), plugin.getPlatformType()));
+            return snapshot.invalid(DataException.Reason.INVALID_PLATFORM_TYPE);
         }
         return snapshot;
     }
@@ -163,6 +156,7 @@ public class DataSnapshot {
 
     /**
      * <b>Internal use only</b> Set the ID of the snapshot
+     *
      * @param id The snapshot ID
      * @since 3.0
      */
@@ -293,6 +287,32 @@ public class DataSnapshot {
             super(id, pinned, timestamp, saveCause, serverName, data, minecraftVersion, platformType, formatVersion);
         }
 
+        @NotNull
+        @ApiStatus.Internal
+        DataSnapshot.Packed invalid(@NotNull DataException.Reason reason) {
+            this.exception = reason;
+            return this;
+        }
+
+        public boolean isInvalid() {
+            return exception != null;
+        }
+
+        @NotNull
+        public String getInvalidReason(@NotNull HuskSync plugin) {
+            if (exception == null) {
+                throw new IllegalStateException("Attempted to get an invalid reason for a valid snapshot!");
+            }
+            return exception.getMessage(plugin, this);
+        }
+
+        @ApiStatus.Internal
+        void validate(@NotNull HuskSync plugin) throws DataException {
+            if (exception != null) {
+                throw exception.toException(this, plugin);
+            }
+        }
+
         @ApiStatus.Internal
         public void edit(@NotNull HuskSync plugin, @NotNull Consumer<Unpacked> editor) {
             final Unpacked data = unpack(plugin);
@@ -332,7 +352,8 @@ public class DataSnapshot {
         }
 
         @NotNull
-        public DataSnapshot.Unpacked unpack(@NotNull HuskSync plugin) {
+        public DataSnapshot.Unpacked unpack(@NotNull HuskSync plugin) throws DataException {
+            this.validate(plugin);
             return new Unpacked(
                     id, pinned, timestamp, saveCause, serverName, data,
                     getMinecraftVersion(), platformType, formatVersion, plugin
@@ -905,7 +926,8 @@ public class DataSnapshot {
 
         /**
          * Get or create a {@link SaveCause} from a name and whether it should fire a save event
-         * @param name the name to be displayed
+         *
+         * @param name           the name to be displayed
          * @param firesSaveEvent whether the cause should fire a save event
          * @return the cause
          */

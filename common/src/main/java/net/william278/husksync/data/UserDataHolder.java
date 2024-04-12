@@ -97,6 +97,7 @@ public interface UserDataHolder extends DataHolder {
             unpacked = snapshot.unpack(plugin);
         } catch (Throwable e) {
             plugin.log(Level.SEVERE, String.format("Failed to unpack data snapshot for %s", getUsername()), e);
+            runAfter.accept(false);
             return;
         }
 
