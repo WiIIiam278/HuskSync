@@ -331,9 +331,14 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
     }
 
     @NotNull
-    public RegionalScheduler getRegionalScheduler() {
+    public RegionalScheduler getSyncScheduler() {
         return regionalScheduler == null
                 ? regionalScheduler = getScheduler().globalRegionalScheduler() : regionalScheduler;
+    }
+
+    @NotNull
+    public RegionalScheduler getUserSyncScheduler(@NotNull UserDataHolder user) {
+        return getScheduler().regionSpecificScheduler(((BukkitUser) user).getPlayer().getLocation());
     }
 
     @NotNull

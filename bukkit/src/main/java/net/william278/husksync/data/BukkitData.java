@@ -325,21 +325,21 @@ public abstract class BukkitData implements Data {
                         .filter(r -> r.getKey().equals(advancement.getKey().toString()))
                         .findFirst();
                 if (record.isEmpty()) {
-                    this.setAdvancement(plugin, advancement, player, List.of(), progress.getAwardedCriteria());
+                    this.setAdvancement(plugin, advancement, player, user, List.of(), progress.getAwardedCriteria());
                     return;
                 }
 
                 final Map<String, Date> criteria = record.get().getCompletedCriteria();
                 this.setAdvancement(
-                        plugin, advancement, player,
+                        plugin, advancement, player, user,
                         criteria.keySet().stream().filter(key -> !progress.getAwardedCriteria().contains(key)).toList(),
                         progress.getAwardedCriteria().stream().filter(key -> !criteria.containsKey(key)).toList()
                 );
             }));
         }
 
-        private void setAdvancement(@NotNull HuskSync plugin,
-                                    @NotNull org.bukkit.advancement.Advancement advancement, @NotNull Player player,
+        private void setAdvancement(@NotNull HuskSync plugin, @NotNull org.bukkit.advancement.Advancement advancement,
+                                    @NotNull Player player, @NotNull BukkitUser user,
                                     @NotNull Collection<String> toAward, @NotNull Collection<String> toRevoke) {
             plugin.runSync(() -> {
                 // Track player exp level & progress
@@ -364,7 +364,7 @@ public abstract class BukkitData implements Data {
                 if (gameRuleUpdated) {
                     player.getWorld().setGameRule(GameRule.ANNOUNCE_ADVANCEMENTS, true);
                 }
-            });
+            }, user);
         }
 
         // Performs a consuming function for every advancement registered on the server
