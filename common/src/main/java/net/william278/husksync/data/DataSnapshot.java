@@ -294,6 +294,18 @@ public class DataSnapshot {
             return this;
         }
 
+        public boolean isInvalid() {
+            return exception != null;
+        }
+
+        @NotNull
+        public String getInvalidReason(@NotNull HuskSync plugin) {
+            if (exception == null) {
+                throw new IllegalStateException("Attempted to get an invalid reason for a valid snapshot!");
+            }
+            return exception.getMessage(plugin, this);
+        }
+
         @ApiStatus.Internal
         void validate(@NotNull HuskSync plugin) throws DataException {
             if (exception != null) {

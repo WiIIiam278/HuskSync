@@ -71,26 +71,43 @@ public abstract class ItemsCommand extends Command implements TabProvider {
     private void showLatestItems(@NotNull OnlineUser viewer, @NotNull User user) {
         plugin.getRedisManager().getUserData(user.getUuid(), user).thenAccept(data -> data
                 .or(() -> plugin.getDatabase().getLatestSnapshot(user))
-                .ifPresentOrElse(
-                        snapshot -> this.showItems(
-                                viewer, snapshot.unpack(plugin), user,
-                                viewer.hasPermission(getPermission("edit"))
-                        ),
-                        () -> plugin.getLocales().getLocale("error_no_data_to_display")
-                                .ifPresent(viewer::sendMessage)
-                ));
+                .or(() -> {
+                    plugin.getLocales().getLocale("error_no_data_to_display")
+                            .ifPresent(viewer::sendMessage);
+                    return Optional.empty();
+                })
+                .flatMap(packed -> {
+                    if (packed.isInvalid()) {
+                        plugin.getLocales().getLocale("error_invalid_data", packed.getInvalidReason(plugin))
+                                .ifPresent(viewer::sendMessage);
+                        return Optional.empty();
+                    }
+                    return Optional.of(packed.unpack(plugin));
+                })
+                .ifPresent(snapshot -> this.showItems(
+                        viewer, snapshot, user, viewer.hasPermission(getPermission("edit"))
+                )));
     }
 
     // View a specific version of the user data
     private void showSnapshotItems(@NotNull OnlineUser viewer, @NotNull User user, @NotNull UUID version) {
         plugin.getDatabase().getSnapshot(user, version)
-                .ifPresentOrElse(
-                        snapshot -> this.showItems(
-                                viewer, snapshot.unpack(plugin), user, false
-                        ),
-                        () -> plugin.getLocales().getLocale("error_invalid_version_uuid")
-                                .ifPresent(viewer::sendMessage)
-                );
+                .or(() -> {
+                    plugin.getLocales().getLocale("error_invalid_version_uuid")
+                            .ifPresent(viewer::sendMessage);
+                    return Optional.empty();
+                })
+                .flatMap(packed -> {
+                    if (packed.isInvalid()) {
+                        plugin.getLocales().getLocale("error_invalid_data", packed.getInvalidReason(plugin))
+                                .ifPresent(viewer::sendMessage);
+                        return Optional.empty();
+                    }
+                    return Optional.of(packed.unpack(plugin));
+                })
+                .ifPresent(snapshot -> this.showItems(
+                        viewer, snapshot, user, false
+                ));
     }
 
     // Show a GUI menu with the correct item data from the snapshot

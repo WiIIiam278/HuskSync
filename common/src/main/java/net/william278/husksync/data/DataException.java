@@ -59,7 +59,7 @@ public class DataException extends IllegalStateException {
         private final BiFunction<HuskSync, DataSnapshot, String> exception;
 
         @NotNull
-        private String getMessage(@NotNull HuskSync plugin, @NotNull DataSnapshot data) {
+        String getMessage(@NotNull HuskSync plugin, @NotNull DataSnapshot data) {
             return exception.apply(plugin, data);
         }
 
