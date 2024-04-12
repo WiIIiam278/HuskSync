@@ -341,12 +341,13 @@ public abstract class BukkitData implements Data {
         private void setAdvancement(@NotNull HuskSync plugin, @NotNull org.bukkit.advancement.Advancement advancement,
                                     @NotNull Player player, @NotNull BukkitUser user,
                                     @NotNull Collection<String> toAward, @NotNull Collection<String> toRevoke) {
+            final boolean folia = !((BukkitHuskSync) plugin).getScheduler().isUsingFolia();
             plugin.runSync(() -> {
                 // Track player exp level & progress
                 final int expLevel = player.getLevel();
                 final float expProgress = player.getExp();
                 boolean gameRuleUpdated = false;
-                if (Boolean.TRUE.equals(player.getWorld().getGameRuleValue(GameRule.ANNOUNCE_ADVANCEMENTS))) {
+                if (!folia && Boolean.TRUE.equals(player.getWorld().getGameRuleValue(GameRule.ANNOUNCE_ADVANCEMENTS))) {
                     player.getWorld().setGameRule(GameRule.ANNOUNCE_ADVANCEMENTS, false);
                     gameRuleUpdated = true;
                 }

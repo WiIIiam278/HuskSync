@@ -25,6 +25,7 @@ import net.william278.husksync.data.UserDataHolder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import space.arim.morepaperlib.scheduling.AsynchronousScheduler;
+import space.arim.morepaperlib.scheduling.AttachedScheduler;
 import space.arim.morepaperlib.scheduling.RegionalScheduler;
 import space.arim.morepaperlib.scheduling.ScheduledTask;
 
@@ -62,15 +63,23 @@ public interface BukkitTask extends Task {
                 return;
             }
 
-            final RegionalScheduler scheduler = user != null
-                    ? ((BukkitHuskSync) getPlugin()).getUserSyncScheduler(user)
-                    : ((BukkitHuskSync) getPlugin()).getSyncScheduler();
-            if (user == null) {
+            // Use entity-specific scheduler if user is not null
+            if (user != null) {
+                final AttachedScheduler scheduler = ((BukkitHuskSync) getPlugin()).getUserSyncScheduler(user);
                 if (delayTicks > 0) {
-                    this.task = scheduler.runDelayed(runnable, delayTicks);
+                    this.task = scheduler.runDelayed(runnable, null, delayTicks);
                 } else {
-                    this.task = scheduler.run(runnable);
+                    this.task = scheduler.run(runnable, null);
                 }
+                return;
+            }
+
+            // Or default to the global scheduler
+            final RegionalScheduler scheduler = ((BukkitHuskSync) getPlugin()).getSyncScheduler();
+            if (delayTicks > 0) {
+                this.task = scheduler.runDelayed(runnable, delayTicks);
+            } else {
+                this.task = scheduler.run(runnable);
             }
         }
     }
