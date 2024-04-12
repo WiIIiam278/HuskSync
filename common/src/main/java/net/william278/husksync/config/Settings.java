@@ -266,14 +266,14 @@ public class Settings {
         @Comment("Commands which should be blocked before a player has finished syncing (Use * to block all commands)")
         private List<String> blacklistedCommandsWhileLocked = new ArrayList<>(List.of("*"));
 
+        @Comment({"For attribute syncing, which attributes should be ignored/skipped when syncing",
+                "(e.g. ['minecraft:generic.max_health', 'minecraft:generic.attack_damage'])"})
+        @Getter(AccessLevel.NONE)
+        private List<String> ignoredAttributes = new ArrayList<>(List.of(""));
+
         @Comment("Event priorities for listeners (HIGHEST, NORMAL, LOWEST). Change if you encounter plugin conflicts")
         @Getter(AccessLevel.NONE)
         private Map<String, String> eventPriorities = EventListener.ListenerType.getDefaults();
-
-        @Comment({"For attribute syncing, which attributes should be ignored/skipped when syncing",
-                "(e.g. \"minecraft:generic.max_health\", \"minecraft:generic.attack_damage\")"})
-        @Getter(AccessLevel.NONE)
-        private List<String> ignoredAttributes = new ArrayList<>(List.of(""));
 
         public boolean doAutoPin(@NotNull DataSnapshot.SaveCause cause) {
             return autoPinnedSaveCauses.contains(cause.name());

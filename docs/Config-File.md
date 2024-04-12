@@ -27,12 +27,14 @@ check_for_updates: true
 # Specify a common ID for grouping servers running HuskSync. Don't modify this unless you know what you're doing!
 cluster_id: ''
 # Enable development debug logging
-debug_logging: false
+debug_logging: true
 # Whether to provide modern, rich TAB suggestions for commands (if available)
 brigadier_tab_completion: false
 # Whether to enable the Player Analytics hook.
 # Docs: https://william278.net/docs/husksync/plan-hook
 enable_plan_hook: true
+# Whether to cancel game event packets directly when handling locked players if ProtocolLib is installed
+cancel_packets: true
 # Database settings
 database:
   # Type of database to use (MYSQL, MARIADB, POSTGRES, MONGO)
@@ -41,10 +43,10 @@ database:
   credentials:
     host: localhost
     port: 3306
-    database: HuskSync
+    database: minecraft
     username: root
-    password: pa55w0rd
-    # Only change this if you have select MYSQL, MARIADB or POSTGRES
+    password: ''
+    # Only change this if you're using MARIADB or POSTGRES
     parameters: ?autoReconnect=true&useSSL=false&useUnicode=true&characterEncoding=UTF-8
   # MYSQL, MARIADB, POSTGRES database Hikari connection pool properties. Don't modify this unless you know what you're doing!
   connection_pool:
@@ -53,7 +55,7 @@ database:
     maximum_lifetime: 1800000
     keepalive_time: 0
     connection_timeout: 5000
-  # Advanced MongoDB settings. Don't modify unless you know what your doing!
+  # Advanced MongoDB settings. Don't modify unless you know what you're doing!
   mongo_settings:
     using_atlas: false
     parameters: ?retryWrites=true&w=majority&authSource=HuskSync
@@ -98,9 +100,9 @@ synchronization:
   # Configuration for how and when to sync player data when they die
   save_on_death:
     # Whether to create a snapshot for users when they die (containing their death drops)
-    enabled: false
+    enabled: true
     # What items to save in death snapshots? (DROPS or ITEMS_TO_KEEP). Note that ITEMS_TO_KEEP (suggested for keepInventory servers) requires a Paper 1.19.4+ server.
-    items_to_save: DROPS
+    items_to_save: ITEMS_TO_KEEP
     # Should a death snapshot still be created even if the items to save on the player's death are empty?
     save_empty_items: true
     # Whether dead players who log out and log in to a different server should have their items saved.
@@ -111,33 +113,35 @@ synchronization:
   notification_display_slot: ACTION_BAR
   # Persist maps locked in a Cartography Table to let them be viewed on any server
   persist_locked_maps: true
-  # Whether to synchronize player max health (requires health syncing to be enabled)
-  synchronize_max_health: true
   # If using the DELAY sync method, how long should this server listen for Redis key data updates before pulling data from the database instead (i.e., if the user did not change servers).
   network_latency_milliseconds: 500
   # Which data types to synchronize.
   # Docs: https://william278.net/docs/husksync/sync-features
   features:
-    potion_effects: true
+    inventory: true
     ender_chest: true
     experience: true
     advancements: true
     game_mode: true
-    inventory: true
-    persistent_data: true
-    hunger: true
-    health: true
+    flight_status: true
+    potion_effects: true
     statistics: true
+    health: true
+    hunger: true
+    attributes: true
+    persistent_data: true
     location: false
   # Commands which should be blocked before a player has finished syncing (Use * to block all commands)
   blacklisted_commands_while_locked:
     - '*'
+  # For attribute syncing, which attributes should be ignored/skipped when syncing
+  # (e.g. ['minecraft:generic.max_health', 'minecraft:generic.attack_damage'])
+  ignored_attributes: []
   # Event priorities for listeners (HIGHEST, NORMAL, LOWEST). Change if you encounter plugin conflicts
   event_priorities:
-    join_listener: LOWEST
     quit_listener: LOWEST
+    join_listener: LOWEST
     death_listener: NORMAL
-
 ```
 
 </details>
