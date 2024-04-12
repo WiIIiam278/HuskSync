@@ -34,7 +34,6 @@ import org.bukkit.*;
 import org.bukkit.advancement.AdvancementProgress;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.attribute.AttributeModifier;
-import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.EquipmentSlot;
@@ -50,8 +49,7 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
-import static net.william278.husksync.util.BukkitKeyedAdapter.matchAttribute;
-import static net.william278.husksync.util.BukkitKeyedAdapter.matchStatistic;
+import static net.william278.husksync.util.BukkitKeyedAdapter.*;
 
 public abstract class BukkitData implements Data {
 
@@ -512,8 +510,8 @@ public abstract class BukkitData implements Data {
             entityStatistics.forEach((id, m) -> m.forEach((e, v) -> applyStat(user, id, Statistic.Type.ENTITY, v, e)));
         }
 
-        private void applyStat(@NotNull UserDataHolder user, @NotNull String id, @NotNull Statistic.Type type,
-                               int value, @NotNull Object... object) {
+        private void applyStat(@NotNull UserDataHolder user, @NotNull String id,
+                               @NotNull Statistic.Type type, int value, @NotNull String... key) {
             final Player player = ((BukkitUser) user).getPlayer();
             final Statistic stat = matchStatistic(id);
             if (stat == null) {
@@ -523,10 +521,10 @@ public abstract class BukkitData implements Data {
             try {
                 switch (type) {
                     case UNTYPED -> player.setStatistic(stat, value);
-                    case BLOCK, ITEM -> player.setStatistic(stat, (Material) object[0], value);
-                    case ENTITY -> player.setStatistic(stat, (EntityType) object[0], value);
+                    case BLOCK, ITEM -> player.setStatistic(stat, Objects.requireNonNull(matchMaterial(key[0])), value);
+                    case ENTITY -> player.setStatistic(stat, Objects.requireNonNull(matchEntityType(key[0])), value);
                 }
-            } catch (IllegalArgumentException ignored) {
+            } catch (Throwable ignored) {
             }
         }
 
