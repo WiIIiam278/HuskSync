@@ -60,7 +60,7 @@ public interface UserDataHolder extends DataHolder {
      */
     @Override
     default void setData(@NotNull Identifier identifier, @NotNull Data data) {
-        getPlugin().runSync(() -> data.apply(this, getPlugin()));
+        getPlugin().runSync(() -> data.apply(this, getPlugin()), this);
     }
 
     /**
@@ -119,7 +119,7 @@ public interface UserDataHolder extends DataHolder {
                 return;
             }
             plugin.runAsync(() -> runAfter.accept(true));
-        });
+        }, this);
     }
 
     @Override

@@ -109,7 +109,7 @@ public class BukkitUser extends OnlineUser implements BukkitUserDataHolder {
         gui.setCloseGuiAction((close) -> onClose.accept(BukkitData.Items.ItemArray.adapt(
                 Arrays.stream(close.getInventory().getContents()).limit(size).toArray(ItemStack[]::new)
         )));
-        plugin.runSync(() -> gui.open(player));
+        plugin.runSync(() -> gui.open(player), this);
     }
 
     @Override

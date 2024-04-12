@@ -6,6 +6,7 @@ main: 'net.william278.husksync.PaperHuskSync'
 loader: 'net.william278.husksync.PaperHuskSyncLoader'
 version: '${version}'
 api-version: '1.19'
+folia-supported: true
 dependencies:
   server:
     ProtocolLib:

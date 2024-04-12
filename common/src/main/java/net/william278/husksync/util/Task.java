@@ -20,7 +20,9 @@
 package net.william278.husksync.util;
 
 import net.william278.husksync.HuskSync;
+import net.william278.husksync.data.UserDataHolder;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -86,7 +88,7 @@ public interface Task extends Runnable {
     interface Supplier {
 
         @NotNull
-        Task.Sync getSyncTask(@NotNull Runnable runnable, long delayTicks);
+        Task.Sync getSyncTask(@NotNull Runnable runnable, @Nullable UserDataHolder user, long delayTicks);
 
         @NotNull
         Task.Async getAsyncTask(@NotNull Runnable runnable, long delayTicks);
@@ -95,8 +97,8 @@ public interface Task extends Runnable {
         Task.Repeating getRepeatingTask(@NotNull Runnable runnable, long repeatingTicks);
 
         @NotNull
-        default Task.Sync runSyncDelayed(@NotNull Runnable runnable, long delayTicks) {
-            final Task.Sync task = getSyncTask(runnable, delayTicks);
+        default Task.Sync runSyncDelayed(@NotNull Runnable runnable, @Nullable UserDataHolder user, long delayTicks) {
+            final Task.Sync task = getSyncTask(runnable, user, delayTicks);
             task.run();
             return task;
         }
@@ -109,7 +111,12 @@ public interface Task extends Runnable {
 
         @NotNull
         default Task.Sync runSync(@NotNull Runnable runnable) {
-            return runSyncDelayed(runnable, 0);
+            return runSyncDelayed(runnable, null, 0);
+        }
+
+        @NotNull
+        default Task.Sync runSync(@NotNull Runnable runnable, @NotNull UserDataHolder user) {
+            return runSyncDelayed(runnable, user, 0);
         }
 
         @NotNull

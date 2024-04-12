@@ -65,9 +65,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import space.arim.morepaperlib.MorePaperLib;
 import space.arim.morepaperlib.commands.CommandRegistration;
-import space.arim.morepaperlib.scheduling.AsynchronousScheduler;
-import space.arim.morepaperlib.scheduling.GracefulScheduling;
-import space.arim.morepaperlib.scheduling.RegionalScheduler;
+import space.arim.morepaperlib.scheduling.*;
 
 import java.nio.file.Path;
 import java.util.*;
@@ -331,9 +329,14 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
     }
 
     @NotNull
-    public RegionalScheduler getRegionalScheduler() {
+    public RegionalScheduler getSyncScheduler() {
         return regionalScheduler == null
                 ? regionalScheduler = getScheduler().globalRegionalScheduler() : regionalScheduler;
+    }
+
+    @NotNull
+    public AttachedScheduler getUserSyncScheduler(@NotNull UserDataHolder user) {
+        return getScheduler().entitySpecificScheduler(((BukkitUser) user).getPlayer());
     }
 
     @NotNull
