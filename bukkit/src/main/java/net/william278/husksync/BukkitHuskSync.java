@@ -65,7 +65,10 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import space.arim.morepaperlib.MorePaperLib;
 import space.arim.morepaperlib.commands.CommandRegistration;
-import space.arim.morepaperlib.scheduling.*;
+import space.arim.morepaperlib.scheduling.AsynchronousScheduler;
+import space.arim.morepaperlib.scheduling.AttachedScheduler;
+import space.arim.morepaperlib.scheduling.GracefulScheduling;
+import space.arim.morepaperlib.scheduling.RegionalScheduler;
 
 import java.nio.file.Path;
 import java.util.*;
