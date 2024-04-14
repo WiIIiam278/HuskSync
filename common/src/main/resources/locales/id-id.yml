@@ -53,7 +53,7 @@ locales:
   system_status_header: '[HuskSync](#00fb9a bold) [| Laporan status sistem:](#00fb9a)'
   error_invalid_syntax: '[Kesalahan:](#ff3300) [Sintaks salah. Penggunaan:](#ff7e5e) [%1%](#ff7e5e italic show_text=&#ff7e5e&Klik untuk menyarankan suggest_command=%1%)'
   error_invalid_player: '[Kesalahan:](#ff3300) [Tidak dapat menemukan pemain dengan nama tersebut.](#ff7e5e)'
-  error_invalid_data: '[Error:](#ff3300) [Could not unpack snapshot data as it invalid or corrupt.](#ff7e5e) [(Details…)](gray show_text=&7⚠ %1%)'
+  error_invalid_data: '[Error:](#ff3300) [Failed to unpack user data as the snapshot is invalid or corrupt.](#ff7e5e) [(Details…)](gray show_text=&7⚠ %1%)'
   error_no_permission: '[Kesalahan:](#ff3300) [Kamu tidak memiliki izin untuk menjalankan perintah ini](#ff7e5e)'
   error_console_command_only: '[Kesalahan:](#ff3300) [Perintah itu hanya dapat dijalankan melalui konsol](#ff7e5e)'
   error_in_game_command_only: 'Kesalahan: Perintah itu hanya dapat dijalankan dalam game.'

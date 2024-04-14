@@ -53,7 +53,7 @@ locales:
   system_status_header: '[HuskSync](#00fb9a bold) [| System status report:](#00fb9a)'
   error_invalid_syntax: '[Ошибка:](#ff3300) [Неправильный синтаксис. Используйте:](#ff7e5e) [%1%](#ff7e5e italic show_text=&#ff7e5e&Click to suggest suggest_command=%1%)'
   error_invalid_player: '[Ошибка:](#ff3300) [Не удалось найти игрока с данным именем.](#ff7e5e)'
-  error_invalid_data: '[Error:](#ff3300) [Could not unpack snapshot data as it invalid or corrupt.](#ff7e5e) [(Details…)](gray show_text=&7⚠ %1%)'
+  error_invalid_data: '[Error:](#ff3300) [Failed to unpack user data as the snapshot is invalid or corrupt.](#ff7e5e) [(Details…)](gray show_text=&7⚠ %1%)'
   error_no_permission: '[Ошибка:](#ff3300) [У вас недостаточно прав для выполнения данной команды.](#ff7e5e)'
   error_console_command_only: '[Ошибка:](#ff3300) [Данная команда может быть выполнена только из консоли.](#ff7e5e)'
   error_in_game_command_only: 'Ошибка: Данная команда может быть выполнена только в игре.'

@@ -53,7 +53,7 @@ locales:
   system_status_header: '[HuskSync](#00fb9a bold) [| System status report:](#00fb9a)'
   error_invalid_syntax: '[Грешка:](#ff3300) [Неправилен синтаксис. Използвайте:](#ff7e5e) [%1%](#ff7e5e italic show_text=&#ff7e5e&Click to suggest suggest_command=%1%)'
   error_invalid_player: '[Грешка:](#ff3300) [Не можахме да открием играч с това име.](#ff7e5e)'
-  error_invalid_data: '[Error:](#ff3300) [Could not unpack snapshot data as it invalid or corrupt.](#ff7e5e) [(Details…)](gray show_text=&7⚠ %1%)'
+  error_invalid_data: '[Error:](#ff3300) [Failed to unpack user data as the snapshot is invalid or corrupt.](#ff7e5e) [(Details…)](gray show_text=&7⚠ %1%)'
   error_no_permission: '[Грешка:](#ff3300) [Нямате право да използвате тази команда](#ff7e5e)'
   error_console_command_only: '[Грешка:](#ff3300) [Тази команда може да бъде използвана единствено през конзолата](#ff7e5e)'
   error_in_game_command_only: 'Грешка: Тази команда може да бъде използвана само от играта.'

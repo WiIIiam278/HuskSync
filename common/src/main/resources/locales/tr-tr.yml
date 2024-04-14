@@ -53,7 +53,7 @@ locales:
   system_status_header: '[HuskSync](#00fb9a bold) [| Sistem durumu raporu:](#00fb9a)'
   error_invalid_syntax: '[Hata:](#ff3300) [Yanlış sözdizimi. Kullanım:](#ff7e5e) [%1%](#ff7e5e italic show_text=&#ff7e5e&Öneri için tıklayın Suggest_command=%1%)'
   error_invalid_player: '[Hata:](#ff3300) [Bu isimde bir oyuncu bulunamadı.](#ff7e5e)'
-  error_invalid_data: '[Error:](#ff3300) [Could not unpack snapshot data as it invalid or corrupt.](#ff7e5e) [(Details…)](gray show_text=&7⚠ %1%)'
+  error_invalid_data: '[Error:](#ff3300) [Failed to unpack user data as the snapshot is invalid or corrupt.](#ff7e5e) [(Details…)](gray show_text=&7⚠ %1%)'
   error_no_permission: '[Hata:](#ff3300) [Bu komutu gerçekleştirmek için izniniz yok](#ff7e5e)'
   error_console_command_only: '[Hata:](#ff3300) [Bu komut yalnızca konsoldan çalıştırılabilir](#ff7e5e)'
   error_in_game_command_only: 'Hata: Bu komut yalnızca oyun içinde kullanılabilir.'

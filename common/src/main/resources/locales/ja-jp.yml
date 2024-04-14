@@ -53,7 +53,7 @@ locales:
   system_status_header: '[HuskSync](#00fb9a bold) [| System status report:](#00fb9a)'
   error_invalid_syntax: '[Error:](#ff3300) [構文が正しくありません。使用法:](#ff7e5e) [%1%](#ff7e5e italic show_text=&#ff7e5e&クリックでサジェスト suggest_command=%1%)'
   error_invalid_player: '[Error:](#ff3300) [そのプレイヤーは見つかりませんでした](#ff7e5e)'
-  error_invalid_data: '[Error:](#ff3300) [Could not unpack snapshot data as it invalid or corrupt.](#ff7e5e) [(Details…)](gray show_text=&7⚠ %1%)'
+  error_invalid_data: '[Error:](#ff3300) [Failed to unpack user data as the snapshot is invalid or corrupt.](#ff7e5e) [(Details…)](gray show_text=&7⚠ %1%)'
   error_no_permission: '[Error:](#ff3300) [このコマンドを実行する権限がありません](#ff7e5e)'
   error_console_command_only: '[Error:](#ff3300) [そのコマンドは%1%コンソールからのみ実行できます](#ff7e5e)'
   error_in_game_command_only: 'Error: そのコマンドはゲーム内でしか使えません。'

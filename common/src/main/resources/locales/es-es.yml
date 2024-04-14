@@ -53,7 +53,7 @@ locales:
   system_status_header: '[HuskSync](#00fb9a bold) [| System status report:](#00fb9a)'
   error_invalid_syntax: '[Error:](#ff3300) [Sintanxis incorrecta. Usa:](#ff7e5e) [%1%](#ff7e5e italic show_text=&#ff7e5e&Click to suggest suggest_command=%1%)'
   error_invalid_player: '[Error:](#ff3300) [No se ha podido encontrar un jugador con ese nombre.](#ff7e5e)'
-  error_invalid_data: '[Error:](#ff3300) [Could not unpack snapshot data as it invalid or corrupt.](#ff7e5e) [(Details…)](gray show_text=&7⚠ %1%)'
+  error_invalid_data: '[Error:](#ff3300) [Failed to unpack user data as the snapshot is invalid or corrupt.](#ff7e5e) [(Details…)](gray show_text=&7⚠ %1%)'
   error_no_permission: '[Error:](#ff3300) [No tienes permisos para ejecutar este comando.](#ff7e5e)'
   error_console_command_only: '[Error:](#ff3300) [Este comando solo se puede ejecutar desde la consola.](#ff7e5e)'
   error_in_game_command_only: 'Error: Ese comando solo se puede utilizar desde el juego.'

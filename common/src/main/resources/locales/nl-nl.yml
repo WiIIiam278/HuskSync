@@ -53,7 +53,7 @@ locales:
   system_status_header: '[HuskSync](#00fb9a bold) [| System status report:](#00fb9a)'
   error_invalid_syntax: '[Error:](#ff3300) [Onjuiste syntaxis. Gebruik:](#ff7e5e) [%1%](#ff7e5e italic show_text=&#ff7e5e&Click to suggest suggest_command=%1%)'
   error_invalid_player: '[Error:](#ff3300) [Kan geen speler met die naam vinden.](#ff7e5e)'
-  error_invalid_data: '[Error:](#ff3300) [Could not unpack snapshot data as it invalid or corrupt.](#ff7e5e) [(Details…)](gray show_text=&7⚠ %1%)'
+  error_invalid_data: '[Error:](#ff3300) [Failed to unpack user data as the snapshot is invalid or corrupt.](#ff7e5e) [(Details…)](gray show_text=&7⚠ %1%)'
   error_no_permission: '[Error:](#ff3300) [Je hebt geen toestemming om deze opdracht uit te voeren](#ff7e5e)'
   error_console_command_only: '[Error:](#ff3300) [Dat command kan alleen via de console worden uitgevoerd](#ff7e5e)'
   error_in_game_command_only: 'Error: Dat command kan alleen in-game worden gebruikt.'

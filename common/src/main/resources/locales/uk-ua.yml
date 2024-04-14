@@ -53,7 +53,7 @@ locales:
   system_status_header: '[HuskSync](#00fb9a bold) [| System status report:](#00fb9a)'
   error_invalid_syntax: '[Помилка:](#ff3300) [Неправильний синтакс. Використання:](#ff7e5e) [%1%](#ff7e5e italic show_text=&#ff7e5e&Click to suggest suggest_command=%1%)'
   error_invalid_player: '[Помилка:](#ff3300) [Гравця не знайдено](#ff7e5e)'
-  error_invalid_data: '[Error:](#ff3300) [Could not unpack snapshot data as it invalid or corrupt.](#ff7e5e) [(Details…)](gray show_text=&7⚠ %1%)'
+  error_invalid_data: '[Error:](#ff3300) [Failed to unpack user data as the snapshot is invalid or corrupt.](#ff7e5e) [(Details…)](gray show_text=&7⚠ %1%)'
   error_no_permission: '[Помилка:](#ff3300) [Ввас немає дозволу на використання цієї команди](#ff7e5e)'
   error_console_command_only: '[Помилка:](#ff3300) [Ця команда може бути використана лише з допомогою %1% консолі](#ff7e5e)'
   error_in_game_command_only: 'Error: That command can only be used in-game.'

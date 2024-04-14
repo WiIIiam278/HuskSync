@@ -53,7 +53,7 @@ locales:
   system_status_header: '[HuskSync](#00fb9a bold) [| 系統狀態報告:](#00fb9a)'
   error_invalid_syntax: '[錯誤:](#ff3300) [語法不正確，用法:](#ff7e5e) [%1%](#ff7e5e italic show_text=&#ff7e5e&點擊建議 suggest_command=%1%)'
   error_invalid_player: '[錯誤:](#ff3300) [找不到這位玩家.](#ff7e5e)'
-  error_invalid_data: '[Error:](#ff3300) [Could not unpack snapshot data as it invalid or corrupt.](#ff7e5e) [(Details…)](gray show_text=&7⚠ %1%)'
+  error_invalid_data: '[Error:](#ff3300) [Failed to unpack user data as the snapshot is invalid or corrupt.](#ff7e5e) [(Details…)](gray show_text=&7⚠ %1%)'
   error_no_permission: '[錯誤:](#ff3300) [您沒有權限執行這個指令](#ff7e5e)'
   error_console_command_only: '[錯誤:](#ff3300) [該指令只能透過 控制台 執行](#ff7e5e)'
   error_in_game_command_only: '錯誤: 該指令只能在遊戲內執行.'

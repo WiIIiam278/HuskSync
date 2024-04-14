@@ -53,7 +53,7 @@ locales:
   system_status_header: '[HuskSync](#00fb9a bold) [| System status report:](#00fb9a)'
   error_invalid_syntax: '[오류:](#ff3300) [잘못된 사용법. 사용법:](#ff7e5e) [%1%](#ff7e5e italic show_text=&#ff7e5e&클릭하여 입력할 수 있습니다. suggest_command=%1%)'
   error_invalid_player: '[오류:](#ff3300) [해당 이름의 사용자를 찾을 수 없습니다.](#ff7e5e)'
-  error_invalid_data: '[Error:](#ff3300) [Could not unpack snapshot data as it invalid or corrupt.](#ff7e5e) [(Details…)](gray show_text=&7⚠ %1%)'
+  error_invalid_data: '[Error:](#ff3300) [Failed to unpack user data as the snapshot is invalid or corrupt.](#ff7e5e) [(Details…)](gray show_text=&7⚠ %1%)'
   error_no_permission: '[오류:](#ff3300) [해당 명령어를 사용할 권한이 없습니다.](#ff7e5e)'
   error_console_command_only: '[오류:](#ff3300) [해당 명령어는 콘솔을 통해서만 사용할 수 있습니다.](#ff7e5e)'
   error_in_game_command_only: '오류: 해당 명령어는 게임 내부에서만 사용할 수 있습니다.'
