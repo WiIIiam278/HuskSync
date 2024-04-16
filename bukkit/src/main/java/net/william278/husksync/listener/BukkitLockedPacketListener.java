@@ -49,7 +49,8 @@ public class BukkitLockedPacketListener extends BukkitLockedEventListener implem
                 Client.KEEP_ALIVE, Client.PONG, Client.CUSTOM_PAYLOAD, // Connection packets
                 Client.CHAT_COMMAND, Client.CLIENT_COMMAND, Client.CHAT, Client.CHAT_SESSION_UPDATE, // Chat / command packets
                 Client.POSITION, Client.POSITION_LOOK, Client.LOOK, // Movement packets
-                Client.HELD_ITEM_SLOT, Client.ARM_ANIMATION, Client.TELEPORT_ACCEPT // Animation packets
+                Client.HELD_ITEM_SLOT, Client.ARM_ANIMATION, Client.TELEPORT_ACCEPT, // Animation packets
+                Client.SETTINGS // Video setting packets
         );
 
         private final BukkitLockedPacketListener listener;
