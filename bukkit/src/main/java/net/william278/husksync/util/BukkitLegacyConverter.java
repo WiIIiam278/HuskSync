@@ -186,7 +186,7 @@ public class BukkitLegacyConverter extends LegacyConverter {
 
     @NotNull
     private Optional<Data.Statistics> readStatistics(@NotNull JSONObject object) {
-        if (!object.has("statistics") || !shouldImport(Identifier.ADVANCEMENTS)) {
+        if (!object.has("statistics") || !shouldImport(Identifier.STATISTICS)) {
             return Optional.empty();
         }
 
