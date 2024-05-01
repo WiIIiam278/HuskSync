@@ -10,7 +10,7 @@ dependencies {
     implementation 'net.kyori:adventure-platform-bukkit:4.3.2'
     implementation 'dev.triumphteam:triumph-gui:3.1.7'
     implementation 'space.arim.morepaperlib:morepaperlib:0.4.4'
-    implementation 'de.tr7zw:item-nbt-api:2.12.3'
+    implementation 'de.tr7zw:item-nbt-api:2.12.4'
 
     compileOnly 'org.spigotmc:spigot-api:1.17.1-R0.1-SNAPSHOT'
     compileOnly 'com.comphenix.protocol:ProtocolLib:5.1.0'

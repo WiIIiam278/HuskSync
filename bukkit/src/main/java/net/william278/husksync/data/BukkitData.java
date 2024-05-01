@@ -66,7 +66,8 @@ public abstract class BukkitData implements Data {
         private final @Nullable ItemStack @NotNull [] contents;
 
         private Items(@Nullable ItemStack @NotNull [] contents) {
-            this.contents = Arrays.stream(contents)
+
+            this.contents = Arrays.stream(contents.clone())
                     .map(i -> i == null || i.getType() == Material.AIR ? null : i)
                     .toArray(ItemStack[]::new);
         }
@@ -128,13 +129,13 @@ public abstract class BukkitData implements Data {
             @Range(from = 0, to = 8)
             private int heldItemSlot;
 
-            private Inventory(@NotNull ItemStack[] contents, int heldItemSlot) {
+            private Inventory(@Nullable ItemStack @NotNull [] contents, int heldItemSlot) {
                 super(contents);
                 this.heldItemSlot = heldItemSlot;
             }
 
             @NotNull
-            public static BukkitData.Items.Inventory from(@NotNull ItemStack[] contents, int heldItemSlot) {
+            public static BukkitData.Items.Inventory from(@Nullable ItemStack @NotNull [] contents, int heldItemSlot) {
                 return new BukkitData.Items.Inventory(contents, heldItemSlot);
             }
 

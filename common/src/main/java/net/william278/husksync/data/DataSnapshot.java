@@ -392,7 +392,7 @@ public class DataSnapshot {
         private Map<Identifier, Data> deserializeData(@NotNull HuskSync plugin) {
             return data.entrySet().stream()
                     .map((entry) -> plugin.getIdentifier(entry.getKey()).map(id -> Map.entry(
-                            id, plugin.getSerializers().get(id).deserialize(entry.getValue())
+                            id, plugin.getSerializers().get(id).deserialize(entry.getValue(), getMinecraftVersion())
                     )).orElse(null))
                     .filter(Objects::nonNull)
                     .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
