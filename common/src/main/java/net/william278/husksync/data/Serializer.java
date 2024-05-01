@@ -19,22 +19,27 @@
 
 package net.william278.husksync.data;
 
+import net.william278.desertwell.util.Version;
 import org.jetbrains.annotations.NotNull;
 
 public interface Serializer<T extends Data> {
 
-    T deserialize(@NotNull String serialized) throws DeserializationException;
+    T deserialize(@NotNull String serialized);
+
+    default T deserialize(@NotNull String serialized, @NotNull Version dataMcVersion) throws DeserializationException {
+        return deserialize(serialized);
+    }
 
     @NotNull
     String serialize(@NotNull T element) throws SerializationException;
 
-    static final class DeserializationException extends IllegalStateException {
+    final class DeserializationException extends IllegalStateException {
         DeserializationException(@NotNull String message, @NotNull Throwable cause) {
             super(message, cause);
         }
     }
 
-    static final class SerializationException extends IllegalStateException {
+    final class SerializationException extends IllegalStateException {
         SerializationException(@NotNull String message, @NotNull Throwable cause) {
             super(message, cause);
         }
