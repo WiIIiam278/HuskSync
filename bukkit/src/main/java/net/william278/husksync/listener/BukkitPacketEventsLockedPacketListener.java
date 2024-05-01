@@ -72,7 +72,6 @@ public class BukkitPacketEventsLockedPacketListener extends BukkitLockedEventLis
         private final BukkitPacketEventsLockedPacketListener listener;
 
         public PlayerPacketAdapter(@NotNull BukkitPacketEventsLockedPacketListener listener) {
-//            super(listener.getPlugin(), ListenerPriority.HIGHEST, getPacketsToListenFor());
             super(PacketListenerPriority.HIGH);
             this.listener = listener;
         }
