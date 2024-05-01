@@ -34,10 +34,15 @@ import java.util.stream.Collectors;
 
 import static com.comphenix.protocol.PacketType.Play.Client;
 
-public class BukkitLockedPacketListener extends BukkitLockedEventListener implements LockedHandler {
+public class BukkitProtocolLibLockedPacketListener extends BukkitLockedEventListener implements LockedHandler {
 
-    protected BukkitLockedPacketListener(@NotNull BukkitHuskSync plugin) {
+    protected BukkitProtocolLibLockedPacketListener(@NotNull BukkitHuskSync plugin) {
         super(plugin);
+    }
+
+    @Override
+    public void onEnable() {
+        super.onEnable();
         ProtocolLibrary.getProtocolManager().addPacketListener(new PlayerPacketAdapter(this));
         plugin.log(Level.INFO, "Using ProtocolLib to cancel packets for locked players");
     }
@@ -53,9 +58,9 @@ public class BukkitLockedPacketListener extends BukkitLockedEventListener implem
                 Client.SETTINGS // Video setting packets
         );
 
-        private final BukkitLockedPacketListener listener;
+        private final BukkitProtocolLibLockedPacketListener listener;
 
-        public PlayerPacketAdapter(@NotNull BukkitLockedPacketListener listener) {
+        public PlayerPacketAdapter(@NotNull BukkitProtocolLibLockedPacketListener listener) {
             super(listener.getPlugin(), ListenerPriority.HIGHEST, getPacketsToListenFor());
             this.listener = listener;
         }

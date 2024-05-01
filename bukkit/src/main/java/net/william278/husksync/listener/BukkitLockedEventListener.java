@@ -50,6 +50,10 @@ public class BukkitLockedEventListener implements LockedHandler, Listener {
 
     protected BukkitLockedEventListener(@NotNull BukkitHuskSync plugin) {
         this.plugin = plugin;
+    }
+
+    @Override
+    public void onEnable() {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
 

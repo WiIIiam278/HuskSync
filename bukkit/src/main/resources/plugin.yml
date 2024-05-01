@@ -6,7 +6,9 @@ author: 'William278'
 description: '${description}'
 website: 'https://william278.net'
 folia-supported: true
+load: POSTWORLD
 softdepend:
+  - 'packetevents'
   - 'ProtocolLib'
   - 'MysqlPlayerDataBridge'
   - 'Plan'
