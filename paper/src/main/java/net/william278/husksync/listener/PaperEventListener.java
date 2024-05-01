@@ -25,6 +25,7 @@ import net.william278.husksync.data.BukkitData;
 import net.william278.husksync.user.BukkitUser;
 import net.william278.husksync.user.OnlineUser;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.player.PlayerAdvancementDoneEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.jetbrains.annotations.NotNull;
@@ -66,6 +67,12 @@ public class PaperEventListener extends BukkitEventListener {
             itemsToSave.subList(maxInventorySize, itemsToSave.size()).clear();
         }
         super.saveOnPlayerDeath(user, BukkitData.Items.ItemArray.adapt(itemsToSave));
+    }
+
+    @Override
+    protected void handleLockedAdvancementGrant(@NotNull PlayerAdvancementDoneEvent event) {
+        // Disable advancement chat messages
+        event.message(null);
     }
 
     @NotNull

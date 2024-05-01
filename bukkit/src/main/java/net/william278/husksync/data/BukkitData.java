@@ -30,7 +30,10 @@ import net.william278.husksync.BukkitHuskSync;
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.adapter.Adaptable;
 import net.william278.husksync.user.BukkitUser;
-import org.bukkit.*;
+import org.bukkit.Bukkit;
+import org.bukkit.Material;
+import org.bukkit.Registry;
+import org.bukkit.Statistic;
 import org.bukkit.advancement.AdvancementProgress;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.attribute.AttributeModifier;
@@ -342,16 +345,10 @@ public abstract class BukkitData implements Data {
         private void setAdvancement(@NotNull HuskSync plugin, @NotNull org.bukkit.advancement.Advancement advancement,
                                     @NotNull Player player, @NotNull BukkitUser user,
                                     @NotNull Collection<String> toAward, @NotNull Collection<String> toRevoke) {
-            final boolean folia = ((BukkitHuskSync) plugin).getScheduler().isUsingFolia();
             plugin.runSync(() -> {
                 // Track player exp level & progress
                 final int expLevel = player.getLevel();
                 final float expProgress = player.getExp();
-                boolean gameRuleUpdated = false;
-                if (!folia && Boolean.TRUE.equals(player.getWorld().getGameRuleValue(GameRule.ANNOUNCE_ADVANCEMENTS))) {
-                    player.getWorld().setGameRule(GameRule.ANNOUNCE_ADVANCEMENTS, false);
-                    gameRuleUpdated = true;
-                }
 
                 // Award and revoke advancement criteria
                 final AdvancementProgress progress = player.getAdvancementProgress(advancement);
@@ -362,9 +359,6 @@ public abstract class BukkitData implements Data {
                 if (!toAward.isEmpty() && player.getLevel() != expLevel || player.getExp() != expProgress) {
                     player.setLevel(expLevel);
                     player.setExp(expProgress);
-                }
-                if (gameRuleUpdated) {
-                    player.getWorld().setGameRule(GameRule.ANNOUNCE_ADVANCEMENTS, true);
                 }
             }, user);
         }
