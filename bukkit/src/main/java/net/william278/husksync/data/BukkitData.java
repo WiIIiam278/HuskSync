@@ -66,7 +66,8 @@ public abstract class BukkitData implements Data {
         private final @Nullable ItemStack @NotNull [] contents;
 
         private Items(@Nullable ItemStack @NotNull [] contents) {
-            this.contents = Arrays.stream(contents)
+
+            this.contents = Arrays.stream(contents.clone())
                     .map(i -> i == null || i.getType() == Material.AIR ? null : i)
                     .toArray(ItemStack[]::new);
         }
