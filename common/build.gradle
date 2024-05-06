@@ -20,7 +20,7 @@ dependencies {
     compileOnly 'org.jetbrains:annotations:24.1.0'
     compileOnly 'net.kyori:adventure-api:4.16.0'
     compileOnly 'net.kyori:adventure-platform-api:4.3.2'
-    compileOnly 'com.google.guava:guava:33.1.0-jre'
+    compileOnly 'com.google.guava:guava:33.2.0-jre'
     compileOnly 'com.github.plan-player-analytics:Plan:5.5.2272'
     compileOnly "redis.clients:jedis:$jedis_version"
     compileOnly "com.mysql:mysql-connector-j:$mysql_driver_version"
@@ -31,7 +31,7 @@ dependencies {
 
     testImplementation "redis.clients:jedis:$jedis_version"
     testImplementation "org.xerial.snappy:snappy-java:$snappy_version"
-    testImplementation 'com.google.guava:guava:33.1.0-jre'
+    testImplementation 'com.google.guava:guava:33.2.0-jre'
     testImplementation 'com.github.plan-player-analytics:Plan:5.5.2272'
     testCompileOnly 'de.exlll:configlib-yaml:4.5.0'
     testCompileOnly 'org.jetbrains:annotations:24.1.0'
