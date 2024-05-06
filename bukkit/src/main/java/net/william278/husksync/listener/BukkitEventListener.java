@@ -29,7 +29,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
-import org.bukkit.event.player.PlayerAdvancementDoneEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.server.MapInitializeEvent;
 import org.bukkit.event.world.WorldSaveEvent;
@@ -103,10 +102,6 @@ public class BukkitEventListener extends EventListener implements BukkitJoinEven
         super.saveOnPlayerDeath(user, BukkitData.Items.ItemArray.adapt(event.getDrops()));
     }
 
-    // Handle advancement grant events (empty on Spigot due to missing message API)
-    protected void handleLockedAdvancementGrant(@NotNull @SuppressWarnings("unused") PlayerAdvancementDoneEvent event) {
-    }
-
     @EventHandler(ignoreCancelled = true)
     public void onWorldSave(@NotNull WorldSaveEvent event) {
         if (!plugin.getSettings().getSynchronization().isSaveOnWorldSave()) {
@@ -123,13 +118,6 @@ public class BukkitEventListener extends EventListener implements BukkitJoinEven
     public void onMapInitialize(@NotNull MapInitializeEvent event) {
         if (plugin.getSettings().getSynchronization().isPersistLockedMaps() && event.getMap().isLocked()) {
             getPlugin().runAsync(() -> ((BukkitHuskSync) plugin).renderMapFromFile(event.getMap()));
-        }
-    }
-
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    public void onPlayerAdvancementDone(@NotNull PlayerAdvancementDoneEvent event) {
-        if (lockedHandler.cancelPlayerEvent(event.getPlayer().getUniqueId())) {
-            handleLockedAdvancementGrant(event);
         }
     }
 
