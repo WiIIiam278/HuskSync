@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS "%user_data_table%"
     timestamp    timestamp   NOT NULL,
     save_cause   varchar(32) NOT NULL,
     pinned       boolean     NOT NULL DEFAULT FALSE,
-    data         longblob       NOT NULL,
+    data         bytea       NOT NULL,
 
     PRIMARY KEY (version_uuid, player_uuid),
     FOREIGN KEY (player_uuid) REFERENCES "%users_table%" (uuid) ON DELETE CASCADE
