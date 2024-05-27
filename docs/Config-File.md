@@ -33,7 +33,7 @@ brigadier_tab_completion: false
 # Whether to enable the Player Analytics hook.
 # Docs: https://william278.net/docs/husksync/plan-hook
 enable_plan_hook: true
-# Whether to cancel game event packets directly when handling locked players if ProtocolLib is installed
+# Whether to cancel game event packets directly when handling locked players if ProtocolLib or PacketEvents is installed
 cancel_packets: true
 # Database settings
 database:
