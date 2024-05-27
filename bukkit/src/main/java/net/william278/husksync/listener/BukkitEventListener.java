@@ -20,7 +20,6 @@
 package net.william278.husksync.listener;
 
 import net.william278.husksync.BukkitHuskSync;
-import net.william278.husksync.HuskSync;
 import net.william278.husksync.data.BukkitData;
 import net.william278.husksync.user.BukkitUser;
 import net.william278.husksync.user.OnlineUser;
@@ -40,21 +39,38 @@ import java.util.stream.Collectors;
 public class BukkitEventListener extends EventListener implements BukkitJoinEventListener, BukkitQuitEventListener,
         BukkitDeathEventListener, Listener {
 
-    protected final LockedHandler lockedHandler;
+    protected LockedHandler lockedHandler;
 
     public BukkitEventListener(@NotNull BukkitHuskSync plugin) {
         super(plugin);
-        plugin.getServer().getPluginManager().registerEvents(this, plugin);
-        this.lockedHandler = createLockedHandler(plugin);
+    }
+
+    public void onLoad() {
+        this.lockedHandler = createLockedHandler((BukkitHuskSync) plugin);
+    }
+
+    public void onEnable() {
+        getPlugin().getServer().getPluginManager().registerEvents(this, getPlugin());
+        lockedHandler.onEnable();
+    }
+
+    public void handlePluginDisable() {
+        super.handlePluginDisable();
+        lockedHandler.onDisable();
     }
 
     @NotNull
     private LockedHandler createLockedHandler(@NotNull BukkitHuskSync plugin) {
-        if (getPlugin().isDependencyLoaded("ProtocolLib") && getPlugin().getSettings().isCancelPackets()) {
-            return new BukkitLockedPacketListener(plugin);
-        } else {
+        if (!getPlugin().getSettings().isCancelPackets()) {
             return new BukkitLockedEventListener(plugin);
         }
+        if (getPlugin().isDependencyLoaded("PacketEvents")) {
+            return new BukkitPacketEventsLockedPacketListener(plugin);
+        } else if (getPlugin().isDependencyLoaded("ProtocolLib")) {
+            return new BukkitProtocolLibLockedPacketListener(plugin);
+        }
+
+        return new BukkitLockedEventListener(plugin);
     }
 
     @Override
@@ -134,8 +150,8 @@ public class BukkitEventListener extends EventListener implements BukkitJoinEven
 
     @NotNull
     @Override
-    public HuskSync getPlugin() {
-        return plugin;
+    public BukkitHuskSync getPlugin() {
+        return (BukkitHuskSync) plugin;
     }
 
 }

@@ -46,7 +46,6 @@ import net.william278.husksync.database.PostgresDatabase;
 import net.william278.husksync.event.BukkitEventDispatcher;
 import net.william278.husksync.hook.PlanHook;
 import net.william278.husksync.listener.BukkitEventListener;
-import net.william278.husksync.listener.EventListener;
 import net.william278.husksync.migrator.LegacyMigrator;
 import net.william278.husksync.migrator.Migrator;
 import net.william278.husksync.migrator.MpdbMigrator;
@@ -98,7 +97,7 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
     private MorePaperLib paperLib;
     private Database database;
     private RedisManager redisManager;
-    private EventListener eventListener;
+    private BukkitEventListener eventListener;
     private DataAdapter dataAdapter;
     private DataSyncer dataSyncer;
     private LegacyConverter legacyConverter;
@@ -113,11 +112,10 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
     private Server serverName;
 
     @Override
-    public void onEnable() {
+    public void onLoad() {
         // Initial plugin setup
         this.disabling = false;
         this.gson = createGson();
-        this.audiences = BukkitAudiences.create(this);
         this.paperLib = new MorePaperLib(this);
 
         // Load settings and locales
@@ -127,6 +125,13 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
             loadServer();
         });
 
+        this.eventListener = createEventListener();
+        eventListener.onLoad();
+    }
+
+    @Override
+    public void onEnable() {
+        this.audiences = BukkitAudiences.create(this);
         // Prepare data adapter
         initialize("data adapter", (plugin) -> {
             if (settings.getSynchronization().isCompressData()) {
@@ -185,7 +190,7 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
         });
 
         // Register events
-        initialize("events", (plugin) -> this.eventListener = createEventListener());
+        initialize("events", (plugin) -> eventListener.onEnable());
 
         // Register commands
         initialize("commands", (plugin) -> BukkitCommand.Type.registerCommands(this));

@@ -9,6 +9,10 @@ api-version: '1.19'
 folia-supported: true
 dependencies:
   server:
+    packetevents:
+      required: false
+      load: BEFORE
+      join-classpath: true
     ProtocolLib:
       required: false
       load: BEFORE
