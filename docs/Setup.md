@@ -11,7 +11,7 @@ This will walk you through installing HuskSync on your network of Spigot servers
 ### 1. Install the jar
 - Place the plugin jar file in the `/plugins/` directory of each Spigot server.
 - You do not need to install HuskSync as a proxy plugin.
-- You can additionally install [ProtocolLib](https://www.spigotmc.org/resources/protocollib.1997/) for better locked user handling, and [Plan](https://www.spigotmc.org/resources/plan-player-analytics.32536/) for analytics.
+- You can additionally install [ProtocolLib](https://www.spigotmc.org/resources/protocollib.1997/) or [PacketEvents](https://www.spigotmc.org/resources/packetevents-api.80279/) for better locked user handling, and [Plan](https://www.spigotmc.org/resources/plan-player-analytics.32536/) for analytics.
 
 ### 2. Restart servers
 - Start, then stop every server to let HuskSync generate the [[config file]].
