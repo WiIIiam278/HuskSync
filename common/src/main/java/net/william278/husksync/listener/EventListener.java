@@ -107,7 +107,7 @@ public abstract class EventListener {
     /**
      * Handle the plugin disabling
      */
-    public final void handlePluginDisable() {
+    public void handlePluginDisable() {
         // Save for all online players
         plugin.getOnlineUsers().stream()
                 .filter(user -> !plugin.isLocked(user.getUuid()) && !user.isNpc())

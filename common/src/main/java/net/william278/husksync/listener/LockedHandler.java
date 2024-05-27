@@ -54,4 +54,16 @@ public interface LockedHandler {
     @ApiStatus.Internal
     HuskSync getPlugin();
 
+    default void onLoad() {
+
+    }
+
+    default void onEnable() {
+
+    }
+
+    default void onDisable() {
+
+    }
+
 }

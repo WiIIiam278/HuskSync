@@ -7,6 +7,7 @@ description: '${description}'
 website: 'https://william278.net'
 folia-supported: true
 softdepend:
+  - 'packetevents'
   - 'ProtocolLib'
   - 'MysqlPlayerDataBridge'
   - 'Plan'
