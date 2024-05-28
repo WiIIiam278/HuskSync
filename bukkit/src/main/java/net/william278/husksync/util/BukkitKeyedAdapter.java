@@ -22,6 +22,7 @@ package net.william278.husksync.util;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.EntityType;
+import org.bukkit.potion.PotionEffectType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -46,6 +47,11 @@ public final class BukkitKeyedAdapter {
     @Nullable
     public static Attribute matchAttribute(@NotNull String key) {
         return getRegistryValue(Registry.ATTRIBUTE, key);
+    }
+
+    @Nullable
+    public static PotionEffectType matchEffectType(@NotNull String key) {
+        return PotionEffectType.getByName(key); // No registry for this in 1.17 API
     }
 
     private static <T extends Keyed> T getRegistryValue(@NotNull Registry<T> registry, @NotNull String keyString) {
