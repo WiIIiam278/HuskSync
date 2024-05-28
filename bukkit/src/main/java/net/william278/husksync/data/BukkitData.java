@@ -616,7 +616,7 @@ public abstract class BukkitData implements Data {
             if (instance == null) {
                 return;
             }
-            instance.setBaseValue(attribute == null ? instance.getDefaultValue() : instance.getBaseValue());
+            instance.setBaseValue(attribute == null ? instance.getDefaultValue() : attribute.baseValue());
             instance.getModifiers().forEach(instance::removeModifier);
             if (attribute != null) {
                 attribute.modifiers().forEach(modifier -> instance.addModifier(new AttributeModifier(
