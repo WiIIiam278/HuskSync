@@ -370,7 +370,7 @@ public class DataSnapshot {
     public static class Unpacked extends DataSnapshot implements DataHolder {
 
         @Expose(serialize = false, deserialize = false)
-        private final Map<Identifier, Data> deserialized;
+        private final TreeMap<Identifier, Data> deserialized;
 
         private Unpacked(@NotNull UUID id, boolean pinned, @NotNull OffsetDateTime timestamp,
                          @NotNull String saveCause, @NotNull String serverName, @NotNull Map<String, String> data,
@@ -381,7 +381,7 @@ public class DataSnapshot {
         }
 
         private Unpacked(@NotNull UUID id, boolean pinned, @NotNull OffsetDateTime timestamp,
-                         @NotNull String saveCause, @NotNull String serverName, @NotNull Map<Identifier, Data> data,
+                         @NotNull String saveCause, @NotNull String serverName, @NotNull TreeMap<Identifier, Data> data,
                          @NotNull Version minecraftVersion, @NotNull String platformType, int formatVersion) {
             super(id, pinned, timestamp, saveCause, serverName, Map.of(), minecraftVersion, platformType, formatVersion);
             this.deserialized = data;
@@ -389,13 +389,16 @@ public class DataSnapshot {
 
         @NotNull
         @ApiStatus.Internal
-        private Map<Identifier, Data> deserializeData(@NotNull HuskSync plugin) {
+        private TreeMap<Identifier, Data> deserializeData(@NotNull HuskSync plugin) {
             return data.entrySet().stream()
                     .map((entry) -> plugin.getIdentifier(entry.getKey()).map(id -> Map.entry(
                             id, plugin.getSerializers().get(id).deserialize(entry.getValue(), getMinecraftVersion())
                     )).orElse(null))
                     .filter(Objects::nonNull)
-                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+                    .collect(Collectors.toMap(
+                            Map.Entry::getKey, Map.Entry::getValue, (a, b) -> b,
+                            () -> Maps.newTreeMap(SerializerRegistry.DEPENDENCY_ORDER_COMPARATOR)
+                    ));
         }
 
         @NotNull
@@ -453,12 +456,12 @@ public class DataSnapshot {
         private String serverName;
         private boolean pinned;
         private OffsetDateTime timestamp;
-        private final Map<Identifier, Data> data;
+        private final TreeMap<Identifier, Data> data;
 
         private Builder(@NotNull HuskSync plugin) {
             this.plugin = plugin;
             this.pinned = false;
-            this.data = Maps.newHashMap();
+            this.data = Maps.newTreeMap(SerializerRegistry.DEPENDENCY_ORDER_COMPARATOR);
             this.timestamp = OffsetDateTime.now();
             this.id = UUID.randomUUID();
             this.serverName = plugin.getServerName();

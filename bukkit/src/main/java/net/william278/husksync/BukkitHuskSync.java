@@ -85,7 +85,9 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
     private static final int METRICS_ID = 13140;
     private static final String PLATFORM_TYPE_ID = "bukkit";
 
-    private final Map<Identifier, Serializer<? extends Data>> serializers = Maps.newLinkedHashMap();
+    private final TreeMap<Identifier, Serializer<? extends Data>> serializers = Maps.newTreeMap(
+            SerializerRegistry.DEPENDENCY_ORDER_COMPARATOR
+    );
     private final Map<UUID, Map<Identifier, Data>> playerCustomDataStore = Maps.newConcurrentMap();
     private final Map<Integer, MapView> mapViews = Maps.newConcurrentMap();
     private final List<Migrator> availableMigrators = Lists.newArrayList();
@@ -156,6 +158,7 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
             registerSerializer(Identifier.STATISTICS, new BukkitSerializer.Json<>(this, BukkitData.Statistics.class));
             registerSerializer(Identifier.EXPERIENCE, new BukkitSerializer.Json<>(this, BukkitData.Experience.class));
             registerSerializer(Identifier.PERSISTENT_DATA, new BukkitSerializer.PersistentData(this));
+            validateDependencies();
         });
 
         // Setup available migrators
@@ -289,7 +292,7 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
         try {
             new Metrics(this, metricsId);
         } catch (Throwable e) {
-            log(Level.WARNING, "Failed to register bStats metrics (" + e.getMessage() + ")");
+            log(Level.WARNING, "Failed to register bStats metrics (%s)".formatted(e.getMessage()));
         }
     }
 

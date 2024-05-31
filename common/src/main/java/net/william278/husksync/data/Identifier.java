@@ -19,20 +19,30 @@
 
 package net.william278.husksync.data;
 
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import net.kyori.adventure.key.InvalidKeyException;
 import net.kyori.adventure.key.Key;
 import org.intellij.lang.annotations.Subst;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Stream;
 
 /**
  * Identifiers of different types of {@link Data}s
  */
+@Getter
 public class Identifier {
 
+    // Built-in identifiers
+    public static Identifier PERSISTENT_DATA = huskSync("persistent_data", true);
     public static Identifier INVENTORY = huskSync("inventory", true);
     public static Identifier ENDER_CHEST = huskSync("ender_chest", true);
     public static Identifier POTION_EFFECTS = huskSync("potion_effects", true);
@@ -41,18 +51,43 @@ public class Identifier {
     public static Identifier STATISTICS = huskSync("statistics", true);
     public static Identifier HEALTH = huskSync("health", true);
     public static Identifier HUNGER = huskSync("hunger", true);
-    public static Identifier ATTRIBUTES = huskSync("attributes", true);
-    public static Identifier EXPERIENCE = huskSync("experience", true);
     public static Identifier GAME_MODE = huskSync("game_mode", true);
-    public static Identifier FLIGHT_STATUS = huskSync("flight_status", true);
-    public static Identifier PERSISTENT_DATA = huskSync("persistent_data", true);
+    public static Identifier FLIGHT_STATUS = huskSync("flight_status", true,
+            Dependency.optional("game_mode")
+    );
+    public static Identifier ATTRIBUTES = huskSync("attributes", true,
+            Dependency.optional("health"), Dependency.optional("hunger"),
+            Dependency.required("potion_effects")
+    );
+    public static Identifier EXPERIENCE = huskSync("experience", true,
+            Dependency.optional("advancements")
+    );
 
     private final Key key;
-    private final boolean configDefault;
+    private final boolean enabledByDefault;
+    @Getter
+    private final Set<Dependency> dependencies;
 
-    private Identifier(@NotNull Key key, boolean configDefault) {
+    private Identifier(@NotNull Key key, boolean enabledByDefault, @NotNull Set<Dependency> dependencies) {
         this.key = key;
-        this.configDefault = configDefault;
+        this.enabledByDefault = enabledByDefault;
+        this.dependencies = dependencies;
+    }
+
+    /**
+     * Create an identifier from a {@link Key}
+     *
+     * @param key          the key
+     * @param dependencies the dependencies
+     * @return the identifier
+     * @since 3.5.4
+     */
+    @NotNull
+    public static Identifier from(@NotNull Key key, @NotNull Set<Dependency> dependencies) {
+        if (key.namespace().equals("husksync")) {
+            throw new IllegalArgumentException("You cannot register a key with \"husksync\" as the namespace!");
+        }
+        return new Identifier(key, true, dependencies);
     }
 
     /**
@@ -64,10 +99,7 @@ public class Identifier {
      */
     @NotNull
     public static Identifier from(@NotNull Key key) {
-        if (key.namespace().equals("husksync")) {
-            throw new IllegalArgumentException("You cannot register a key with \"husksync\" as the namespace!");
-        }
-        return new Identifier(key, true);
+        return from(key, Collections.emptySet());
     }
 
     /**
@@ -83,25 +115,33 @@ public class Identifier {
         return from(Key.key(plugin, name));
     }
 
+    /**
+     * Create an identifier from a namespace, value, and dependencies
+     *
+     * @param plugin       the namespace
+     * @param name         the value
+     * @param dependencies the dependencies
+     * @return the identifier
+     * @since 3.5.4
+     */
+    @NotNull
+    public static Identifier from(@Subst("plugin") @NotNull String plugin, @Subst("null") @NotNull String name,
+                                  @NotNull Set<Dependency> dependencies) {
+        return from(Key.key(plugin, name), dependencies);
+    }
+
+    // Return an identifier with a HuskSync namespace
     @NotNull
     private static Identifier huskSync(@Subst("null") @NotNull String name,
                                        boolean configDefault) throws InvalidKeyException {
-        return new Identifier(Key.key("husksync", name), configDefault);
+        return new Identifier(Key.key("husksync", name), configDefault, Collections.emptySet());
     }
 
+    // Return an identifier with a HuskSync namespace
     @NotNull
-    @SuppressWarnings("unused")
-    private static Identifier parse(@NotNull String key) throws InvalidKeyException {
-        return huskSync(key, true);
-    }
-
-    public boolean isEnabledByDefault() {
-        return configDefault;
-    }
-
-    @NotNull
-    private Map.Entry<String, Boolean> getConfigEntry() {
-        return Map.entry(getKeyValue(), configDefault);
+    private static Identifier huskSync(@Subst("null") @NotNull String name, boolean configDefault,
+                                       @NotNull Dependency... dependents) throws InvalidKeyException {
+        return new Identifier(Key.key("husksync", name), configDefault, Set.of(dependents));
     }
 
     /**
@@ -120,6 +160,28 @@ public class Identifier {
                 )
                 .map(Identifier::getConfigEntry)
                 .toArray(Map.Entry[]::new));
+    }
+
+    /**
+     * Returns {@code true} if the identifier depends on the given identifier
+     *
+     * @param identifier the identifier to check
+     * @return {@code true} if the identifier depends on the given identifier
+     * @since 3.5.4
+     */
+    public boolean dependsOn(@NotNull Identifier identifier) {
+        return dependencies.contains(Dependency.required(identifier.key));
+    }
+
+    /**
+     * Returns {@code true} if the identifier depends on the given identifier and the dependency is required
+     *
+     * @param identifier the identifier to check
+     * @return {@code true} if the identifier depends on the given identifier and the dependency is required
+     * @since 3.5.4
+     */
+    public boolean requires(@NotNull Identifier identifier) {
+        return dependencies.stream().anyMatch(dep -> dep.getKey().equals(identifier.key) && dep.isRequired());
     }
 
     /**
@@ -174,6 +236,79 @@ public class Identifier {
             return key.equals(other.key);
         }
         return false;
+    }
+
+    // Get the config entry for the identifier
+    @NotNull
+    private Map.Entry<String, Boolean> getConfigEntry() {
+        return Map.entry(getKeyValue(), enabledByDefault);
+    }
+
+    /**
+     * Compares two identifiers based on their dependencies.
+     * <p>
+     * If this identifier contains a dependency on the other, it should come after & vice versa
+     *
+     * @since 3.5.4
+     */
+    @NoArgsConstructor(access = AccessLevel.PACKAGE)
+    static class DependencyOrderComparator implements Comparator<Identifier> {
+        @Override
+        public int compare(@NotNull Identifier i1, @NotNull Identifier i2) {
+            if (i1.getDependencies().contains(Dependency.required(i2.getKey()))) {
+                return 1;
+            }
+            if (i2.getDependencies().contains(Dependency.required(i1.getKey()))) {
+                return -1;
+            }
+            return 0;
+        }
+    }
+
+    /**
+     * Represents a data dependency of an identifier
+     *
+     * @since 3.5.4
+     */
+    @Getter
+    @AllArgsConstructor(access = AccessLevel.PRIVATE)
+    public static class Dependency {
+        /**
+         * Key of the data dependency see {@code Identifier#key()}
+         */
+        private Key key;
+        /**
+         * Whether the data dependency is required to be present & enabled for the dependant data to enabled
+         */
+        private boolean required;
+
+        @NotNull
+        protected static Dependency required(@NotNull Key identifier) {
+            return new Dependency(identifier, true);
+        }
+
+        @NotNull
+        public static Dependency optional(@NotNull Key identifier) {
+            return new Dependency(identifier, false);
+        }
+
+        @NotNull
+        private static Dependency required(@Subst("null") @NotNull String identifier) {
+            return required(Key.key("husksync", identifier));
+        }
+
+        @NotNull
+        private static Dependency optional(@Subst("null") @NotNull String identifier) {
+            return optional(Key.key("husksync", identifier));
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (obj instanceof Dependency other) {
+                return key.equals(other.key);
+            }
+            return false;
+        }
     }
 
 }
