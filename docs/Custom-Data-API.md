@@ -116,11 +116,25 @@ public static Identifier LOGIN_PARTICLES_ID = Identifier.from("myplugin", "login
 huskSyncAPI.registerSerializer(LOGIN_PARTICLES_ID, new LoginParticleSerializer(HuskSyncAPI.getInstance()));
 ```
 
+### 3.1 Identifier dependencies
+* HuskSync lets you specify a set of `Dependency` objects when creating an `Identifier`. These are used to deterministically apply data in a specific order.
+* Dependencies are references to other data type identifiers. HuskSync will apply data in dependency-order; that is, it will apply the data of the dependencies before applying the data of the dependent.
+* This is useful when you have data that relies on other data to be applied first; for example, if you're writing an add-on for additional modded inventory data and you need to apply the base inventory data first.
+* You can specify whether a dependency is required or optional. HuskSync will not sync data of a type that has a required dependency that is missing (for instance, if it is disabled in the config, or - if provided by another plugin - has failed to register).
+* Use `Identifer#from(String, String, Set<Dependency>)` or `Identifier#from(Key, Set<Dependency>)` to create an identifier with dependencies
+* Dependencies can be created with `Dependency.optional(Identifier)` or `Dependency.required(Identifier)` for optional or required dependencies respectively.
+
 ## 4. Setting and getting our Data to/from a User
 * Now that we've registered our `Data` and `Serializer` classes, we can set our data to a user, applying it to them.
 * To do this, we use the `OnlineUser#setData(Identifier, Data)` method.
   * This method will apply the data to the user, and store the data to the plugin player custom data map, to allow the data to be retrieved later and be saved to snapshots.
 * Snapshots created on servers where the data type is registered will now contain our data and synchronise between instances!
+
+```java
+// Create an identifier for our data requiring the user's location to have been set first
+public static Identifier LOGIN_PARTICLES_ID = Identifier.from("myplugin", "login_particles", Set.of(Dependency.optional(Key.key("husksync", "location"))));
+// We can then register this as we did previously (...)
+```
 
 ```java
 // Create an instance of our data
