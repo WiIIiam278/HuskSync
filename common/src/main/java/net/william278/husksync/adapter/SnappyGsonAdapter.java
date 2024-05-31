@@ -31,7 +31,6 @@ public class SnappyGsonAdapter extends GsonAdapter {
         super(plugin);
     }
 
-    @NotNull
     @Override
     public <A extends Adaptable> byte[] toBytes(@NotNull A data) throws AdaptionException {
         try {
