@@ -148,7 +148,6 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
             registerSerializer(Identifier.PERSISTENT_DATA, new BukkitSerializer.PersistentData(this));
             registerSerializer(Identifier.INVENTORY, new BukkitSerializer.Inventory(this));
             registerSerializer(Identifier.ENDER_CHEST, new BukkitSerializer.EnderChest(this));
-            registerSerializer(Identifier.POTION_EFFECTS, new BukkitSerializer.PotionEffects(this));
             registerSerializer(Identifier.ADVANCEMENTS, new BukkitSerializer.Advancements(this));
             registerSerializer(Identifier.LOCATION, new BukkitSerializer.Json<>(this, BukkitData.Location.class));
             registerSerializer(Identifier.STATISTICS, new BukkitSerializer.Json<>(this, BukkitData.Statistics.class));
@@ -156,6 +155,7 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
             registerSerializer(Identifier.HUNGER, new BukkitSerializer.Json<>(this, BukkitData.Hunger.class));
             registerSerializer(Identifier.GAME_MODE, new BukkitSerializer.Json<>(this, BukkitData.GameMode.class));
             registerSerializer(Identifier.FLIGHT_STATUS, new BukkitSerializer.Json<>(this, BukkitData.FlightStatus.class));
+            registerSerializer(Identifier.POTION_EFFECTS, new BukkitSerializer.PotionEffects(this));
             registerSerializer(Identifier.ATTRIBUTES, new BukkitSerializer.Json<>(this, BukkitData.Attributes.class));
             registerSerializer(Identifier.EXPERIENCE, new BukkitSerializer.Json<>(this, BukkitData.Experience.class));
             validateDependencies();

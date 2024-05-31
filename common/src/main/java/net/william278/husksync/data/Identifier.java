@@ -45,19 +45,22 @@ public class Identifier {
     public static final Identifier PERSISTENT_DATA = huskSync("persistent_data", true);
     public static final Identifier INVENTORY = huskSync("inventory", true);
     public static final Identifier ENDER_CHEST = huskSync("ender_chest", true);
-    public static final Identifier POTION_EFFECTS = huskSync("potion_effects", true);
     public static final Identifier ADVANCEMENTS = huskSync("advancements", true);
     public static final Identifier LOCATION = huskSync("location", false);
     public static final Identifier STATISTICS = huskSync("statistics", true);
-    public static final Identifier HEALTH = huskSync("health", true);
-    public static final Identifier HUNGER = huskSync("hunger", true);
+    public static final Identifier POTION_EFFECTS = huskSync("potion_effects", true);
     public static final Identifier GAME_MODE = huskSync("game_mode", false);
     public static final Identifier FLIGHT_STATUS = huskSync("flight_status", true,
             Dependency.optional("game_mode")
     );
     public static final Identifier ATTRIBUTES = huskSync("attributes", true,
-            Dependency.optional("health"), Dependency.optional("hunger"),
             Dependency.required("potion_effects")
+    );
+    public static final Identifier HEALTH = huskSync("health", true,
+            Dependency.optional("attributes")
+    );
+    public static final Identifier HUNGER = huskSync("hunger", true,
+            Dependency.optional("attributes")
     );
     public static final Identifier EXPERIENCE = huskSync("experience", true,
             Dependency.optional("advancements")
