@@ -42,24 +42,24 @@ import java.util.stream.Stream;
 public class Identifier {
 
     // Built-in identifiers
-    public static Identifier PERSISTENT_DATA = huskSync("persistent_data", true);
-    public static Identifier INVENTORY = huskSync("inventory", true);
-    public static Identifier ENDER_CHEST = huskSync("ender_chest", true);
-    public static Identifier POTION_EFFECTS = huskSync("potion_effects", true);
-    public static Identifier ADVANCEMENTS = huskSync("advancements", true);
-    public static Identifier LOCATION = huskSync("location", false);
-    public static Identifier STATISTICS = huskSync("statistics", true);
-    public static Identifier HEALTH = huskSync("health", true);
-    public static Identifier HUNGER = huskSync("hunger", true);
-    public static Identifier GAME_MODE = huskSync("game_mode", true);
-    public static Identifier FLIGHT_STATUS = huskSync("flight_status", true,
+    public static final Identifier PERSISTENT_DATA = huskSync("persistent_data", true);
+    public static final Identifier INVENTORY = huskSync("inventory", true);
+    public static final Identifier ENDER_CHEST = huskSync("ender_chest", true);
+    public static final Identifier POTION_EFFECTS = huskSync("potion_effects", true);
+    public static final Identifier ADVANCEMENTS = huskSync("advancements", true);
+    public static final Identifier LOCATION = huskSync("location", false);
+    public static final Identifier STATISTICS = huskSync("statistics", true);
+    public static final Identifier HEALTH = huskSync("health", true);
+    public static final Identifier HUNGER = huskSync("hunger", true);
+    public static final Identifier GAME_MODE = huskSync("game_mode", false);
+    public static final Identifier FLIGHT_STATUS = huskSync("flight_status", true,
             Dependency.optional("game_mode")
     );
-    public static Identifier ATTRIBUTES = huskSync("attributes", true,
+    public static final Identifier ATTRIBUTES = huskSync("attributes", true,
             Dependency.optional("health"), Dependency.optional("hunger"),
             Dependency.required("potion_effects")
     );
-    public static Identifier EXPERIENCE = huskSync("experience", true,
+    public static final Identifier EXPERIENCE = huskSync("experience", true,
             Dependency.optional("advancements")
     );
 
@@ -139,7 +139,8 @@ public class Identifier {
 
     // Return an identifier with a HuskSync namespace
     @NotNull
-    private static Identifier huskSync(@Subst("null") @NotNull String name, boolean configDefault,
+    private static Identifier huskSync(@Subst("null") @NotNull String name,
+                                       @SuppressWarnings("SameParameterValue") boolean configDefault,
                                        @NotNull Dependency... dependents) throws InvalidKeyException {
         return new Identifier(Key.key("husksync", name), configDefault, Set.of(dependents));
     }
@@ -171,17 +172,6 @@ public class Identifier {
      */
     public boolean dependsOn(@NotNull Identifier identifier) {
         return dependencies.contains(Dependency.required(identifier.key));
-    }
-
-    /**
-     * Returns {@code true} if the identifier depends on the given identifier and the dependency is required
-     *
-     * @param identifier the identifier to check
-     * @return {@code true} if the identifier depends on the given identifier and the dependency is required
-     * @since 3.5.4
-     */
-    public boolean requires(@NotNull Identifier identifier) {
-        return dependencies.stream().anyMatch(dep -> dep.getKey().equals(identifier.key) && dep.isRequired());
     }
 
     /**
@@ -253,16 +243,23 @@ public class Identifier {
      */
     @NoArgsConstructor(access = AccessLevel.PACKAGE)
     static class DependencyOrderComparator implements Comparator<Identifier> {
+
         @Override
         public int compare(@NotNull Identifier i1, @NotNull Identifier i2) {
-            if (i1.getDependencies().contains(Dependency.required(i2.getKey()))) {
+            if (i1.equals(i2)) {
+                return 0;
+            }
+            if (i1.dependsOn(i2)) {
+                if (i2.dependsOn(i1)) {
+                    throw new IllegalArgumentException(
+                            "Found circular dependency between %s and %s".formatted(i1.getKey(), i2.getKey())
+                    );
+                }
                 return 1;
             }
-            if (i2.getDependencies().contains(Dependency.required(i1.getKey()))) {
-                return -1;
-            }
-            return 0;
+            return -1;
         }
+
     }
 
     /**
@@ -293,6 +290,7 @@ public class Identifier {
         }
 
         @NotNull
+        @SuppressWarnings("SameParameterValue")
         private static Dependency required(@Subst("null") @NotNull String identifier) {
             return required(Key.key("husksync", identifier));
         }

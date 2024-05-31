@@ -385,7 +385,7 @@ public class HuskSyncAPI {
      * @return The serializer for the given identifier, or an empty optional if the serializer isn't registered
      * @since 3.5.4
      */
-    public Optional<Serializer<? extends Data>> getDataSerializer(@NotNull Identifier identifier) {
+    public Optional<Serializer<Data>> getDataSerializer(@NotNull Identifier identifier) {
         return plugin.getSerializer(identifier);
     }
 

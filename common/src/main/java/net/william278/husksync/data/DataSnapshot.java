@@ -391,13 +391,12 @@ public class DataSnapshot {
         @ApiStatus.Internal
         private TreeMap<Identifier, Data> deserializeData(@NotNull HuskSync plugin) {
             return data.entrySet().stream()
-                    .map((entry) -> plugin.getIdentifier(entry.getKey()).map(id -> Map.entry(
-                            id, plugin.getSerializers().get(id).deserialize(entry.getValue(), getMinecraftVersion())
-                    )).orElse(null))
-                    .filter(Objects::nonNull)
+                    .filter(e -> plugin.getIdentifier(e.getKey()).isPresent())
+                    .map(entry -> Map.entry(plugin.getIdentifier(entry.getKey()).orElseThrow(), entry.getValue()))
                     .collect(Collectors.toMap(
-                            Map.Entry::getKey, Map.Entry::getValue, (a, b) -> b,
-                            () -> Maps.newTreeMap(SerializerRegistry.DEPENDENCY_ORDER_COMPARATOR)
+                            Map.Entry::getKey,
+                            entry -> plugin.deserializeData(entry.getKey(), entry.getValue()),
+                            (a, b) -> b, () -> Maps.newTreeMap(SerializerRegistry.DEPENDENCY_ORDER_COMPARATOR)
                     ));
         }
 
@@ -405,12 +404,10 @@ public class DataSnapshot {
         @ApiStatus.Internal
         private Map<String, String> serializeData(@NotNull HuskSync plugin) {
             return deserialized.entrySet().stream()
-                    .map((entry) -> Map.entry(entry.getKey().toString(),
-                            Objects.requireNonNull(
-                                    plugin.getSerializers().get(entry.getKey()),
-                                    String.format("No serializer found for %s", entry.getKey())
-                            ).serialize(entry.getValue())))
-                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+                    .collect(Collectors.toMap(
+                            entry -> entry.getKey().toString(),
+                            entry -> plugin.serializeData(entry.getKey(), entry.getValue())
+                    ));
         }
 
         /**

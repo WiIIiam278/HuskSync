@@ -66,14 +66,17 @@ public interface SerializerRegistry {
      * @since 3.5.4
      */
     default void validateDependencies() throws IllegalStateException {
-        getSerializers().keySet().stream().filter(this::isFeatureEnabled)
-                .map(Identifier::getDependencies)
-                .flatMap(Collection::stream).distinct()
-                .forEach(dependency -> {
-                    if (getIdentifier(dependency.getKey().toString()).map(i -> dependency.isRequired()
-                            && isFeatureEnabled(i)).orElse(true)) {
-                        throw new IllegalStateException("Dependency not met for %s: %s"
-                                .formatted(dependency, dependency.getKey()));
+        getSerializers().keySet().stream().filter(this::isDataTypeEnabled)
+                .forEach(identifier -> {
+                    final List<String> unmet = identifier.getDependencies().stream()
+                            .filter(Identifier.Dependency::isRequired)
+                            .filter(dep -> !isDataTypeAvailable(dep.getKey().asString()))
+                            .map(dep -> dep.getKey().asString()).toList();
+                    if (!unmet.isEmpty()) {
+                        throw new IllegalStateException(
+                                "\"%s\" data requires the following disabled data types to facilitate syncing: %s"
+                                .formatted(identifier, String.join(", ", unmet))
+                        );
                     }
                 });
     }
@@ -84,7 +87,8 @@ public interface SerializerRegistry {
      * @since 3.0
      */
     default Optional<Identifier> getIdentifier(@NotNull String key) {
-        return getSerializers().keySet().stream().filter(identifier -> identifier.toString().equals(key)).findFirst();
+        return getSerializers().keySet().stream()
+                .filter(id -> id.getKey().asString().equals(key)).findFirst();
     }
 
     /**
@@ -94,8 +98,41 @@ public interface SerializerRegistry {
      * @return the {@link Serializer} for the given {@link Identifier}
      * @since 3.5.4
      */
-    default Optional<Serializer<? extends Data>> getSerializer(@NotNull Identifier identifier) {
-        return Optional.ofNullable(getSerializers().get(identifier));
+    default Optional<Serializer<Data>> getSerializer(@NotNull Identifier identifier) {
+        return getSerializers().entrySet().stream()
+                .filter(entry -> entry.getKey().getKey().equals(identifier.getKey()))
+                .map(Map.Entry::getValue).findFirst();
+    }
+
+    /**
+     * Serialize data for the given {@link Identifier}
+     *
+     * @param identifier the {@link Identifier} to serialize data for
+     * @param data       the data to serialize
+     * @return the serialized data
+     * @throws IllegalArgumentException if no serializer is found for the given {@link Identifier}
+     * @since 3.5.4
+     */
+    @NotNull
+    default String serializeData(@NotNull Identifier identifier, @NotNull Data data) throws IllegalStateException {
+        return getSerializer(identifier).map(serializer -> serializer.serialize(data))
+                .orElseThrow(() -> new IllegalStateException("No serializer found for %s".formatted(identifier)));
+    }
+
+    /**
+     * Deserialize data for the given {@link Identifier}
+     *
+     * @param identifier the {@link Identifier} to deserialize data for
+     * @param data       the data to deserialize
+     * @return the deserialized data
+     * @throws IllegalStateException if no serializer is found for the given {@link Identifier}
+     * @since 3.5.4
+     */
+    @NotNull
+    default Data deserializeData(@NotNull Identifier identifier, @NotNull String data) throws IllegalStateException {
+        return getSerializer(identifier).map(serializer -> serializer.deserialize(data)).orElseThrow(
+                () -> new IllegalStateException("No serializer found for %s".formatted(identifier))
+        );
     }
 
     /**
@@ -109,8 +146,13 @@ public interface SerializerRegistry {
         return getSerializers().keySet();
     }
 
-    // Returns if a feature is enabled in the config
-    private boolean isFeatureEnabled(@NotNull Identifier identifier) {
+    // Returns if a data type is available and enabled in the config
+    private boolean isDataTypeAvailable(@NotNull String key) {
+        return getIdentifier(key).map(this::isDataTypeEnabled).orElse(false);
+    }
+
+    // Returns if a data type is enabled in the config
+    private boolean isDataTypeEnabled(@NotNull Identifier identifier) {
         return getPlugin().getSettings().getSynchronization().isFeatureEnabled(identifier);
     }
 
