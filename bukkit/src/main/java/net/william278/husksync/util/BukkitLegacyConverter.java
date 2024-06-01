@@ -82,33 +82,33 @@ public class BukkitLegacyConverter extends LegacyConverter {
 
         final JSONObject status = object.getJSONObject("status_data");
         final HashMap<Identifier, Data> containers = Maps.newHashMap();
-        if (shouldImport(Identifier.HEALTH)) {
+        if (Identifier.HEALTH.isEnabled()) {
             containers.put(Identifier.HEALTH, BukkitData.Health.from(
                     status.getDouble("health"),
                     status.getDouble("health_scale"),
                     false
             ));
         }
-        if (shouldImport(Identifier.HUNGER)) {
+        if (Identifier.HUNGER.isEnabled()) {
             containers.put(Identifier.HUNGER, BukkitData.Hunger.from(
                     status.getInt("hunger"),
                     status.getFloat("saturation"),
                     status.getFloat("saturation_exhaustion")
             ));
         }
-        if (shouldImport(Identifier.EXPERIENCE)) {
+        if (Identifier.EXPERIENCE.isEnabled()) {
             containers.put(Identifier.EXPERIENCE, BukkitData.Experience.from(
                     status.getInt("total_experience"),
                     status.getInt("experience_level"),
                     status.getFloat("experience_progress")
             ));
         }
-        if (shouldImport(Identifier.GAME_MODE)) {
+        if (Identifier.GAME_MODE.isEnabled()) {
             containers.put(Identifier.GAME_MODE, BukkitData.GameMode.from(
                     status.getString("game_mode")
             ));
         }
-        if (shouldImport(Identifier.FLIGHT_STATUS)) {
+        if (Identifier.FLIGHT_STATUS.isEnabled()) {
             containers.put(Identifier.FLIGHT_STATUS, BukkitData.FlightStatus.from(
                     status.getBoolean("is_flying"),
                     status.getBoolean("is_flying")
@@ -119,7 +119,7 @@ public class BukkitLegacyConverter extends LegacyConverter {
 
     @NotNull
     private Optional<Data.Items.Inventory> readInventory(@NotNull JSONObject object) {
-        if (!object.has("inventory") || !shouldImport(Identifier.INVENTORY)) {
+        if (!object.has("inventory") || !Identifier.INVENTORY.isEnabled()) {
             return Optional.empty();
         }
 
@@ -131,7 +131,7 @@ public class BukkitLegacyConverter extends LegacyConverter {
 
     @NotNull
     private Optional<Data.Items.EnderChest> readEnderChest(@NotNull JSONObject object) {
-        if (!object.has("ender_chest") || !shouldImport(Identifier.ENDER_CHEST)) {
+        if (!object.has("ender_chest") || !Identifier.ENDER_CHEST.isEnabled()) {
             return Optional.empty();
         }
 
@@ -143,7 +143,7 @@ public class BukkitLegacyConverter extends LegacyConverter {
 
     @NotNull
     private Optional<Data.Location> readLocation(@NotNull JSONObject object) {
-        if (!object.has("location") || !shouldImport(Identifier.LOCATION)) {
+        if (!object.has("location") || !Identifier.LOCATION.isEnabled()) {
             return Optional.empty();
         }
 
@@ -164,7 +164,7 @@ public class BukkitLegacyConverter extends LegacyConverter {
 
     @NotNull
     private Optional<Data.Advancements> readAdvancements(@NotNull JSONObject object) {
-        if (!object.has("advancements") || !shouldImport(Identifier.ADVANCEMENTS)) {
+        if (!object.has("advancements") || !Identifier.ADVANCEMENTS.isEnabled()) {
             return Optional.empty();
         }
 
@@ -187,7 +187,7 @@ public class BukkitLegacyConverter extends LegacyConverter {
 
     @NotNull
     private Optional<Data.Statistics> readStatistics(@NotNull JSONObject object) {
-        if (!object.has("statistics") || !shouldImport(Identifier.STATISTICS)) {
+        if (!object.has("statistics") || !Identifier.STATISTICS.isEnabled()) {
             return Optional.empty();
         }
 
@@ -279,11 +279,6 @@ public class BukkitLegacyConverter extends LegacyConverter {
     @Nullable
     private static ItemStack deserializeLegacyItemStack(@Nullable Object serializedItemStack) {
         return serializedItemStack != null ? ItemStack.deserialize((Map<String, Object>) serializedItemStack) : null;
-    }
-
-
-    private boolean shouldImport(@NotNull Identifier type) {
-        return plugin.getSettings().getSynchronization().isFeatureEnabled(type);
     }
 
     @NotNull

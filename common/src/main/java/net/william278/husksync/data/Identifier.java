@@ -19,10 +19,7 @@
 
 package net.william278.husksync.data;
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import net.kyori.adventure.key.InvalidKeyException;
 import net.kyori.adventure.key.Key;
 import org.intellij.lang.annotations.Subst;
@@ -73,10 +70,14 @@ public class Identifier {
     private final boolean enabledByDefault;
     @Getter
     private final Set<Dependency> dependencies;
+    @Setter
+    @Getter
+    public boolean enabled;
 
     private Identifier(@NotNull Key key, boolean enabledByDefault, @NotNull Set<Dependency> dependencies) {
         this.key = key;
         this.enabledByDefault = enabledByDefault;
+        this.enabled = enabledByDefault;
         this.dependencies = dependencies;
     }
 
@@ -269,7 +270,7 @@ public class Identifier {
     }
 
     /**
-     * Represents a data dependency of an identifier
+     * Represents a data dependency of an identifier, used to determine the order in which data is applied to users
      *
      * @since 3.5.4
      */

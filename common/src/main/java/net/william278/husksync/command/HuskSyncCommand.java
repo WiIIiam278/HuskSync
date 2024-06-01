@@ -239,22 +239,19 @@ public class HuskSyncCommand extends Command implements TabProvider {
         )),
         DATA_TYPES(plugin -> Component.join(
                 JoinConfiguration.commas(true),
-                plugin.getRegisteredDataTypes().stream().map(i -> {
-                    boolean enabled = plugin.getSettings().getSynchronization().isFeatureEnabled(i);
-                    return Component.textOfChildren(Component.text(i.toString())
-                                    .appendSpace().append(Component.text(enabled ? '✔' : '❌')))
-                            .color(enabled ? NamedTextColor.GREEN : NamedTextColor.RED)
-                            .hoverEvent(HoverEvent.showText(
-                                    Component.text(enabled ? "Enabled" : "Disabled")
-                                            .append(Component.newline())
-                                            .append(Component.text("Dependencies: %s".formatted(i.getDependencies()
-                                                    .isEmpty() ? "(None)" : i.getDependencies().stream()
-                                                    .map(d -> "%s (%s)".formatted(
-                                                            d.getKey().value(), d.isRequired() ? "Required" : "Optional"
-                                                    )).collect(Collectors.joining(", ")))
-                                            ).color(NamedTextColor.GRAY))
-                            ));
-                }).toList()
+                plugin.getRegisteredDataTypes().stream().map(i -> Component.textOfChildren(Component.text(i.toString())
+                                .appendSpace().append(Component.text(i.isEnabled() ? '✔' : '❌')))
+                        .color(i.isEnabled() ? NamedTextColor.GREEN : NamedTextColor.RED)
+                        .hoverEvent(HoverEvent.showText(
+                                Component.text(i.isEnabled() ? "Enabled" : "Disabled")
+                                        .append(Component.newline())
+                                        .append(Component.text("Dependencies: %s".formatted(i.getDependencies()
+                                                .isEmpty() ? "(None)" : i.getDependencies().stream()
+                                                .map(d -> "%s (%s)".formatted(
+                                                        d.getKey().value(), d.isRequired() ? "Required" : "Optional"
+                                                )).collect(Collectors.joining(", ")))
+                                        ).color(NamedTextColor.GRAY))
+                        ))).toList()
         ));
 
         private final Function<HuskSync, Component> supplier;

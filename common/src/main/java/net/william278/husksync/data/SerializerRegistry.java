@@ -44,17 +44,17 @@ public interface SerializerRegistry {
     /**
      * Register a data serializer for the given {@link Identifier}
      *
-     * @param identifier the {@link Identifier}
+     * @param id         the {@link Identifier}
      * @param serializer the {@link Serializer}
      * @since 3.0
      */
     @SuppressWarnings("unchecked")
-    default void registerSerializer(@NotNull Identifier identifier,
-                                    @NotNull Serializer<? extends Data> serializer) {
-        if (identifier.isCustom()) {
-            getPlugin().log(Level.INFO, "Registered custom data type: %s".formatted(identifier));
+    default void registerSerializer(@NotNull Identifier id, @NotNull Serializer<? extends Data> serializer) {
+        if (id.isCustom()) {
+            getPlugin().log(Level.INFO, "Registered custom data type: %s".formatted(id));
         }
-        getSerializers().put(identifier, (Serializer<Data>) serializer);
+        id.setEnabled(id.isCustom() || getPlugin().getSettings().getSynchronization().isFeatureEnabled(id));
+        getSerializers().put(id, (Serializer<Data>) serializer);
     }
 
     /**
@@ -66,17 +66,16 @@ public interface SerializerRegistry {
      * @since 3.5.4
      */
     default void validateDependencies() throws IllegalStateException {
-        getSerializers().keySet().stream().filter(this::isDataTypeEnabled)
+        getSerializers().keySet().stream().filter(Identifier::isEnabled)
                 .forEach(identifier -> {
                     final List<String> unmet = identifier.getDependencies().stream()
                             .filter(Identifier.Dependency::isRequired)
                             .filter(dep -> !isDataTypeAvailable(dep.getKey().asString()))
                             .map(dep -> dep.getKey().asString()).toList();
                     if (!unmet.isEmpty()) {
-                        throw new IllegalStateException(
-                                "\"%s\" data requires the following disabled data types to facilitate syncing: %s"
-                                .formatted(identifier, String.join(", ", unmet))
-                        );
+                        identifier.setEnabled(false);
+                        getPlugin().log(Level.WARNING, "Disabled %s syncing as the following types need to be on: %s"
+                                .formatted(identifier, String.join(", ", unmet)));
                     }
                 });
     }
@@ -148,12 +147,7 @@ public interface SerializerRegistry {
 
     // Returns if a data type is available and enabled in the config
     private boolean isDataTypeAvailable(@NotNull String key) {
-        return getIdentifier(key).map(this::isDataTypeEnabled).orElse(false);
-    }
-
-    // Returns if a data type is enabled in the config
-    private boolean isDataTypeEnabled(@NotNull Identifier identifier) {
-        return getPlugin().getSettings().getSynchronization().isFeatureEnabled(identifier);
+        return getIdentifier(key).map(Identifier::isEnabled).orElse(false);
     }
 
     @NotNull
