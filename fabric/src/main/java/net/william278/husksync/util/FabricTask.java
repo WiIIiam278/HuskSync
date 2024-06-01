@@ -21,7 +21,9 @@ package net.william278.husksync.util;
 
 import net.william278.husksync.FabricHuskSync;
 import net.william278.husksync.HuskSync;
+import net.william278.husksync.data.UserDataHolder;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
@@ -109,7 +111,7 @@ public interface FabricTask extends Task {
 
         @NotNull
         @Override
-        default Task.Sync getSyncTask(@NotNull Runnable runnable, long delayTicks) {
+        default Task.Sync getSyncTask(@NotNull Runnable runnable, @Nullable UserDataHolder user, long delayTicks) {
             return new Sync(getPlugin(), runnable, delayTicks);
         }
 

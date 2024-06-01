@@ -44,10 +44,7 @@ import net.william278.husksync.command.FabricCommand;
 import net.william278.husksync.config.Locales;
 import net.william278.husksync.config.Server;
 import net.william278.husksync.config.Settings;
-import net.william278.husksync.data.Data;
-import net.william278.husksync.data.FabricSerializer;
-import net.william278.husksync.data.Identifier;
-import net.william278.husksync.data.Serializer;
+import net.william278.husksync.data.*;
 import net.william278.husksync.database.Database;
 import net.william278.husksync.database.MySqlDatabase;
 import net.william278.husksync.event.FabricEventDispatcher;
@@ -83,7 +80,9 @@ public class FabricHuskSync implements DedicatedServerModInitializer, HuskSync, 
 
     private static final String PLATFORM_TYPE_ID = "fabric";
 
-    private final Map<Identifier, Serializer<? extends Data>> serializers = Maps.newLinkedHashMap();
+    private final TreeMap<Identifier, Serializer<? extends Data>> serializers = Maps.newTreeMap(
+            SerializerRegistry.DEPENDENCY_ORDER_COMPARATOR
+    );
     private final Map<UUID, Map<Identifier, Data>> playerCustomDataStore = Maps.newConcurrentMap();
     private final Map<String, Boolean> permissions = Maps.newHashMap();
     private final List<Migrator> availableMigrators = Lists.newArrayList();

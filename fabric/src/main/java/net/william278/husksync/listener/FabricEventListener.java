@@ -51,7 +51,8 @@ import net.william278.husksync.event.PlayerCommandCallback;
 import net.william278.husksync.user.FabricUser;
 import org.jetbrains.annotations.NotNull;
 
-public class FabricEventListener extends EventListener {
+public class FabricEventListener extends EventListener implements LockedHandler {
+
     public FabricEventListener(@NotNull HuskSync plugin) {
         super(plugin);
         this.registerEvents();
@@ -123,5 +124,11 @@ public class FabricEventListener extends EventListener {
 
     private ActionResult handlePlayerCommand(PlayerEntity player, String s) {
         return (cancelPlayerEvent(player.getUuid())) ? ActionResult.FAIL : ActionResult.PASS;
+    }
+
+    @Override
+    @NotNull
+    public HuskSync getPlugin() {
+        return plugin;
     }
 }
