@@ -19,30 +19,50 @@
 
 package net.william278.husksync.data;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.gson.annotations.SerializedName;
+import com.mojang.serialization.Keyable;
 import lombok.*;
 import net.fabricmc.fabric.api.dimension.v1.FabricDimensions;
+import net.minecraft.advancement.Advancement;
+import net.minecraft.advancement.AdvancementProgress;
+import net.minecraft.advancement.PlayerAdvancementTracker;
 import net.minecraft.enchantment.EnchantmentHelper;
+import net.minecraft.entity.EntityType;
+import net.minecraft.entity.effect.StatusEffect;
 import net.minecraft.entity.effect.StatusEffectInstance;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.registry.Registries;
+import net.minecraft.registry.Registry;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.stat.Stat;
+import net.minecraft.stat.StatType;
+import net.minecraft.stat.Stats;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.TeleportTarget;
+import net.william278.desertwell.util.ThrowingConsumer;
 import net.william278.husksync.FabricHuskSync;
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.adapter.Adaptable;
 import net.william278.husksync.user.FabricUser;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
 
 import java.util.*;
 
+import static net.william278.husksync.util.FabricKeyedAdapter.getEffectId;
+import static net.william278.husksync.util.FabricKeyedAdapter.matchEffectType;
+
 //TODO
 public abstract class FabricData implements Data {
+
     @Override
     public void apply(@NotNull UserDataHolder user, @NotNull HuskSync plugin) {
         this.apply((FabricUser) user, (FabricHuskSync) plugin);
@@ -53,17 +73,19 @@ public abstract class FabricData implements Data {
     @Getter
     public static abstract class Items extends FabricData implements Data.Items {
 
-        private final ItemStack[] contents;
+        private final @Nullable ItemStack @NotNull [] contents;
 
-        private Items(@NotNull ItemStack[] contents) {
-            this.contents = Arrays.stream(contents).toArray(ItemStack[]::new);
+        private Items(@Nullable ItemStack @NotNull [] contents) {
+            this.contents = Arrays.stream(contents.clone())
+                    .map(i -> i == null || i.isEmpty() ? null : i)
+                    .toArray(ItemStack[]::new);
         }
 
-        @NotNull
+        @Nullable
         @Override
-        public Stack[] getStack() {
+        public Stack @NotNull [] getStack() {
             return Arrays.stream(contents)
-                    .map(stack -> new Stack(
+                    .map(stack -> stack != null ? new Stack(
                             stack.getItem().toString(),
                             stack.getCount(),
                             stack.getName().getString(),
@@ -75,13 +97,13 @@ public abstract class FabricData implements Data {
                                     .map(element -> EnchantmentHelper.getIdFromNbt((NbtCompound) element))
                                     .filter(Objects::nonNull).map(Identifier::toString)
                                     .toList()
-                    ))
+                    ) : null)
                     .toArray(Stack[]::new);
         }
 
         @Override
         public void clear() {
-            Arrays.fill(contents, ItemStack.EMPTY);
+            Arrays.fill(contents, null);
         }
 
         @Override
@@ -89,7 +111,11 @@ public abstract class FabricData implements Data {
             this.setContents(((FabricData.Items) contents).getContents());
         }
 
-        public void setContents(@NotNull ItemStack[] contents) {
+        public void setContents(@Nullable ItemStack @NotNull [] contents) {
+            // Ensure the array is the correct length for the inventory
+            if (contents.length != this.contents.length) {
+                contents = Arrays.copyOf(contents, this.contents.length);
+            }
             System.arraycopy(contents, 0, this.contents, 0, this.contents.length);
         }
 
@@ -105,18 +131,16 @@ public abstract class FabricData implements Data {
         @Getter
         public static class Inventory extends FabricData.Items implements Data.Items.Inventory {
 
-            public static final int INVENTORY_SLOT_COUNT = 41;
-
             @Range(from = 0, to = 8)
             private int heldItemSlot;
 
-            public Inventory(@NotNull ItemStack[] contents, int heldItemSlot) {
+            public Inventory(@Nullable ItemStack @NotNull [] contents, int heldItemSlot) {
                 super(contents);
                 this.heldItemSlot = heldItemSlot;
             }
 
             @NotNull
-            public static FabricData.Items.Inventory from(@NotNull ItemStack[] contents, int heldItemSlot) {
+            public static FabricData.Items.Inventory from(@Nullable ItemStack @NotNull [] contents, int heldItemSlot) {
                 return new FabricData.Items.Inventory(contents, heldItemSlot);
             }
 
@@ -128,6 +152,11 @@ public abstract class FabricData implements Data {
             @NotNull
             public static FabricData.Items.Inventory empty() {
                 return new FabricData.Items.Inventory(new ItemStack[INVENTORY_SLOT_COUNT], 0);
+            }
+
+            @Override
+            public int getSlotCount() {
+                return INVENTORY_SLOT_COUNT;
             }
 
             @Override
@@ -154,15 +183,13 @@ public abstract class FabricData implements Data {
 
         public static class EnderChest extends FabricData.Items implements Data.Items.EnderChest {
 
-            public static final int ENDER_CHEST_SLOT_COUNT = 27;
-
-            private EnderChest(@NotNull ItemStack[] contents) {
+            private EnderChest(@Nullable ItemStack @NotNull [] contents) {
                 super(contents);
             }
 
             @NotNull
-            public static FabricData.Items.EnderChest adapt(@NotNull ItemStack[] items) {
-                return new FabricData.Items.EnderChest(items);
+            public static FabricData.Items.EnderChest adapt(@Nullable ItemStack @NotNull [] contents) {
+                return new FabricData.Items.EnderChest(contents);
             }
 
             @NotNull
@@ -225,20 +252,20 @@ public abstract class FabricData implements Data {
 
         @NotNull
         public static FabricData.PotionEffects adapt(@NotNull Collection<Effect> effects) {
-            return from(
-                    effects.stream()
-                            .map(effect -> new StatusEffectInstance(
-                                    Objects.requireNonNull(
-                                            Registries.STATUS_EFFECT.get(Identifier.tryParse(effect.type())),
-                                            "Invalid effect type when adapting effects"
-                                    ),
-                                    effect.duration(),
-                                    effect.amplifier(),
-                                    effect.isAmbient(),
-                                    effect.showParticles(),
-                                    effect.hasIcon()
-                            ))
-                            .toList()
+            return from(effects.stream()
+                    .map(effect -> {
+                        final StatusEffect type = matchEffectType(effect.type());
+                        return type != null ? new StatusEffectInstance(
+                                type,
+                                effect.duration(),
+                                effect.amplifier(),
+                                effect.isAmbient(),
+                                effect.showParticles(),
+                                effect.hasIcon()
+                        ) : null;
+                    })
+                    .filter(Objects::nonNull)
+                    .toList()
             );
         }
 
@@ -259,23 +286,110 @@ public abstract class FabricData implements Data {
         @Override
         public List<Effect> getActiveEffects() {
             return effects.stream()
-                    .map(potionEffect -> new Effect(
-                            Objects.requireNonNull(
-                                    Registries.STATUS_EFFECT.getId(potionEffect.getEffectType()),
-                                    "Invalid effect type when getting active effects"
-                            ).toString(),
-                            potionEffect.getAmplifier(),
-                            potionEffect.getDuration(),
-                            potionEffect.isAmbient(),
-                            potionEffect.shouldShowParticles(),
-                            potionEffect.shouldShowIcon()
-                    ))
+                    .map(potionEffect -> {
+                        final String key = getEffectId(potionEffect.getEffectType());
+                        return key != null ? new Effect(
+                                key,
+                                potionEffect.getAmplifier(),
+                                potionEffect.getDuration(),
+                                potionEffect.isAmbient(),
+                                potionEffect.shouldShowParticles(),
+                                potionEffect.shouldShowIcon()
+                        ) : null;
+                    })
+                    .filter(Objects::nonNull)
                     .toList();
         }
 
     }
 
-    // TODO ADVANCEMENTS
+    @Getter
+    @Setter
+    @AllArgsConstructor(access = AccessLevel.PRIVATE)
+    @NoArgsConstructor(access = AccessLevel.PRIVATE)
+    public static class Advancements extends FabricData implements Data.Advancements {
+
+        private List<Advancement> completed;
+
+        @NotNull
+        public static FabricData.Advancements adapt(@NotNull ServerPlayerEntity player) {
+            final MinecraftServer server = Objects.requireNonNull(player.getServer(), "Server is null");
+            final List<Advancement> advancements = Lists.newArrayList();
+            forEachAdvancement(server, advancement -> {
+                final AdvancementProgress advancementProgress = player.getAdvancementTracker().getProgress(advancement);
+                final Map<String, Date> awardedCriteria = Maps.newHashMap();
+
+                advancementProgress.getObtainedCriteria().forEach((criteria) -> awardedCriteria.put(criteria,
+                        advancementProgress.getEarliestProgressObtainDate()));
+
+                // Only save the advancement if criteria has been completed
+                if (!awardedCriteria.isEmpty()) {
+                    advancements.add(Advancement.adapt(advancement.getId().asString(), awardedCriteria));
+                }
+            });
+            return new FabricData.Advancements(advancements);
+        }
+
+        @NotNull
+        public static FabricData.Advancements from(@NotNull List<Advancement> advancements) {
+            return new FabricData.Advancements(advancements);
+        }
+
+        @Override
+        public void apply(@NotNull FabricUser user, @NotNull FabricHuskSync plugin) throws IllegalStateException {
+            final ServerPlayerEntity player = user.getPlayer();
+            final MinecraftServer server = Objects.requireNonNull(player.getServer(), "Server is null");
+            plugin.runAsync(() -> forEachAdvancement(server, advancement -> {
+                final AdvancementProgress progress = player.getAdvancementTracker().getProgress(advancement);
+                final Optional<Advancement> record = completed.stream()
+                        .filter(r -> r.getKey().equals(advancement.getId().toString()))
+                        .findFirst();
+                if (record.isEmpty()) {
+                    return;
+                }
+
+                final Map<String, Date> criteria = record.get().getCompletedCriteria();
+                final List<String> awarded = Lists.newArrayList(progress.getObtainedCriteria());
+                this.setAdvancement(
+                        plugin, advancement, player, user,
+                        criteria.keySet().stream().filter(key -> !awarded.contains(key)).toList(),
+                        awarded.stream().filter(key -> !criteria.containsKey(key)).toList()
+                );
+            }));
+        }
+
+        private void setAdvancement(@NotNull FabricHuskSync plugin,
+                                    @NotNull net.minecraft.advancement.Advancement advancement,
+                                    @NotNull ServerPlayerEntity player,
+                                    @NotNull FabricUser user,
+                                    @NotNull List<String> toAward,
+                                    @NotNull List<String> toRevoke) {
+            plugin.runSync(() -> {
+                // Track player exp level & progress
+                final int expLevel = player.experienceLevel;
+                final float expProgress = player.experienceProgress;
+
+                // Award and revoke advancement criteria
+                final PlayerAdvancementTracker progress = player.getAdvancementTracker();
+                toAward.forEach(a -> progress.grantCriterion(advancement, a));
+                toRevoke.forEach(r -> progress.revokeCriterion(advancement, r));
+
+                // Restore player exp level & progress
+                if (!toAward.isEmpty()
+                        && (player.experienceLevel != expLevel || player.experienceProgress != expProgress)) {
+                    player.setExperienceLevel(expLevel);
+                    player.setExperiencePoints((int) (player.getNextLevelExperience() * expProgress));
+                }
+            });
+        }
+
+        // Performs a consuming function for every advancement registered on the server
+        private static void forEachAdvancement(@NotNull MinecraftServer server,
+                                               @NotNull ThrowingConsumer<net.minecraft.advancement.Advancement> con) {
+            server.getAdvancementLoader().getAdvancements().forEach(con);
+        }
+
+    }
 
     @Getter
     @Setter
@@ -347,5 +461,78 @@ public abstract class FabricData implements Data {
         }
 
     }
+
+    @Getter
+    @AllArgsConstructor(access = AccessLevel.PRIVATE)
+    @NoArgsConstructor(access = AccessLevel.PRIVATE)
+    public static class Statistics extends FabricData implements Data.Statistics, Adaptable {
+
+        @SerializedName("generic")
+        private Map<String, Integer> genericStatistics;
+        @SerializedName("blocks")
+        private Map<String, Map<String, Integer>> blockStatistics;
+        @SerializedName("items")
+        private Map<String, Map<String, Integer>> itemStatistics;
+        @SerializedName("entities")
+        private Map<String, Map<String, Integer>> entityStatistics;
+
+        @NotNull
+        public static FabricData.Statistics adapt(@NotNull ServerPlayerEntity player) {
+            // Adapt typed stats
+            final Map<String, Map<String, Integer>> blocks = Maps.newHashMap(),
+                    items = Maps.newHashMap(), entities = Maps.newHashMap();
+            Registries.STAT_TYPE.getEntrySet().forEach(stat -> {
+                final Registry<?> registry = stat.getValue().getRegistry();
+
+                final String registryId = registry.getKey().getValue().asString();
+                if (registryId.equals("custom_stat")) {
+                    return;
+                }
+                final Map<String, Integer> map = (switch (registryId) {
+                    case "block" -> blocks;
+                    case "item" -> items;
+                    case "entity_type" -> entities;
+                    default -> throw new IllegalStateException("Unexpected value: %s".formatted(registryId));
+                }).compute(stat.getKey().getValue().asString(), (k, v) -> v == null ? Maps.newHashMap() : v);
+
+                registry.getEntrySet().forEach(entry -> {
+                    @SuppressWarnings({"unchecked", "rawtypes"}) final int value = player.getStatHandler()
+                            .getStat((StatType) stat.getValue(), entry.getValue());
+                    if (value != 0) {
+                        map.put(entry.getKey().key().asString(), value);
+                    }
+                });
+            });
+
+            // Add generic stats
+            final Map<String, Integer> generic = Maps.newHashMap();
+            Registries.CUSTOM_STAT.getEntrySet().forEach(stat -> {
+                final int value = player.getStatHandler().getStat(Stats.CUSTOM.getOrCreateStat(stat.getValue()));
+                if (value != 0) {
+                    generic.put(stat.getKey().key().asString(), value);
+                }
+            });
+
+            return new FabricData.Statistics(generic, blocks, items, entities);
+        }
+
+        @NotNull
+        public static FabricData.Statistics from(@NotNull Map<String, Integer> generic,
+                                                 @NotNull Map<String, Map<String, Integer>> blocks,
+                                                 @NotNull Map<String, Map<String, Integer>> items,
+                                                 @NotNull Map<String, Map<String, Integer>> entities) {
+            return new FabricData.Statistics(generic, blocks, items, entities);
+        }
+
+        @Override
+        public void apply(@NotNull FabricUser user, @NotNull FabricHuskSync plugin) {
+//            genericStatistics.forEach((id, v) -> applyStat(user, id, Statistic.Type.UNTYPED, v));
+//            blockStatistics.forEach((id, m) -> m.forEach((b, v) -> applyStat(user, id, Statistic.Type.BLOCK, v, b)));
+//            itemStatistics.forEach((id, m) -> m.forEach((i, v) -> applyStat(user, id, Statistic.Type.ITEM, v, i)));
+//            entityStatistics.forEach((id, m) -> m.forEach((e, v) -> applyStat(user, id, Statistic.Type.ENTITY, v, e)));
+        }
+
+    }
+
 
 }

@@ -41,6 +41,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 import static net.william278.husksync.data.BukkitData.Items.Inventory.INVENTORY_SLOT_COUNT;
+import static net.william278.husksync.data.Data.Items.Inventory.HELD_ITEM_SLOT_TAG;
+import static net.william278.husksync.data.Data.Items.Inventory.ITEMS_TAG;
 
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class BukkitSerializer {
@@ -60,8 +62,6 @@ public class BukkitSerializer {
 
     public static class Inventory extends BukkitSerializer implements Serializer<BukkitData.Items.Inventory>,
             ItemDeserializer {
-        private static final String ITEMS_TAG = "items";
-        private static final String HELD_ITEM_SLOT_TAG = "held_item_slot";
 
         public Inventory(@NotNull HuskSync plugin) {
             super(plugin);

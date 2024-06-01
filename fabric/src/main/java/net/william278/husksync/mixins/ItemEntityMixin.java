@@ -30,10 +30,12 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 
 @Mixin(ItemEntity.class)
 public class ItemEntityMixin {
+
     @Redirect(at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/player/PlayerInventory;insertStack(Lnet/minecraft/item/ItemStack;)Z"),
             method = "onPlayerCollision")
     public boolean onPlayerCollision(PlayerInventory inventory, ItemStack stack) {
         ActionResult result = ItemPickupCallback.EVENT.invoker().interact(inventory.player, stack);
         return (result != ActionResult.FAIL && inventory.insertStack(stack));
     }
+
 }

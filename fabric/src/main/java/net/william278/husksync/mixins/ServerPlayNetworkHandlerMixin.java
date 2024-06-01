@@ -48,7 +48,8 @@ public abstract class ServerPlayNetworkHandlerMixin {
 
     @Inject(method = "onPlayerAction", at = @At("HEAD"), cancellable = true)
     public void onPlayerAction(PlayerActionC2SPacket packet, CallbackInfo ci) {
-        if (packet.getAction() == PlayerActionC2SPacket.Action.DROP_ITEM || packet.getAction() == PlayerActionC2SPacket.Action.DROP_ALL_ITEMS) {
+        if (packet.getAction() == PlayerActionC2SPacket.Action.DROP_ITEM
+                || packet.getAction() == PlayerActionC2SPacket.Action.DROP_ALL_ITEMS) {
             ItemStack stack = player.getStackInHand(Hand.MAIN_HAND);
             ActionResult result = ItemDropCallback.EVENT.invoker().interact(player, stack);
 

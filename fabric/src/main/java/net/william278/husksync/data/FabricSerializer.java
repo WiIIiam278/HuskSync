@@ -41,7 +41,6 @@ import static net.william278.husksync.data.Data.Items.Inventory.HELD_ITEM_SLOT_T
 import static net.william278.husksync.data.Data.Items.Inventory.ITEMS_TAG;
 
 //TODO
-@Getter
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public abstract class FabricSerializer {
 
@@ -51,6 +50,12 @@ public abstract class FabricSerializer {
     @SuppressWarnings("unused")
     public FabricSerializer(@NotNull HuskSyncAPI api) {
         this.plugin = api.getPlugin();
+    }
+
+    @ApiStatus.Internal
+    @NotNull
+    public HuskSync getPlugin() {
+        return plugin;
     }
 
     public static class Inventory extends FabricSerializer implements Serializer<FabricData.Items.Inventory> {
@@ -145,6 +150,29 @@ public abstract class FabricSerializer {
             return plugin.getGson().toJson(element.getActiveEffects());
         }
 
+    }
+
+    public static class Advancements extends FabricSerializer implements Serializer<FabricData.Advancements> {
+
+        private static final TypeToken<List<Data.Advancements.Advancement>> TYPE = new TypeToken<>() {
+        };
+
+        public Advancements(@NotNull HuskSync plugin) {
+            super(plugin);
+        }
+
+        @Override
+        public FabricData.Advancements deserialize(@NotNull String serialized) throws DeserializationException {
+            return FabricData.Advancements.from(
+                    plugin.getGson().fromJson(serialized, TYPE.getType())
+            );
+        }
+
+        @NotNull
+        @Override
+        public String serialize(@NotNull FabricData.Advancements element) throws SerializationException {
+            return plugin.getGson().toJson(element.getCompleted());
+        }
     }
 
 }

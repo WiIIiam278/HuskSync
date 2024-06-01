@@ -31,8 +31,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(ServerPlayerEntity.class)
 public class ServerPlayerEntityMixin {
+
     @Inject(method = "dropItem", at = @At("HEAD"), cancellable = true)
-    private void onPlayerDropItem(ItemStack stack, boolean dropAtFeet, boolean saveThrower, final CallbackInfoReturnable<ItemEntity> ci) {
+    private void onPlayerDropItem(ItemStack stack, boolean dropAtFeet, boolean saveThrower,
+                                  final CallbackInfoReturnable<ItemEntity> ci) {
         ServerPlayerEntity player = (ServerPlayerEntity) (Object) this;
         ActionResult result = ItemDropCallback.EVENT.invoker().interact(player, stack);
 
@@ -40,4 +42,5 @@ public class ServerPlayerEntityMixin {
             ci.cancel();
         }
     }
+
 }
