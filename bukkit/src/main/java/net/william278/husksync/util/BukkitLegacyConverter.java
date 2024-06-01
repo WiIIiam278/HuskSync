@@ -85,7 +85,8 @@ public class BukkitLegacyConverter extends LegacyConverter {
         if (shouldImport(Identifier.HEALTH)) {
             containers.put(Identifier.HEALTH, BukkitData.Health.from(
                     status.getDouble("health"),
-                    status.getDouble("health_scale")
+                    status.getDouble("health_scale"),
+                    false
             ));
         }
         if (shouldImport(Identifier.HUNGER)) {

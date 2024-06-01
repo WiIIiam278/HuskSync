@@ -34,7 +34,7 @@ import java.util.logging.Level;
 public interface UserDataHolder extends DataHolder {
 
     /**
-     * Get the data that is enabled for syncing in the config
+     * Get the data enabled for syncing in the config
      *
      * @return the data that is enabled for syncing
      * @since 3.0

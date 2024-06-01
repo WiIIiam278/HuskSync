@@ -639,24 +639,38 @@ public abstract class BukkitData implements Data {
         private double health;
         @SerializedName("health_scale")
         private double healthScale;
+        @SerializedName("is_health_scaled")
+        private boolean isHealthScaled;
 
         @NotNull
-        public static BukkitData.Health from(double health, double healthScale) {
-            return new BukkitData.Health(health, healthScale);
+        public static BukkitData.Health from(double health, double scale, boolean isScaled) {
+            return new BukkitData.Health(health, scale, isScaled);
         }
 
+        /**
+         * @deprecated Use {@link #from(double, double, boolean)} instead
+         */
+        @NotNull
+        @Deprecated(since = "3.5.4")
+        public static BukkitData.Health from(double health, double scale) {
+            return from(health, scale, false);
+        }
+
+        /**
+         * @deprecated Use {@link #from(double, double, boolean)} instead
+         */
         @NotNull
         @Deprecated(forRemoval = true, since = "3.5")
-        @SuppressWarnings("unused")
-        public static BukkitData.Health from(double health, double maxHealth, double healthScale) {
-            return from(health, healthScale);
+        public static BukkitData.Health from(double health, @SuppressWarnings("unused") double max, double scale) {
+            return from(health, scale, false);
         }
 
         @NotNull
         public static BukkitData.Health adapt(@NotNull Player player) {
             return from(
                     player.getHealth(),
-                    player.isHealthScaled() ? player.getHealthScale() : 0d
+                    player.getHealthScale(),
+                    player.isHealthScaled()
             );
         }
 
@@ -674,13 +688,8 @@ public abstract class BukkitData implements Data {
 
             // Set health scale
             try {
-                if (healthScale != 0d) {
-                    player.setHealthScaled(true);
-                    player.setHealthScale(healthScale);
-                } else {
-                    player.setHealthScaled(false);
-                    player.setHealthScale(player.getMaxHealth());
-                }
+                player.setHealthScale(healthScale);
+                player.setHealthScaled(isHealthScaled);
             } catch (Throwable e) {
                 plugin.log(Level.WARNING, "Error setting %s's health scale to %s".formatted(player.getName(), healthScale), e);
             }

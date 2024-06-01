@@ -379,6 +379,17 @@ public class HuskSyncAPI {
     }
 
     /**
+     * Get a registered data serializer by its identifier
+     *
+     * @param identifier The identifier of the data type to get the serializer for
+     * @return The serializer for the given identifier, or an empty optional if the serializer isn't registered
+     * @since 3.5.4
+     */
+    public Optional<Serializer<Data>> getDataSerializer(@NotNull Identifier identifier) {
+        return plugin.getSerializer(identifier);
+    }
+
+    /**
      * Get a {@link DataSnapshot.Unpacked} from a {@link DataSnapshot.Packed}
      *
      * @param unpacked The unpacked snapshot

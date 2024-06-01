@@ -31,7 +31,7 @@ import net.william278.husksync.adapter.DataAdapter;
 import net.william278.husksync.config.ConfigProvider;
 import net.william278.husksync.data.Data;
 import net.william278.husksync.data.Identifier;
-import net.william278.husksync.data.Serializer;
+import net.william278.husksync.data.SerializerRegistry;
 import net.william278.husksync.database.Database;
 import net.william278.husksync.event.EventDispatcher;
 import net.william278.husksync.migrator.Migrator;
@@ -52,7 +52,7 @@ import java.util.logging.Level;
 /**
  * Abstract implementation of the HuskSync plugin.
  */
-public interface HuskSync extends Task.Supplier, EventDispatcher, ConfigProvider {
+public interface HuskSync extends Task.Supplier, EventDispatcher, ConfigProvider, SerializerRegistry {
 
     int SPIGOT_RESOURCE_ID = 97144;
 
@@ -97,43 +97,6 @@ public interface HuskSync extends Task.Supplier, EventDispatcher, ConfigProvider
      */
     @NotNull
     DataAdapter getDataAdapter();
-
-    /**
-     * Returns the data serializer for the given {@link Identifier}
-     */
-    @NotNull
-    <T extends Data> Map<Identifier, Serializer<T>> getSerializers();
-
-    /**
-     * Register a data serializer for the given {@link Identifier}
-     *
-     * @param identifier the {@link Identifier}
-     * @param serializer the {@link Serializer}
-     */
-    default void registerSerializer(@NotNull Identifier identifier,
-                                    @NotNull Serializer<? extends Data> serializer) {
-        if (identifier.isCustom()) {
-            log(Level.INFO, String.format("Registered custom data type: %s", identifier));
-        }
-        getSerializers().put(identifier, (Serializer<Data>) serializer);
-    }
-
-    /**
-     * Get the {@link Identifier} for the given key
-     */
-    default Optional<Identifier> getIdentifier(@NotNull String key) {
-        return getSerializers().keySet().stream().filter(identifier -> identifier.toString().equals(key)).findFirst();
-    }
-
-    /**
-     * Get the set of registered data types
-     *
-     * @return the set of registered data types
-     */
-    @NotNull
-    default Set<Identifier> getRegisteredDataTypes() {
-        return getSerializers().keySet();
-    }
 
     /**
      * Returns the data syncer implementation

@@ -330,7 +330,7 @@ public class LegacyMigrator extends Migrator {
                         ))
 
                         // Health, hunger, experience & game mode
-                        .health(BukkitData.Health.from(health, healthScale))
+                        .health(BukkitData.Health.from(health, healthScale, false))
                         .hunger(BukkitData.Hunger.from(hunger, saturation, saturationExhaustion))
                         .experience(BukkitData.Experience.from(totalExp, expLevel, expProgress))
                         .gameMode(BukkitData.GameMode.from(gameMode))
