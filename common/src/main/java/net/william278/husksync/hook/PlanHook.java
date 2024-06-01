@@ -184,7 +184,7 @@ public class PlanHook {
         public String getHealth(@NotNull UUID uuid) {
             return getLatestSnapshot(uuid)
                     .flatMap(DataHolder::getHealth)
-                    .map(health -> String.format("%s / %s", health.getHealth(), health.getMaxHealth()))
+                    .map(health -> String.format("%s", health.getHealth()))
                     .orElse(UNKNOWN_STRING);
         }
 

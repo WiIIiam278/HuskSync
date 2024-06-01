@@ -21,8 +21,11 @@ package net.william278.husksync.util;
 
 import net.william278.husksync.BukkitHuskSync;
 import net.william278.husksync.HuskSync;
+import net.william278.husksync.data.UserDataHolder;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import space.arim.morepaperlib.scheduling.AsynchronousScheduler;
+import space.arim.morepaperlib.scheduling.AttachedScheduler;
 import space.arim.morepaperlib.scheduling.RegionalScheduler;
 import space.arim.morepaperlib.scheduling.ScheduledTask;
 
@@ -34,9 +37,12 @@ public interface BukkitTask extends Task {
     class Sync extends Task.Sync implements BukkitTask {
 
         private ScheduledTask task;
+        private final @Nullable UserDataHolder user;
 
-        protected Sync(@NotNull HuskSync plugin, @NotNull Runnable runnable, long delayTicks) {
+        protected Sync(@NotNull HuskSync plugin, @NotNull Runnable runnable,
+                       @Nullable UserDataHolder user, long delayTicks) {
             super(plugin, runnable, delayTicks);
+            this.user = user;
         }
 
         @Override
@@ -57,7 +63,19 @@ public interface BukkitTask extends Task {
                 return;
             }
 
-            final RegionalScheduler scheduler = ((BukkitHuskSync) getPlugin()).getRegionalScheduler();
+            // Use entity-specific scheduler if user is not null
+            if (user != null) {
+                final AttachedScheduler scheduler = ((BukkitHuskSync) getPlugin()).getUserSyncScheduler(user);
+                if (delayTicks > 0) {
+                    this.task = scheduler.runDelayed(runnable, null, delayTicks);
+                } else {
+                    this.task = scheduler.run(runnable, null);
+                }
+                return;
+            }
+
+            // Or default to the global scheduler
+            final RegionalScheduler scheduler = ((BukkitHuskSync) getPlugin()).getSyncScheduler();
             if (delayTicks > 0) {
                 this.task = scheduler.runDelayed(runnable, delayTicks);
             } else {
@@ -146,8 +164,8 @@ public interface BukkitTask extends Task {
 
         @NotNull
         @Override
-        default Task.Sync getSyncTask(@NotNull Runnable runnable, long delayTicks) {
-            return new Sync(getPlugin(), runnable, delayTicks);
+        default Task.Sync getSyncTask(@NotNull Runnable runnable, @Nullable UserDataHolder user, long delayTicks) {
+            return new Sync(getPlugin(), runnable, user, delayTicks);
         }
 
         @NotNull

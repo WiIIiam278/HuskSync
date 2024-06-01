@@ -3,25 +3,25 @@ plugins {
 }
 
 dependencies {
-    api 'commons-io:commons-io:2.16.0'
-    api 'org.apache.commons:commons-text:1.11.0'
+    api 'commons-io:commons-io:2.16.1'
+    api 'org.apache.commons:commons-text:1.12.0'
     api 'org.apache.commons:commons-pool2:2.12.0'
-    api 'de.themoep:minedown-adventure:1.7.2-SNAPSHOT'
+    api 'net.william278:minedown:1.8.2'
     api 'org.json:json:20240303'
-    api 'com.google.code.gson:gson:2.10.1'
+    api 'com.google.code.gson:gson:2.11.0'
     api 'com.fatboyindustrial.gson-javatime-serialisers:gson-javatime-serialisers:1.1.2'
     api 'de.exlll:configlib-yaml:4.5.0'
+    api 'net.william278:paginedown:1.1.2'
     api 'net.william278:DesertWell:2.0.4'
-    api 'net.william278:PagineDown:1.1'
     api('com.zaxxer:HikariCP:5.1.0') {
         exclude module: 'slf4j-api'
     }
 
     compileOnly 'org.projectlombok:lombok:1.18.32'
     compileOnly 'org.jetbrains:annotations:24.1.0'
-    compileOnly 'net.kyori:adventure-api:4.16.0'
+    compileOnly 'net.kyori:adventure-api:4.17.0'
     compileOnly 'net.kyori:adventure-platform-api:4.3.2'
-    compileOnly 'com.google.guava:guava:33.1.0-jre'
+    compileOnly 'com.google.guava:guava:33.2.0-jre'
     compileOnly 'com.github.plan-player-analytics:Plan:5.5.2272'
     compileOnly "redis.clients:jedis:$jedis_version"
     compileOnly "com.mysql:mysql-connector-j:$mysql_driver_version"

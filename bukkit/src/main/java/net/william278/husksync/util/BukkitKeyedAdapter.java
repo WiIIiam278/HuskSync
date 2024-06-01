@@ -19,56 +19,44 @@
 
 package net.william278.husksync.util;
 
-import org.bukkit.Keyed;
-import org.bukkit.Material;
-import org.bukkit.Statistic;
+import org.bukkit.*;
+import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.EntityType;
+import org.bukkit.potion.PotionEffectType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Arrays;
-import java.util.Optional;
 
 // Utility class for adapting "Keyed" Bukkit objects
 public final class BukkitKeyedAdapter {
 
     @Nullable
     public static Statistic matchStatistic(@NotNull String key) {
-        try {
-            return Arrays.stream(Statistic.values())
-                    .filter(stat -> stat.getKey().toString().equals(key))
-                    .findFirst().orElse(null);
-        } catch (Throwable e) {
-            return null;
-        }
+        return getRegistryValue(Registry.STATISTIC, key);
     }
 
     @Nullable
     public static EntityType matchEntityType(@NotNull String key) {
-        try {
-            return Arrays.stream(EntityType.values())
-                    .filter(entityType -> entityType.getKey().toString().equals(key))
-                    .findFirst().orElse(null);
-        } catch (Throwable e) {
-            return null;
-        }
+        return getRegistryValue(Registry.ENTITY_TYPE, key);
     }
 
     @Nullable
     public static Material matchMaterial(@NotNull String key) {
-        try {
-            return Material.matchMaterial(key);
-        } catch (Throwable e) {
-            return null;
-        }
+        return getRegistryValue(Registry.MATERIAL, key);
     }
 
-    public static Optional<String> getKeyName(@NotNull Keyed keyed) {
-        try {
-            return Optional.of(keyed.getKey().toString());
-        } catch (Throwable e) {
-            return Optional.empty();
-        }
+    @Nullable
+    public static Attribute matchAttribute(@NotNull String key) {
+        return getRegistryValue(Registry.ATTRIBUTE, key);
+    }
+
+    @Nullable
+    public static PotionEffectType matchEffectType(@NotNull String key) {
+        return PotionEffectType.getByName(key); // No registry for this in 1.17 API
+    }
+
+    private static <T extends Keyed> T getRegistryValue(@NotNull Registry<T> registry, @NotNull String keyString) {
+        final NamespacedKey key = NamespacedKey.fromString(keyString);
+        return key != null ? registry.get(key) : null;
     }
 
 }

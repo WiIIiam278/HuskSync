@@ -34,7 +34,7 @@ import java.util.logging.Level;
 public interface UserDataHolder extends DataHolder {
 
     /**
-     * Get the data that is enabled for syncing in the config
+     * Get the data enabled for syncing in the config
      *
      * @return the data that is enabled for syncing
      * @since 3.0
@@ -43,7 +43,7 @@ public interface UserDataHolder extends DataHolder {
     @NotNull
     default Map<Identifier, Data> getData() {
         return getPlugin().getRegisteredDataTypes().stream()
-                .filter(type -> type.isCustom() || getPlugin().getSettings().getSynchronization().isFeatureEnabled(type))
+                .filter(Identifier::isEnabled)
                 .map(id -> Map.entry(id, getData(id)))
                 .filter(data -> data.getValue().isPresent())
                 .collect(HashMap::new, (map, data) -> map.put(data.getKey(), data.getValue().get()), HashMap::putAll);
@@ -60,7 +60,7 @@ public interface UserDataHolder extends DataHolder {
      */
     @Override
     default void setData(@NotNull Identifier identifier, @NotNull Data data) {
-        getPlugin().runSync(() -> data.apply(this, getPlugin()));
+        getPlugin().runSync(() -> data.apply(this, getPlugin()), this);
     }
 
     /**
@@ -79,7 +79,8 @@ public interface UserDataHolder extends DataHolder {
      * Deserialize and apply a data snapshot to this data owner
      * <p>
      * This method will deserialize the data on the current thread, then synchronously apply it on
-     * the main server thread.
+     * the main server thread. The order data will be applied is determined based on the dependencies of
+     * each data type (see {@link Identifier.Dependency}).
      * </p>
      * The {@code runAfter} callback function will be run after the snapshot has been applied.
      *
@@ -97,6 +98,7 @@ public interface UserDataHolder extends DataHolder {
             unpacked = snapshot.unpack(plugin);
         } catch (Throwable e) {
             plugin.log(Level.SEVERE, String.format("Failed to unpack data snapshot for %s", getUsername()), e);
+            runAfter.accept(false);
             return;
         }
 
@@ -105,12 +107,15 @@ public interface UserDataHolder extends DataHolder {
             try {
                 for (Map.Entry<Identifier, Data> entry : unpacked.getData().entrySet()) {
                     final Identifier identifier = entry.getKey();
-                    if (plugin.getSettings().getSynchronization().isFeatureEnabled(identifier)) {
-                        if (identifier.isCustom()) {
-                            getCustomDataStore().put(identifier, entry.getValue());
-                        }
-                        entry.getValue().apply(this, plugin);
+                    if (!identifier.isEnabled()) {
+                        continue;
                     }
+
+                    // Apply the identified data
+                    if (identifier.isCustom()) {
+                        getCustomDataStore().put(identifier, entry.getValue());
+                    }
+                    entry.getValue().apply(this, plugin);
                 }
             } catch (Throwable e) {
                 plugin.log(Level.SEVERE, String.format("Failed to apply data snapshot to %s", getUsername()), e);
@@ -118,7 +123,7 @@ public interface UserDataHolder extends DataHolder {
                 return;
             }
             plugin.runAsync(() -> runAfter.accept(true));
-        });
+        }, this);
     }
 
     @Override
@@ -169,6 +174,11 @@ public interface UserDataHolder extends DataHolder {
     @Override
     default void setGameMode(@NotNull Data.GameMode gameMode) {
         this.setData(Identifier.GAME_MODE, gameMode);
+    }
+
+    @Override
+    default void setFlightStatus(@NotNull Data.FlightStatus flightStatus) {
+        this.setData(Identifier.FLIGHT_STATUS, flightStatus);
     }
 
     @Override

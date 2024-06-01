@@ -20,7 +20,6 @@
 package net.william278.husksync.user;
 
 import de.themoep.minedown.adventure.MineDown;
-import de.themoep.minedown.adventure.MineDownParser;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.william278.husksync.HuskSync;
@@ -71,9 +70,7 @@ public abstract class OnlineUser extends User implements CommandUser, UserDataHo
      * @param mineDown the parsed {@link MineDown} to send
      */
     public void sendMessage(@NotNull MineDown mineDown) {
-        sendMessage(mineDown
-                .disable(MineDownParser.Option.SIMPLE_FORMATTING)
-                .replace().toComponent());
+        sendMessage(mineDown.toComponent());
     }
 
     /**
@@ -82,9 +79,7 @@ public abstract class OnlineUser extends User implements CommandUser, UserDataHo
      * @param mineDown the parsed {@link MineDown} to send
      */
     public void sendActionBar(@NotNull MineDown mineDown) {
-        getAudience().sendActionBar(mineDown
-                .disable(MineDownParser.Option.SIMPLE_FORMATTING)
-                .replace().toComponent());
+        getAudience().sendActionBar(mineDown.toComponent());
     }
 
     /**
@@ -130,7 +125,7 @@ public abstract class OnlineUser extends User implements CommandUser, UserDataHo
         getPlugin().fireEvent(getPlugin().getPreSyncEvent(this, snapshot), (event) -> {
             if (!isOffline()) {
                 getPlugin().debug(String.format("Applying snapshot (%s) to %s (cause: %s)",
-                        snapshot.getShortId(), getUsername(), cause
+                        snapshot.getShortId(), getUsername(), cause.getDisplayName()
                 ));
                 UserDataHolder.super.applySnapshot(
                         event.getData(), (succeeded) -> completeSync(succeeded, cause, getPlugin())

@@ -28,7 +28,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 import static net.william278.husksync.config.Settings.SynchronizationSettings.SaveOnDeathSettings;
 
@@ -104,20 +103,11 @@ public abstract class EventListener {
         plugin.getDataSyncer().saveData(user, snapshot);
     }
 
-    /**
-     * Determine whether a player event should be canceled
-     *
-     * @param userUuid The UUID of the user to check
-     * @return Whether the event should be canceled
-     */
-    protected final boolean cancelPlayerEvent(@NotNull UUID userUuid) {
-        return plugin.isDisabling() || plugin.isLocked(userUuid);
-    }
 
     /**
      * Handle the plugin disabling
      */
-    public final void handlePluginDisable() {
+    public void handlePluginDisable() {
         // Save for all online players
         plugin.getOnlineUsers().stream()
                 .filter(user -> !plugin.isLocked(user.getUuid()) && !user.isNpc())

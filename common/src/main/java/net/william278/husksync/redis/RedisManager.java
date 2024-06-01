@@ -158,10 +158,15 @@ public class RedisManager extends JedisPubSub {
         final RedisMessage redisMessage = RedisMessage.fromJson(plugin, message);
         switch (messageType) {
             case UPDATE_USER_DATA -> plugin.getOnlineUser(redisMessage.getTargetUuid()).ifPresent(
-                    user -> user.applySnapshot(
-                            DataSnapshot.deserialize(plugin, redisMessage.getPayload()),
-                            DataSnapshot.UpdateCause.UPDATED
-                    )
+                    user -> {
+                        try {
+                            final DataSnapshot.Packed data = DataSnapshot.deserialize(plugin, redisMessage.getPayload());
+                            user.applySnapshot(data, DataSnapshot.UpdateCause.UPDATED);
+                        } catch (Throwable e) {
+                            plugin.log(Level.SEVERE, "An exception occurred updating user data from Redis", e);
+                            user.completeSync(false, DataSnapshot.UpdateCause.UPDATED, plugin);
+                        }
+                    }
             );
             case REQUEST_USER_DATA -> plugin.getOnlineUser(redisMessage.getTargetUuid()).ifPresent(
                     user -> RedisMessage.create(
@@ -174,7 +179,13 @@ public class RedisManager extends JedisPubSub {
                         redisMessage.getTargetUuid()
                 );
                 if (future != null) {
-                    future.complete(Optional.of(DataSnapshot.deserialize(plugin, redisMessage.getPayload())));
+                    try {
+                        final DataSnapshot.Packed data = DataSnapshot.deserialize(plugin, redisMessage.getPayload());
+                        future.complete(Optional.of(data));
+                    } catch (Throwable e) {
+                        plugin.log(Level.SEVERE, "An exception occurred returning user data from Redis", e);
+                        future.complete(Optional.empty());
+                    }
                     pendingRequests.remove(redisMessage.getTargetUuid());
                 }
             }

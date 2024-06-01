@@ -31,7 +31,6 @@ public class SnappyGsonAdapter extends GsonAdapter {
         super(plugin);
     }
 
-    @NotNull
     @Override
     public <A extends Adaptable> byte[] toBytes(@NotNull A data) throws AdaptionException {
         try {
@@ -43,7 +42,7 @@ public class SnappyGsonAdapter extends GsonAdapter {
 
     @NotNull
     @Override
-    public <A extends Adaptable> A fromBytes(@NotNull byte[] data, @NotNull Class<A> type) throws AdaptionException {
+    public <A extends Adaptable> A fromBytes(byte[] data, @NotNull Class<A> type) throws AdaptionException {
         try {
             return super.fromBytes(decompressBytes(data), type);
         } catch (IOException e) {

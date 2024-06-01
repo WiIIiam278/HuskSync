@@ -24,7 +24,10 @@ import net.william278.husksync.BukkitHuskSync;
 import net.william278.husksync.data.BukkitData;
 import net.william278.husksync.user.BukkitUser;
 import net.william278.husksync.user.OnlineUser;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.player.PlayerAdvancementDoneEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.jetbrains.annotations.NotNull;
@@ -44,7 +47,7 @@ public class PaperEventListener extends BukkitEventListener {
     public void handlePlayerDeath(@NotNull PlayerDeathEvent event) {
         // If the player is locked or the plugin disabling, clear their drops
         final OnlineUser user = BukkitUser.adapt(event.getEntity(), plugin);
-        if (cancelPlayerEvent(user.getUuid())) {
+        if (lockedHandler.cancelPlayerEvent(user.getUuid())) {
             event.getDrops().clear();
             event.getItemsToKeep().clear();
             return;
@@ -66,6 +69,13 @@ public class PaperEventListener extends BukkitEventListener {
             itemsToSave.subList(maxInventorySize, itemsToSave.size()).clear();
         }
         super.saveOnPlayerDeath(user, BukkitData.Items.ItemArray.adapt(itemsToSave));
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onPlayerAdvancementDone(@NotNull PlayerAdvancementDoneEvent event) {
+        if (lockedHandler.cancelPlayerEvent(event.getPlayer().getUniqueId())) {
+            event.message(null);
+        }
     }
 
     @NotNull

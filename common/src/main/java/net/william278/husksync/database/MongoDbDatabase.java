@@ -113,7 +113,7 @@ public class MongoDbDatabase extends Database {
                                     throw new MongoException("User document returned null!");
                                 }
 
-                                Bson updates = Updates.set("uuid", user.getUuid().toString());
+                                Bson updates = Updates.set("username", user.getUsername());
                                 mongoCollectionHelper.updateDocument(usersTable, doc, updates);
                             } catch (MongoException e) {
                                 plugin.log(Level.SEVERE, "Failed to insert a user into the database", e);

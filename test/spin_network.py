@@ -13,14 +13,14 @@ from tqdm import tqdm
 class Parameters:
     root_dir = './servers/'
     proxy_version = "1.20"
-    minecraft_version = '1.20.4'
+    minecraft_version = '1.20.6'
     eula_agreement = 'true'
 
     backend_names = ['alpha', 'beta']
     backend_ports = [25567, 25568]
     backend_type = 'paper'
     backend_ram = 2048
-    backend_plugins = ['../target/HuskSync-Paper-*.jar']
+    backend_plugins = ['../target/HuskSync-Paper-*.jar', './ProtocolLib/ProtocolLib.jar']
     backend_plugin_folders = ['./HuskSync']
     operator_names = ['William278']
     operator_uuids = ['5dfb0558-e306-44f4-bb9a-f9218d4eb787']
@@ -102,8 +102,8 @@ def create_backend_server(name, port, parameters):
         # Download the latest paper for the version and place it in the server folder
         server_jar = "paper.jar"
         download_paper_build("paper", parameters.minecraft_version,
-                             get_latest_paper_build_number("paper", parameters.minecraft_version),
-                             f"{server_dir}/{server_jar}")
+                            get_latest_paper_build_number("paper", parameters.minecraft_version),
+                            f"{server_dir}/{server_jar}")
 
         # Create eula.text and set eula=true
         with open(server_dir + "/eula.txt", "w") as file:
@@ -176,8 +176,8 @@ def create_proxy_server(parameters):
         # Download the latest paper for the version and place it in the server folder
         proxy_jar = "waterfall.jar"
         download_paper_build("waterfall", parameters.proxy_version,
-                             get_latest_paper_build_number("waterfall", parameters.proxy_version),
-                             f"{server_dir}/{proxy_jar}")
+                            get_latest_paper_build_number("waterfall", parameters.proxy_version),
+                            f"{server_dir}/{proxy_jar}")
 
         # Create the config.yml
         with open(server_dir + "/config.yml", "w") as file:

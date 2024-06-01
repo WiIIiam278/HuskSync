@@ -27,6 +27,7 @@ import net.william278.paginedown.PaginatedList;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -46,18 +47,19 @@ public class DataSnapshotList {
         final AtomicInteger snapshotNumber = new AtomicInteger(1);
         this.paginatedList = PaginatedList.of(snapshots.stream()
                         .map(snapshot -> plugin.getLocales()
-                                .getRawLocale("data_list_item",
+                                .getRawLocale(!snapshot.isInvalid() ? "data_list_item" : "data_list_item_invalid",
                                         getNumberIcon(snapshotNumber.getAndIncrement()),
                                         dataOwner.getUsername(),
                                         snapshot.getId().toString(),
                                         snapshot.getShortId(),
                                         snapshot.isPinned() ? "※" : "  ",
                                         snapshot.getTimestamp().format(DateTimeFormatter
-                                                .ofPattern("dd/MM/yyyy, HH:mm")),
+                                                .ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.SHORT)),
                                         snapshot.getTimestamp().format(DateTimeFormatter
-                                                .ofPattern("MMM dd yyyy, HH:mm:ss.SSS")),
+                                                .ofLocalizedDateTime(FormatStyle.LONG, FormatStyle.MEDIUM)),
                                         snapshot.getSaveCause().getLocale(plugin),
-                                        String.format("%.2fKiB", snapshot.getFileSize(plugin) / 1024f))
+                                        String.format("%.2fKiB", snapshot.getFileSize(plugin) / 1024f),
+                                        snapshot.isInvalid() ? snapshot.getInvalidReason(plugin) : "")
                                 .orElse("• " + snapshot.getId())).toList(),
                 plugin.getLocales().getBaseChatList(6)
                         .setHeaderFormat(plugin.getLocales()

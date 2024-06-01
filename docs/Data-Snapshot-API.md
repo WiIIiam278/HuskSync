@@ -164,8 +164,10 @@ huskSyncAPI.getCurrentData(user).thenAccept(optionalSnapshot -> {
 | `husksync:statistics`      | User statistics                      | `#getStatistics`      | `#setStatistics`       |
 | `husksync:health`          | User health                          | `#getHealth`          | `#setHealth`           |
 | `husksync:hunger`          | User hunger, saturation & exhaustion | `#getHunger`          | `#setHunger`           |
+| `husksync:attributes`      | User attributes                      | `#getAttributes`      | `#setAttributes`       |
 | `husksync:experience`      | User level, experience, and score    | `#getExperience`      | `#setExperience`       |
-| `husksync:game_mode`       | User game mode and flight status     | `#getGameMode`        | `#setGameMode`         |
+| `husksync:game_mode`       | User game mode                       | `#getGameMode`        | `#setGameMode`         |
+| `husksync:flight_status`   | User ability to fly/if flying now    | `#getFlightStatus`    | `#setFlightStatus`     |
 | `husksync:persistent_data` | User persistent data container       | `#getPersistentData`  | `#setPersistentData`   |
 | Custom types; `plugin:foo` | Any custom data                      | `#getData(Identifer)` | `#setData(Identifier)` |
 
@@ -173,8 +175,8 @@ huskSyncAPI.getCurrentData(user).thenAccept(optionalSnapshot -> {
 * You can only get data from snapshots where a serializer has been registered for it on this server and, in the case of the built-in data types, where the sync feature has been enabled in the [[Config File]]. If you try to get data from a snapshot where the data type is not supported, you will get an empty `Optional`.
 
 ### 4.2 Editing Health, Hunger, Experience, and GameMode data
-* `DataSnapshot.Unpacked#getHealth()` returns an `Optional<Data.Health>`, which you can then use to get the player's current and max health.
-* `DataSnapshot.Unpacked#setHealth(Data.Health)` sets the player's current and max health. You can create a `Health` instance to pass on the Bukkit platform through `BukkitData.Health.from(double, double, double)`.
+* `DataSnapshot.Unpacked#getHealth()` returns an `Optional<Data.Health>`, which you can then use to get the player's current health.
+* `DataSnapshot.Unpacked#setHealth(Data.Health)` sets the player's current health. You can create a `Health` instance to pass on the Bukkit platform through `BukkitData.Health.from(double, double)`.
 * Similar methods exist for Hunger, Experience, and GameMode data types
 * Once you've updated the data in the snapshot, you can save it to the database using `HuskSyncAPI#setCurrentData(user, userData)`.
 
@@ -201,21 +203,30 @@ huskSyncAPI.getCurrentData(user).thenAccept(optionalSnapshot -> {
         System.out.println("User has no game mode data!");
         return;
     }
+    Optional<Data.FlightStatus> flightStatusOptional = snapshot.getFlightStatus();
+    if (flightStatusOptional.isEmpty()) {
+        System.out.println("User has no flight status data!");
+        return;
+    }
     // getExperience() and getHunger() work similarly
         
     // Get the health data
     Data.Health health = healthOptional.get();
     double currentHealth = health.getCurrentHealth(); // Current health
-    double maxHealth = health.getMaxHealth(); // Max health
-    double healthScale = health.getHealthScale(); // Health scale (e.g., 20 for 20 hearts)
-    snapshot.setHealth(BukkitData.Health.from(20, 20, 20));
+    double healthScale = health.getHealthScale(); // Health scale (used to determine health/damage display hearts)
+    snapshot.setHealth(BukkitData.Health.from(20, 20, true));
+    // Need max health? Look at the Attributes data type.
     
     // Get the game mode data
     Data.GameMode gameMode = gameModeOptional.get();
     String gameModeName = gameMode.getGameModeName(); // Game mode name (e.g., "SURVIVAL")
-    boolean isFlying = gameMode.isFlying(); // Whether the player is *currently* flying
-    boolean canFly = gameMode.canFly(); // Whether the player *can* fly
-    snapshot.setGameMode(BukkitData.GameMode.from("SURVIVAL", false, false));
+    snapshot.setGameMode(BukkitData.GameMode.from("SURVIVAL"));
+    
+    // Get flight data
+    Data.FlightStatus flightStatus = flightStatusOptional.get(); // Whether the player is flying
+    boolean isFlying = flightStatus.isFlying(); // Whether the player is *currently* flying
+    boolean canFly = flightStatus.isAllowFlight(); // Whether the player *can* fly
+    snapshot.setFlightStatus(BukkitData.FlightStatus.from(false, false));
     
     // Save the snapshot - This will update the player if online and save the snapshot to the database
     huskSyncAPI.setCurrentData(user, snapshot);
@@ -245,11 +256,8 @@ huskSyncAPI.editCurrentData(user, snapshot -> {
     // Get the player's current health
     double currentHealth = health.getCurrentHealth();
     
-    // Get the player's max health
-    double maxHealth = health.getMaxHealth();
-    
-    // Set the player's health
-    snapshot.setHealth(BukkitData.Health.from(20, 20, 20));
+    // Set the player's health / health scale
+    snapshot.setHealth(BukkitData.Health.from(20, 20));
 });
 ```
 </details>

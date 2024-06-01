@@ -47,6 +47,7 @@ import java.util.stream.Collectors;
  *
  * @since 3.0
  */
+@SuppressWarnings({"LombokSetterMayBeUsed", "LombokGetterMayBeUsed"})
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class DataSnapshot {
 
@@ -83,6 +84,11 @@ public class DataSnapshot {
     @SerializedName("data")
     protected Map<String, String> data;
 
+    // If the snapshot is invalid, this will be set to the validation exception
+    @Nullable
+    @Expose(serialize = false, deserialize = false)
+    transient DataException.Reason exception = null;
+
     private DataSnapshot(@NotNull UUID id, boolean pinned, @NotNull OffsetDateTime timestamp,
                          @NotNull String saveCause, @NotNull String serverName, @NotNull Map<String, String> data,
                          @NotNull Version minecraftVersion, @NotNull String platformType, int formatVersion) {
@@ -107,37 +113,25 @@ public class DataSnapshot {
     @NotNull
     @ApiStatus.Internal
     public static DataSnapshot.Packed deserialize(@NotNull HuskSync plugin, byte[] data, @Nullable UUID id,
-                                                  @Nullable OffsetDateTime timestamp) throws IllegalStateException {
+                                                  @Nullable OffsetDateTime timestamp) {
         final DataSnapshot.Packed snapshot = plugin.getDataAdapter().fromBytes(data, DataSnapshot.Packed.class);
         if (snapshot.getMinecraftVersion().compareTo(plugin.getMinecraftVersion()) > 0) {
-            throw new IllegalStateException(String.format("Cannot set data for user because the Minecraft version of " +
-                            "their user data (%s) is newer than the server's Minecraft version (%s)." +
-                            "Please ensure each server is running the same version of Minecraft.",
-                    snapshot.getMinecraftVersion(), plugin.getMinecraftVersion()));
+            return snapshot.invalid(DataException.Reason.INVALID_MINECRAFT_VERSION);
         }
         if (snapshot.getFormatVersion() > CURRENT_FORMAT_VERSION) {
-            throw new IllegalStateException(String.format("Cannot set data for user because the format version of " +
-                            "their user data (%s) is newer than the current format version (%s). " +
-                            "Please ensure each server is running the latest version of HuskSync.",
-                    snapshot.getFormatVersion(), CURRENT_FORMAT_VERSION));
+            return snapshot.invalid(DataException.Reason.INVALID_FORMAT_VERSION);
         }
         if (snapshot.getFormatVersion() < 4) {
             if (plugin.getLegacyConverter().isPresent()) {
                 return plugin.getLegacyConverter().get().convert(
-                        data,
-                        Objects.requireNonNull(id, "Attempted legacy conversion with null UUID!"),
+                        data, Objects.requireNonNull(id, "Attempted legacy conversion with null UUID!"),
                         Objects.requireNonNull(timestamp, "Attempted legacy conversion with null timestamp!")
                 );
             }
-            throw new IllegalStateException(String.format(
-                    "No legacy converter to convert format version: %s", snapshot.getFormatVersion()
-            ));
+            return snapshot.invalid(DataException.Reason.NO_LEGACY_CONVERTER);
         }
         if (!snapshot.getPlatformType().equalsIgnoreCase(plugin.getPlatformType())) {
-            throw new IllegalStateException(String.format("Cannot set data for user because the platform type of " +
-                            "their user data (%s) is different to the server platform type (%s). " +
-                            "Please ensure each server is running the same platform type.",
-                    snapshot.getPlatformType(), plugin.getPlatformType()));
+            return snapshot.invalid(DataException.Reason.INVALID_PLATFORM_TYPE);
         }
         return snapshot;
     }
@@ -158,6 +152,17 @@ public class DataSnapshot {
     @NotNull
     public UUID getId() {
         return id;
+    }
+
+    /**
+     * <b>Internal use only</b> Set the ID of the snapshot
+     *
+     * @param id The snapshot ID
+     * @since 3.0
+     */
+    @ApiStatus.Internal
+    public void setId(@NotNull UUID id) {
+        this.id = id;
     }
 
     /**
@@ -282,6 +287,32 @@ public class DataSnapshot {
             super(id, pinned, timestamp, saveCause, serverName, data, minecraftVersion, platformType, formatVersion);
         }
 
+        @NotNull
+        @ApiStatus.Internal
+        DataSnapshot.Packed invalid(@NotNull DataException.Reason reason) {
+            this.exception = reason;
+            return this;
+        }
+
+        public boolean isInvalid() {
+            return exception != null;
+        }
+
+        @NotNull
+        public String getInvalidReason(@NotNull HuskSync plugin) {
+            if (exception == null) {
+                throw new IllegalStateException("Attempted to get an invalid reason for a valid snapshot!");
+            }
+            return exception.getMessage(plugin, this);
+        }
+
+        @ApiStatus.Internal
+        void validate(@NotNull HuskSync plugin) throws DataException {
+            if (exception != null) {
+                throw exception.toException(this, plugin);
+            }
+        }
+
         @ApiStatus.Internal
         public void edit(@NotNull HuskSync plugin, @NotNull Consumer<Unpacked> editor) {
             final Unpacked data = unpack(plugin);
@@ -321,7 +352,8 @@ public class DataSnapshot {
         }
 
         @NotNull
-        public DataSnapshot.Unpacked unpack(@NotNull HuskSync plugin) {
+        public DataSnapshot.Unpacked unpack(@NotNull HuskSync plugin) throws DataException {
+            this.validate(plugin);
             return new Unpacked(
                     id, pinned, timestamp, saveCause, serverName, data,
                     getMinecraftVersion(), platformType, formatVersion, plugin
@@ -338,7 +370,7 @@ public class DataSnapshot {
     public static class Unpacked extends DataSnapshot implements DataHolder {
 
         @Expose(serialize = false, deserialize = false)
-        private final Map<Identifier, Data> deserialized;
+        private final TreeMap<Identifier, Data> deserialized;
 
         private Unpacked(@NotNull UUID id, boolean pinned, @NotNull OffsetDateTime timestamp,
                          @NotNull String saveCause, @NotNull String serverName, @NotNull Map<String, String> data,
@@ -349,7 +381,7 @@ public class DataSnapshot {
         }
 
         private Unpacked(@NotNull UUID id, boolean pinned, @NotNull OffsetDateTime timestamp,
-                         @NotNull String saveCause, @NotNull String serverName, @NotNull Map<Identifier, Data> data,
+                         @NotNull String saveCause, @NotNull String serverName, @NotNull TreeMap<Identifier, Data> data,
                          @NotNull Version minecraftVersion, @NotNull String platformType, int formatVersion) {
             super(id, pinned, timestamp, saveCause, serverName, Map.of(), minecraftVersion, platformType, formatVersion);
             this.deserialized = data;
@@ -357,25 +389,25 @@ public class DataSnapshot {
 
         @NotNull
         @ApiStatus.Internal
-        private Map<Identifier, Data> deserializeData(@NotNull HuskSync plugin) {
+        private TreeMap<Identifier, Data> deserializeData(@NotNull HuskSync plugin) {
             return data.entrySet().stream()
-                    .map((entry) -> plugin.getIdentifier(entry.getKey()).map(id -> Map.entry(
-                            id, plugin.getSerializers().get(id).deserialize(entry.getValue())
-                    )).orElse(null))
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+                    .filter(e -> plugin.getIdentifier(e.getKey()).isPresent())
+                    .map(entry -> Map.entry(plugin.getIdentifier(entry.getKey()).orElseThrow(), entry.getValue()))
+                    .collect(Collectors.toMap(
+                            Map.Entry::getKey,
+                            entry -> plugin.deserializeData(entry.getKey(), entry.getValue()),
+                            (a, b) -> b, () -> Maps.newTreeMap(SerializerRegistry.DEPENDENCY_ORDER_COMPARATOR)
+                    ));
         }
 
         @NotNull
         @ApiStatus.Internal
         private Map<String, String> serializeData(@NotNull HuskSync plugin) {
             return deserialized.entrySet().stream()
-                    .map((entry) -> Map.entry(entry.getKey().toString(),
-                            Objects.requireNonNull(
-                                    plugin.getSerializers().get(entry.getKey()),
-                                    String.format("No serializer found for %s", entry.getKey())
-                            ).serialize(entry.getValue())))
-                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+                    .collect(Collectors.toMap(
+                            entry -> entry.getKey().toString(),
+                            entry -> plugin.serializeData(entry.getKey(), entry.getValue())
+                    ));
         }
 
         /**
@@ -421,12 +453,12 @@ public class DataSnapshot {
         private String serverName;
         private boolean pinned;
         private OffsetDateTime timestamp;
-        private final Map<Identifier, Data> data;
+        private final TreeMap<Identifier, Data> data;
 
         private Builder(@NotNull HuskSync plugin) {
             this.plugin = plugin;
             this.pinned = false;
-            this.data = Maps.newHashMap();
+            this.data = Maps.newTreeMap(SerializerRegistry.DEPENDENCY_ORDER_COMPARATOR);
             this.timestamp = OffsetDateTime.now();
             this.id = UUID.randomUUID();
             this.serverName = plugin.getServerName();
@@ -659,6 +691,21 @@ public class DataSnapshot {
         }
 
         /**
+         * Set the attributes of the snapshot
+         * <p>
+         * Equivalent to {@code data(Identifier.ATTRIBUTES, attributes)}
+         * </p>
+         *
+         * @param attributes The user's attributes
+         * @return The builder
+         * @since 3.5
+         */
+        @NotNull
+        public Builder attributes(@NotNull Data.Attributes attributes) {
+            return data(Identifier.ATTRIBUTES, attributes);
+        }
+
+        /**
          * Set the experience of the snapshot
          * <p>
          * Equivalent to {@code data(Identifier.EXPERIENCE, experience)}
@@ -686,6 +733,21 @@ public class DataSnapshot {
         @NotNull
         public Builder gameMode(@NotNull Data.GameMode gameMode) {
             return data(Identifier.GAME_MODE, gameMode);
+        }
+
+        /**
+         * Set the flight status of the snapshot
+         * <p>
+         * Equivalent to {@code data(Identifier.FLIGHT_STATUS, flightStatus)}
+         * </p>
+         *
+         * @param flightStatus The flight status
+         * @return The builder
+         * @since 3.5
+         */
+        @NotNull
+        public Builder flightStatus(@NotNull Data.FlightStatus flightStatus) {
+            return data(Identifier.FLIGHT_STATUS, flightStatus);
         }
 
         /**
@@ -795,7 +857,7 @@ public class DataSnapshot {
          *
          * @since 2.0
          */
-        public static final SaveCause SERVER_SHUTDOWN = of("SERVER_SHUTDOWN");
+        public static final SaveCause SERVER_SHUTDOWN = of("SERVER_SHUTDOWN", false);
 
         /**
          * Indicates data was saved by editing inventory contents via the {@code /inventory} command
@@ -830,24 +892,26 @@ public class DataSnapshot {
          *
          * @since 2.0
          */
-        public static final SaveCause MPDB_MIGRATION = of("MPDB_MIGRATION");
+        public static final SaveCause MPDB_MIGRATION = of("MPDB_MIGRATION", false);
 
         /**
          * Indicates data was saved from being imported from a legacy version (v1.x -> v2.x)
          *
          * @since 2.0
          */
-        public static final SaveCause LEGACY_MIGRATION = of("LEGACY_MIGRATION");
+        public static final SaveCause LEGACY_MIGRATION = of("LEGACY_MIGRATION", false);
 
         /**
          * Indicates data was saved from being imported from a legacy version (v2.x -> v3.x)
          *
          * @since 3.0
          */
-        public static final SaveCause CONVERTED_FROM_V2 = of("CONVERTED_FROM_V2");
+        public static final SaveCause CONVERTED_FROM_V2 = of("CONVERTED_FROM_V2", false);
 
         @NotNull
         private final String name;
+
+        private final boolean fireDataSaveEvent;
 
         /**
          * Get or create a {@link SaveCause} from a name
@@ -857,13 +921,25 @@ public class DataSnapshot {
          */
         @NotNull
         public static SaveCause of(@NotNull String name) {
-            return new SaveCause(name.length() > 32 ? name.substring(0, 31) : name);
+            return new SaveCause(name.length() > 32 ? name.substring(0, 31) : name, true);
+        }
+
+        /**
+         * Get or create a {@link SaveCause} from a name and whether it should fire a save event
+         *
+         * @param name           the name to be displayed
+         * @param firesSaveEvent whether the cause should fire a save event
+         * @return the cause
+         */
+        @NotNull
+        public static SaveCause of(@NotNull String name, boolean firesSaveEvent) {
+            return new SaveCause(name.length() > 32 ? name.substring(0, 31) : name, firesSaveEvent);
         }
 
         @NotNull
         public String getLocale(@NotNull HuskSync plugin) {
             return plugin.getLocales()
-                    .getRawLocale("save_cause_" + name().toLowerCase(Locale.ENGLISH))
+                    .getRawLocale("save_cause_%s".formatted(name().toLowerCase(Locale.ENGLISH)))
                     .orElse(getDisplayName());
         }
 

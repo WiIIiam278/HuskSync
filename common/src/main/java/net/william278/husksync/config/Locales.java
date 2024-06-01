@@ -57,7 +57,7 @@ public class Locales {
     Map<String, String> locales = Maps.newTreeMap();
 
     /**
-     * Returns a raw, un-formatted locale loaded from the locales file
+     * Returns a raw, unformatted locale loaded from the locale file
      *
      * @param localeId String identifier of the locale, corresponding to a key in the file
      * @return An {@link Optional} containing the locale corresponding to the id, if it exists
@@ -152,7 +152,7 @@ public class Locales {
 
             value.append(c);
         }
-        return value.toString().replace("__", "_\\_");
+        return value.toString();
     }
 
     /**

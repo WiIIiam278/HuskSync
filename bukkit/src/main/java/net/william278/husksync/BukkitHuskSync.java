@@ -38,10 +38,7 @@ import net.william278.husksync.command.BukkitCommand;
 import net.william278.husksync.config.Locales;
 import net.william278.husksync.config.Server;
 import net.william278.husksync.config.Settings;
-import net.william278.husksync.data.BukkitSerializer;
-import net.william278.husksync.data.Data;
-import net.william278.husksync.data.Identifier;
-import net.william278.husksync.data.Serializer;
+import net.william278.husksync.data.*;
 import net.william278.husksync.database.Database;
 import net.william278.husksync.database.MongoDbDatabase;
 import net.william278.husksync.database.MySqlDatabase;
@@ -49,7 +46,6 @@ import net.william278.husksync.database.PostgresDatabase;
 import net.william278.husksync.event.BukkitEventDispatcher;
 import net.william278.husksync.hook.PlanHook;
 import net.william278.husksync.listener.BukkitEventListener;
-import net.william278.husksync.listener.EventListener;
 import net.william278.husksync.migrator.LegacyMigrator;
 import net.william278.husksync.migrator.Migrator;
 import net.william278.husksync.migrator.MpdbMigrator;
@@ -69,6 +65,7 @@ import org.jetbrains.annotations.NotNull;
 import space.arim.morepaperlib.MorePaperLib;
 import space.arim.morepaperlib.commands.CommandRegistration;
 import space.arim.morepaperlib.scheduling.AsynchronousScheduler;
+import space.arim.morepaperlib.scheduling.AttachedScheduler;
 import space.arim.morepaperlib.scheduling.GracefulScheduling;
 import space.arim.morepaperlib.scheduling.RegionalScheduler;
 
@@ -88,7 +85,9 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
     private static final int METRICS_ID = 13140;
     private static final String PLATFORM_TYPE_ID = "bukkit";
 
-    private final Map<Identifier, Serializer<? extends Data>> serializers = Maps.newLinkedHashMap();
+    private final TreeMap<Identifier, Serializer<? extends Data>> serializers = Maps.newTreeMap(
+            SerializerRegistry.DEPENDENCY_ORDER_COMPARATOR
+    );
     private final Map<UUID, Map<Identifier, Data>> playerCustomDataStore = Maps.newConcurrentMap();
     private final Map<Integer, MapView> mapViews = Maps.newConcurrentMap();
     private final List<Migrator> availableMigrators = Lists.newArrayList();
@@ -100,7 +99,7 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
     private MorePaperLib paperLib;
     private Database database;
     private RedisManager redisManager;
-    private EventListener eventListener;
+    private BukkitEventListener eventListener;
     private DataAdapter dataAdapter;
     private DataSyncer dataSyncer;
     private LegacyConverter legacyConverter;
@@ -115,11 +114,10 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
     private Server serverName;
 
     @Override
-    public void onEnable() {
+    public void onLoad() {
         // Initial plugin setup
         this.disabling = false;
         this.gson = createGson();
-        this.audiences = BukkitAudiences.create(this);
         this.paperLib = new MorePaperLib(this);
 
         // Load settings and locales
@@ -129,6 +127,13 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
             loadServer();
         });
 
+        this.eventListener = createEventListener();
+        eventListener.onLoad();
+    }
+
+    @Override
+    public void onEnable() {
+        this.audiences = BukkitAudiences.create(this);
         // Prepare data adapter
         initialize("data adapter", (plugin) -> {
             if (settings.getSynchronization().isCompressData()) {
@@ -140,17 +145,20 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
 
         // Prepare serializers
         initialize("data serializers", (plugin) -> {
+            registerSerializer(Identifier.PERSISTENT_DATA, new BukkitSerializer.PersistentData(this));
             registerSerializer(Identifier.INVENTORY, new BukkitSerializer.Inventory(this));
             registerSerializer(Identifier.ENDER_CHEST, new BukkitSerializer.EnderChest(this));
             registerSerializer(Identifier.ADVANCEMENTS, new BukkitSerializer.Advancements(this));
-            registerSerializer(Identifier.LOCATION, new BukkitSerializer.Location(this));
-            registerSerializer(Identifier.HEALTH, new BukkitSerializer.Health(this));
-            registerSerializer(Identifier.HUNGER, new BukkitSerializer.Hunger(this));
-            registerSerializer(Identifier.GAME_MODE, new BukkitSerializer.GameMode(this));
+            registerSerializer(Identifier.STATISTICS, new BukkitSerializer.Json<>(this, BukkitData.Statistics.class));
             registerSerializer(Identifier.POTION_EFFECTS, new BukkitSerializer.PotionEffects(this));
-            registerSerializer(Identifier.STATISTICS, new BukkitSerializer.Statistics(this));
-            registerSerializer(Identifier.EXPERIENCE, new BukkitSerializer.Experience(this));
-            registerSerializer(Identifier.PERSISTENT_DATA, new BukkitSerializer.PersistentData(this));
+            registerSerializer(Identifier.GAME_MODE, new BukkitSerializer.Json<>(this, BukkitData.GameMode.class));
+            registerSerializer(Identifier.FLIGHT_STATUS, new BukkitSerializer.Json<>(this, BukkitData.FlightStatus.class));
+            registerSerializer(Identifier.ATTRIBUTES, new BukkitSerializer.Json<>(this, BukkitData.Attributes.class));
+            registerSerializer(Identifier.HEALTH, new BukkitSerializer.Json<>(this, BukkitData.Health.class));
+            registerSerializer(Identifier.HUNGER, new BukkitSerializer.Json<>(this, BukkitData.Hunger.class));
+            registerSerializer(Identifier.EXPERIENCE, new BukkitSerializer.Json<>(this, BukkitData.Experience.class));
+            registerSerializer(Identifier.LOCATION, new BukkitSerializer.Json<>(this, BukkitData.Location.class));
+            validateDependencies();
         });
 
         // Setup available migrators
@@ -168,7 +176,6 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
                 case MYSQL, MARIADB -> new MySqlDatabase(this);
                 case POSTGRES -> new PostgresDatabase(this);
                 case MONGO -> new MongoDbDatabase(this);
-                default -> throw new IllegalStateException("Invalid database type");
             };
             this.database.initialize();
         });
@@ -186,7 +193,7 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
         });
 
         // Register events
-        initialize("events", (plugin) -> this.eventListener = createEventListener());
+        initialize("events", (plugin) -> eventListener.onEnable());
 
         // Register commands
         initialize("commands", (plugin) -> BukkitCommand.Type.registerCommands(this));
@@ -285,7 +292,7 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
         try {
             new Metrics(this, metricsId);
         } catch (Throwable e) {
-            log(Level.WARNING, "Failed to register bStats metrics (" + e.getMessage() + ")");
+            log(Level.WARNING, "Failed to register bStats metrics (%s)".formatted(e.getMessage()));
         }
     }
 
@@ -333,9 +340,14 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
     }
 
     @NotNull
-    public RegionalScheduler getRegionalScheduler() {
+    public RegionalScheduler getSyncScheduler() {
         return regionalScheduler == null
                 ? regionalScheduler = getScheduler().globalRegionalScheduler() : regionalScheduler;
+    }
+
+    @NotNull
+    public AttachedScheduler getUserSyncScheduler(@NotNull UserDataHolder user) {
+        return getScheduler().entitySpecificScheduler(((BukkitUser) user).getPlayer());
     }
 
     @NotNull

@@ -28,6 +28,7 @@ import net.william278.husksync.user.User;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -61,7 +62,8 @@ public class DataSnapshotOverview {
                         dataOwner.getUsername(), dataOwner.getUuid().toString())
                 .ifPresent(user::sendMessage);
         locales.getLocale("data_manager_timestamp",
-                        snapshot.getTimestamp().format(DateTimeFormatter.ofPattern("MMM dd yyyy, HH:mm:ss.SSS")),
+                        snapshot.getTimestamp().format(DateTimeFormatter
+                                .ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.SHORT)),
                         snapshot.getTimestamp().toString())
                 .ifPresent(user::sendMessage);
         if (snapshot.isPinned()) {
@@ -75,16 +77,17 @@ public class DataSnapshotOverview {
 
         // User status data, if present in the snapshot
         final Optional<Data.Health> health = snapshot.getHealth();
+        final Optional<Data.Attributes> attributes = snapshot.getAttributes();
         final Optional<Data.Hunger> food = snapshot.getHunger();
-        final Optional<Data.Experience> experience = snapshot.getExperience();
-        final Optional<Data.GameMode> gameMode = snapshot.getGameMode();
-        if (health.isPresent() && food.isPresent() && experience.isPresent() && gameMode.isPresent()) {
+        final Optional<Data.Experience> exp = snapshot.getExperience();
+        final Optional<Data.GameMode> mode = snapshot.getGameMode();
+        if (health.isPresent() && attributes.isPresent() && food.isPresent() && exp.isPresent() && mode.isPresent()) {
             locales.getLocale("data_manager_status",
                             Integer.toString((int) health.get().getHealth()),
-                            Integer.toString((int) health.get().getMaxHealth()),
+                            Integer.toString((int) attributes.get().getMaxHealth()),
                             Integer.toString(food.get().getFoodLevel()),
-                            Integer.toString(experience.get().getExpLevel()),
-                            gameMode.get().getGameMode().toLowerCase(Locale.ENGLISH))
+                            Integer.toString(exp.get().getExpLevel()),
+                            mode.get().getGameMode().toLowerCase(Locale.ENGLISH))
                     .ifPresent(user::sendMessage);
         }
 

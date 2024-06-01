@@ -85,7 +85,8 @@ public class HuskSyncCommand extends Command implements TabProvider {
                         AboutMenu.Credit.of("xF3d3").description("Italian (it-it)"),
                         AboutMenu.Credit.of("cada3141").description("Korean (ko-kr)"),
                         AboutMenu.Credit.of("Wirayuda5620").description("Indonesian (id-id)"),
-                        AboutMenu.Credit.of("WinTone01").description("Turkish (tr-tr)"))
+                        AboutMenu.Credit.of("WinTone01").description("Turkish (tr-tr)"),
+                        AboutMenu.Credit.of("IbanEtchep").description("French (fr-fr)"))
                 .buttons(
                         AboutMenu.Link.of("https://william278.net/docs/husksync").text("Documentation").icon("⛏"),
                         AboutMenu.Link.of("https://github.com/WiIIiam278/HuskSync/issues").text("Issues").icon("❌").color(TextColor.color(0xff9f0f)),
@@ -240,13 +241,19 @@ public class HuskSyncCommand extends Command implements TabProvider {
         )),
         DATA_TYPES(plugin -> Component.join(
                 JoinConfiguration.commas(true),
-                plugin.getRegisteredDataTypes().stream().map(i -> {
-                    boolean enabled = plugin.getSettings().getSynchronization().isFeatureEnabled(i);
-                    return Component.textOfChildren(Component
-                                    .text(i.toString()).appendSpace().append(Component.text(enabled ? '✔' : '❌')))
-                            .color(enabled ? NamedTextColor.GREEN : NamedTextColor.RED)
-                            .hoverEvent(HoverEvent.showText(Component.text(enabled ? "Enabled" : "Disabled")));
-                }).toList()
+                plugin.getRegisteredDataTypes().stream().map(i -> Component.textOfChildren(Component.text(i.toString())
+                                .appendSpace().append(Component.text(i.isEnabled() ? '✔' : '❌')))
+                        .color(i.isEnabled() ? NamedTextColor.GREEN : NamedTextColor.RED)
+                        .hoverEvent(HoverEvent.showText(
+                                Component.text(i.isEnabled() ? "Enabled" : "Disabled")
+                                        .append(Component.newline())
+                                        .append(Component.text("Dependencies: %s".formatted(i.getDependencies()
+                                                .isEmpty() ? "(None)" : i.getDependencies().stream()
+                                                .map(d -> "%s (%s)".formatted(
+                                                        d.getKey().value(), d.isRequired() ? "Required" : "Optional"
+                                                )).collect(Collectors.joining(", ")))
+                                        ).color(NamedTextColor.GRAY))
+                        ))).toList()
         ));
 
         private final Function<HuskSync, Component> supplier;
