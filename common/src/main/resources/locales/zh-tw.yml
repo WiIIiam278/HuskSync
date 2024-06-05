@@ -57,7 +57,7 @@ locales:
   error_no_permission: '[錯誤:](#ff3300) [您沒有權限執行這個指令](#ff7e5e)'
   error_console_command_only: '[錯誤:](#ff3300) [該指令只能透過 控制台 執行](#ff7e5e)'
   error_in_game_command_only: '[錯誤:](#ff3300) [該指令只能在遊戲內執行](#ff7e5e)'
-  error_no_data_to_display: '[錯誤:](#ff3300) [找不到任何可顯示的用戶資訊.](#ff7e5e)'
+  error_no_data_to_display: '[錯誤:](#ff3300) [找不到任何可顯示的用戶資料.](#ff7e5e)'
   error_invalid_version_uuid: '[錯誤:](#ff3300) [找不到正確的 Version UUID.](#ff7e5e)'
   husksync_command_description: '管理 HuskSync 插件'
   userdata_command_description: '查看、管理和還原玩家資料'
