@@ -153,6 +153,15 @@ public interface BukkitUserDataHolder extends UserDataHolder {
     @NotNull
     Player getPlayer();
 
+    /**
+     * @deprecated Use {@link #getPlayer()} instead
+     */
+    @Deprecated(since = "3.6")
+    @NotNull
+    default Player getBukkitPlayer() {
+        return getPlayer();
+    }
+
     @NotNull
     default BukkitMapPersister getMapPersister() {
         return (BukkitHuskSync) getPlugin();

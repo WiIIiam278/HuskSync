@@ -132,18 +132,6 @@ public class BukkitUser extends OnlineUser implements BukkitUserDataHolder {
         return player;
     }
 
-    /**
-     * Get the Bukkit {@link Player} instance of this user
-     *
-     * @return the {@link Player} instance
-     * @deprecated Use {@link #getPlayer()} instead
-     */
-    @NotNull
-    @Deprecated(since = "3.6")
-    public Player getBukkitPlayer() {
-        return player;
-    }
-
     @NotNull
     @Override
     @ApiStatus.Internal
