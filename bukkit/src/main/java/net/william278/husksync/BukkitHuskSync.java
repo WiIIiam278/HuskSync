@@ -60,6 +60,7 @@ import net.william278.husksync.util.LegacyConverter;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.entity.Player;
 import org.bukkit.map.MapView;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import space.arim.morepaperlib.MorePaperLib;
@@ -280,7 +281,8 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
 
     @Override
     public boolean isDependencyLoaded(@NotNull String name) {
-        return getServer().getPluginManager().getPlugin(name) != null;
+        final Plugin plugin = getServer().getPluginManager().getPlugin(name);
+        return plugin != null && plugin.isEnabled();
     }
 
     // Register bStats metrics

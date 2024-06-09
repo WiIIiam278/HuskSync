@@ -93,7 +93,7 @@ public class LoginParticleData extends BukkitData implements Adaptable {
 public class LoginParticleSerializer extends BukkitSerializer.Json<LoginParticleData> implements Serializer<LoginParticleData> {
     
     // We need to create a constructor that takes our instance of the API
-    public GameMode(@NotNull HuskSyncAPI api) {
+    public LoginParticleSerializer(@NotNull HuskSyncAPI api) {
         super(api, LoginParticleData.class); // We pass the class type here so that Gson knows what class we're serializing
     }
 
@@ -148,7 +148,7 @@ LoginParticleData loginParticleData = (LoginParticleData) huskSyncAPI.getUser(pl
 ```
 
 ### 4.1 Persisting custom data on the DataSaveEvent
-Add an EventListener to the `DataSaveEvent` and use the `#editData` consumer method to apply custom data during standard DataSaves. This will persist data to users any time the data save routine executes (on user logout, server shutdownm, world save, etc).
+Add an EventListener to the `DataSaveEvent` and use the `#editData` consumer method to apply custom data during standard DataSaves. This will persist data to users any time the data save routine executes (on user logout, server shutdown, world save, etc.)
 
 ```java
 @EventHandler
