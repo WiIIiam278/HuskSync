@@ -213,7 +213,7 @@ public abstract class FabricData implements Data {
 
         public static class ItemArray extends FabricData.Items implements Data.Items {
 
-            private ItemArray(@NotNull ItemStack[] contents) {
+            private ItemArray(@Nullable ItemStack @NotNull [] contents) {
                 super(contents);
             }
 
@@ -223,7 +223,7 @@ public abstract class FabricData implements Data {
             }
 
             @NotNull
-            public static ItemArray adapt(@NotNull ItemStack[] drops) {
+            public static ItemArray adapt(@Nullable ItemStack @NotNull [] drops) {
                 return new ItemArray(drops);
             }
 

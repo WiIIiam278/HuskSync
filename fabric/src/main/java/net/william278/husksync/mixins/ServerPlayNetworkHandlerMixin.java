@@ -43,6 +43,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class ServerPlayNetworkHandlerMixin {
     @Shadow
     public ServerPlayerEntity player;
+
     @Shadow
     public abstract void sendPacket(Packet<?> packet);
 
@@ -75,7 +76,7 @@ public abstract class ServerPlayNetworkHandlerMixin {
 
         if (result == ActionResult.FAIL) {
             ci.cancel();
-            this.sendPacket( new ScreenHandlerSlotUpdateS2CPacket(-2, 1, slot, stack));
+            this.sendPacket(new ScreenHandlerSlotUpdateS2CPacket(-2, 1, slot, stack));
             this.sendPacket(new ScreenHandlerSlotUpdateS2CPacket(-1, 1, -1, ItemStack.EMPTY));
         }
     }
@@ -90,7 +91,7 @@ public abstract class ServerPlayNetworkHandlerMixin {
 
         if (result == ActionResult.FAIL) {
             ci.cancel();
-            this.sendPacket( new ScreenHandlerSlotUpdateS2CPacket(-2, 1, slot, stack));
+            this.sendPacket(new ScreenHandlerSlotUpdateS2CPacket(-2, 1, slot, stack));
             this.sendPacket(new ScreenHandlerSlotUpdateS2CPacket(-1, 1, -1, ItemStack.EMPTY));
         }
     }

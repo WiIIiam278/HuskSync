@@ -32,10 +32,12 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayNetworkHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.TypedActionResult;
@@ -44,12 +46,16 @@ import net.minecraft.util.hit.EntityHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.william278.husksync.HuskSync;
-import net.william278.husksync.event.InventoryClickCallback;
-import net.william278.husksync.event.ItemDropCallback;
-import net.william278.husksync.event.ItemPickupCallback;
-import net.william278.husksync.event.PlayerCommandCallback;
+import net.william278.husksync.data.FabricData;
+import net.william278.husksync.event.*;
+import net.william278.husksync.mixins.ServerWorldMixin;
 import net.william278.husksync.user.FabricUser;
+import net.william278.husksync.user.OnlineUser;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class FabricEventListener extends EventListener implements LockedHandler {
 
@@ -61,9 +67,8 @@ public class FabricEventListener extends EventListener implements LockedHandler 
     public void registerEvents() {
         ServerPlayConnectionEvents.JOIN.register(this::handlePlayerJoin);
         ServerPlayConnectionEvents.DISCONNECT.register(this::handlePlayerQuit);
-
-        // todo player death event mixin exposing death drops
-        // todo world save mixin
+        WorldSaveCallback.EVENT.register(this::handleWorldSave);
+        PlayerDeathDropsCallback.EVENT.register(this::handlePlayerDeathDrops);
 
         // TODO: Events of extra things to cancel if the player has not been set yet
         ItemPickupCallback.EVENT.register(this::handleItemPickup);
@@ -84,6 +89,15 @@ public class FabricEventListener extends EventListener implements LockedHandler 
 
     private void handlePlayerQuit(@NotNull ServerPlayNetworkHandler handler, @NotNull MinecraftServer server) {
         handlePlayerQuit(FabricUser.adapt(handler.player, plugin));
+    }
+
+    private void handleWorldSave(@NotNull ServerWorld world) {
+        saveOnWorldSave(world.getPlayers().stream()
+                .map(player -> (OnlineUser) FabricUser.adapt(player, plugin)).collect(Collectors.toList()));
+    }
+
+    private void handlePlayerDeathDrops(@NotNull ServerPlayerEntity player, @Nullable ItemStack @NotNull [] toKeep) {
+        saveOnPlayerDeath(FabricUser.adapt(player, plugin), FabricData.Items.ItemArray.adapt(toKeep));
     }
 
     private ActionResult handleItemPickup(PlayerEntity player, ItemStack itemStack) {

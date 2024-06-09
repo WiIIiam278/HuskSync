@@ -6,12 +6,12 @@
   "server": [
     "ItemEntityMixin",
     "ServerPlayerEntityMixin",
-    "ServerPlayNetworkHandlerMixin"
+    "PlayerEntityMixin",
+    "ServerPlayNetworkHandlerMixin",
+    "ServerWorldMixin"
   ],
   "client": [],
   "injectors": {
     "defaultRequire": 1
-  },
-  "mixins": [
-  ]
+  }
 }
