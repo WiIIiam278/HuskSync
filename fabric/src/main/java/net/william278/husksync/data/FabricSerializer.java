@@ -23,7 +23,6 @@ import com.google.gson.reflect.TypeToken;
 import com.mojang.brigadier.StringReader;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
@@ -90,7 +89,9 @@ public abstract class FabricSerializer {
         public String serialize(@NotNull FabricData.Items.Inventory data) throws SerializationException {
             final NbtCompound root = new NbtCompound();
             final NbtList items = new NbtList();
-            Arrays.stream(data.getContents()).forEach(item -> items.add(item.writeNbt(new NbtCompound())));
+            Arrays.stream(data.getContents()).forEach(item -> items.add(
+                    (item == null ? ItemStack.EMPTY : item).writeNbt(new NbtCompound())
+            ));
             root.put(ITEMS_TAG, items);
             root.putInt(HELD_ITEM_SLOT_TAG, data.getHeldItemSlot());
             return root.toString();
@@ -123,7 +124,9 @@ public abstract class FabricSerializer {
         @Override
         public String serialize(@NotNull FabricData.Items.EnderChest data) throws SerializationException {
             final NbtList items = new NbtList();
-            Arrays.stream(data.getContents()).forEach(item -> items.add(item.writeNbt(new NbtCompound())));
+            Arrays.stream(data.getContents()).forEach(item -> items.add(
+                    (item == null ? ItemStack.EMPTY : item).writeNbt(new NbtCompound())
+            ));
             return items.toString();
         }
     }

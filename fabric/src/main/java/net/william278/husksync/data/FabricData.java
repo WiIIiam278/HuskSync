@@ -499,7 +499,7 @@ public abstract class FabricData implements Data {
                     @SuppressWarnings({"unchecked", "rawtypes"}) final int value = player.getStatHandler()
                             .getStat((StatType) stat.getValue(), entry.getValue());
                     if (value != 0) {
-                        map.put(entry.getKey().key().asString(), value);
+                        map.put(entry.getKey().getValue().asString(), value);
                     }
                 });
             });
@@ -509,7 +509,7 @@ public abstract class FabricData implements Data {
             Registries.CUSTOM_STAT.getEntrySet().forEach(stat -> {
                 final int value = player.getStatHandler().getStat(Stats.CUSTOM.getOrCreateStat(stat.getValue()));
                 if (value != 0) {
-                    generic.put(stat.getKey().key().asString(), value);
+                    generic.put(stat.getKey().getValue().asString(), value);
                 }
             });
 

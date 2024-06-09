@@ -56,7 +56,7 @@ public class FabricUser extends OnlineUser implements FabricUserDataHolder {
     @NotNull
     @Override
     public Audience getAudience() {
-        return ((FabricHuskSync) plugin).getAudiences().player(player.getUuid());
+        return plugin.getAudiences().player(player.getUuid());
     }
 
     @Override

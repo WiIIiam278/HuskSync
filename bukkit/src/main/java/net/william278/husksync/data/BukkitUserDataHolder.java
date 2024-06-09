@@ -121,7 +121,7 @@ public interface BukkitUserDataHolder extends UserDataHolder {
     @NotNull
     @Override
     default Optional<Data.Attributes> getAttributes() {
-        return Optional.of(BukkitData.Attributes.adapt(getBukkitPlayer(), getPlugin()));
+        return Optional.of(BukkitData.Attributes.adapt(getPlayer(), getPlugin()));
     }
 
     @NotNull
@@ -139,7 +139,7 @@ public interface BukkitUserDataHolder extends UserDataHolder {
     @NotNull
     @Override
     default Optional<Data.FlightStatus> getFlightStatus() {
-        return Optional.of(BukkitData.FlightStatus.adapt(getBukkitPlayer()));
+        return Optional.of(BukkitData.FlightStatus.adapt(getPlayer()));
     }
 
     @NotNull

@@ -30,7 +30,6 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import net.william278.desertwell.util.Version;
 import net.william278.husksync.HuskSync;
-import net.william278.husksync.adapter.Adaptable;
 import net.william278.husksync.api.HuskSyncAPI;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
@@ -233,28 +232,6 @@ public class BukkitSerializer {
         @Override
         public String serialize(@NotNull BukkitData.PersistentData element) throws SerializationException {
             return element.getPersistentData().toString();
-        }
-
-    }
-
-    public static class Json<T extends Data & Adaptable> extends BukkitSerializer implements Serializer<T> {
-
-        private final Class<T> type;
-
-        public Json(@NotNull HuskSync plugin, Class<T> type) {
-            super(plugin);
-            this.type = type;
-        }
-
-        @Override
-        public T deserialize(@NotNull String serialized) throws DeserializationException {
-            return plugin.getDataAdapter().fromJson(serialized, type);
-        }
-
-        @NotNull
-        @Override
-        public String serialize(@NotNull T element) throws SerializationException {
-            return plugin.getDataAdapter().toJson(element);
         }
 
     }

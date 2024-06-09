@@ -13,10 +13,10 @@ dependencies {
     minecraft "com.mojang:minecraft:${fabric_minecraft_version}"
     mappings "net.fabricmc:yarn:${fabric_yarn_mappings}:v2"
     modImplementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
-    modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_api_version}"
-    modImplementation include('de.themoep:minedown-adventure:1.7.1-SNAPSHOT')
+
     modImplementation include("net.kyori:adventure-platform-fabric:${adventure_platform_fabric_version}")
     modImplementation include("me.lucko:fabric-permissions-api:${fabric_permissions_api_version}")
+    modCompileOnly "net.fabricmc.fabric-api:fabric-api:${fabric_api_version}"
 
     // Runtime dependencies on Bukkit; "include" them on Fabric. (todo: minify JAR?)
     implementation include("redis.clients:jedis:$jedis_version")

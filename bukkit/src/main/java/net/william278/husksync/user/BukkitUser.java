@@ -125,7 +125,7 @@ public class BukkitUser extends OnlineUser implements BukkitUserDataHolder {
      * Get the Bukkit {@link Player} instance of this user
      *
      * @return the {@link Player} instance
-     * @since 3.0
+     * @since 3.6
      */
     @NotNull
     public Player getPlayer() {
@@ -139,7 +139,7 @@ public class BukkitUser extends OnlineUser implements BukkitUserDataHolder {
      * @deprecated Use {@link #getPlayer()} instead
      */
     @NotNull
-    @Deprecated(since = "3.1")
+    @Deprecated(since = "3.6")
     public Player getBukkitPlayer() {
         return player;
     }

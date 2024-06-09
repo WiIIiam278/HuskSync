@@ -23,6 +23,7 @@ import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 import java.util.Optional;
@@ -74,19 +75,21 @@ public interface FabricUserDataHolder extends UserDataHolder {
         ));
     }
 
-    private ItemStack[] getCombinedInventory(@NotNull PlayerInventory inventory) {
-        final ItemStack[] combined = new ItemStack[inventory.main.size() + inventory.armor.size() + inventory.offHand.size()];
-        System.arraycopy(inventory.main.toArray(
-                        new ItemStack[0]), 0, combined,
-                0, inventory.main.size()
+    // Gets the player's combined inventory; their inventory, plus offhand and armor.
+    @Nullable
+    private ItemStack @NotNull [] getCombinedInventory(@NotNull PlayerInventory inv) {
+        final ItemStack[] combined = new ItemStack[inv.main.size() + inv.armor.size() + inv.offHand.size()];
+        System.arraycopy(
+                inv.main.toArray(new ItemStack[0]), 0, combined,
+                0, inv.main.size()
         );
         System.arraycopy(
-                inventory.armor.toArray(new ItemStack[0]), 0, combined,
-                inventory.main.size(), inventory.armor.size()
+                inv.armor.toArray(new ItemStack[0]), 0, combined,
+                inv.main.size(), inv.armor.size()
         );
         System.arraycopy(
-                inventory.offHand.toArray(new ItemStack[0]), 0, combined,
-                inventory.main.size() + inventory.armor.size(), inventory.offHand.size()
+                inv.offHand.toArray(new ItemStack[0]), 0, combined,
+                inv.main.size() + inv.armor.size(), inv.offHand.size()
         );
         return combined;
     }
@@ -102,29 +105,25 @@ public interface FabricUserDataHolder extends UserDataHolder {
     @NotNull
     @Override
     default Optional<Data.PotionEffects> getPotionEffects() {
-//        return Optional.of(FabricData.PotionEffects.from(getPlayer().getActiveStatusEffects()));
-        return Optional.empty();
+        return Optional.of(FabricData.PotionEffects.from(getPlayer().getActiveStatusEffects().values()));
     }
 
     @NotNull
     @Override
     default Optional<Data.Advancements> getAdvancements() {
-//        return Optional.of(FabricData.Advancements.adapt(getPlayer()));
-        return Optional.empty();
+        return Optional.of(FabricData.Advancements.adapt(getPlayer()));
     }
 
     @NotNull
     @Override
     default Optional<Data.Location> getLocation() {
-//        return Optional.of(FabricData.Location.adapt(getPlayer()));
-        return Optional.empty();
+        return Optional.of(FabricData.Location.adapt(getPlayer()));
     }
 
     @NotNull
     @Override
     default Optional<Data.Statistics> getStatistics() {
-//        return Optional.of(FabricData.Statistics.adapt(getPlayer()));
-        return Optional.empty();
+        return Optional.of(FabricData.Statistics.adapt(getPlayer()));
     }
 
     @NotNull
@@ -158,7 +157,7 @@ public interface FabricUserDataHolder extends UserDataHolder {
     @NotNull
     @Override
     default Optional<Data.PersistentData> getPersistentData() {
-        return Optional.empty();
+        return Optional.empty(); // Not implemented on Fabric, but maybe we'll do data keys or something
     }
 
     boolean isDead();

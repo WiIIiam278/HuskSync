@@ -151,16 +151,17 @@ public class FabricHuskSync implements DedicatedServerModInitializer, HuskSync, 
 
         // TODO: Prepare serializers
         initialize("data serializers", (plugin) -> {
+            // Persistent data not registered on Fabric
             registerSerializer(Identifier.INVENTORY, new FabricSerializer.Inventory(this));
             registerSerializer(Identifier.ENDER_CHEST, new FabricSerializer.EnderChest(this));
-//            registerSerializer(Identifier.ADVANCEMENTS, new FabricSerializer.Advancements(this));
-//            registerSerializer(Identifier.LOCATION, new FabricSerializer.Location(this));
+            registerSerializer(Identifier.ADVANCEMENTS, new FabricSerializer.Advancements(this));
+            registerSerializer(Identifier.STATISTICS, new Serializer.Json<>(this, FabricData.Statistics.class));
 //            registerSerializer(Identifier.HEALTH, new FabricSerializer.Health(this));
 //            registerSerializer(Identifier.HUNGER, new FabricSerializer.Hunger(this));
 //            registerSerializer(Identifier.GAME_MODE, new FabricSerializer.GameMode(this));
             registerSerializer(Identifier.POTION_EFFECTS, new FabricSerializer.PotionEffects(this));
-//            registerSerializer(Identifier.STATISTICS, new FabricSerializer.Statistics(this));
 //            registerSerializer(Identifier.EXPERIENCE, new FabricSerializer.Experience(this));
+            registerSerializer(Identifier.LOCATION, new Serializer.Json<>(this, FabricData.Location.class));
         });
 
         // Initialize the database
