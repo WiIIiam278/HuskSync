@@ -1,3 +1,5 @@
+> **Warning:** Fabric support is currently in beta and is not production ready yet. Customers can get in touch on Discord to request the Fabric build, or you can self-compile.
+
 This will walk you through installing HuskSync on your network of Spigot or Fabric servers.
 
 ## Requirements
