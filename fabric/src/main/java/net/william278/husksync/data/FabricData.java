@@ -464,6 +464,10 @@ public abstract class FabricData implements Data {
     @NoArgsConstructor(access = AccessLevel.PRIVATE)
     public static class Statistics extends FabricData implements Data.Statistics, Adaptable {
 
+        private static final String BLOCK_STAT_TYPE = "block";
+        private static final String ITEM_STAT_TYPE = "item";
+        private static final String ENTITY_STAT_TYPE = "entity_type";
+
         @SerializedName("generic")
         private Map<String, Integer> genericStatistics;
         @SerializedName("blocks")
@@ -486,9 +490,9 @@ public abstract class FabricData implements Data {
                     return;
                 }
                 final Map<String, Integer> map = (switch (registryId) {
-                    case "block" -> blocks;
-                    case "item" -> items;
-                    case "entity_type" -> entities;
+                    case BLOCK_STAT_TYPE -> blocks;
+                    case ITEM_STAT_TYPE -> items;
+                    case ENTITY_STAT_TYPE -> entities;
                     default -> throw new IllegalStateException("Unexpected value: %s".formatted(registryId));
                 }).compute(stat.getKey().getValue().asString(), (k, v) -> v == null ? Maps.newHashMap() : v);
 
@@ -521,13 +525,45 @@ public abstract class FabricData implements Data {
             return new FabricData.Statistics(generic, blocks, items, entities);
         }
 
-        // TODO
         @Override
         public void apply(@NotNull FabricUser user, @NotNull FabricHuskSync plugin) {
-//            genericStatistics.forEach((id, v) -> applyStat(user, id, Statistic.Type.UNTYPED, v));
-//            blockStatistics.forEach((id, m) -> m.forEach((b, v) -> applyStat(user, id, Statistic.Type.BLOCK, v, b)));
-//            itemStatistics.forEach((id, m) -> m.forEach((i, v) -> applyStat(user, id, Statistic.Type.ITEM, v, i)));
-//            entityStatistics.forEach((id, m) -> m.forEach((e, v) -> applyStat(user, id, Statistic.Type.ENTITY, v, e)));
+            final ServerPlayerEntity player = user.getPlayer();
+            genericStatistics.forEach((id, v) -> applyStat(player, id, null, v));
+            blockStatistics.forEach((id, m) -> m.forEach((b, v) -> applyStat(player, id, BLOCK_STAT_TYPE, v, b)));
+            itemStatistics.forEach((id, m) -> m.forEach((i, v) -> applyStat(player, id, ITEM_STAT_TYPE, v, i)));
+            entityStatistics.forEach((id, m) -> m.forEach((e, v) -> applyStat(player, id, ENTITY_STAT_TYPE, v, e)));
+            player.getStatHandler().updateStatSet();
+            player.getStatHandler().sendStats(player);
+        }
+
+        @SuppressWarnings("unchecked")
+        private <T> void applyStat(@NotNull ServerPlayerEntity player, @NotNull String id,
+                                   @Nullable String type, int value, @NotNull String... key) {
+            final Identifier statId = Identifier.tryParse(id);
+            if (statId == null) {
+                return;
+            }
+            if (type == null) {
+                player.getStatHandler().setStat(
+                        player,
+                        Stats.CUSTOM.getOrCreateStat(Registries.CUSTOM_STAT.get(statId)),
+                        value
+                );
+                return;
+            }
+            final Identifier typeId = Identifier.tryParse(type);
+            final StatType<T> statType = (StatType<T>) Registries.STAT_TYPE.get(typeId);
+            if (statType == null) {
+                return;
+            }
+
+            final Registry<T> typeReg = statType.getRegistry();
+            final T typeInstance = typeReg.get(Identifier.tryParse(key[0]));
+            if (typeInstance == null) {
+                return;
+            }
+
+            player.getStatHandler().setStat(player, statType.getOrCreateStat(typeInstance), value);
         }
 
     }
@@ -676,7 +712,7 @@ public abstract class FabricData implements Data {
         }
 
     }
-    
+
     @Getter
     @Setter
     @AllArgsConstructor(access = AccessLevel.PRIVATE)
