@@ -33,10 +33,12 @@ public interface PlayerDeathDropsCallback {
     @NotNull
     Event<PlayerDeathDropsCallback> EVENT = EventFactory.createArrayBacked(
             PlayerDeathDropsCallback.class,
-            (listeners) -> (player, itemsToKeep) -> Arrays.stream(listeners)
-                    .forEach(listener -> listener.drops(player, itemsToKeep))
+            (listeners) -> (player, itemsToKeep, itemsToDrop) -> Arrays.stream(listeners)
+                    .forEach(listener -> listener.drops(player, itemsToKeep, itemsToDrop))
     );
 
-    void drops(@NotNull ServerPlayerEntity player, @Nullable ItemStack @NotNull [] itemsToKeep);
+    void drops(@NotNull ServerPlayerEntity player,
+               @Nullable ItemStack @NotNull [] itemsToKeep,
+               @Nullable ItemStack @NotNull [] itemsToDrop);
 
 }

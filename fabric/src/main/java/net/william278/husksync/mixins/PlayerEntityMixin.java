@@ -45,7 +45,7 @@ public class PlayerEntityMixin {
     @Inject(method = "dropInventory", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/player/PlayerEntity;vanishCursedItems()V"))
     protected void dropInventory(@NotNull CallbackInfo ci) {
         final PlayerEntity player = (PlayerEntity) (Object) this;
-        PlayerDeathDropsCallback.EVENT.invoker().drops((ServerPlayerEntity) player, getItemsToKeep());
+        PlayerDeathDropsCallback.EVENT.invoker().drops((ServerPlayerEntity) player, getItemsToKeep(), getItemsToDrop());
     }
 
     @Unique
@@ -61,6 +61,21 @@ public class PlayerEntityMixin {
             toKeep[i] = itemStack;
         }
         return toKeep;
+    }
+
+    @Unique
+    @Nullable
+    private ItemStack @NotNull [] getItemsToDrop() {
+        final @Nullable ItemStack @NotNull [] toDrop = new ItemStack[inventory.size()];
+        for (int i = 0; i < inventory.size(); ++i) {
+            ItemStack itemStack = inventory.getStack(i);
+            if (!itemStack.isEmpty() && EnchantmentHelper.hasVanishingCurse(itemStack)) {
+                toDrop[i] = itemStack;
+                continue;
+            }
+            toDrop[i] = null;
+        }
+        return toDrop;
     }
 
 }

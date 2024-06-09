@@ -32,7 +32,6 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayNetworkHandler;
@@ -46,15 +45,14 @@ import net.minecraft.util.hit.EntityHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.william278.husksync.HuskSync;
+import net.william278.husksync.config.Settings.SynchronizationSettings.SaveOnDeathSettings;
 import net.william278.husksync.data.FabricData;
 import net.william278.husksync.event.*;
-import net.william278.husksync.mixins.ServerWorldMixin;
 import net.william278.husksync.user.FabricUser;
 import net.william278.husksync.user.OnlineUser;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
 import java.util.stream.Collectors;
 
 public class FabricEventListener extends EventListener implements LockedHandler {
@@ -96,8 +94,15 @@ public class FabricEventListener extends EventListener implements LockedHandler 
                 .map(player -> (OnlineUser) FabricUser.adapt(player, plugin)).collect(Collectors.toList()));
     }
 
-    private void handlePlayerDeathDrops(@NotNull ServerPlayerEntity player, @Nullable ItemStack @NotNull [] toKeep) {
-        saveOnPlayerDeath(FabricUser.adapt(player, plugin), FabricData.Items.ItemArray.adapt(toKeep));
+    private void handlePlayerDeathDrops(@NotNull ServerPlayerEntity player, @Nullable ItemStack @NotNull [] toKeep,
+                                        @Nullable ItemStack @NotNull [] toDrop) {
+        final SaveOnDeathSettings settings = plugin.getSettings().getSynchronization().getSaveOnDeath();
+        saveOnPlayerDeath(
+                FabricUser.adapt(player, plugin),
+                FabricData.Items.ItemArray.adapt(
+                        settings.getItemsToSave() == SaveOnDeathSettings.DeathItemsMode.DROPS ? toDrop : toKeep
+                )
+        );
     }
 
     private ActionResult handleItemPickup(PlayerEntity player, ItemStack itemStack) {
