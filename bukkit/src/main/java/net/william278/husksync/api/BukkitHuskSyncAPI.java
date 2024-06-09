@@ -28,6 +28,7 @@ import net.william278.husksync.user.OnlineUser;
 import net.william278.husksync.user.User;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
@@ -59,6 +60,10 @@ public class BukkitHuskSyncAPI extends HuskSyncAPI {
      */
     @NotNull
     public static BukkitHuskSyncAPI getInstance() {
+        if (!JavaPlugin.getProvidingPlugin(BukkitHuskSyncAPI.class).getName().equals("HuskSync")) {
+            throw new NotRegisteredException("This is likely because you have shaded HuskSync into your plugin JAR " +
+                    "and need to fix your maven/gradle/build script so that it *compiles against* HuskSync instead.");
+        }
         if (instance == null) {
             throw new NotRegisteredException();
         }
