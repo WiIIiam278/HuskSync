@@ -22,7 +22,6 @@ package net.william278.husksync.api;
 import net.william278.desertwell.util.ThrowingConsumer;
 import net.william278.husksync.BukkitHuskSync;
 import net.william278.husksync.data.BukkitData;
-import net.william278.husksync.data.BukkitSerializer;
 import net.william278.husksync.data.DataHolder;
 import net.william278.husksync.user.BukkitUser;
 import net.william278.husksync.user.OnlineUser;

@@ -21,13 +21,15 @@ package net.william278.husksync.data;
 
 import com.google.gson.reflect.TypeToken;
 import com.mojang.brigadier.StringReader;
+import com.mojang.serialization.Dynamic;
+import com.mojang.serialization.DynamicOps;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
+import net.minecraft.datafixer.TypeReferences;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
-import net.minecraft.nbt.NbtList;
-import net.minecraft.nbt.StringNbtReader;
+import net.minecraft.nbt.*;
+import net.william278.desertwell.util.Version;
+import net.william278.husksync.FabricHuskSync;
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.api.HuskSyncAPI;
 import org.jetbrains.annotations.ApiStatus;
@@ -36,10 +38,8 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Arrays;
 import java.util.List;
 
-import static net.william278.husksync.data.Data.Items.Inventory.HELD_ITEM_SLOT_TAG;
-import static net.william278.husksync.data.Data.Items.Inventory.ITEMS_TAG;
+import static net.william278.husksync.data.Data.Items.Inventory.*;
 
-//TODO
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public abstract class FabricSerializer {
 
@@ -57,78 +57,170 @@ public abstract class FabricSerializer {
         return plugin;
     }
 
-    public static class Inventory extends FabricSerializer implements Serializer<FabricData.Items.Inventory> {
+    public static class Inventory extends FabricSerializer implements Serializer<FabricData.Items.Inventory>,
+            ItemDeserializer {
 
         public Inventory(@NotNull HuskSync plugin) {
             super(plugin);
         }
 
         @Override
-        @SuppressWarnings("DuplicatedCode")
-        public FabricData.Items.Inventory deserialize(@NotNull String serialized) throws DeserializationException {
+        public FabricData.Items.Inventory deserialize(@NotNull String serialized, @NotNull Version dataMcVersion)
+                throws DeserializationException {
+            // Read item NBT from string
+            final FabricHuskSync plugin = (FabricHuskSync) getPlugin();
+            final NbtCompound root;
             try {
-                final NbtCompound root = StringNbtReader.parse(serialized);
-                final NbtList items = root.getList(ITEMS_TAG, NbtElement.COMPOUND_TYPE);
-                final ItemStack[] contents = new ItemStack[items.size()];
-                for (int i = 0; i < items.size(); i++) {
-                    final NbtCompound item = items.getCompound(i);
-                    contents[i] = ItemStack.fromNbt(item);
-                }
-                final int heldItemSlot = root.getInt(HELD_ITEM_SLOT_TAG);
-                return FabricData.Items.Inventory.from(
-                        contents,
-                        heldItemSlot
-                );
+                root = StringNbtReader.parse(serialized);
             } catch (Throwable e) {
-                throw new DeserializationException("Failed to read item NBT", e);
+                throw new DeserializationException("Failed to read item NBT from string (%s)".formatted(serialized), e);
             }
+
+            // Deserialize the inventory data
+            final NbtList items = root.contains(ITEMS_TAG) ? root.getList(ITEMS_TAG, NbtElement.COMPOUND_TYPE) : null;
+            return FabricData.Items.Inventory.from(
+                    items != null ? getItems(items, dataMcVersion, plugin) : new ItemStack[INVENTORY_SLOT_COUNT],
+                    root.contains(HELD_ITEM_SLOT_TAG) ? root.getInt(HELD_ITEM_SLOT_TAG) : 0
+            );
+        }
+
+        @Override
+        public FabricData.Items.Inventory deserialize(@NotNull String serialized) {
+            return deserialize(serialized, plugin.getMinecraftVersion());
         }
 
         @NotNull
         @Override
         public String serialize(@NotNull FabricData.Items.Inventory data) throws SerializationException {
-            final NbtCompound root = new NbtCompound();
-            final NbtList items = new NbtList();
-            Arrays.stream(data.getContents()).forEach(item -> items.add(
-                    (item == null ? ItemStack.EMPTY : item).writeNbt(new NbtCompound())
-            ));
-            root.put(ITEMS_TAG, items);
-            root.putInt(HELD_ITEM_SLOT_TAG, data.getHeldItemSlot());
-            return root.toString();
+            try {
+                final NbtCompound root = new NbtCompound();
+                final NbtList items = new NbtList();
+                Arrays.stream(data.getContents()).forEach(item -> items.add(
+                        item != null ? item.writeNbt(new NbtCompound()) : new NbtCompound()
+                ));
+                root.put(ITEMS_TAG, items);
+                root.putInt(HELD_ITEM_SLOT_TAG, data.getHeldItemSlot());
+                return root.toString();
+            } catch (Throwable e) {
+                throw new SerializationException("Failed to serialize item NBT to string", e);
+            }
         }
 
     }
 
-    public static class EnderChest extends FabricSerializer implements Serializer<FabricData.Items.EnderChest> {
+    public static class EnderChest extends FabricSerializer implements Serializer<FabricData.Items.EnderChest>,
+            ItemDeserializer {
 
         public EnderChest(@NotNull HuskSync plugin) {
             super(plugin);
         }
 
         @Override
-        @SuppressWarnings("DuplicatedCode")
-        public FabricData.Items.EnderChest deserialize(@NotNull String serialized) throws DeserializationException {
+        public FabricData.Items.EnderChest deserialize(@NotNull String serialized, @NotNull Version dataMcVersion)
+                throws DeserializationException {
+            final FabricHuskSync plugin = (FabricHuskSync) getPlugin();
+            final NbtList items;
             try {
-                final NbtList items = (NbtList) new StringNbtReader(new StringReader(serialized)).parseElement();
-                final ItemStack[] contents = new ItemStack[items.size()];
-                for (int i = 0; i < items.size(); i++) {
-                    contents[i] = items.get(i) != null ? ItemStack.fromNbt(items.getCompound(i)) : ItemStack.EMPTY;
-                }
-                return FabricData.Items.EnderChest.adapt(contents);
+                items = (NbtList) new StringNbtReader(new StringReader(serialized)).parseElement();
             } catch (Throwable e) {
-                throw new DeserializationException("Failed to read item NBT", e);
+                throw new DeserializationException("Failed to read item NBT from string (%s)".formatted(serialized), e);
             }
+            return FabricData.Items.EnderChest.adapt(getItems(items, dataMcVersion, plugin));
+        }
+
+        @Override
+        public FabricData.Items.EnderChest deserialize(@NotNull String serialized) {
+            return deserialize(serialized, plugin.getMinecraftVersion());
         }
 
         @NotNull
         @Override
         public String serialize(@NotNull FabricData.Items.EnderChest data) throws SerializationException {
-            final NbtList items = new NbtList();
-            Arrays.stream(data.getContents()).forEach(item -> items.add(
-                    (item == null ? ItemStack.EMPTY : item).writeNbt(new NbtCompound())
-            ));
-            return items.toString();
+            try {
+                final NbtList items = new NbtList();
+                Arrays.stream(data.getContents()).forEach(item -> items.add(
+                        item != null ? item.writeNbt(new NbtCompound()) : new NbtCompound()
+                ));
+                return items.toString();
+            } catch (Throwable e) {
+                throw new SerializationException("Failed to serialize item NBT to string", e);
+            }
         }
+    }
+
+    private interface ItemDeserializer {
+
+        int VERSION1_16_5 = 2586;
+        int VERSION1_17_1 = 2730;
+        int VERSION1_18_2 = 2975;
+        int VERSION1_19_2 = 3120;
+        int VERSION1_19_4 = 3337;
+        int VERSION1_20_1 = 3465;
+        int VERSION1_20_2 = 3578; // Future
+        int VERSION1_20_4 = 3700; // Future
+        int VERSION1_20_5 = 3837; // Future
+
+        @NotNull
+        default ItemStack[] getItems(@NotNull NbtList tag, @NotNull Version mcVersion, @NotNull FabricHuskSync plugin) {
+            try {
+                if (mcVersion.compareTo(plugin.getMinecraftVersion()) < 0) {
+                    return upgradeItemStacks(tag, mcVersion, plugin);
+                }
+                final ItemStack[] itemStacks = new ItemStack[tag.size()];
+                for (int i = 0; i < tag.size(); i++) {
+                    itemStacks[i] = ItemStack.fromNbt(tag.getCompound(i));
+                }
+                return itemStacks;
+            } catch (Throwable e) {
+                plugin.debug("Failed to read/upgrade item NBT from string (%s)".formatted(tag), e);
+                return new ItemStack[tag.size()];
+            }
+        }
+
+        @NotNull
+        private ItemStack @NotNull [] upgradeItemStacks(@NotNull NbtList items, @NotNull Version mcVersion,
+                                                        @NotNull FabricHuskSync plugin) {
+            final ItemStack[] itemStacks = new ItemStack[items.size()];
+            for (int i = 0; i < items.size(); i++) {
+                if (items.getCompound(i) == null) {
+                    itemStacks[i] = ItemStack.EMPTY;
+                    continue;
+                }
+                try {
+                    itemStacks[i] = ItemStack.fromNbt(upgradeItemData(items.getCompound(i), mcVersion, plugin));
+                } catch (Throwable e) {
+                    itemStacks[i] = ItemStack.EMPTY;
+                }
+            }
+            return itemStacks;
+        }
+
+
+        @NotNull
+        @SuppressWarnings({"rawtypes", "unchecked"}) // For NBTOps lookup
+        private NbtCompound upgradeItemData(@NotNull NbtCompound tag, @NotNull Version mcVersion,
+                                            @NotNull FabricHuskSync plugin) {
+            return (NbtCompound) plugin.getMinecraftServer().getDataFixer().update(
+                    TypeReferences.ITEM_STACK, new Dynamic<Object>((DynamicOps) NbtOps.INSTANCE, tag),
+                    getDataVersion(mcVersion), getDataVersion(plugin.getMinecraftVersion())
+            ).getValue();
+        }
+
+        private int getDataVersion(@NotNull Version mcVersion) {
+            return switch (mcVersion.toStringWithoutMetadata()) {
+                case "1.16", "1.16.1", "1.16.2", "1.16.3", "1.16.4", "1.16.5" -> VERSION1_16_5;
+                case "1.17", "1.17.1" -> VERSION1_17_1;
+                case "1.18", "1.18.1", "1.18.2" -> VERSION1_18_2;
+                case "1.19", "1.19.1", "1.19.2" -> VERSION1_19_2;
+                case "1.19.4" -> VERSION1_19_4;
+                case "1.20", "1.20.1" -> VERSION1_20_1;
+                case "1.20.2" -> VERSION1_20_2; // Future
+                case "1.20.4" -> VERSION1_20_4; // Future
+                case "1.20.5", "1.20.6" -> VERSION1_20_5; // Future
+                default -> VERSION1_20_1; // Current supported ver
+            };
+        }
+
     }
 
     public static class PotionEffects extends FabricSerializer implements Serializer<FabricData.PotionEffects> {

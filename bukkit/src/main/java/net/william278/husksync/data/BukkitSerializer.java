@@ -75,7 +75,7 @@ public class BukkitSerializer {
             final ReadWriteNBT items = root.hasTag(ITEMS_TAG) ? root.getCompound(ITEMS_TAG) : null;
             return BukkitData.Items.Inventory.from(
                     items != null ? getItems(items, dataMcVersion) : new ItemStack[INVENTORY_SLOT_COUNT],
-                    root.getInteger(HELD_ITEM_SLOT_TAG)
+                    root.hasTag(HELD_ITEM_SLOT_TAG) ? root.getInteger(HELD_ITEM_SLOT_TAG) : 0
             );
         }
 
@@ -127,15 +127,15 @@ public class BukkitSerializer {
         @Nullable
         default ItemStack[] getItems(@NotNull ReadWriteNBT tag, @NotNull Version mcVersion) {
             if (mcVersion.compareTo(getPlugin().getMinecraftVersion()) < 0) {
-                return upgradeItemStack((NBTCompound) tag, mcVersion);
+                return upgradeItemStacks((NBTCompound) tag, mcVersion);
             }
             return NBT.itemStackArrayFromNBT(tag);
         }
 
         @NotNull
-        private ItemStack @NotNull [] upgradeItemStack(@NotNull NBTCompound compound, @NotNull Version mcVersion) {
-            final ReadWriteNBTCompoundList items = compound.getCompoundList("items");
-            final ItemStack[] itemStacks = new ItemStack[compound.getInteger("size")];
+        private ItemStack @NotNull [] upgradeItemStacks(@NotNull NBTCompound itemsNbt, @NotNull Version mcVersion) {
+            final ReadWriteNBTCompoundList items = itemsNbt.getCompoundList("items");
+            final ItemStack[] itemStacks = new ItemStack[itemsNbt.getInteger("size")];
             for (int i = 0; i < items.size(); i++) {
                 if (items.get(i) == null) {
                     itemStacks[i] = new ItemStack(Material.AIR);
@@ -164,6 +164,7 @@ public class BukkitSerializer {
                 case "1.19", "1.19.1", "1.19.2" -> DataFixerUtil.VERSION1_19_2;
                 case "1.20", "1.20.1", "1.20.2" -> DataFixerUtil.VERSION1_20_2;
                 case "1.20.3", "1.20.4" -> DataFixerUtil.VERSION1_20_4;
+                case "1.20.5", "1.20.6" -> DataFixerUtil.VERSION1_20_5;
                 default -> DataFixerUtil.getCurrentVersion();
             };
         }

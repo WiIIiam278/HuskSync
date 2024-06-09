@@ -35,20 +35,26 @@ public interface FabricUserDataHolder extends UserDataHolder {
     @Override
     default Optional<? extends Data> getData(@NotNull Identifier id) {
         if (!id.isCustom()) {
-            return switch (id.getKeyValue()) {
-                case "inventory" -> getInventory();
-                case "ender_chest" -> getEnderChest();
-                case "potion_effects" -> getPotionEffects();
-                case "advancements" -> getAdvancements();
-                case "location" -> getLocation();
-                case "statistics" -> getStatistics();
-                case "health" -> getHealth();
-                case "hunger" -> getHunger();
-                case "experience" -> getExperience();
-                case "game_mode" -> getGameMode();
-                case "persistent_data" -> Optional.ofNullable(getCustomDataStore().get(id));
-                default -> throw new IllegalStateException(String.format("Unexpected data type: %s", id));
-            };
+            try {
+                return switch (id.getKeyValue()) {
+                    case "inventory" -> getInventory();
+                    case "ender_chest" -> getEnderChest();
+                    case "potion_effects" -> getPotionEffects();
+                    case "advancements" -> getAdvancements();
+                    case "location" -> getLocation();
+                    case "statistics" -> getStatistics();
+                    case "health" -> getHealth();
+                    case "hunger" -> getHunger();
+                    case "attributes" -> getAttributes();
+                    case "experience" -> getExperience();
+                    case "game_mode" -> getGameMode();
+                    case "flight_status" -> getFlightStatus();
+                    case "persistent_data" -> getPersistentData();
+                    default -> throw new IllegalStateException(String.format("Unexpected data type: %s", id));
+                };
+            } catch (Throwable e) {
+                getPlugin().debug("Failed to get data for key: " + id.getKeyValue(), e);
+            }
         }
         return Optional.ofNullable(getCustomDataStore().get(id));
     }
@@ -126,32 +132,40 @@ public interface FabricUserDataHolder extends UserDataHolder {
         return Optional.of(FabricData.Statistics.adapt(getPlayer()));
     }
 
+    @Override
+    @NotNull
+    default Optional<Data.Attributes> getAttributes() {
+        return Optional.of(FabricData.Attributes.adapt(getPlayer(), getPlugin()));
+    }
+
     @NotNull
     @Override
     default Optional<Data.Health> getHealth() {
-//        return Optional.of(FabricData.Health.adapt(getPlayer()));
-        return Optional.empty();
+        return Optional.of(FabricData.Health.adapt(getPlayer()));
     }
 
     @NotNull
     @Override
     default Optional<Data.Hunger> getHunger() {
-//        return Optional.of(FabricData.Hunger.adapt(getPlayer()));
-        return Optional.empty();
+        return Optional.of(FabricData.Hunger.adapt(getPlayer()));
     }
 
     @NotNull
     @Override
     default Optional<Data.Experience> getExperience() {
-//        return Optional.of(FabricData.Experience.adapt(getPlayer()));
-        return Optional.empty();
+        return Optional.of(FabricData.Experience.adapt(getPlayer()));
     }
 
     @NotNull
     @Override
     default Optional<Data.GameMode> getGameMode() {
-//        return Optional.of(FabricData.GameMode.adapt(getPlayer()));
-        return Optional.empty();
+        return Optional.of(FabricData.GameMode.adapt(getPlayer()));
+    }
+
+    @NotNull
+    @Override
+    default Optional<Data.FlightStatus> getFlightStatus() {
+        return Optional.of(FabricData.FlightStatus.adapt(getPlayer()));
     }
 
     @NotNull

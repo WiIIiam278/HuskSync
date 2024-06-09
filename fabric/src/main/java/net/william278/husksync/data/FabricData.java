@@ -58,7 +58,6 @@ import java.util.*;
 
 import static net.william278.husksync.util.FabricKeyedAdapter.*;
 
-//TODO
 public abstract class FabricData implements Data {
 
     @Override
@@ -475,14 +474,14 @@ public abstract class FabricData implements Data {
         private Map<String, Map<String, Integer>> entityStatistics;
 
         @NotNull
-        public static FabricData.Statistics adapt(@NotNull ServerPlayerEntity player) {
+        public static FabricData.Statistics adapt(@NotNull ServerPlayerEntity player) throws IllegalStateException {
             // Adapt typed stats
             final Map<String, Map<String, Integer>> blocks = Maps.newHashMap(),
                     items = Maps.newHashMap(), entities = Maps.newHashMap();
             Registries.STAT_TYPE.getEntrySet().forEach(stat -> {
                 final Registry<?> registry = stat.getValue().getRegistry();
 
-                final String registryId = registry.getKey().getValue().asString();
+                final String registryId = registry.getKey().getValue().value();
                 if (registryId.equals("custom_stat")) {
                     return;
                 }
