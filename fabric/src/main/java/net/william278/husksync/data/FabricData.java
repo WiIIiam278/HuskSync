@@ -21,26 +21,25 @@ package net.william278.husksync.data;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.google.gson.annotations.SerializedName;
-import com.mojang.serialization.Keyable;
 import lombok.*;
 import net.fabricmc.fabric.api.dimension.v1.FabricDimensions;
-import net.minecraft.advancement.Advancement;
 import net.minecraft.advancement.AdvancementProgress;
 import net.minecraft.advancement.PlayerAdvancementTracker;
 import net.minecraft.enchantment.EnchantmentHelper;
-import net.minecraft.entity.EntityType;
+import net.minecraft.entity.attribute.EntityAttribute;
+import net.minecraft.entity.attribute.EntityAttributeInstance;
+import net.minecraft.entity.attribute.EntityAttributeModifier;
 import net.minecraft.entity.effect.StatusEffect;
 import net.minecraft.entity.effect.StatusEffectInstance;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.Item;
+import net.minecraft.entity.player.HungerManager;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.stat.Stat;
 import net.minecraft.stat.StatType;
 import net.minecraft.stat.Stats;
 import net.minecraft.util.Identifier;
@@ -57,8 +56,7 @@ import org.jetbrains.annotations.Range;
 
 import java.util.*;
 
-import static net.william278.husksync.util.FabricKeyedAdapter.getEffectId;
-import static net.william278.husksync.util.FabricKeyedAdapter.matchEffectType;
+import static net.william278.husksync.util.FabricKeyedAdapter.*;
 
 //TODO
 public abstract class FabricData implements Data {
@@ -524,6 +522,7 @@ public abstract class FabricData implements Data {
             return new FabricData.Statistics(generic, blocks, items, entities);
         }
 
+        // TODO
         @Override
         public void apply(@NotNull FabricUser user, @NotNull FabricHuskSync plugin) {
 //            genericStatistics.forEach((id, v) -> applyStat(user, id, Statistic.Type.UNTYPED, v));
@@ -534,5 +533,241 @@ public abstract class FabricData implements Data {
 
     }
 
+    @Getter
+    @AllArgsConstructor(access = AccessLevel.PRIVATE)
+    @NoArgsConstructor(access = AccessLevel.PRIVATE)
+    public static class Attributes extends FabricData implements Data.Attributes, Adaptable {
+
+        private List<Attribute> attributes;
+
+        @NotNull
+        public static FabricData.Attributes adapt(@NotNull ServerPlayerEntity player, @NotNull HuskSync plugin) {
+            final List<Attribute> attributes = Lists.newArrayList();
+            Registries.ATTRIBUTE.forEach(id -> {
+                final EntityAttributeInstance instance = player.getAttributeInstance(id);
+                final Identifier key = Registries.ATTRIBUTE.getId(id);
+                if (instance == null || key == null) {
+                    return;
+                }
+                final Set<Modifier> modifiers = Sets.newHashSet();
+                instance.getModifiers().forEach(modifier -> modifiers.add(new Modifier(
+                        modifier.getId(),
+                        modifier.getName(),
+                        modifier.getValue(),
+                        modifier.getOperation().getId(),
+                        -1
+                )));
+                attributes.add(new Attribute(
+                        key.asString(),
+                        instance.getBaseValue(),
+                        modifiers
+                ));
+            });
+            return new FabricData.Attributes(attributes);
+        }
+
+        public Optional<Attribute> getAttribute(@NotNull EntityAttribute id) {
+            return Optional.ofNullable(Registries.ATTRIBUTE.getId(id)).map(Identifier::asString)
+                    .flatMap(key -> attributes.stream().filter(attribute -> attribute.name().equals(key)).findFirst());
+        }
+
+        @SuppressWarnings("unused")
+        public Optional<Attribute> getAttribute(@NotNull String key) {
+            final EntityAttribute attribute = matchAttribute(key);
+            if (attribute == null) {
+                return Optional.empty();
+            }
+            return getAttribute(attribute);
+        }
+
+        @Override
+        protected void apply(@NotNull FabricUser user, @NotNull FabricHuskSync plugin) {
+            Registries.ATTRIBUTE.forEach(id -> applyAttribute(
+                    user.getPlayer().getAttributeInstance(id),
+                    getAttribute(id).orElse(null)
+            ));
+
+        }
+
+        private static void applyAttribute(@Nullable EntityAttributeInstance instance,
+                                           @Nullable Attribute attribute) {
+            if (instance == null) {
+                return;
+            }
+            instance.setBaseValue(attribute == null ? instance.getAttribute().getDefaultValue() : attribute.baseValue());
+            instance.getModifiers().forEach(instance::removeModifier);
+            if (attribute != null) {
+                attribute.modifiers().forEach(modifier -> instance.addPersistentModifier(new EntityAttributeModifier(
+                        modifier.uuid(),
+                        modifier.name(),
+                        modifier.amount(),
+                        EntityAttributeModifier.Operation.fromId(modifier.operationType())
+                )));
+            }
+        }
+
+    }
+
+    @Getter
+    @Setter
+    @AllArgsConstructor(access = AccessLevel.PRIVATE)
+    @NoArgsConstructor(access = AccessLevel.PRIVATE)
+    public static class Health extends FabricData implements Data.Health, Adaptable {
+        @SerializedName("health")
+        private double health;
+        @SerializedName("health_scale")
+        private double healthScale;
+        @SerializedName("is_health_scaled")
+        private boolean isHealthScaled;
+
+
+        @NotNull
+        public static FabricData.Health from(double health, double scale, boolean isScaled) {
+            return new FabricData.Health(health, scale, isScaled);
+        }
+
+        @NotNull
+        public static FabricData.Health adapt(@NotNull ServerPlayerEntity player) {
+            return from(
+                    player.getHealth(),
+                    20.0f, false // Health scale is a Bukkit API feature, not used in Fabric
+            );
+        }
+
+        @Override
+        public void apply(@NotNull FabricUser user, @NotNull FabricHuskSync plugin) throws IllegalStateException {
+            final ServerPlayerEntity player = user.getPlayer();
+            player.setHealth((float) health);
+        }
+
+    }
+
+
+    @Getter
+    @Setter
+    @AllArgsConstructor(access = AccessLevel.PRIVATE)
+    @NoArgsConstructor(access = AccessLevel.PRIVATE)
+    public static class Hunger extends FabricData implements Data.Hunger, Adaptable {
+
+        @SerializedName("food_level")
+        private int foodLevel;
+        @SerializedName("saturation")
+        private float saturation;
+        @SerializedName("exhaustion")
+        private float exhaustion;
+
+        @NotNull
+        public static FabricData.Hunger adapt(@NotNull ServerPlayerEntity player) {
+            final HungerManager hunger = player.getHungerManager();
+            return from(hunger.getFoodLevel(), hunger.getSaturationLevel(), hunger.getExhaustion());
+        }
+
+        @NotNull
+        public static FabricData.Hunger from(int foodLevel, float saturation, float exhaustion) {
+            return new FabricData.Hunger(foodLevel, saturation, exhaustion);
+        }
+
+        @Override
+        public void apply(@NotNull FabricUser user, @NotNull FabricHuskSync plugin) throws IllegalStateException {
+            final ServerPlayerEntity player = user.getPlayer();
+            final HungerManager hunger = player.getHungerManager();
+            hunger.setFoodLevel(foodLevel);
+            hunger.setSaturationLevel(saturation);
+            hunger.setExhaustion(exhaustion);
+        }
+
+    }
+    
+    @Getter
+    @Setter
+    @AllArgsConstructor(access = AccessLevel.PRIVATE)
+    @NoArgsConstructor(access = AccessLevel.PRIVATE)
+    public static class Experience extends FabricData implements Data.Experience, Adaptable {
+
+        @SerializedName("total_experience")
+        private int totalExperience;
+
+        @SerializedName("exp_level")
+        private int expLevel;
+
+        @SerializedName("exp_progress")
+        private float expProgress;
+
+        @NotNull
+        public static FabricData.Experience from(int totalExperience, int expLevel, float expProgress) {
+            return new FabricData.Experience(totalExperience, expLevel, expProgress);
+        }
+
+        @NotNull
+        public static FabricData.Experience adapt(@NotNull ServerPlayerEntity player) {
+            return from(player.totalExperience, player.experienceLevel, player.experienceProgress);
+        }
+
+        @Override
+        public void apply(@NotNull FabricUser user, @NotNull FabricHuskSync plugin) throws IllegalStateException {
+            final ServerPlayerEntity player = user.getPlayer();
+            player.totalExperience = totalExperience;
+            player.setExperienceLevel(expLevel);
+            player.setExperiencePoints((int) (player.getNextLevelExperience() * expProgress));
+        }
+
+    }
+
+    @Getter
+    @Setter
+    @AllArgsConstructor(access = AccessLevel.PRIVATE)
+    @NoArgsConstructor(access = AccessLevel.PRIVATE)
+    public static class GameMode extends FabricData implements Data.GameMode, Adaptable {
+
+        @SerializedName("game_mode")
+        private String gameMode;
+
+        @NotNull
+        public static FabricData.GameMode from(@NotNull String gameMode) {
+            return new FabricData.GameMode(gameMode);
+        }
+
+        @NotNull
+        public static FabricData.GameMode adapt(@NotNull ServerPlayerEntity player) {
+            return from(player.interactionManager.getGameMode().asString());
+        }
+
+        @Override
+        public void apply(@NotNull FabricUser user, @NotNull FabricHuskSync plugin) throws IllegalStateException {
+            user.getPlayer().interactionManager.changeGameMode(net.minecraft.world.GameMode.byName(gameMode));
+        }
+
+    }
+
+    @Getter
+    @Setter
+    @AllArgsConstructor(access = AccessLevel.PRIVATE)
+    @NoArgsConstructor(access = AccessLevel.PRIVATE)
+    public static class FlightStatus extends FabricData implements Data.FlightStatus, Adaptable {
+
+        @SerializedName("allow_flight")
+        private boolean allowFlight;
+        @SerializedName("is_flying")
+        private boolean flying;
+
+        @NotNull
+        public static FabricData.FlightStatus from(boolean allowFlight, boolean flying) {
+            return new FabricData.FlightStatus(allowFlight, allowFlight && flying);
+        }
+
+        @NotNull
+        public static FabricData.FlightStatus adapt(@NotNull ServerPlayerEntity player) {
+            return from(player.getAbilities().allowFlying, player.getAbilities().flying);
+        }
+
+        @Override
+        public void apply(@NotNull FabricUser user, @NotNull FabricHuskSync plugin) throws IllegalStateException {
+            final ServerPlayerEntity player = user.getPlayer();
+            player.getAbilities().allowFlying = allowFlight;
+            player.getAbilities().flying = allowFlight && flying;
+            player.sendAbilitiesUpdate();
+        }
+
+    }
 
 }

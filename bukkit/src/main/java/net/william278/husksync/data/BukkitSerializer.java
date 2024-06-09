@@ -29,7 +29,9 @@ import de.tr7zw.changeme.nbtapi.utils.DataFixerUtil;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import net.william278.desertwell.util.Version;
+import net.william278.husksync.BukkitHuskSync;
 import net.william278.husksync.HuskSync;
+import net.william278.husksync.adapter.Adaptable;
 import net.william278.husksync.api.HuskSyncAPI;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
@@ -232,6 +234,23 @@ public class BukkitSerializer {
         @Override
         public String serialize(@NotNull BukkitData.PersistentData element) throws SerializationException {
             return element.getPersistentData().toString();
+        }
+
+    }
+
+    /**
+     * @deprecated Use {@link Serializer.Json} in the common module instead
+     */
+    @Deprecated(since = "2.6")
+    public class Json<T extends Data & Adaptable> extends Serializer.Json<T> {
+
+        public Json(@NotNull HuskSync plugin, @NotNull Class<T> type) {
+            super(plugin, type);
+        }
+
+        @NotNull
+        public BukkitHuskSync getPlugin() {
+            return (BukkitHuskSync) plugin;
         }
 
     }

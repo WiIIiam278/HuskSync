@@ -48,7 +48,7 @@ public interface Serializer<T extends Data> {
     }
 
 
-    final class Json<T extends Data & Adaptable> implements Serializer<T> {
+    class Json<T extends Data & Adaptable> implements Serializer<T> {
 
         private final HuskSync plugin;
         private final Class<T> type;

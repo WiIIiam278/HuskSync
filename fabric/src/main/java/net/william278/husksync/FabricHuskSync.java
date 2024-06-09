@@ -149,19 +149,21 @@ public class FabricHuskSync implements DedicatedServerModInitializer, HuskSync, 
             }
         });
 
-        // TODO: Prepare serializers
         initialize("data serializers", (plugin) -> {
-            // Persistent data not registered on Fabric
+            // PERSISTENT_DATA is not registered / available on the Fabric platform
             registerSerializer(Identifier.INVENTORY, new FabricSerializer.Inventory(this));
             registerSerializer(Identifier.ENDER_CHEST, new FabricSerializer.EnderChest(this));
             registerSerializer(Identifier.ADVANCEMENTS, new FabricSerializer.Advancements(this));
-            registerSerializer(Identifier.STATISTICS, new Serializer.Json<>(this, FabricData.Statistics.class));
-//            registerSerializer(Identifier.HEALTH, new FabricSerializer.Health(this));
-//            registerSerializer(Identifier.HUNGER, new FabricSerializer.Hunger(this));
-//            registerSerializer(Identifier.GAME_MODE, new FabricSerializer.GameMode(this));
+            registerSerializer(Identifier.STATISTICS, new Serializer.Json<>(this, FabricData.Statistics.class)); // TODO APPLY
             registerSerializer(Identifier.POTION_EFFECTS, new FabricSerializer.PotionEffects(this));
-//            registerSerializer(Identifier.EXPERIENCE, new FabricSerializer.Experience(this));
+            registerSerializer(Identifier.GAME_MODE, new Serializer.Json<>(this, FabricData.GameMode.class));
+            registerSerializer(Identifier.FLIGHT_STATUS, new Serializer.Json<>(this, FabricData.FlightStatus.class));
+            registerSerializer(Identifier.ATTRIBUTES, new Serializer.Json<>(this, FabricData.Attributes.class));
+            registerSerializer(Identifier.HEALTH, new Serializer.Json<>(this, FabricData.Health.class));
+            registerSerializer(Identifier.HUNGER, new Serializer.Json<>(this, FabricData.Hunger.class));
+            registerSerializer(Identifier.EXPERIENCE, new Serializer.Json<>(this, FabricData.Experience.class));
             registerSerializer(Identifier.LOCATION, new Serializer.Json<>(this, FabricData.Location.class));
+            validateDependencies();
         });
 
         // Initialize the database
