@@ -118,6 +118,11 @@ subprojects {
         archiveClassifier.set('')
     }
 
+    // Append the Minecraft to the version for Fabric projects
+    if (project.name == 'fabric') {
+        version += "+mc.${fabric_minecraft_version}"
+    }
+
     // API publishing
     if (['common', 'bukkit', 'fabric'].contains(project.name)) {
         java {
