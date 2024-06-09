@@ -519,7 +519,7 @@ public class HuskSyncAPI {
                 3) You are attempting to access HuskSync on plugin construction/before your plugin has enabled.""";
 
         NotRegisteredException(@NotNull String reasons) {
-            super("Could not access the HuskSync API as it has not yet been registered. %s".formatted(REASONS));
+            super("Could not access the HuskSync API as it has not yet been registered. %s".formatted(reasons));
         }
 
         NotRegisteredException() {
