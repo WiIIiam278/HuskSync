@@ -6,7 +6,8 @@ apply plugin: 'fabric-loom'
 loom.serverOnlyMinecraftJar()
 
 repositories {
-    maven { url = "https://s01.oss.sonatype.org/content/repositories/snapshots/" }
+    maven { url 'https://s01.oss.sonatype.org/content/repositories/snapshots/' }
+    maven { url 'https://maven.nucleoid.xyz' }
 }
 
 dependencies {
@@ -16,6 +17,7 @@ dependencies {
 
     modImplementation include("net.kyori:adventure-platform-fabric:${adventure_platform_fabric_version}")
     modImplementation include("me.lucko:fabric-permissions-api:${fabric_permissions_api_version}")
+    modImplementation include("eu.pb4:sgui:${sgui_version}")
     modCompileOnly "net.fabricmc.fabric-api:fabric-api:${fabric_api_version}"
 
     // Runtime dependencies on Bukkit; "include" them on Fabric. (todo: minify JAR?)

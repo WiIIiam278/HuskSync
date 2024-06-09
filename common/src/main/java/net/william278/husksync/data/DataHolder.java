@@ -30,8 +30,8 @@ public interface DataHolder {
     @NotNull
     Map<Identifier, Data> getData();
 
-    default Optional<? extends Data> getData(@NotNull Identifier identifier) {
-        return Optional.ofNullable(getData().get(identifier));
+    default Optional<? extends Data> getData(@NotNull Identifier id) {
+        return getData().entrySet().stream().filter(e -> e.getKey().equals(id)).map(Map.Entry::getValue).findFirst();
     }
 
     default void setData(@NotNull Identifier identifier, @NotNull Data data) {
