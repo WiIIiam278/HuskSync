@@ -43,7 +43,6 @@ import net.william278.husksync.util.LegacyConverter;
 import net.william278.husksync.util.Task;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -86,7 +85,6 @@ public interface HuskSync extends Task.Supplier, EventDispatcher, ConfigProvider
      *
      * @return the {@link RedisManager} implementation
      */
-
     @NotNull
     RedisManager getRedisManager();
 
@@ -122,7 +120,17 @@ public interface HuskSync extends Task.Supplier, EventDispatcher, ConfigProvider
     List<Migrator> getAvailableMigrators();
 
     @NotNull
-    Map<Identifier, Data> getPlayerCustomDataStore(@NotNull OnlineUser user);
+    Map<UUID, Map<Identifier, Data>> getPlayerCustomDataStore();
+
+    @NotNull
+    default Map<Identifier, Data> getPlayerCustomDataStore(@NotNull OnlineUser user) {
+        if (getPlayerCustomDataStore().containsKey(user.getUuid())) {
+            return getPlayerCustomDataStore().get(user.getUuid());
+        }
+        final Map<Identifier, Data> data = new HashMap<>();
+        getPlayerCustomDataStore().put(user.getUuid(), data);
+        return data;
+    }
 
     /**
      * Initialize a faucet of the plugin.
@@ -155,14 +163,6 @@ public interface HuskSync extends Task.Supplier, EventDispatcher, ConfigProvider
      * @return the {@link InputStream} of the resource
      */
     InputStream getResource(@NotNull String name);
-
-    /**
-     * Returns the plugin data folder
-     *
-     * @return the plugin data folder as a {@link File}
-     */
-    @NotNull
-    File getDataFolder();
 
     /**
      * Log a message to the console

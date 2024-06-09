@@ -69,6 +69,7 @@ allprojects {
     repositories {
         mavenLocal()
         mavenCentral()
+        maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
         maven { url 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/' }
         maven { url "https://repo.dmulloy2.net/repository/public/" }
         maven { url 'https://repo.codemc.io/repository/maven-public/' }
@@ -117,8 +118,13 @@ subprojects {
         archiveClassifier.set('')
     }
 
+    // Append the Minecraft to the version for Fabric projects
+    if (project.name == 'fabric') {
+        version += "+mc.${fabric_minecraft_version}"
+    }
+
     // API publishing
-    if (['common', 'bukkit'].contains(project.name)) {
+    if (['common', 'bukkit', 'fabric'].contains(project.name)) {
         java {
             withSourcesJar()
             withJavadocJar()
@@ -150,6 +156,19 @@ subprojects {
                     mavenJavaBukkit(MavenPublication) {
                         groupId = 'net.william278.husksync'
                         artifactId = 'husksync-bukkit'
+                        version = "$rootProject.version"
+                        artifact shadowJar
+                        artifact sourcesJar
+                        artifact javadocJar
+                    }
+                }
+            }
+
+            if (['fabric'].contains(project.name)) {
+                publications {
+                    mavenJavaFabric(MavenPublication) {
+                        groupId = 'net.william278.husksync'
+                        artifactId = 'husksync-fabric'
                         version = "$rootProject.version"
                         artifact shadowJar
                         artifact sourcesJar

@@ -78,6 +78,7 @@ public interface Data {
          */
         interface Inventory extends Items {
 
+            int INVENTORY_SLOT_COUNT = 41;
             String ITEMS_TAG = "items";
             String HELD_ITEM_SLOT_TAG = "held_item_slot";
 
@@ -110,7 +111,7 @@ public interface Data {
          * Data container holding data for ender chests
          */
         interface EnderChest extends Items {
-
+            int ENDER_CHEST_SLOT_COUNT = 27;
         }
 
     }

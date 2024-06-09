@@ -1,25 +1,31 @@
-This will walk you through installing HuskSync on your network of Spigot servers.
+> **Warning:** Fabric support is currently in beta and is not production ready yet. Customers can get in touch on Discord to request the Fabric build, or you can self-compile.
+
+This will walk you through installing HuskSync on your network of Spigot or Fabric servers.
 
 ## Requirements
-> **Note:** If the plugin fails to load, please check that you are not running an [incompatible version combination](Unsupported-Versions)
+> **Warning:** Mixing and matching Fabric/Spigot servers is not supported, and all servers must be running the same Minecraft version.
 
-* A MySQL Database (v8.0+) (MariaDB, PostrgreSQL or MongoDB are also supported)
+> **Note:** Please also note some specific legacy Paper/Purpur versions are [not compatible](Unsupported-Versions) with HuskSync.
+
+* A MySQL Database (v8.0+)
+  * **OR** a MariaDB, PostrgreSQL or MongoDB database, which are also supported
 * A Redis Database (v5.0+) &mdash; see [[FAQs]] for more details.
 * Any number of Spigot servers, connected by a BungeeCord or Velocity-based proxy (Minecraft v1.17.1+, running Java 17+)
+  * **OR** a network of Fabric servers, connected by a Fabric proxy (Minecraft v1.20.1, running Java 17+)
 
 ## Setup Instructions
 ### 1. Install the jar
-- Place the plugin jar file in the `/plugins/` directory of each Spigot server.
+- Place the plugin jar file in the `/plugins/` or `/mods/` directory of each Spigot/Fabric server respectively.
 - You do not need to install HuskSync as a proxy plugin.
-- You can additionally install [ProtocolLib](https://www.spigotmc.org/resources/protocollib.1997/) or [PacketEvents](https://www.spigotmc.org/resources/packetevents-api.80279/) for better locked user handling, and [Plan](https://www.spigotmc.org/resources/plan-player-analytics.32536/) for analytics.
+- _Spigot users_: You can additionally install [ProtocolLib](https://www.spigotmc.org/resources/protocollib.1997/) or [PacketEvents](https://www.spigotmc.org/resources/packetevents-api.80279/) for better locked user handling.
+- _Fabric users_: Ensure the latest Fabric API mod jar is installed! 
 
 ### 2. Restart servers
 - Start, then stop every server to let HuskSync generate the [[config file]].
 - HuskSync will throw an error in the console and disable itself as it is unable to connect to the database. You haven't set the credentials yet, so this is expected.
-- Advanced users: If you'd prefer, you can create one config.yml file and create symbolic links in each `/plugins/HuskSync/` folder to it to make updating it easier.
 
 ### 3. Enter Mysql & Redis database credentials
-- Navigate to the HuskSync config file on each server (`~/plugins/HuskSync/config.yml`)
+- Navigate to the new config file on each server (`~/plugins/HuskSync/config.yml` on Spigot, `~/config/husksync/config.yml` on Fabric)
 - Under `credentials` in the `database` section, enter the credentials of your (MySQL/MariaDB/MongoDB/PostgreSQL) Database. You shouldn't touch the `connection_pool` properties.
 - Under `credentials` in the `redis` section, enter the credentials of your Redis Database. If your Redis server doesn't have a password, leave the password blank as it is.
 - Unless you want to have multiple clusters of servers within your network, each with separate user data, you should not change the value of `cluster_id`.
@@ -44,7 +50,7 @@ This will walk you through installing HuskSync on your network of Spigot servers
 </details>
 
 ### 4. Set server names in server.yml files
-- Navigate to the HuskSync server name file on each server (`~/plugins/HuskSync/server.yml`)
+- Navigate to the server name file on each server (`~/plugins/HuskSync/server.yml` on Spigot, `~/config/husksync/server.yml` on Fabric)
 - Set the `name:` of the server in this file to the ID of this server as defined in the config of your proxy (e.g., if this is the "hub" server you access with `/server hub`, put `'hub'` here)
 
 ### 5. Start every server again

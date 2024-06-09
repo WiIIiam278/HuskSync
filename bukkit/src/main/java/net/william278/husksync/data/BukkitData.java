@@ -69,7 +69,6 @@ public abstract class BukkitData implements Data {
         private final @Nullable ItemStack @NotNull [] contents;
 
         private Items(@Nullable ItemStack @NotNull [] contents) {
-
             this.contents = Arrays.stream(contents.clone())
                     .map(i -> i == null || i.getType() == Material.AIR ? null : i)
                     .toArray(ItemStack[]::new);
@@ -127,8 +126,6 @@ public abstract class BukkitData implements Data {
         @Getter
         public static class Inventory extends BukkitData.Items implements Data.Items.Inventory {
 
-            public static final int INVENTORY_SLOT_COUNT = 41;
-
             @Range(from = 0, to = 8)
             private int heldItemSlot;
 
@@ -175,15 +172,18 @@ public abstract class BukkitData implements Data {
 
         public static class EnderChest extends BukkitData.Items implements Data.Items.EnderChest {
 
-            public static final int ENDER_CHEST_SLOT_COUNT = 27;
-
-            private EnderChest(@NotNull ItemStack[] contents) {
+            private EnderChest(@Nullable ItemStack @NotNull [] contents) {
                 super(contents);
             }
 
             @NotNull
-            public static BukkitData.Items.EnderChest adapt(@NotNull ItemStack[] items) {
-                return new BukkitData.Items.EnderChest(items);
+            public static BukkitData.Items.EnderChest adapt(@Nullable ItemStack @NotNull [] contents) {
+                return new BukkitData.Items.EnderChest(contents);
+            }
+
+            @NotNull
+            public static BukkitData.Items.EnderChest adapt(@NotNull Collection<ItemStack> items) {
+                return adapt(items.toArray(ItemStack[]::new));
             }
 
             @NotNull
@@ -200,7 +200,7 @@ public abstract class BukkitData implements Data {
 
         public static class ItemArray extends BukkitData.Items implements Data.Items {
 
-            private ItemArray(@NotNull ItemStack[] contents) {
+            private ItemArray(@Nullable ItemStack @NotNull [] contents) {
                 super(contents);
             }
 
@@ -210,7 +210,7 @@ public abstract class BukkitData implements Data {
             }
 
             @NotNull
-            public static ItemArray adapt(@NotNull ItemStack[] drops) {
+            public static ItemArray adapt(@Nullable ItemStack @NotNull [] drops) {
                 return new ItemArray(drops);
             }
 
@@ -341,9 +341,12 @@ public abstract class BukkitData implements Data {
             }));
         }
 
-        private void setAdvancement(@NotNull HuskSync plugin, @NotNull org.bukkit.advancement.Advancement advancement,
-                                    @NotNull Player player, @NotNull BukkitUser user,
-                                    @NotNull Collection<String> toAward, @NotNull Collection<String> toRevoke) {
+        private void setAdvancement(@NotNull HuskSync plugin,
+                                    @NotNull org.bukkit.advancement.Advancement advancement,
+                                    @NotNull Player player,
+                                    @NotNull BukkitUser user,
+                                    @NotNull Collection<String> toAward,
+                                    @NotNull Collection<String> toRevoke) {
             plugin.runSync(() -> {
                 // Track player exp level & progress
                 final int expLevel = player.getLevel();
@@ -355,7 +358,8 @@ public abstract class BukkitData implements Data {
                 toRevoke.forEach(progress::revokeCriteria);
 
                 // Set player experience and level (prevent advancement awards applying twice), reset game rule
-                if (!toAward.isEmpty() && player.getLevel() != expLevel || player.getExp() != expProgress) {
+                if (!toAward.isEmpty()
+                        && (player.getLevel() != expLevel || player.getExp() != expProgress)) {
                     player.setLevel(expLevel);
                     player.setExp(expProgress);
                 }

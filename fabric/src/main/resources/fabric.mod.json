@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "id": "husksync",
+  "version": "${version}",
+  "name": "husksync",
+  "icon": "assets/husksync/icon.png",
+  "description": "${description}",
+  "authors": [
+    {
+      "name": "William278",
+      "contact": {
+        "sources": "https://github.com/WiIIiam278",
+        "homepage": "https://william278.net"
+      }
+    },
+    {
+      "name": "hanbings",
+      "contact": {
+        "sources": "https://github.com/hanbings"
+      }
+    },
+    {
+      "name": "Stampede2011",
+      "contact": {
+        "sources": "https://github.com/Stampede2011"
+      }
+    }
+  ],
+  "license": "Apache-2.0",
+  "contact": {
+    "homepage": "https://william278.net/project/husksync",
+    "repo": "https://github.com/WiIIiam278/HuskSync",
+    "issues": "https://github.com/WiIIiam278/HuskSync/issues"
+  },
+  "environment": "server",
+  "entrypoints": {
+    "server": [
+      "net.william278.husksync.FabricHuskSync"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=${fabric_loader_version}",
+    "minecraft": ">=${fabric_minecraft_version}",
+    "fabric-api": "*"
+  },
+  "suggests": {
+    "plan": "*"
+  },
+  "mixins": [
+    "husksync.mixins.json"
+  ],
+  "custom": {
+    "modmenu:api": true
+  }
+}

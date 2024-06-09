@@ -150,15 +150,15 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
             registerSerializer(Identifier.INVENTORY, new BukkitSerializer.Inventory(this));
             registerSerializer(Identifier.ENDER_CHEST, new BukkitSerializer.EnderChest(this));
             registerSerializer(Identifier.ADVANCEMENTS, new BukkitSerializer.Advancements(this));
-            registerSerializer(Identifier.STATISTICS, new BukkitSerializer.Json<>(this, BukkitData.Statistics.class));
+            registerSerializer(Identifier.STATISTICS, new Serializer.Json<>(this, BukkitData.Statistics.class));
             registerSerializer(Identifier.POTION_EFFECTS, new BukkitSerializer.PotionEffects(this));
-            registerSerializer(Identifier.GAME_MODE, new BukkitSerializer.Json<>(this, BukkitData.GameMode.class));
-            registerSerializer(Identifier.FLIGHT_STATUS, new BukkitSerializer.Json<>(this, BukkitData.FlightStatus.class));
-            registerSerializer(Identifier.ATTRIBUTES, new BukkitSerializer.Json<>(this, BukkitData.Attributes.class));
-            registerSerializer(Identifier.HEALTH, new BukkitSerializer.Json<>(this, BukkitData.Health.class));
-            registerSerializer(Identifier.HUNGER, new BukkitSerializer.Json<>(this, BukkitData.Hunger.class));
-            registerSerializer(Identifier.EXPERIENCE, new BukkitSerializer.Json<>(this, BukkitData.Experience.class));
-            registerSerializer(Identifier.LOCATION, new BukkitSerializer.Json<>(this, BukkitData.Location.class));
+            registerSerializer(Identifier.GAME_MODE, new Serializer.Json<>(this, BukkitData.GameMode.class));
+            registerSerializer(Identifier.FLIGHT_STATUS, new Serializer.Json<>(this, BukkitData.FlightStatus.class));
+            registerSerializer(Identifier.ATTRIBUTES, new Serializer.Json<>(this, BukkitData.Attributes.class));
+            registerSerializer(Identifier.HEALTH, new Serializer.Json<>(this, BukkitData.Health.class));
+            registerSerializer(Identifier.HUNGER, new Serializer.Json<>(this, BukkitData.Hunger.class));
+            registerSerializer(Identifier.EXPERIENCE, new Serializer.Json<>(this, BukkitData.Experience.class));
+            registerSerializer(Identifier.LOCATION, new Serializer.Json<>(this, BukkitData.Location.class));
             validateDependencies();
         });
 

@@ -29,6 +29,7 @@ import de.tr7zw.changeme.nbtapi.utils.DataFixerUtil;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import net.william278.desertwell.util.Version;
+import net.william278.husksync.BukkitHuskSync;
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.adapter.Adaptable;
 import net.william278.husksync.api.HuskSyncAPI;
@@ -41,6 +42,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 import static net.william278.husksync.data.BukkitData.Items.Inventory.INVENTORY_SLOT_COUNT;
+import static net.william278.husksync.data.Data.Items.Inventory.HELD_ITEM_SLOT_TAG;
+import static net.william278.husksync.data.Data.Items.Inventory.ITEMS_TAG;
 
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class BukkitSerializer {
@@ -60,8 +63,6 @@ public class BukkitSerializer {
 
     public static class Inventory extends BukkitSerializer implements Serializer<BukkitData.Items.Inventory>,
             ItemDeserializer {
-        private static final String ITEMS_TAG = "items";
-        private static final String HELD_ITEM_SLOT_TAG = "held_item_slot";
 
         public Inventory(@NotNull HuskSync plugin) {
             super(plugin);
@@ -74,7 +75,7 @@ public class BukkitSerializer {
             final ReadWriteNBT items = root.hasTag(ITEMS_TAG) ? root.getCompound(ITEMS_TAG) : null;
             return BukkitData.Items.Inventory.from(
                     items != null ? getItems(items, dataMcVersion) : new ItemStack[INVENTORY_SLOT_COUNT],
-                    root.getInteger(HELD_ITEM_SLOT_TAG)
+                    root.hasTag(HELD_ITEM_SLOT_TAG) ? root.getInteger(HELD_ITEM_SLOT_TAG) : 0
             );
         }
 
@@ -126,15 +127,15 @@ public class BukkitSerializer {
         @Nullable
         default ItemStack[] getItems(@NotNull ReadWriteNBT tag, @NotNull Version mcVersion) {
             if (mcVersion.compareTo(getPlugin().getMinecraftVersion()) < 0) {
-                return upgradeItemStack((NBTCompound) tag, mcVersion);
+                return upgradeItemStacks((NBTCompound) tag, mcVersion);
             }
             return NBT.itemStackArrayFromNBT(tag);
         }
 
         @NotNull
-        private ItemStack @NotNull [] upgradeItemStack(@NotNull NBTCompound compound, @NotNull Version mcVersion) {
-            final ReadWriteNBTCompoundList items = compound.getCompoundList("items");
-            final ItemStack[] itemStacks = new ItemStack[compound.getInteger("size")];
+        private ItemStack @NotNull [] upgradeItemStacks(@NotNull NBTCompound itemsNbt, @NotNull Version mcVersion) {
+            final ReadWriteNBTCompoundList items = itemsNbt.getCompoundList("items");
+            final ItemStack[] itemStacks = new ItemStack[itemsNbt.getInteger("size")];
             for (int i = 0; i < items.size(); i++) {
                 if (items.get(i) == null) {
                     itemStacks[i] = new ItemStack(Material.AIR);
@@ -163,6 +164,7 @@ public class BukkitSerializer {
                 case "1.19", "1.19.1", "1.19.2" -> DataFixerUtil.VERSION1_19_2;
                 case "1.20", "1.20.1", "1.20.2" -> DataFixerUtil.VERSION1_20_2;
                 case "1.20.3", "1.20.4" -> DataFixerUtil.VERSION1_20_4;
+                case "1.20.5", "1.20.6" -> DataFixerUtil.VERSION1_20_5;
                 default -> DataFixerUtil.getCurrentVersion();
             };
         }
@@ -237,24 +239,19 @@ public class BukkitSerializer {
 
     }
 
-    public static class Json<T extends Data & Adaptable> extends BukkitSerializer implements Serializer<T> {
+    /**
+     * @deprecated Use {@link Serializer.Json} in the common module instead
+     */
+    @Deprecated(since = "2.6")
+    public class Json<T extends Data & Adaptable> extends Serializer.Json<T> {
 
-        private final Class<T> type;
-
-        public Json(@NotNull HuskSync plugin, Class<T> type) {
-            super(plugin);
-            this.type = type;
-        }
-
-        @Override
-        public T deserialize(@NotNull String serialized) throws DeserializationException {
-            return plugin.getDataAdapter().fromJson(serialized, type);
+        public Json(@NotNull HuskSync plugin, @NotNull Class<T> type) {
+            super(plugin, type);
         }
 
         @NotNull
-        @Override
-        public String serialize(@NotNull T element) throws SerializationException {
-            return plugin.getDataAdapter().toJson(element);
+        public BukkitHuskSync getPlugin() {
+            return (BukkitHuskSync) plugin;
         }
 
     }
