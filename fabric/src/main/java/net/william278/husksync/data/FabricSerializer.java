@@ -34,8 +34,8 @@ import net.william278.husksync.HuskSync;
 import net.william278.husksync.api.HuskSyncAPI;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.Arrays;
 import java.util.List;
 
 import static net.william278.husksync.data.Data.Items.Inventory.*;
@@ -94,15 +94,11 @@ public abstract class FabricSerializer {
         public String serialize(@NotNull FabricData.Items.Inventory data) throws SerializationException {
             try {
                 final NbtCompound root = new NbtCompound();
-                final NbtList items = new NbtList();
-                Arrays.stream(data.getContents()).forEach(item -> items.add(
-                        item != null ? item.writeNbt(new NbtCompound()) : new NbtCompound()
-                ));
-                root.put(ITEMS_TAG, items);
+                root.put(ITEMS_TAG, serializeItemArray(data.getContents()));
                 root.putInt(HELD_ITEM_SLOT_TAG, data.getHeldItemSlot());
                 return root.toString();
             } catch (Throwable e) {
-                throw new SerializationException("Failed to serialize item NBT to string", e);
+                throw new SerializationException("Failed to serialize inventory item NBT to string", e);
             }
         }
 
@@ -137,13 +133,9 @@ public abstract class FabricSerializer {
         @Override
         public String serialize(@NotNull FabricData.Items.EnderChest data) throws SerializationException {
             try {
-                final NbtList items = new NbtList();
-                Arrays.stream(data.getContents()).forEach(item -> items.add(
-                        item != null ? item.writeNbt(new NbtCompound()) : new NbtCompound()
-                ));
-                return items.toString();
+                return serializeItemArray(data.getContents()).toString();
             } catch (Throwable e) {
-                throw new SerializationException("Failed to serialize item NBT to string", e);
+                throw new SerializationException("Failed to serialize ender chest item NBT to string", e);
             }
         }
     }
@@ -175,6 +167,25 @@ public abstract class FabricSerializer {
                 plugin.debug("Failed to read/upgrade item NBT from string (%s)".formatted(tag), e);
                 return new ItemStack[tag.size()];
             }
+        }
+
+        // Serialize items slot-by-slot
+        @NotNull
+        default NbtCompound serializeItemArray(@Nullable ItemStack @NotNull [] items) {
+            final NbtCompound container = new NbtCompound();
+            final NbtList itemList = new NbtList();
+            container.putInt("size", items.length);
+            for (int i = 0; i < items.length; i++) {
+                final ItemStack item = items[i];
+                if (item == null || item.isEmpty()) {
+                    continue;
+                }
+                NbtCompound entry = new NbtCompound();
+                entry.putInt("Slot", i);
+                item.writeNbt(entry);
+            }
+            container.put(ITEMS_TAG, itemList);
+            return container;
         }
 
         @NotNull
