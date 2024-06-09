@@ -12,23 +12,29 @@ HuskSync supports synchronising a wide range of different data elements, each of
 <details>
 <summary>&nbsp;<b>Are modded items supported?</b></summary>
 
-If you're running HuskSync on Arclight or similar, please note we will not be able to provide you with support, but have been reported to save & sync correctly with HuskSync v3.x+.
+On Fabric, modded items should usually sync as you would expect with HuskSync. Note that mods which store additional data separate from item NBT on each server may not work as expected. Mod developers &mdash; check out the [[Custom Data API]] for information on how to get your mod's data syncing!
 
-**TL;DR** &mdash; modded items may work, but since we can't guarantee compatibility, we do not officially mark them as supported. Be sure to test thoroughly before deploying on production!
+On Spigot, if you're running HuskSync on Arclight or similar, please note we will not be able to provide you with support, but have been reported to save & sync correctly with HuskSync v3.x+.
+
+Please note we cannot guarantee compatibility with everything &mdash; test thoroughly!
 
 </details>
 
 <details>
 <summary>&nbsp;<b>Are MMOItems / SlimeFun / ItemsAdder items supported?</b></summary>
 
-These plugins, which provide custom items, should be supported as of HuskSync v3.x+; but do note we cannot guarantee compatibility with all methods of injecting custom data to create custom items. Be sure to test thoroughly before deploying on production!
+These custom item Spigot plugins should work as expected provided they inject data into item NBT in a standard way.
+
+Please note we cannot guarantee compatibility with everything &mdash; test thoroughly!
 
 </details>
 
 <details>
 <summary>&nbsp;<b>Is Redis required? What is Redis?</b></summary>
 
-HuskSync requires Redis to operate (for reasons demonstrated below). Redis is an in-memory database server used for caching data at scale and sending messages across a network. You have a Redis server in a similar fashion to the way you have a MySQL database server. If you're using a Minecraft hosting company, you'll want to contact their support and ask if they offer Redis. If you're looking for a host, I have a list of some popular hosts and whether they support Redis [available to read here.](https://william278.net/redis-hosts)
+Yes! HuskSync requires Redis to operate (for reasons demonstrated below).
+
+Redis is an in-memory database server used for caching data at scale and sending messages across a network. You have a Redis server in a similar fashion to the way you have a MySQL database server. If you're using a Minecraft hosting company, you'll want to contact their support and ask if they offer Redis. If you're looking for a host, I have a list of some popular hosts and whether they support Redis [available to read here.](https://william278.net/redis-hosts)
 
 </details>
 

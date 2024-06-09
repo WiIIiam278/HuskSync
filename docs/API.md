@@ -17,6 +17,7 @@ The HuskSync API shares version numbering with the plugin itself for consistency
 The HuskSync API is available for the following platforms:
 
 * `bukkit` - Bukkit, Spigot, Paper, etc. Provides Bukkit API event listeners and adapters to `org.bukkit` objects.
+* `fabric` - Fabric API for Minecraft. Provides Fabric API event listeners and adapters to `net.minecraft` objects.
 * `common` - Common API for all platforms.
 
 

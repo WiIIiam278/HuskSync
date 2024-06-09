@@ -27,6 +27,5 @@
 * 📂 [Buy HuskSync](https://william278.net/project/husksync/)
   * 🚰 [Spigot](https://www.spigotmc.org/resources/husksync.97144/)
   * 🛒 [Polymart](https://polymart.org/resource/husksync.1634)
-  * ⚒️ [Craftaro](https://craftaro.com/marketplace/product/husksync.758)
-  * 🛒 [BuiltByBit](https://craftaro.com/marketplace/product/husksync.758)
+  * ⚒️ [BuiltByBit](https://craftaro.com/marketplace/product/husksync.758)
 * 💬 [Discord Support](https://discord.gg/tVYhJfyDWG)

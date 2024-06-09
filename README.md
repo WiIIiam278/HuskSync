@@ -44,15 +44,15 @@
 **Ready?** [It's syncing time!](https://william278.net/docs/husksync/setup)
 
 ## Setup
-Requires a MySQL/Mongo/PostgreSQL database, a Redis (v5.0+) server and any number of Spigot-based 1.17.1+ Minecraft servers, running Java 17+.
+Requires a MySQL/Mongo/PostgreSQL database, a Redis (v5.0+) server and a network of Spigot (1.17.1+) or Fabric (1.20.1) Minecraft servers, running Java 17+.
 
-1. Place the plugin jar file in the /plugins/ directory of each Spigot server. You do not need to install HuskSync as a proxy plugin.
+1. Place the plugin jar file in the `/plugins` or `/mods` directory of each Spigot/Fabric server. You do not need to install HuskSync as a proxy plugin.
 2. Start, then stop every server to let HuskSync generate the config file.
-3. Navigate to the HuskSync config file on each server (~/plugins/HuskSync/config.yml) and fill in both your database and Redis server credentials.
+3. Navigate to the HuskSync config file on each server and fill in both your database and Redis server credentials.
 4. Start every server again and synchronization will begin.
 
 ## Development
-To build HuskSync, simply run the following in the root of the repository:
+To build HuskSync, simply run the following in the root of the repository (building requires Java 17). Builds will be output in `/target`:
 
 ```bash
 ./gradlew clean build
@@ -66,7 +66,7 @@ HuskSync is licensed under the Apache 2.0 license.
 Contributions to the project are welcome&mdash;feel free to open a pull request with new features, improvements and/or fixes!
 
 ### Support
-Due to its complexity, official binaries and customer support for HuskSync is provided through a paid model. This means that support is only available to users who have purchased a license to the plugin from Spigot, Polymart, Craftaro, or BuiltByBit and have provided proof of purchase. Please join our Discord server if you have done so and need help!
+Due to its complexity, official binaries and customer support for HuskSync is provided through a paid model. This means that support is only available to users who have purchased a license to the plugin from Spigot, Polymart, or BuiltByBit and have provided proof of purchase. Please join our Discord server if you have done so and need help!
 
 ### Translations
 Translations of the plugin locales are welcome to help make the plugin more accessible. Please submit a pull request with your translations as a `.yml` file.

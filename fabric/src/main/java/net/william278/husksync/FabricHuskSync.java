@@ -39,6 +39,7 @@ import net.william278.desertwell.util.Version;
 import net.william278.husksync.adapter.DataAdapter;
 import net.william278.husksync.adapter.GsonAdapter;
 import net.william278.husksync.adapter.SnappyGsonAdapter;
+import net.william278.husksync.api.FabricHuskSyncAPI;
 import net.william278.husksync.command.Command;
 import net.william278.husksync.command.FabricCommand;
 import net.william278.husksync.config.Locales;
@@ -194,9 +195,10 @@ public class FabricHuskSync implements DedicatedServerModInitializer, HuskSync, 
             }
         });
 
-        // TODO: Register API
-//        initialize("api", (plugin) -> {
-//        });
+        // Register API
+        initialize("api", (plugin) -> {
+            FabricHuskSyncAPI.register(this);
+        });
 
         // Check for updates
         this.checkForUpdates();
