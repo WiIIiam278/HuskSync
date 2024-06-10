@@ -28,9 +28,9 @@ dependencies {
 
     compileOnly 'org.jetbrains:annotations:24.0.1'
     compileOnly 'net.william278:DesertWell:2.0.4'
-    compileOnly 'org.projectlombok:lombok:1.18.30'
+    compileOnly 'org.projectlombok:lombok:1.18.32'
 
-    annotationProcessor 'org.projectlombok:lombok:1.18.30'
+    annotationProcessor 'org.projectlombok:lombok:1.18.32'
 
     shadow project(path: ":common")
 }
