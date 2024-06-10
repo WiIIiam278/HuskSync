@@ -26,7 +26,7 @@ dependencies {
     implementation include("org.mariadb.jdbc:mariadb-java-client:$mariadb_driver_version")
     implementation include("org.xerial.snappy:snappy-java:$snappy_version")
 
-    compileOnly 'org.jetbrains:annotations:24.0.1'
+    compileOnly 'org.jetbrains:annotations:24.1.0'
     compileOnly 'net.william278:DesertWell:2.0.4'
     compileOnly 'org.projectlombok:lombok:1.18.30'
 
