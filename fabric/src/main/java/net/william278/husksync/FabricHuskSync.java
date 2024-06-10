@@ -47,7 +47,9 @@ import net.william278.husksync.config.Server;
 import net.william278.husksync.config.Settings;
 import net.william278.husksync.data.*;
 import net.william278.husksync.database.Database;
+import net.william278.husksync.database.MongoDbDatabase;
 import net.william278.husksync.database.MySqlDatabase;
+import net.william278.husksync.database.PostgresDatabase;
 import net.william278.husksync.event.FabricEventDispatcher;
 import net.william278.husksync.hook.PlanHook;
 import net.william278.husksync.listener.EventListener;
@@ -169,7 +171,11 @@ public class FabricHuskSync implements DedicatedServerModInitializer, HuskSync, 
 
         // Initialize the database
         initialize(getSettings().getDatabase().getType().getDisplayName() + " database connection", (plugin) -> {
-            this.database = new MySqlDatabase(this);
+            this.database = switch (settings.getDatabase().getType()) {
+                case MYSQL, MARIADB -> new MySqlDatabase(this);
+                case POSTGRES -> new PostgresDatabase(this);
+                case MONGO -> new MongoDbDatabase(this);
+            };
             this.database.initialize();
         });
 
