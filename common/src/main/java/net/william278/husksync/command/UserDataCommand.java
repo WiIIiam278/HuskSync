@@ -99,7 +99,7 @@ public class UserDataCommand extends Command implements TabProvider {
                     version -> dumpSnapshot(executor, user, version, parseStringArg(args, 3)
                             .map(arg -> arg.equalsIgnoreCase("web")).orElse(false)),
                     () -> plugin.getLocales().getLocale("error_invalid_syntax",
-                                    "/userdata dump <web/file> <username> <version_uuid>")
+                                    "/userdata dump <username> <version_uuid> <web/file>")
                             .ifPresent(executor::sendMessage)
             );
             default -> plugin.getLocales().getLocale("error_invalid_syntax", getUsage())
