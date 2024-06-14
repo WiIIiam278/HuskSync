@@ -21,6 +21,11 @@ package net.william278.husksync.data;
 
 import com.google.common.collect.Sets;
 import com.google.gson.annotations.SerializedName;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.experimental.Accessors;
 import net.kyori.adventure.key.Key;
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.user.OnlineUser;
@@ -156,8 +161,8 @@ public interface Data {
         @NotNull
         default List<Advancement> getCompletedExcludingRecipes() {
             return getCompleted().stream()
-                    .filter(advancement -> !advancement.getKey().startsWith("minecraft:recipe"))
-                    .collect(Collectors.toList());
+                .filter(advancement -> !advancement.getKey().startsWith("minecraft:recipe"))
+                .collect(Collectors.toList());
         }
 
         void setCompleted(@NotNull List<Advancement> completed);
@@ -186,13 +191,13 @@ public interface Data {
             @NotNull
             private static Map<String, Long> adaptDateMap(@NotNull Map<String, Date> dateMap) {
                 return dateMap.entrySet().stream()
-                        .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().getTime()));
+                    .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().getTime()));
             }
 
             @NotNull
             private static Map<String, Date> adaptLongMap(@NotNull Map<String, Long> dateMap) {
                 return dateMap.entrySet().stream()
-                        .collect(Collectors.toMap(Map.Entry::getKey, e -> new Date(e.getValue())));
+                    .collect(Collectors.toMap(Map.Entry::getKey, e -> new Date(e.getValue())));
             }
 
             @NotNull
@@ -245,9 +250,9 @@ public interface Data {
         void setWorld(@NotNull World world);
 
         record World(
-                @SerializedName("name") @NotNull String name,
-                @SerializedName("uuid") @NotNull UUID uuid,
-                @SerializedName("environment") @NotNull String environment
+            @SerializedName("name") @NotNull String name,
+            @SerializedName("uuid") @NotNull UUID uuid,
+            @SerializedName("environment") @NotNull String environment
         ) {
         }
     }
@@ -319,9 +324,9 @@ public interface Data {
         List<Attribute> getAttributes();
 
         record Attribute(
-                @NotNull String name,
-                double baseValue,
-                @NotNull Set<Modifier> modifiers
+            @NotNull String name,
+            double baseValue,
+            @NotNull Set<Modifier> modifiers
         ) {
 
             public double getValue() {
@@ -334,17 +339,34 @@ public interface Data {
 
         }
 
-        record Modifier(
-                @NotNull UUID uuid,
-                @NotNull String name,
-                double amount,
-                @SerializedName("operation") int operationType,
-                @SerializedName("equipment_slot") int equipmentSlot
-        ) {
+        @Getter
+        @Accessors(fluent = true)
+        @AllArgsConstructor
+        @NoArgsConstructor
+        final class Modifier {
+            @Getter(AccessLevel.NONE)
+            @Nullable
+            @SerializedName("uuid")
+            private UUID uuid;
+            @SerializedName("name")
+            private String name;
+            @SerializedName("amount")
+            private double amount;
+            @SerializedName("operation")
+            private int operationType;
+            @SerializedName("equipment_slot")
+            private int equipmentSlot;
+
+            public Modifier(@NotNull String name, double amount, int operationType, int equipmentSlot) {
+                this.name = name;
+                this.amount = amount;
+                this.operationType = operationType;
+                this.equipmentSlot = equipmentSlot;
+            }
 
             @Override
             public boolean equals(Object obj) {
-                return obj instanceof Modifier modifier && modifier.uuid.equals(uuid);
+                return obj instanceof Modifier modifier && modifier.uuid().equals(uuid());
             }
 
             public double modify(double value) {
@@ -355,12 +377,18 @@ public interface Data {
                     default -> value;
                 };
             }
+
+            @NotNull
+            public UUID uuid() {
+                return uuid != null ? uuid : UUID.nameUUIDFromBytes(name.getBytes());
+            }
+
         }
 
         default Optional<Attribute> getAttribute(@NotNull Key key) {
             return getAttributes().stream()
-                    .filter(attribute -> attribute.name().equals(key.asString()))
-                    .findFirst();
+                .filter(attribute -> attribute.name().equals(key.asString()))
+                .findFirst();
         }
 
         default void removeAttribute(@NotNull Key key) {
@@ -369,8 +397,8 @@ public interface Data {
 
         default double getMaxHealth() {
             return getAttribute(MAX_HEALTH_KEY)
-                    .map(Attribute::getValue)
-                    .orElse(20.0);
+                .map(Attribute::getValue)
+                .orElse(20.0);
         }
 
         default void setMaxHealth(double maxHealth) {

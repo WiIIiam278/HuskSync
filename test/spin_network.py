@@ -12,15 +12,15 @@ from tqdm import tqdm
 # Parameters for starting a network of Minecraft servers
 class Parameters:
     root_dir = './servers/'
-    proxy_version = "1.20"
-    minecraft_version = '1.20.6'
+    proxy_version = "1.21"
+    minecraft_version = '1.21'
     eula_agreement = 'true'
 
     backend_names = ['alpha', 'beta']
     backend_ports = [25567, 25568]
     backend_type = 'paper'
     backend_ram = 2048
-    backend_plugins = ['../target/HuskSync-Paper-*.jar', './ProtocolLib/ProtocolLib.jar']
+    backend_plugins = ['../target/HuskSync-Paper-*.jar']
     backend_plugin_folders = ['./HuskSync']
     operator_names = ['William278']
     operator_uuids = ['5dfb0558-e306-44f4-bb9a-f9218d4eb787']
@@ -33,7 +33,7 @@ class Parameters:
     proxy_plugins = []
     proxy_plugin_folders = []
 
-    just_update_plugins = False
+    just_update_plugins = True
 
 
 def main(update=False):

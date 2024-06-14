@@ -21,6 +21,7 @@ dependencies {
     modCompileOnly "net.fabricmc.fabric-api:fabric-api:${fabric_api_version}"
 
     // Runtime dependencies on Bukkit; "include" them on Fabric. (todo: minify JAR?)
+    implementation include('org.apache.commons:commons-pool2:2.12.0')
     implementation include("redis.clients:jedis:$jedis_version")
     implementation include("com.mysql:mysql-connector-j:$mysql_driver_version")
     implementation include("org.mariadb.jdbc:mariadb-java-client:$mariadb_driver_version")

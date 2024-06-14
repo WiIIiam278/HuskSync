@@ -26,6 +26,7 @@ import de.tr7zw.changeme.nbtapi.NBTCompound;
 import de.tr7zw.changeme.nbtapi.NBTPersistentDataContainer;
 import lombok.*;
 import net.william278.desertwell.util.ThrowingConsumer;
+import net.william278.desertwell.util.Version;
 import net.william278.husksync.BukkitHuskSync;
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.adapter.Adaptable;
@@ -572,7 +573,7 @@ public abstract class BukkitData implements Data {
                     // We don't sync unmodified or disabled attributes
                     return;
                 }
-                attributes.add(adapt(instance));
+                attributes.add(adapt(instance, plugin.getMinecraftVersion()));
             });
             return new BukkitData.Attributes(attributes);
         }
@@ -591,18 +592,18 @@ public abstract class BukkitData implements Data {
         }
 
         @NotNull
-        private static Attribute adapt(@NotNull AttributeInstance instance) {
+        private static Attribute adapt(@NotNull AttributeInstance instance, @NotNull Version version) {
             return new Attribute(
                     instance.getAttribute().getKey().toString(),
                     instance.getBaseValue(),
-                    instance.getModifiers().stream().map(BukkitData.Attributes::adapt).collect(Collectors.toSet())
+                    instance.getModifiers().stream().map(m -> adapt(m, version)).collect(Collectors.toSet())
             );
         }
 
         @NotNull
-        private static Modifier adapt(@NotNull AttributeModifier modifier) {
+        private static Modifier adapt(@NotNull AttributeModifier modifier, @NotNull Version version) {
             return new Modifier(
-                    modifier.getUniqueId(),
+                    version.compareTo(Version.fromString("1.21")) >= 0 ? null : modifier.getUniqueId(),
                     modifier.getName(),
                     modifier.getAmount(),
                     modifier.getOperation().ordinal(),
