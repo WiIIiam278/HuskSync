@@ -58,7 +58,7 @@ public abstract class FabricSerializer {
     }
 
     public static class Inventory extends FabricSerializer implements Serializer<FabricData.Items.Inventory>,
-            ItemDeserializer {
+        ItemDeserializer {
 
         public Inventory(@NotNull HuskSync plugin) {
             super(plugin);
@@ -66,7 +66,7 @@ public abstract class FabricSerializer {
 
         @Override
         public FabricData.Items.Inventory deserialize(@NotNull String serialized, @NotNull Version dataMcVersion)
-                throws DeserializationException {
+            throws DeserializationException {
             // Read item NBT from string
             final FabricHuskSync plugin = (FabricHuskSync) getPlugin();
             final NbtCompound root;
@@ -79,8 +79,8 @@ public abstract class FabricSerializer {
             // Deserialize the inventory data
             final NbtCompound items = root.contains(ITEMS_TAG) ? root.getCompound(ITEMS_TAG) : null;
             return FabricData.Items.Inventory.from(
-                    items != null ? getItems(items, dataMcVersion, plugin) : new ItemStack[INVENTORY_SLOT_COUNT],
-                    root.contains(HELD_ITEM_SLOT_TAG) ? root.getInt(HELD_ITEM_SLOT_TAG) : 0
+                items != null ? getItems(items, dataMcVersion, plugin) : new ItemStack[INVENTORY_SLOT_COUNT],
+                root.contains(HELD_ITEM_SLOT_TAG) ? root.getInt(HELD_ITEM_SLOT_TAG) : 0
             );
         }
 
@@ -105,7 +105,7 @@ public abstract class FabricSerializer {
     }
 
     public static class EnderChest extends FabricSerializer implements Serializer<FabricData.Items.EnderChest>,
-            ItemDeserializer {
+        ItemDeserializer {
 
         public EnderChest(@NotNull HuskSync plugin) {
             super(plugin);
@@ -113,7 +113,7 @@ public abstract class FabricSerializer {
 
         @Override
         public FabricData.Items.EnderChest deserialize(@NotNull String serialized, @NotNull Version dataMcVersion)
-                throws DeserializationException {
+            throws DeserializationException {
             final FabricHuskSync plugin = (FabricHuskSync) getPlugin();
             try {
                 final NbtCompound items = StringNbtReader.parse(serialized);
@@ -150,6 +150,7 @@ public abstract class FabricSerializer {
         int VERSION1_20_2 = 3578; // Future
         int VERSION1_20_4 = 3700; // Future
         int VERSION1_20_5 = 3837; // Future
+        int VERSION1_21 = 3953; // Future
 
         @NotNull
         default ItemStack[] getItems(@NotNull NbtCompound tag, @NotNull Version mcVersion, @NotNull FabricHuskSync plugin) {
@@ -158,15 +159,14 @@ public abstract class FabricSerializer {
                     return upgradeItemStacks(tag, mcVersion, plugin);
                 }
 
-                final int size = tag.getInt("size");
-                final NbtList items = tag.getList("items", NbtElement.COMPOUND_TYPE);
-                final ItemStack[] itemStacks = new ItemStack[size];
-                for (int i = 0; i < size; i++) {
-                    final NbtCompound compound = items.getCompound(i);
-                    final int slot = compound.getInt("Slot");
-                    itemStacks[slot] = ItemStack.fromNbt(compound);
-                }
-                return itemStacks;
+                final ItemStack[] contents = new ItemStack[tag.getInt("size")];
+                final NbtList itemList = tag.getList("items", NbtElement.COMPOUND_TYPE);
+                itemList.forEach(element -> {
+                    final NbtCompound compound = (NbtCompound) element;
+                    contents[compound.getInt("Slot")] = ItemStack.fromNbt(compound);
+                });
+                plugin.debug(Arrays.toString(contents));
+                return contents;
             } catch (Throwable e) {
                 throw new Serializer.DeserializationException("Failed to read item NBT string (%s)".formatted(tag), e);
             }
@@ -216,8 +216,8 @@ public abstract class FabricSerializer {
         private NbtCompound upgradeItemData(@NotNull NbtCompound tag, @NotNull Version mcVersion,
                                             @NotNull FabricHuskSync plugin) {
             return (NbtCompound) plugin.getMinecraftServer().getDataFixer().update(
-                    TypeReferences.ITEM_STACK, new Dynamic<Object>((DynamicOps) NbtOps.INSTANCE, tag),
-                    getDataVersion(mcVersion), getDataVersion(plugin.getMinecraftVersion())
+                TypeReferences.ITEM_STACK, new Dynamic<Object>((DynamicOps) NbtOps.INSTANCE, tag),
+                getDataVersion(mcVersion), getDataVersion(plugin.getMinecraftVersion())
             ).getValue();
         }
 
@@ -232,6 +232,7 @@ public abstract class FabricSerializer {
                 case "1.20.2" -> VERSION1_20_2; // Future
                 case "1.20.4" -> VERSION1_20_4; // Future
                 case "1.20.5", "1.20.6" -> VERSION1_20_5; // Future
+                case "1.21" -> VERSION1_21; // Future
                 default -> VERSION1_20_1; // Current supported ver
             };
         }
@@ -250,7 +251,7 @@ public abstract class FabricSerializer {
         @Override
         public FabricData.PotionEffects deserialize(@NotNull String serialized) throws DeserializationException {
             return FabricData.PotionEffects.adapt(
-                    plugin.getGson().fromJson(serialized, TYPE.getType())
+                plugin.getGson().fromJson(serialized, TYPE.getType())
             );
         }
 
@@ -274,7 +275,7 @@ public abstract class FabricSerializer {
         @Override
         public FabricData.Advancements deserialize(@NotNull String serialized) throws DeserializationException {
             return FabricData.Advancements.from(
-                    plugin.getGson().fromJson(serialized, TYPE.getType())
+                plugin.getGson().fromJson(serialized, TYPE.getType())
             );
         }
 

@@ -163,9 +163,7 @@ public abstract class FabricData implements Data {
                 player.currentScreenHandler.setCursorStack(ItemStack.EMPTY);
                 final ItemStack[] items = getContents();
                 for (int slot = 0; slot < player.getInventory().size(); slot++) {
-                    player.getInventory().setStack(
-                            slot, items[slot] == null ? ItemStack.EMPTY : items[slot]
-                    );
+                    player.getInventory().setStack(slot, items[slot] == null ? ItemStack.EMPTY : items[slot]);
                 }
                 player.getInventory().selectedSlot = heldItemSlot;
                 player.playerScreenHandler.sendContentUpdates();
