@@ -169,7 +169,7 @@ subprojects {
                     mavenJavaFabric(MavenPublication) {
                         groupId = 'net.william278.husksync'
                         artifactId = 'husksync-fabric'
-                        version = "$rootProject.version"
+                        version = "$rootProject.version+${fabric_minecraft_version}"
                         artifact shadowJar
                         artifact sourcesJar
                         artifact javadocJar

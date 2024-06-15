@@ -53,7 +53,7 @@ Add the repository to your `pom.xml` as per below. You can alternatively specify
     </repository>
 </repositories>
 ```
-Add the dependency to your `pom.xml` as per below. Replace `VERSION` with the latest version of HuskSync (without the v): ![Latest version](https://img.shields.io/github/v/tag/WiIIiam278/HuskSync?color=%23282828&label=%20&style=flat-square)
+Add the dependency to your `pom.xml` as per below. Replace `VERSION` with the latest version of HuskSync (without the v): ![Latest version](https://img.shields.io/github/v/tag/WiIIiam278/HuskSync?color=%23282828&label=%20&style=flat-square). Note for Fabric you must append the target Minecraft version to the version number (e.g. `3.6.1+1.20.1`).
 ```xml
 <dependency>
     <groupId>net.william278.husksync</groupId>
@@ -76,7 +76,7 @@ allprojects {
 	}
 }
 ```
-Add the dependency as per below. Replace `VERSION` with the latest version of HuskSync (without the v): ![Latest version](https://img.shields.io/github/v/tag/WiIIiam278/HuskSync?color=%23282828&label=%20&style=flat-square)
+Add the dependency as per below. Replace `VERSION` with the latest version of HuskSync (without the v): ![Latest version](https://img.shields.io/github/v/tag/WiIIiam278/HuskSync?color=%23282828&label=%20&style=flat-square). Note for Fabric you must append the target Minecraft version to the version number (e.g. `3.6.1+1.20.1`).
 
 ```groovy
 dependencies {
