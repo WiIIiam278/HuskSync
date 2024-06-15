@@ -769,7 +769,7 @@ public abstract class FabricData implements Data {
 
         @Override
         public void apply(@NotNull FabricUser user, @NotNull FabricHuskSync plugin) throws IllegalStateException {
-            user.getPlayer().interactionManager.changeGameMode(net.minecraft.world.GameMode.byName(gameMode));
+            user.getPlayer().changeGameMode(net.minecraft.world.GameMode.byName(gameMode));
         }
 
     }
