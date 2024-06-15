@@ -31,22 +31,29 @@ This will walk you through installing HuskSync on your network of Spigot or Fabr
 - Unless you want to have multiple clusters of servers within your network, each with separate user data, you should not change the value of `cluster_id`.
 
 <details>
-<summary>Important &mdash; MongoDB Users</summary>
+<summary>MongoDB users &mdash; additional instructions</summary>
 
 - Navigate to the HuskSync config file on each server (`~/plugins/HuskSync/config.yml`)
 - Set `type` in the `database` section to `MONGO`
 - Under `credentials` in the `database` section, enter the credentials of your MongoDB Database. You shouldn't touch the `connection_pool` properties.
-<details>
+- Under `parameters` in the `mongo_settings` section, ensure the specified `&authSource=` matches the database you are using (default is `HuskSync`).
 
-<summary>Additional configuration for MongoDB Atlas users</summary>
+#### Additional setup for MongoDB Atlas
 
-- Navigate to the HuskSync config file on each server (`~/plugins/HuskSync/config.yml`)
 - Set `using_atlas` in the `mongo_settings` section to `true`. 
 - Remove `&authSource=HuskSync` from `parameters` in the `mongo_settings`. 
 
 (The `port` setting in `credentials` is disregarded when using Atlas.)
 </details>
 
+<details>
+<summary>Pterodactyl self-hosts &mdash; Redis setup instructions</summary>
+
+If you are hosting your Redis server on the same node as your servers, you need to use `172.18.0.1` as your host (or equivalent if you changed your network settings), and bind it in the Redis config `nano /etc/redis/redis.conf`.
+
+You will also need to uncomment the `requirepass` directive and set a password to allow outside connections, or disable `protected-mode`. Once a password is set and Redis is restarted `systemctl restart redis`, you will also need to update the password in your pterodactyl `.env` (`nano /var/www/pterodactyl/.env`) and refresh the cache `cd /var/www/pterodactyl && php artisan config:clear`.
+
+You may also need to allow connections from your firewall depending on your distribution.
 </details>
 
 ### 4. Set server names in server.yml files
