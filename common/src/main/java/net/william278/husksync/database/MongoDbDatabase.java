@@ -189,7 +189,6 @@ public class MongoDbDatabase extends Database {
     @Blocking
     @Override
     public Optional<DataSnapshot.Packed> getLatestSnapshot(@NotNull User user) {
-        System.out.println("Getting user latest snapshot " + user.getUsername());
         try {
             Document filter = new Document("player_uuid", user.getUuid());
             Document sort = new Document("timestamp", -1); // -1 = Descending
@@ -361,7 +360,6 @@ public class MongoDbDatabase extends Database {
     @Blocking
     @Override
     protected void createSnapshot(@NotNull User user, @NotNull DataSnapshot.Packed data) {
-        System.out.println("Creating user snapshot " + user.getUsername());
         try {
             Document doc = new Document("player_uuid", user.getUuid())
                     .append("version_uuid", data.getId())
