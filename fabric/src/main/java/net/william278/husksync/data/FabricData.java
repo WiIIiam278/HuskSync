@@ -153,13 +153,13 @@ public abstract class FabricData implements Data {
 
             @Override
             public int getSlotCount() {
-                return INVENTORY_SLOT_COUNT;
+                return getContents().length;
             }
 
             @Override
             public void apply(@NotNull FabricUser user, @NotNull FabricHuskSync plugin) throws IllegalStateException {
                 final ServerPlayerEntity player = user.getPlayer();
-                this.clearInventoryCraftingSlots(player);
+                player.playerScreenHandler.clearCraftingSlots();
                 player.currentScreenHandler.setCursorStack(ItemStack.EMPTY);
                 final ItemStack[] items = getContents();
                 for (int slot = 0; slot < player.getInventory().size(); slot++) {
@@ -170,10 +170,6 @@ public abstract class FabricData implements Data {
                 player.getInventory().selectedSlot = heldItemSlot;
                 player.playerScreenHandler.sendContentUpdates();
                 player.getInventory().updateItems();
-            }
-
-            private void clearInventoryCraftingSlots(@NotNull ServerPlayerEntity player) {
-                player.playerScreenHandler.clearCraftingSlots();
             }
 
         }
