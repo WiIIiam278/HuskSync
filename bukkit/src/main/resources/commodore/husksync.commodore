@@ -1,6 +1,0 @@
-husksync {
-  update;
-  about;
-  status;
-  reload;
-}

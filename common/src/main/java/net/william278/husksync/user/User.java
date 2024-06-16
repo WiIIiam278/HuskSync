@@ -49,8 +49,13 @@ public class User {
      * Get the user's username
      */
     @NotNull
-    public String getUsername() {
+    public String getName() {
         return username;
+    }
+
+    @NotNull
+    public String getUsername() {
+        return getName();
     }
 
     @Override

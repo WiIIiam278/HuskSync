@@ -22,6 +22,8 @@ package net.william278.husksync;
 import net.kyori.adventure.audience.Audience;
 import net.william278.husksync.listener.BukkitEventListener;
 import net.william278.husksync.listener.PaperEventListener;
+import net.william278.uniform.Uniform;
+import net.william278.uniform.paper.PaperUniform;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
@@ -43,4 +45,9 @@ public class PaperHuskSync extends BukkitHuskSync {
         return player == null || !player.isOnline() ? Audience.empty() : player;
     }
 
+    @Override
+    @NotNull
+    public Uniform getUniform() {
+        return PaperUniform.getInstance(this);
+    }
 }

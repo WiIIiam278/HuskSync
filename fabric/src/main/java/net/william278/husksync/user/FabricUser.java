@@ -72,7 +72,7 @@ public class FabricUser extends OnlineUser implements FabricUserDataHolder {
     @Override
     public void sendToast(@NotNull MineDown title, @NotNull MineDown description, @NotNull String iconMaterial,
                           @NotNull String backgroundType) {
-        player.sendActionBar(title.toComponent()); // Toasts unimplemented for now
+        getAudience().sendActionBar(title.toComponent()); // Toasts unimplemented for now
     }
 
     @Override

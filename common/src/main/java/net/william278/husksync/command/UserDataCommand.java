@@ -19,6 +19,7 @@
 
 package net.william278.husksync.command;
 
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.data.DataSnapshot;
 import net.william278.husksync.redis.RedisKeyType;
@@ -28,116 +29,71 @@ import net.william278.husksync.user.User;
 import net.william278.husksync.util.DataDumper;
 import net.william278.husksync.util.DataSnapshotList;
 import net.william278.husksync.util.DataSnapshotOverview;
+import net.william278.uniform.BaseCommand;
+import net.william278.uniform.CommandProvider;
+import net.william278.uniform.element.ArgumentElement;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.logging.Level;
 
-public class UserDataCommand extends Command implements TabProvider {
+public class UserDataCommand extends PluginCommand {
 
     private static final Map<String, Boolean> SUB_COMMANDS = Map.of(
-            "view", false,
-            "list", false,
-            "delete", true,
-            "restore", true,
-            "pin", true,
-            "dump", true
+        "view", false,
+        "list", false,
+        "delete", true,
+        "restore", true,
+        "pin", true,
+        "dump", true
     );
 
     public UserDataCommand(@NotNull HuskSync plugin) {
-        super("userdata", List.of("playerdata"), String.format(
-                "<%s> [username] [version_uuid]", String.join("/", SUB_COMMANDS.keySet())
-        ), plugin);
-        setOperatorCommand(true);
-        addAdditionalPermissions(SUB_COMMANDS);
+        super("userdata", List.of("playerdata"), plugin);
     }
 
     @Override
-    public void execute(@NotNull CommandUser executor, @NotNull String[] args) {
-        final String subCommand = parseStringArg(args, 0).orElse("view").toLowerCase(Locale.ENGLISH);
-        final Optional<User> optionalUser = parseStringArg(args, 1)
-                .flatMap(name -> plugin.getDatabase().getUserByName(name))
-                .or(() -> parseStringArg(args, 0).flatMap(name -> plugin.getDatabase().getUserByName(name)))
-                .or(() -> args.length < 2 && executor instanceof User userExecutor
-                        ? Optional.of(userExecutor) : Optional.empty());
-        final Optional<UUID> uuid = parseUUIDArg(args, 2).or(() -> parseUUIDArg(args, 1));
-        if (optionalUser.isEmpty()) {
-            plugin.getLocales().getLocale("error_invalid_player")
-                    .ifPresent(executor::sendMessage);
-            return;
-        }
-
-        final User user = optionalUser.get();
-        switch (subCommand) {
-            case "view" -> uuid.ifPresentOrElse(
-                    version -> viewSnapshot(executor, user, version),
-                    () -> viewLatestSnapshot(executor, user)
-            );
-            case "list" -> listSnapshots(
-                    executor, user, parseIntArg(args, 2).or(() -> parseIntArg(args, 1)).orElse(1)
-            );
-            case "delete" -> uuid.ifPresentOrElse(
-                    version -> deleteSnapshot(executor, user, version),
-                    () -> plugin.getLocales().getLocale("error_invalid_syntax",
-                                    "/userdata delete <username> <version_uuid>")
-                            .ifPresent(executor::sendMessage)
-            );
-            case "restore" -> uuid.ifPresentOrElse(
-                    version -> restoreSnapshot(executor, user, version),
-                    () -> plugin.getLocales().getLocale("error_invalid_syntax",
-                                    "/userdata restore <username> <version_uuid>")
-                            .ifPresent(executor::sendMessage)
-            );
-            case "pin" -> uuid.ifPresentOrElse(
-                    version -> pinSnapshot(executor, user, version),
-                    () -> plugin.getLocales().getLocale("error_invalid_syntax",
-                                    "/userdata pin <username> <version_uuid>")
-                            .ifPresent(executor::sendMessage)
-            );
-            case "dump" -> uuid.ifPresentOrElse(
-                    version -> dumpSnapshot(executor, user, version, parseStringArg(args, 3)
-                            .map(arg -> arg.equalsIgnoreCase("web")).orElse(false)),
-                    () -> plugin.getLocales().getLocale("error_invalid_syntax",
-                                    "/userdata dump <username> <version_uuid> <web/file>")
-                            .ifPresent(executor::sendMessage)
-            );
-            default -> plugin.getLocales().getLocale("error_invalid_syntax", getUsage())
-                    .ifPresent(executor::sendMessage);
-        }
+    public void provide(@NotNull BaseCommand<?> command) {
+        command.setCondition(permission(command));
+        command.addSubCommand("view", view());
+        command.addSubCommand("list", list());
+        command.addSubCommand("delete", delete());
+        command.addSubCommand("restore", restore());
+        command.addSubCommand("pin", pin());
+        command.addSubCommand("dump", dump());
     }
 
     // Show the latest snapshot
     private void viewLatestSnapshot(@NotNull CommandUser executor, @NotNull User user) {
         plugin.getDatabase().getLatestSnapshot(user).ifPresentOrElse(
-                data -> {
-                    if (data.isInvalid()) {
-                        plugin.getLocales().getLocale("error_invalid_data", data.getInvalidReason(plugin))
-                                .ifPresent(executor::sendMessage);
-                        return;
-                    }
-                    DataSnapshotOverview.of(data.unpack(plugin), data.getFileSize(plugin), user, plugin)
-                            .show(executor);
-                },
-                () -> plugin.getLocales().getLocale("error_no_data_to_display")
-                        .ifPresent(executor::sendMessage)
+            data -> {
+                if (data.isInvalid()) {
+                    plugin.getLocales().getLocale("error_invalid_data", data.getInvalidReason(plugin))
+                        .ifPresent(executor::sendMessage);
+                    return;
+                }
+                DataSnapshotOverview.of(data.unpack(plugin), data.getFileSize(plugin), user, plugin)
+                    .show(executor);
+            },
+            () -> plugin.getLocales().getLocale("error_no_data_to_display")
+                .ifPresent(executor::sendMessage)
         );
     }
 
     // Show the specified snapshot
     private void viewSnapshot(@NotNull CommandUser executor, @NotNull User user, @NotNull UUID version) {
         plugin.getDatabase().getSnapshot(user, version).ifPresentOrElse(
-                data -> {
-                    if (data.isInvalid()) {
-                        plugin.getLocales().getLocale("error_invalid_data", data.getInvalidReason(plugin))
-                                .ifPresent(executor::sendMessage);
-                        return;
-                    }
-                    DataSnapshotOverview.of(data.unpack(plugin), data.getFileSize(plugin), user, plugin)
-                            .show(executor);
-                },
-                () -> plugin.getLocales().getLocale("error_invalid_version_uuid")
-                        .ifPresent(executor::sendMessage)
+            data -> {
+                if (data.isInvalid()) {
+                    plugin.getLocales().getLocale("error_invalid_data", data.getInvalidReason(plugin))
+                        .ifPresent(executor::sendMessage);
+                    return;
+                }
+                DataSnapshotOverview.of(data.unpack(plugin), data.getFileSize(plugin), user, plugin)
+                    .show(executor);
+            },
+            () -> plugin.getLocales().getLocale("error_invalid_version_uuid")
+                .ifPresent(executor::sendMessage)
         );
     }
 
@@ -146,7 +102,7 @@ public class UserDataCommand extends Command implements TabProvider {
         final List<DataSnapshot.Packed> dataList = plugin.getDatabase().getAllSnapshots(user);
         if (dataList.isEmpty()) {
             plugin.getLocales().getLocale("error_no_data_to_display")
-                    .ifPresent(executor::sendMessage);
+                .ifPresent(executor::sendMessage);
             return;
         }
         DataSnapshotList.create(dataList, user, plugin).displayPage(executor, page);
@@ -156,16 +112,16 @@ public class UserDataCommand extends Command implements TabProvider {
     private void deleteSnapshot(@NotNull CommandUser executor, @NotNull User user, @NotNull UUID version) {
         if (!plugin.getDatabase().deleteSnapshot(user, version)) {
             plugin.getLocales().getLocale("error_invalid_version_uuid")
-                    .ifPresent(executor::sendMessage);
+                .ifPresent(executor::sendMessage);
             return;
         }
         plugin.getRedisManager().clearUserData(user);
         plugin.getLocales().getLocale("data_deleted",
-                        version.toString().split("-")[0],
-                        version.toString(),
-                        user.getUsername(),
-                        user.getUuid().toString())
-                .ifPresent(executor::sendMessage);
+                version.toString().split("-")[0],
+                version.toString(),
+                user.getUsername(),
+                user.getUuid().toString())
+            .ifPresent(executor::sendMessage);
     }
 
     // Restore a snapshot
@@ -173,7 +129,7 @@ public class UserDataCommand extends Command implements TabProvider {
         final Optional<DataSnapshot.Packed> optionalData = plugin.getDatabase().getSnapshot(user, version);
         if (optionalData.isEmpty()) {
             plugin.getLocales().getLocale("error_invalid_version_uuid")
-                    .ifPresent(executor::sendMessage);
+                .ifPresent(executor::sendMessage);
             return;
         }
 
@@ -181,14 +137,14 @@ public class UserDataCommand extends Command implements TabProvider {
         final DataSnapshot.Packed data = optionalData.get().copy();
         if (data.isInvalid()) {
             plugin.getLocales().getLocale("error_invalid_data", data.getInvalidReason(plugin))
-                    .ifPresent(executor::sendMessage);
+                .ifPresent(executor::sendMessage);
             return;
         }
         data.edit(plugin, (unpacked -> {
             unpacked.getHealth().ifPresent(status -> status.setHealth(Math.max(1, status.getHealth())));
             unpacked.setSaveCause(DataSnapshot.SaveCause.BACKUP_RESTORE);
             unpacked.setPinned(
-                    plugin.getSettings().getSynchronization().doAutoPin(DataSnapshot.SaveCause.BACKUP_RESTORE)
+                plugin.getSettings().getSynchronization().doAutoPin(DataSnapshot.SaveCause.BACKUP_RESTORE)
             );
         }));
 
@@ -198,7 +154,7 @@ public class UserDataCommand extends Command implements TabProvider {
             redis.getUserData(u).ifPresent(d -> redis.setUserData(u, s, RedisKeyType.TTL_1_YEAR));
             redis.sendUserDataUpdate(u, s);
             plugin.getLocales().getLocale("data_restored", u.getUsername(), u.getUuid().toString(),
-                    s.getShortId(), s.getId().toString()).ifPresent(executor::sendMessage);
+                s.getShortId(), s.getId().toString()).ifPresent(executor::sendMessage);
         });
     }
 
@@ -207,7 +163,7 @@ public class UserDataCommand extends Command implements TabProvider {
         final Optional<DataSnapshot.Packed> optionalData = plugin.getDatabase().getSnapshot(user, version);
         if (optionalData.isEmpty()) {
             plugin.getLocales().getLocale("error_invalid_version_uuid")
-                    .ifPresent(executor::sendMessage);
+                .ifPresent(executor::sendMessage);
             return;
         }
 
@@ -219,8 +175,8 @@ public class UserDataCommand extends Command implements TabProvider {
             plugin.getDatabase().pinSnapshot(user, data.getId());
         }
         plugin.getLocales().getLocale(data.isPinned() ? "data_unpinned" : "data_pinned", data.getShortId(),
-                        data.getId().toString(), user.getUsername(), user.getUuid().toString())
-                .ifPresent(executor::sendMessage);
+                data.getId().toString(), user.getUsername(), user.getUuid().toString())
+            .ifPresent(executor::sendMessage);
     }
 
     // Dump a snapshot
@@ -228,7 +184,7 @@ public class UserDataCommand extends Command implements TabProvider {
         final Optional<DataSnapshot.Packed> data = plugin.getDatabase().getSnapshot(user, version);
         if (data.isEmpty()) {
             plugin.getLocales().getLocale("error_invalid_version_uuid")
-                    .ifPresent(executor::sendMessage);
+                .ifPresent(executor::sendMessage);
             return;
         }
 
@@ -237,22 +193,112 @@ public class UserDataCommand extends Command implements TabProvider {
         final DataDumper dumper = DataDumper.create(userData, user, plugin);
         try {
             plugin.getLocales().getLocale("data_dumped", userData.getShortId(), user.getUsername(),
-                    (webDump ? dumper.toWeb() : dumper.toFile())).ifPresent(executor::sendMessage);
+                (webDump ? dumper.toWeb() : dumper.toFile())).ifPresent(executor::sendMessage);
         } catch (Throwable e) {
             plugin.log(Level.SEVERE, "Failed to dump user data", e);
         }
     }
 
-    @Nullable
-    @Override
-    public List<String> suggest(@NotNull CommandUser executor, @NotNull String[] args) {
-        return switch (args.length) {
-            case 0, 1 -> SUB_COMMANDS.keySet().stream().sorted().toList();
-            case 2 -> plugin.getOnlineUsers().stream().map(User::getUsername).toList();
-            case 4 -> parseStringArg(args, 0)
-                    .map(arg -> arg.equalsIgnoreCase("dump") ? List.of("web", "file") : null)
-                    .orElse(null);
-            default -> null;
+    @NotNull
+    private CommandProvider view() {
+        return (sub) -> {
+            sub.setCondition(permission(sub, "view"));
+            sub.addSyntax((ctx) -> {
+                final User user = ctx.getArgument("username", User.class);
+                viewLatestSnapshot(user(sub, ctx), user);
+            }, user("username"));
+            sub.addSyntax((ctx) -> {
+                final User user = ctx.getArgument("username", User.class);
+                final UUID version = ctx.getArgument("version", UUID.class);
+                viewSnapshot(user(sub, ctx), user, version);
+            }, user("username"), uuid("version"));
         };
     }
+
+    @NotNull
+    private CommandProvider list() {
+        return (sub) -> {
+            sub.setCondition(permission(sub, "list"));
+            sub.addSyntax((ctx) -> {
+                final User user = ctx.getArgument("username", User.class);
+                listSnapshots(user(sub, ctx), user, 1);
+            }, user("username"));
+            sub.addSyntax((ctx) -> {
+                final User user = ctx.getArgument("username", User.class);
+                final int page = ctx.getArgument("page", Integer.class);
+                listSnapshots(user(sub, ctx), user, page);
+            }, user("username"), BaseCommand.intNum("page", 1));
+        };
+    }
+
+    @NotNull
+    private CommandProvider delete() {
+        return (sub) -> {
+            sub.setCondition(permission(sub, "delete"));
+            sub.addSyntax((ctx) -> {
+                final User user = ctx.getArgument("username", User.class);
+                final UUID version = ctx.getArgument("version", UUID.class);
+                deleteSnapshot(user(sub, ctx), user, version);
+            }, user("username"), uuid("version"));
+        };
+    }
+
+    @NotNull
+    private CommandProvider restore() {
+        return (sub) -> {
+            sub.setCondition(permission(sub, "restore"));
+            sub.addSyntax((ctx) -> {
+                final User user = ctx.getArgument("username", User.class);
+                final UUID version = ctx.getArgument("version", UUID.class);
+                restoreSnapshot(user(sub, ctx), user, version);
+            }, user("username"), uuid("version"));
+        };
+    }
+
+    @NotNull
+    private CommandProvider pin() {
+        return (sub) -> {
+            sub.setCondition(permission(sub, "pin"));
+            sub.addSyntax((ctx) -> {
+                final User user = ctx.getArgument("username", User.class);
+                final UUID version = ctx.getArgument("version", UUID.class);
+                pinSnapshot(user(sub, ctx), user, version);
+            }, user("username"), uuid("version"));
+        };
+    }
+
+    @NotNull
+    private CommandProvider dump() {
+        return (sub) -> {
+            sub.setCondition(permission(sub, "dump"));
+            sub.addSyntax((ctx) -> {
+                final User user = ctx.getArgument("username", User.class);
+                final UUID version = ctx.getArgument("version", UUID.class);
+                final DumpType type = ctx.getArgument("type", DumpType.class);
+                dumpSnapshot(user(sub, ctx), user, version, type == DumpType.WEB);
+            }, user("username"), uuid("version"), dumpType());
+        };
+    }
+
+    private <S> ArgumentElement<S, DumpType> dumpType() {
+        return new ArgumentElement<>("type", reader -> {
+            final String type = reader.readString();
+            return switch (type.toLowerCase(Locale.ENGLISH)) {
+                case "web" -> DumpType.WEB;
+                case "file" -> DumpType.FILE;
+                default -> throw CommandSyntaxException.BUILT_IN_EXCEPTIONS
+                    .dispatcherUnknownArgument().createWithContext(reader);
+            };
+        }, (context, builder) -> {
+            builder.suggest("web");
+            builder.suggest("file");
+            return builder.buildFuture();
+        });
+    }
+
+    enum DumpType {
+        WEB,
+        FILE
+    }
+
 }

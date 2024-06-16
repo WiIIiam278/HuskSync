@@ -24,7 +24,7 @@ import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
 
-public interface CommandUser {
+public interface CommandUser extends net.william278.uniform.CommandUser {
 
     @NotNull
     Audience getAudience();
