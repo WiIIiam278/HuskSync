@@ -70,6 +70,7 @@ allprojects {
     repositories {
         mavenLocal()
         mavenCentral()
+        maven { url 'https://repo.william278.net/releases/' }
         maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
         maven { url 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/' }
         maven { url "https://repo.dmulloy2.net/repository/public/" }
@@ -79,7 +80,6 @@ allprojects {
         maven { url 'https://jitpack.io' }
         maven { url 'https://mvn-repo.arim.space/lesser-gpl3/' }
         maven { url 'https://libraries.minecraft.net/' }
-        maven { url 'https://repo.william278.net/releases/' }
     }
 
     dependencies {
