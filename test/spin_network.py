@@ -12,8 +12,8 @@ from tqdm import tqdm
 # Parameters for starting a network of Minecraft servers
 class Parameters:
     root_dir = './servers/'
-    proxy_version = "1.21"
-    minecraft_version = '1.21'
+    proxy_version = "1.20"
+    minecraft_version = '1.20.6'
     eula_agreement = 'true'
 
     backend_names = ['alpha', 'beta']
@@ -33,7 +33,7 @@ class Parameters:
     proxy_plugins = []
     proxy_plugin_folders = []
 
-    just_update_plugins = True
+    just_update_plugins = False
 
 
 def main(update=False):

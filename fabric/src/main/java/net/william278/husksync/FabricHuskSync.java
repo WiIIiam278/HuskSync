@@ -90,6 +90,7 @@ public class FabricHuskSync implements DedicatedServerModInitializer, HuskSync, 
     private final Map<String, Boolean> permissions = Maps.newHashMap();
     private final List<Migrator> availableMigrators = Lists.newArrayList();
     private final Set<UUID> lockedPlayers = Sets.newConcurrentHashSet();
+    private final Map<UUID, FabricUser> playerMap = Maps.newConcurrentMap();
 
     private Logger logger;
     private ModContainer mod;
@@ -247,16 +248,13 @@ public class FabricHuskSync implements DedicatedServerModInitializer, HuskSync, 
     @Override
     @NotNull
     public Set<OnlineUser> getOnlineUsers() {
-        return minecraftServer.getPlayerManager().getPlayerList()
-            .stream().map(user -> (OnlineUser) FabricUser.adapt(user, this))
-            .collect(Collectors.toSet());
+        return Sets.newHashSet(playerMap.values());
     }
 
     @Override
     @NotNull
     public Optional<OnlineUser> getOnlineUser(@NotNull UUID uuid) {
-        return Optional.ofNullable(minecraftServer.getPlayerManager().getPlayer(uuid))
-            .map(user -> FabricUser.adapt(user, this));
+        return Optional.ofNullable(playerMap.get(uuid));
     }
 
     @Override
