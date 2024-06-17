@@ -161,11 +161,15 @@ public abstract class BukkitData implements Data {
             }
 
             private void clearInventoryCraftingSlots(@NotNull Player player) {
-                final org.bukkit.inventory.Inventory inventory = player.getOpenInventory().getTopInventory();
-                if (inventory.getType() == InventoryType.CRAFTING) {
-                    for (int slot = 0; slot < 5; slot++) {
-                        inventory.setItem(slot, null);
+                try {
+                    final org.bukkit.inventory.Inventory inventory = player.getOpenInventory().getTopInventory();
+                    if (inventory.getType() == InventoryType.CRAFTING) {
+                        for (int slot = 0; slot < 5; slot++) {
+                            inventory.setItem(slot, null);
+                        }
                     }
+                } catch (Throwable e) {
+                    // Ignore any exceptions
                 }
             }
 
