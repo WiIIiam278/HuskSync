@@ -20,7 +20,7 @@ dependencies {
     modImplementation include("eu.pb4:sgui:${sgui_version}")
     modCompileOnly "net.fabricmc.fabric-api:fabric-api:${fabric_api_version}"
 
-    implementation include('net.william278.uniform:uniform-fabric:1.1.1+1.20.1')
+    implementation include('net.william278.uniform:uniform-fabric:1.1.2+1.20.1')
     implementation include('org.apache.commons:commons-pool2:2.12.0')
     implementation include("redis.clients:jedis:$jedis_version")
     implementation include("com.mysql:mysql-connector-j:$mysql_driver_version")
