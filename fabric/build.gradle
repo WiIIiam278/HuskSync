@@ -1,5 +1,5 @@
 plugins {
-    id 'fabric-loom' version '1.6-SNAPSHOT'
+    id 'fabric-loom' version '1.7-SNAPSHOT'
 }
 
 apply plugin: 'fabric-loom'
@@ -18,9 +18,9 @@ dependencies {
     modImplementation include("net.kyori:adventure-platform-fabric:${adventure_platform_fabric_version}")
     modImplementation include("me.lucko:fabric-permissions-api:${fabric_permissions_api_version}")
     modImplementation include("eu.pb4:sgui:${sgui_version}")
+    modImplementation include('net.william278.uniform:uniform-fabric:1.1.3+1.20.1')
     modCompileOnly "net.fabricmc.fabric-api:fabric-api:${fabric_api_version}"
 
-    implementation include('net.william278.uniform:uniform-fabric:1.1.2+1.20.1')
     implementation include('org.apache.commons:commons-pool2:2.12.0')
     implementation include("redis.clients:jedis:$jedis_version")
     implementation include("com.mysql:mysql-connector-j:$mysql_driver_version")

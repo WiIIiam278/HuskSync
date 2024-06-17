@@ -3,6 +3,7 @@ import org.apache.tools.ant.filters.ReplaceTokens
 plugins {
     id 'com.github.johnrengelman.shadow' version '8.1.1'
     id 'org.cadixdev.licenser' version '0.6.1' apply false
+    id 'fabric-loom' version '1.7-SNAPSHOT' apply false
     id 'org.ajoberstar.grgit' version '5.2.2'
     id 'maven-publish'
     id 'java'
@@ -106,6 +107,10 @@ allprojects {
 }
 
 subprojects {
+    if (['fabric'].contains(project.name)) {
+        apply plugin: 'fabric-loom'
+    }
+
     version rootProject.version
     archivesBaseName = "${rootProject.name}-${project.name.capitalize()}"
 
@@ -170,7 +175,7 @@ subprojects {
                         groupId = 'net.william278.husksync'
                         artifactId = 'husksync-fabric'
                         version = "$rootProject.version+${fabric_minecraft_version}"
-                        artifact shadowJar
+                        artifact remapJar
                         artifact sourcesJar
                         artifact javadocJar
                     }
