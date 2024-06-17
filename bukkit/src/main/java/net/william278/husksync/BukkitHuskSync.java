@@ -34,7 +34,7 @@ import net.william278.husksync.adapter.DataAdapter;
 import net.william278.husksync.adapter.GsonAdapter;
 import net.william278.husksync.adapter.SnappyGsonAdapter;
 import net.william278.husksync.api.BukkitHuskSyncAPI;
-import net.william278.husksync.command.BukkitCommand;
+import net.william278.husksync.command.PluginCommand;
 import net.william278.husksync.config.Locales;
 import net.william278.husksync.config.Server;
 import net.william278.husksync.config.Settings;
@@ -57,6 +57,8 @@ import net.william278.husksync.util.BukkitLegacyConverter;
 import net.william278.husksync.util.BukkitMapPersister;
 import net.william278.husksync.util.BukkitTask;
 import net.william278.husksync.util.LegacyConverter;
+import net.william278.uniform.Uniform;
+import net.william278.uniform.bukkit.BukkitUniform;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.entity.Player;
 import org.bukkit.map.MapView;
@@ -64,7 +66,6 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import space.arim.morepaperlib.MorePaperLib;
-import space.arim.morepaperlib.commands.CommandRegistration;
 import space.arim.morepaperlib.scheduling.AsynchronousScheduler;
 import space.arim.morepaperlib.scheduling.AttachedScheduler;
 import space.arim.morepaperlib.scheduling.GracefulScheduling;
@@ -135,6 +136,10 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
     @Override
     public void onEnable() {
         this.audiences = BukkitAudiences.create(this);
+
+        // Register commands
+        initialize("commands", (plugin) -> getUniform().register(PluginCommand.Type.create(this)));
+
         // Prepare data adapter
         initialize("data adapter", (plugin) -> {
             if (settings.getSynchronization().isCompressData()) {
@@ -195,9 +200,6 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
 
         // Register events
         initialize("events", (plugin) -> eventListener.onEnable());
-
-        // Register commands
-        initialize("commands", (plugin) -> BukkitCommand.Type.registerCommands(this));
 
         // Register plugin hooks
         initialize("hooks", (plugin) -> {
@@ -262,6 +264,12 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
     public void setDataSyncer(@NotNull DataSyncer dataSyncer) {
         log(Level.INFO, String.format("Switching data syncer to %s", dataSyncer.getClass().getSimpleName()));
         this.dataSyncer = dataSyncer;
+    }
+
+    @Override
+    @NotNull
+    public Uniform getUniform() {
+        return BukkitUniform.getInstance(this);
     }
 
     @NotNull
@@ -350,11 +358,6 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
     @NotNull
     public AttachedScheduler getUserSyncScheduler(@NotNull UserDataHolder user) {
         return getScheduler().entitySpecificScheduler(((BukkitUser) user).getPlayer());
-    }
-
-    @NotNull
-    public CommandRegistration getCommandRegistrar() {
-        return paperLib.commandRegistration();
     }
 
     @Override

@@ -33,7 +33,7 @@ class Parameters:
     proxy_plugins = []
     proxy_plugin_folders = []
 
-    just_update_plugins = True
+    just_update_plugins = False
 
 
 def main(update=False):

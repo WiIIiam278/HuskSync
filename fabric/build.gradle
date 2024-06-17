@@ -20,7 +20,7 @@ dependencies {
     modImplementation include("eu.pb4:sgui:${sgui_version}")
     modCompileOnly "net.fabricmc.fabric-api:fabric-api:${fabric_api_version}"
 
-    // Runtime dependencies on Bukkit; "include" them on Fabric. (todo: minify JAR?)
+    implementation include('net.william278.uniform:uniform-fabric:1.1+1.20.1')
     implementation include('org.apache.commons:commons-pool2:2.12.0')
     implementation include("redis.clients:jedis:$jedis_version")
     implementation include("com.mysql:mysql-connector-j:$mysql_driver_version")
@@ -33,7 +33,7 @@ dependencies {
 
     annotationProcessor 'org.projectlombok:lombok:1.18.32'
 
-    shadow project(path: ":common")
+    implementation project(path: ":common")
 }
 
 shadowJar {
@@ -54,6 +54,7 @@ shadowJar {
     relocate 'org.intellij', 'net.william278.husksync.libraries'
     relocate 'com.zaxxer', 'net.william278.husksync.libraries'
     relocate 'de.exlll', 'net.william278.husksync.libraries'
+    relocate 'net.william278.uniform', 'net.william278.husksync.libraries.uniform'
     relocate 'net.william278.desertwell', 'net.william278.husksync.libraries.desertwell'
     relocate 'net.william278.paginedown', 'net.william278.husksync.libraries.paginedown'
     relocate 'org.json', 'net.william278.husksync.libraries.json'

@@ -44,6 +44,7 @@ import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.EntityHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+import net.william278.husksync.FabricHuskSync;
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.config.Settings.SynchronizationSettings.SaveOnDeathSettings;
 import net.william278.husksync.data.FabricData;
@@ -82,10 +83,13 @@ public class FabricEventListener extends EventListener implements LockedHandler 
 
     private void handlePlayerJoin(@NotNull ServerPlayNetworkHandler handler, @NotNull PacketSender sender,
                                   @NotNull MinecraftServer server) {
-        handlePlayerJoin(FabricUser.adapt(handler.player, plugin));
+        final FabricUser user = FabricUser.adapt(handler.player, plugin);
+        ((FabricHuskSync) plugin).getPlayerMap().put(handler.player.getUuid(), user);
+        handlePlayerJoin(user);
     }
 
     private void handlePlayerQuit(@NotNull ServerPlayNetworkHandler handler, @NotNull MinecraftServer server) {
+        ((FabricHuskSync) plugin).getPlayerMap().remove(handler.player.getUuid());
         handlePlayerQuit(FabricUser.adapt(handler.player, plugin));
     }
 

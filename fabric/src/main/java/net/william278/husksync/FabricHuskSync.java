@@ -28,7 +28,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import net.fabricmc.api.DedicatedServerModInitializer;
-import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
@@ -40,8 +39,7 @@ import net.william278.husksync.adapter.DataAdapter;
 import net.william278.husksync.adapter.GsonAdapter;
 import net.william278.husksync.adapter.SnappyGsonAdapter;
 import net.william278.husksync.api.FabricHuskSyncAPI;
-import net.william278.husksync.command.Command;
-import net.william278.husksync.command.FabricCommand;
+import net.william278.husksync.command.PluginCommand;
 import net.william278.husksync.config.Locales;
 import net.william278.husksync.config.Server;
 import net.william278.husksync.config.Settings;
@@ -62,6 +60,8 @@ import net.william278.husksync.user.FabricUser;
 import net.william278.husksync.user.OnlineUser;
 import net.william278.husksync.util.FabricTask;
 import net.william278.husksync.util.LegacyConverter;
+import net.william278.uniform.Uniform;
+import net.william278.uniform.fabric.FabricUniform;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -74,22 +74,22 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.logging.Level;
-import java.util.stream.Collectors;
 
 @Getter
 @NoArgsConstructor
 public class FabricHuskSync implements DedicatedServerModInitializer, HuskSync, FabricTask.Supplier,
-        FabricEventDispatcher {
+    FabricEventDispatcher {
 
     private static final String PLATFORM_TYPE_ID = "fabric";
 
     private final TreeMap<Identifier, Serializer<? extends Data>> serializers = Maps.newTreeMap(
-            SerializerRegistry.DEPENDENCY_ORDER_COMPARATOR
+        SerializerRegistry.DEPENDENCY_ORDER_COMPARATOR
     );
     private final Map<UUID, Map<Identifier, Data>> playerCustomDataStore = Maps.newConcurrentMap();
     private final Map<String, Boolean> permissions = Maps.newHashMap();
     private final List<Migrator> availableMigrators = Lists.newArrayList();
     private final Set<UUID> lockedPlayers = Sets.newConcurrentHashSet();
+    private final Map<UUID, FabricUser> playerMap = Maps.newConcurrentMap();
 
     private Logger logger;
     private ModContainer mod;
@@ -127,7 +127,7 @@ public class FabricHuskSync implements DedicatedServerModInitializer, HuskSync, 
         });
 
         // Register commands
-        initialize("commands", (plugin) -> this.registerCommands());
+        initialize("commands", (plugin) -> getUniform().register(PluginCommand.Type.create(this)));
 
         // Load HuskSync after server startup
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
@@ -232,12 +232,6 @@ public class FabricHuskSync implements DedicatedServerModInitializer, HuskSync, 
         log(Level.INFO, "Successfully disabled HuskSync v" + getPluginVersion());
     }
 
-    private void registerCommands() {
-        final List<Command> commands = FabricCommand.Type.getCommands(this);
-        CommandRegistrationCallback.EVENT.register((dispatcher, registry, environment) ->
-                commands.forEach(command -> new FabricCommand(command, this).register(dispatcher))
-        );
-    }
 
     @NotNull
     @Override
@@ -253,31 +247,34 @@ public class FabricHuskSync implements DedicatedServerModInitializer, HuskSync, 
     @Override
     @NotNull
     public Set<OnlineUser> getOnlineUsers() {
-        return minecraftServer.getPlayerManager().getPlayerList()
-                .stream().map(user -> (OnlineUser) FabricUser.adapt(user, this))
-                .collect(Collectors.toSet());
+        return Sets.newHashSet(playerMap.values());
     }
 
     @Override
     @NotNull
     public Optional<OnlineUser> getOnlineUser(@NotNull UUID uuid) {
-        return Optional.ofNullable(minecraftServer.getPlayerManager().getPlayer(uuid))
-                .map(user -> FabricUser.adapt(user, this));
+        return Optional.ofNullable(playerMap.get(uuid));
+    }
+
+    @Override
+    @NotNull
+    public Uniform getUniform() {
+        return FabricUniform.getInstance();
     }
 
     @Override
     @Nullable
     public InputStream getResource(@NotNull String name) {
         return this.mod.findPath(name)
-                .map(path -> {
-                    try {
-                        return Files.newInputStream(path);
-                    } catch (IOException e) {
-                        log(Level.WARNING, "Failed to load resource: " + name, e);
-                    }
-                    return null;
-                })
-                .orElse(this.getClass().getClassLoader().getResourceAsStream(name));
+            .map(path -> {
+                try {
+                    return Files.newInputStream(path);
+                } catch (IOException e) {
+                    log(Level.WARNING, "Failed to load resource: " + name, e);
+                }
+                return null;
+            })
+            .orElse(this.getClass().getClassLoader().getResourceAsStream(name));
     }
 
     @Override
@@ -297,11 +294,11 @@ public class FabricHuskSync implements DedicatedServerModInitializer, HuskSync, 
     @Override
     public void log(@NotNull Level level, @NotNull String message, @NotNull Throwable... throwable) {
         LoggingEventBuilder logEvent = logger.makeLoggingEventBuilder(
-                switch (level.getName()) {
-                    case "WARNING" -> org.slf4j.event.Level.WARN;
-                    case "SEVERE" -> org.slf4j.event.Level.ERROR;
-                    default -> org.slf4j.event.Level.INFO;
-                }
+            switch (level.getName()) {
+                case "WARNING" -> org.slf4j.event.Level.WARN;
+                case "SEVERE" -> org.slf4j.event.Level.ERROR;
+                default -> org.slf4j.event.Level.INFO;
+            }
         );
         if (throwable.length >= 1) {
             logEvent = logEvent.setCause(throwable[0]);

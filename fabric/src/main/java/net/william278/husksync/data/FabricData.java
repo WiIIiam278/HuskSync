@@ -315,7 +315,7 @@ public abstract class FabricData implements Data {
 
                 // Only save the advancement if criteria has been completed
                 if (!awardedCriteria.isEmpty()) {
-                    advancements.add(Advancement.adapt(advancement.getId().asString(), awardedCriteria));
+                    advancements.add(Advancement.adapt(advancement.getId().toString(), awardedCriteria));
                 }
             });
             return new FabricData.Advancements(advancements);
@@ -479,7 +479,7 @@ public abstract class FabricData implements Data {
             Registries.STAT_TYPE.getEntrySet().forEach(stat -> {
                 final Registry<?> registry = stat.getValue().getRegistry();
 
-                final String registryId = registry.getKey().getValue().value();
+                final String registryId = registry.getKey().getValue().getPath();
                 if (registryId.equals("custom_stat")) {
                     return;
                 }
@@ -488,13 +488,13 @@ public abstract class FabricData implements Data {
                     case ITEM_STAT_TYPE -> items;
                     case ENTITY_STAT_TYPE -> entities;
                     default -> throw new IllegalStateException("Unexpected value: %s".formatted(registryId));
-                }).compute(stat.getKey().getValue().asString(), (k, v) -> v == null ? Maps.newHashMap() : v);
+                }).compute(stat.getKey().getValue().toString(), (k, v) -> v == null ? Maps.newHashMap() : v);
 
                 registry.getEntrySet().forEach(entry -> {
                     @SuppressWarnings({"unchecked", "rawtypes"}) final int value = player.getStatHandler()
                             .getStat((StatType) stat.getValue(), entry.getValue());
                     if (value != 0) {
-                        map.put(entry.getKey().getValue().asString(), value);
+                        map.put(entry.getKey().getValue().toString(), value);
                     }
                 });
             });
@@ -504,7 +504,7 @@ public abstract class FabricData implements Data {
             Registries.CUSTOM_STAT.getEntrySet().forEach(stat -> {
                 final int value = player.getStatHandler().getStat(Stats.CUSTOM.getOrCreateStat(stat.getValue()));
                 if (value != 0) {
-                    generic.put(stat.getKey().getValue().asString(), value);
+                    generic.put(stat.getKey().getValue().toString(), value);
                 }
             });
 
@@ -587,7 +587,7 @@ public abstract class FabricData implements Data {
                         -1
                 )));
                 attributes.add(new Attribute(
-                        key.asString(),
+                        key.toString(),
                         instance.getBaseValue(),
                         modifiers
                 ));
@@ -596,7 +596,7 @@ public abstract class FabricData implements Data {
         }
 
         public Optional<Attribute> getAttribute(@NotNull EntityAttribute id) {
-            return Optional.ofNullable(Registries.ATTRIBUTE.getId(id)).map(Identifier::asString)
+            return Optional.ofNullable(Registries.ATTRIBUTE.getId(id)).map(Identifier::toString)
                     .flatMap(key -> attributes.stream().filter(attribute -> attribute.name().equals(key)).findFirst());
         }
 

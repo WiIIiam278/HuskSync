@@ -69,9 +69,6 @@ public class Settings {
     @Comment("Enable development debug logging")
     private boolean debugLogging = false;
 
-    @Comment("Whether to provide modern, rich TAB suggestions for commands (if available)")
-    private boolean brigadierTabCompletion = false;
-
     @Comment({"Whether to enable the Player Analytics hook.", "Docs: https://william278.net/docs/husksync/plan-hook"})
     private boolean enablePlanHook = true;
 

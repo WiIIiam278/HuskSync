@@ -24,102 +24,90 @@ import net.william278.husksync.data.DataSnapshot;
 import net.william278.husksync.user.CommandUser;
 import net.william278.husksync.user.OnlineUser;
 import net.william278.husksync.user.User;
+import net.william278.uniform.BaseCommand;
+import net.william278.uniform.Permission;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
-public abstract class ItemsCommand extends Command implements TabProvider {
+public abstract class ItemsCommand extends PluginCommand {
 
-    protected ItemsCommand(@NotNull HuskSync plugin, @NotNull List<String> aliases) {
-        super(aliases.get(0), aliases.subList(1, aliases.size()), "<player> [version_uuid]", plugin);
-        setOperatorCommand(true);
-        addAdditionalPermissions(Map.of("edit", true));
+    protected ItemsCommand(@NotNull String name, @NotNull List<String> aliases, @NotNull HuskSync plugin) {
+        super(name, aliases, Permission.Default.IF_OP, plugin);
     }
 
-
     @Override
-    public void execute(@NotNull CommandUser executor, @NotNull String[] args) {
-        if (!(executor instanceof OnlineUser player)) {
-            plugin.getLocales().getLocale("error_in_game_command_only")
+    public void provide(@NotNull BaseCommand<?> command) {
+        command.addSyntax((ctx) -> {
+            final User user = ctx.getArgument("username", User.class);
+            final UUID version = ctx.getArgument("version", UUID.class);
+            final CommandUser executor = user(command, ctx);
+            if (!(executor instanceof OnlineUser online)) {
+                plugin.getLocales().getLocale("error_in_game_command_only")
                     .ifPresent(executor::sendMessage);
-            return;
-        }
-
-        // Find the user to view the items for
-        final Optional<User> optionalUser = parseStringArg(args, 0)
-                .flatMap(name -> plugin.getDatabase().getUserByName(name));
-        if (optionalUser.isEmpty()) {
-            plugin.getLocales().getLocale(
-                    args.length >= 1 ? "error_invalid_player" : "error_invalid_syntax", getUsage()
-            ).ifPresent(player::sendMessage);
-            return;
-        }
-
-        // Show the user data
-        final User user = optionalUser.get();
-        parseUUIDArg(args, 1).ifPresentOrElse(
-                version -> this.showSnapshotItems(player, user, version),
-                () -> this.showLatestItems(player, user)
-        );
+                return;
+            }
+            this.showSnapshotItems(online, user, version);
+        }, user("username"), uuid("version"));
+        command.addSyntax((ctx) -> {
+            final User user = ctx.getArgument("username", User.class);
+            final CommandUser executor = user(command, ctx);
+            if (!(executor instanceof OnlineUser online)) {
+                plugin.getLocales().getLocale("error_in_game_command_only")
+                    .ifPresent(executor::sendMessage);
+                return;
+            }
+            this.showLatestItems(online, user);
+        }, user("username"));
     }
 
     // View (and edit) the latest user data
     private void showLatestItems(@NotNull OnlineUser viewer, @NotNull User user) {
         plugin.getRedisManager().getUserData(user.getUuid(), user).thenAccept(data -> data
-                .or(() -> plugin.getDatabase().getLatestSnapshot(user))
-                .or(() -> {
-                    plugin.getLocales().getLocale("error_no_data_to_display")
-                            .ifPresent(viewer::sendMessage);
+            .or(() -> plugin.getDatabase().getLatestSnapshot(user))
+            .or(() -> {
+                plugin.getLocales().getLocale("error_no_data_to_display")
+                    .ifPresent(viewer::sendMessage);
+                return Optional.empty();
+            })
+            .flatMap(packed -> {
+                if (packed.isInvalid()) {
+                    plugin.getLocales().getLocale("error_invalid_data", packed.getInvalidReason(plugin))
+                        .ifPresent(viewer::sendMessage);
                     return Optional.empty();
-                })
-                .flatMap(packed -> {
-                    if (packed.isInvalid()) {
-                        plugin.getLocales().getLocale("error_invalid_data", packed.getInvalidReason(plugin))
-                                .ifPresent(viewer::sendMessage);
-                        return Optional.empty();
-                    }
-                    return Optional.of(packed.unpack(plugin));
-                })
-                .ifPresent(snapshot -> this.showItems(
-                        viewer, snapshot, user, viewer.hasPermission(getPermission("edit"))
-                )));
+                }
+                return Optional.of(packed.unpack(plugin));
+            })
+            .ifPresent(snapshot -> this.showItems(
+                viewer, snapshot, user, viewer.hasPermission(getPermission("edit"))
+            )));
     }
 
     // View a specific version of the user data
     private void showSnapshotItems(@NotNull OnlineUser viewer, @NotNull User user, @NotNull UUID version) {
         plugin.getDatabase().getSnapshot(user, version)
-                .or(() -> {
-                    plugin.getLocales().getLocale("error_invalid_version_uuid")
-                            .ifPresent(viewer::sendMessage);
+            .or(() -> {
+                plugin.getLocales().getLocale("error_invalid_version_uuid")
+                    .ifPresent(viewer::sendMessage);
+                return Optional.empty();
+            })
+            .flatMap(packed -> {
+                if (packed.isInvalid()) {
+                    plugin.getLocales().getLocale("error_invalid_data", packed.getInvalidReason(plugin))
+                        .ifPresent(viewer::sendMessage);
                     return Optional.empty();
-                })
-                .flatMap(packed -> {
-                    if (packed.isInvalid()) {
-                        plugin.getLocales().getLocale("error_invalid_data", packed.getInvalidReason(plugin))
-                                .ifPresent(viewer::sendMessage);
-                        return Optional.empty();
-                    }
-                    return Optional.of(packed.unpack(plugin));
-                })
-                .ifPresent(snapshot -> this.showItems(
-                        viewer, snapshot, user, false
-                ));
+                }
+                return Optional.of(packed.unpack(plugin));
+            })
+            .ifPresent(snapshot -> this.showItems(
+                viewer, snapshot, user, false
+            ));
     }
 
     // Show a GUI menu with the correct item data from the snapshot
     protected abstract void showItems(@NotNull OnlineUser viewer, @NotNull DataSnapshot.Unpacked snapshot,
                                       @NotNull User user, boolean allowEdit);
 
-    @Nullable
-    @Override
-    public List<String> suggest(@NotNull CommandUser executor, @NotNull String[] args) {
-        return switch (args.length) {
-            case 0, 1 -> plugin.getOnlineUsers().stream().map(User::getUsername).toList();
-            default -> null;
-        };
-    }
 }
