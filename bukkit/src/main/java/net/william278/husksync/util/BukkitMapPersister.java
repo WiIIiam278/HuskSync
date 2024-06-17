@@ -31,8 +31,10 @@ import net.william278.mapdataapi.MapData;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.block.ShulkerBox;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.BlockStateMeta;
 import org.bukkit.inventory.meta.MapMeta;
 import org.bukkit.map.*;
 import org.jetbrains.annotations.ApiStatus;
@@ -94,6 +96,9 @@ public interface BukkitMapPersister {
             }
             if (item.getType() == Material.FILLED_MAP && item.hasItemMeta()) {
                 items[i] = function.apply(item);
+            } else if (item.getItemMeta() instanceof BlockStateMeta b && b.getBlockState() instanceof ShulkerBox box) {
+                forEachMap(box.getInventory().getContents(), function);
+                b.setBlockState(box);
             }
         }
         return items;
@@ -150,8 +155,8 @@ public interface BukkitMapPersister {
             Optional<String> world = Optional.empty();
             for (String worldUid : mapIds.getKeys()) {
                 world = getPlugin().getServer().getWorlds().stream()
-                        .map(w -> w.getUID().toString()).filter(u -> u.equals(worldUid))
-                        .findFirst();
+                    .map(w -> w.getUID().toString()).filter(u -> u.equals(worldUid))
+                    .findFirst();
                 if (world.isPresent()) {
                     break;
                 }
@@ -174,7 +179,7 @@ public interface BukkitMapPersister {
             try {
                 getPlugin().debug("Deserializing map data from NBT and generating view...");
                 canvasData = MapData.fromByteArray(Objects.requireNonNull(mapData.getByteArray(MAP_PIXEL_DATA_KEY),
-                        "Map pixel data is null"));
+                    "Map pixel data is null"));
             } catch (Throwable e) {
                 getPlugin().log(Level.WARNING, "Failed to deserialize map data from NBT", e);
                 return;
@@ -190,8 +195,8 @@ public interface BukkitMapPersister {
             // Set the map view ID in NBT
             NBT.modify(map, editable -> {
                 Objects.requireNonNull(editable.getCompound(MAP_VIEW_ID_MAPPINGS_KEY),
-                                "Map view ID mappings compound is null")
-                        .setInteger(worldUid, view.getId());
+                        "Map view ID mappings compound is null")
+                    .setInteger(worldUid, view.getId());
             });
             getPlugin().debug(String.format("Generated view (#%s) and updated map (UID: %s)", view.getId(), worldUid));
         });
@@ -321,29 +326,29 @@ public interface BukkitMapPersister {
     @NotNull
     private static MapCursor createBannerCursor(@NotNull MapBanner banner) {
         return new MapCursor(
-                (byte) banner.getPosition().getX(),
-                (byte) banner.getPosition().getZ(),
-                (byte) 8, // Always rotate banners upright
-                switch (banner.getColor().toLowerCase(Locale.ENGLISH)) {
-                    case "white" -> MapCursor.Type.BANNER_WHITE;
-                    case "orange" -> MapCursor.Type.BANNER_ORANGE;
-                    case "magenta" -> MapCursor.Type.BANNER_MAGENTA;
-                    case "light_blue" -> MapCursor.Type.BANNER_LIGHT_BLUE;
-                    case "yellow" -> MapCursor.Type.BANNER_YELLOW;
-                    case "lime" -> MapCursor.Type.BANNER_LIME;
-                    case "pink" -> MapCursor.Type.BANNER_PINK;
-                    case "gray" -> MapCursor.Type.BANNER_GRAY;
-                    case "light_gray" -> MapCursor.Type.BANNER_LIGHT_GRAY;
-                    case "cyan" -> MapCursor.Type.BANNER_CYAN;
-                    case "purple" -> MapCursor.Type.BANNER_PURPLE;
-                    case "blue" -> MapCursor.Type.BANNER_BLUE;
-                    case "brown" -> MapCursor.Type.BANNER_BROWN;
-                    case "green" -> MapCursor.Type.BANNER_GREEN;
-                    case "red" -> MapCursor.Type.BANNER_RED;
-                    default -> MapCursor.Type.BANNER_BLACK;
-                },
-                true,
-                banner.getText().isEmpty() ? null : banner.getText()
+            (byte) banner.getPosition().getX(),
+            (byte) banner.getPosition().getZ(),
+            (byte) 8, // Always rotate banners upright
+            switch (banner.getColor().toLowerCase(Locale.ENGLISH)) {
+                case "white" -> MapCursor.Type.BANNER_WHITE;
+                case "orange" -> MapCursor.Type.BANNER_ORANGE;
+                case "magenta" -> MapCursor.Type.BANNER_MAGENTA;
+                case "light_blue" -> MapCursor.Type.BANNER_LIGHT_BLUE;
+                case "yellow" -> MapCursor.Type.BANNER_YELLOW;
+                case "lime" -> MapCursor.Type.BANNER_LIME;
+                case "pink" -> MapCursor.Type.BANNER_PINK;
+                case "gray" -> MapCursor.Type.BANNER_GRAY;
+                case "light_gray" -> MapCursor.Type.BANNER_LIGHT_GRAY;
+                case "cyan" -> MapCursor.Type.BANNER_CYAN;
+                case "purple" -> MapCursor.Type.BANNER_PURPLE;
+                case "blue" -> MapCursor.Type.BANNER_BLUE;
+                case "brown" -> MapCursor.Type.BANNER_BROWN;
+                case "green" -> MapCursor.Type.BANNER_GREEN;
+                case "red" -> MapCursor.Type.BANNER_RED;
+                default -> MapCursor.Type.BANNER_BLACK;
+            },
+            true,
+            banner.getText().isEmpty() ? null : banner.getText()
         );
     }
 
@@ -425,11 +430,11 @@ public interface BukkitMapPersister {
                 final String type = cursor.getType().name().toLowerCase(Locale.ENGLISH);
                 if (type.startsWith(BANNER_PREFIX)) {
                     banners.add(new MapBanner(
-                            type.replaceAll(BANNER_PREFIX, ""),
-                            cursor.getCaption() == null ? "" : cursor.getCaption(),
-                            cursor.getX(),
-                            mapView.getWorld() != null ? mapView.getWorld().getSeaLevel() : 128,
-                            cursor.getY()
+                        type.replaceAll(BANNER_PREFIX, ""),
+                        cursor.getCaption() == null ? "" : cursor.getCaption(),
+                        cursor.getX(),
+                        mapView.getWorld() != null ? mapView.getWorld().getSeaLevel() : 128,
+                        cursor.getY()
                     ));
                 }
             }
