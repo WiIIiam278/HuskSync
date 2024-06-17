@@ -28,8 +28,6 @@ check_for_updates: true
 cluster_id: ''
 # Enable development debug logging
 debug_logging: true
-# Whether to provide modern, rich TAB suggestions for commands (if available)
-brigadier_tab_completion: false
 # Whether to enable the Player Analytics hook.
 # Docs: https://william278.net/docs/husksync/plan-hook
 enable_plan_hook: true
