@@ -26,6 +26,7 @@ import net.william278.husksync.user.CommandUser;
 import net.william278.husksync.user.User;
 import net.william278.uniform.BaseCommand;
 import net.william278.uniform.Command;
+import net.william278.uniform.Permission;
 import net.william278.uniform.element.ArgumentElement;
 import org.jetbrains.annotations.NotNull;
 
@@ -33,14 +34,14 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Function;
-import java.util.function.Predicate;
 
 public abstract class PluginCommand extends Command {
 
     protected final HuskSync plugin;
 
-    protected PluginCommand(@NotNull String name, @NotNull List<String> aliases, @NotNull HuskSync plugin) {
-        super(name, getDescription(plugin, name), aliases);
+    protected PluginCommand(@NotNull String name, @NotNull List<String> aliases,
+                            @NotNull Permission.Default permissionDefault, @NotNull HuskSync plugin) {
+        super(name, aliases, getDescription(plugin, name), new Permission(createPermission(name), permissionDefault));
         this.plugin = plugin;
     }
 
@@ -49,8 +50,13 @@ public abstract class PluginCommand extends Command {
     }
 
     @NotNull
+    private static String createPermission(@NotNull String name, @NotNull String... sub) {
+        return "husksync.command." + name + (sub.length > 0 ? "." + String.join(".", sub) : "");
+    }
+
+    @NotNull
     protected String getPermission(@NotNull String... sub) {
-        return "husksync.command." + getName() + (sub.length > 0 ? "." + String.join(".", sub) : "");
+        return createPermission(this.getName(), sub);
     }
 
     @NotNull
@@ -60,9 +66,8 @@ public abstract class PluginCommand extends Command {
     }
 
     @NotNull
-    @SuppressWarnings("rawtypes")
-    protected <S> Predicate<S> permission(@NotNull BaseCommand base, @NotNull String... sub) {
-        return (source) -> adapt(base.getUser(source)).hasPermission(getPermission(sub));
+    protected Permission needsOp(@NotNull String... nodes) {
+        return new Permission(getPermission(nodes), Permission.Default.IF_OP);
     }
 
     @NotNull

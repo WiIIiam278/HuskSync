@@ -35,31 +35,24 @@ import net.william278.husksync.migrator.Migrator;
 import net.william278.husksync.user.CommandUser;
 import net.william278.uniform.BaseCommand;
 import net.william278.uniform.CommandProvider;
+import net.william278.uniform.Permission;
 import net.william278.uniform.element.ArgumentElement;
 import org.apache.commons.text.WordUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 public class HuskSyncCommand extends PluginCommand {
 
-    private static final Map<String, Boolean> SUB_COMMANDS = Map.of(
-        "status", true,
-        "reload", true,
-        "migrate", true,
-        "update", true
-    );
-
     private final UpdateChecker updateChecker;
     private final AboutMenu aboutMenu;
 
     public HuskSyncCommand(@NotNull HuskSync plugin) {
-        super("husksync", List.of(), plugin);
+        super("husksync", List.of(), Permission.Default.TRUE, plugin);
         this.updateChecker = plugin.getUpdateChecker();
         this.aboutMenu = AboutMenu.builder()
             .title(Component.text("HuskSync"))
@@ -98,12 +91,11 @@ public class HuskSyncCommand extends PluginCommand {
 
     @Override
     public void provide(@NotNull BaseCommand<?> command) {
-        command.setCondition(permission(command));
         command.setDefaultExecutor((ctx) -> about(command, ctx));
         command.addSubCommand("about", (sub) -> sub.setDefaultExecutor((ctx) -> about(command, ctx)));
-        command.addSubCommand("status", status());
-        command.addSubCommand("reload", reload());
-        command.addSubCommand("update", update());
+        command.addSubCommand("status", needsOp("status"), status());
+        command.addSubCommand("reload", needsOp("reload"), reload());
+        command.addSubCommand("update", needsOp("update"), update());
         command.addSubCommand("migrate", migrate());
     }
 
@@ -113,55 +105,46 @@ public class HuskSyncCommand extends PluginCommand {
 
     @NotNull
     private CommandProvider status() {
-        return (sub) -> {
-            sub.setCondition(permission(sub, "status"));
-            sub.setDefaultExecutor((ctx) -> {
-                final CommandUser user = user(sub, ctx);
-                plugin.getLocales().getLocale("system_status_header").ifPresent(user::sendMessage);
-                user.sendMessage(Component.join(
-                    JoinConfiguration.newlines(),
-                    Arrays.stream(StatusLine.values()).map(s -> s.get(plugin)).toList()
-                ));
-            });
-        };
+        return (sub) -> sub.setDefaultExecutor((ctx) -> {
+            final CommandUser user = user(sub, ctx);
+            plugin.getLocales().getLocale("system_status_header").ifPresent(user::sendMessage);
+            user.sendMessage(Component.join(
+                JoinConfiguration.newlines(),
+                Arrays.stream(StatusLine.values()).map(s -> s.get(plugin)).toList()
+            ));
+        });
     }
 
     @NotNull
     private CommandProvider reload() {
-        return (sub) -> {
-            sub.setCondition(permission(sub, "reload"));
-            sub.setDefaultExecutor((ctx) -> {
-                final CommandUser user = user(sub, ctx);
-                try {
-                    plugin.loadSettings();
-                    plugin.loadLocales();
-                    plugin.loadServer();
-                    plugin.getLocales().getLocale("reload_complete").ifPresent(user::sendMessage);
-                } catch (Throwable e) {
-                    user.sendMessage(new MineDown(
-                        "[Error:](#ff3300) [Failed to reload the plugin. Check console for errors.](#ff7e5e)"
-                    ));
-                    plugin.log(Level.SEVERE, "Failed to reload the plugin", e);
-                }
-            });
-        };
+        return (sub) -> sub.setDefaultExecutor((ctx) -> {
+            final CommandUser user = user(sub, ctx);
+            try {
+                plugin.loadSettings();
+                plugin.loadLocales();
+                plugin.loadServer();
+                plugin.getLocales().getLocale("reload_complete").ifPresent(user::sendMessage);
+            } catch (Throwable e) {
+                user.sendMessage(new MineDown(
+                    "[Error:](#ff3300) [Failed to reload the plugin. Check console for errors.](#ff7e5e)"
+                ));
+                plugin.log(Level.SEVERE, "Failed to reload the plugin", e);
+            }
+        });
     }
 
     @NotNull
     private CommandProvider update() {
-        return (sub) -> {
-            sub.setCondition(permission(sub, "update"));
-            sub.setDefaultExecutor((ctx) -> updateChecker.check().thenAccept(checked -> {
-                final CommandUser user = user(sub, ctx);
-                if (checked.isUpToDate()) {
-                    plugin.getLocales().getLocale("up_to_date", plugin.getPluginVersion().toString())
-                        .ifPresent(user::sendMessage);
-                    return;
-                }
-                plugin.getLocales().getLocale("update_available", checked.getLatestVersion().toString(),
-                    plugin.getPluginVersion().toString()).ifPresent(user::sendMessage);
-            }));
-        };
+        return (sub) -> sub.setDefaultExecutor((ctx) -> updateChecker.check().thenAccept(checked -> {
+            final CommandUser user = user(sub, ctx);
+            if (checked.isUpToDate()) {
+                plugin.getLocales().getLocale("up_to_date", plugin.getPluginVersion().toString())
+                    .ifPresent(user::sendMessage);
+                return;
+            }
+            plugin.getLocales().getLocale("update_available", checked.getLatestVersion().toString(),
+                plugin.getPluginVersion().toString()).ifPresent(user::sendMessage);
+        }));
     }
 
     @NotNull

@@ -22,9 +22,6 @@ package net.william278.husksync.user;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.platform.AudienceProvider;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.UUID;
 
 public final class ConsoleUser implements CommandUser {
 
@@ -39,18 +36,6 @@ public final class ConsoleUser implements CommandUser {
     @NotNull
     public Audience getAudience() {
         return audience;
-    }
-
-    @Override
-    @Nullable
-    public String getName() {
-        return null;
-    }
-
-    @Override
-    @Nullable
-    public UUID getUuid() {
-        return null;
     }
 
     @Override

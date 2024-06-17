@@ -25,6 +25,7 @@ import net.william278.husksync.user.CommandUser;
 import net.william278.husksync.user.OnlineUser;
 import net.william278.husksync.user.User;
 import net.william278.uniform.BaseCommand;
+import net.william278.uniform.Permission;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -34,23 +35,31 @@ import java.util.UUID;
 public abstract class ItemsCommand extends PluginCommand {
 
     protected ItemsCommand(@NotNull String name, @NotNull List<String> aliases, @NotNull HuskSync plugin) {
-        super(name, aliases, plugin);
+        super(name, aliases, Permission.Default.IF_OP, plugin);
     }
 
     @Override
     public void provide(@NotNull BaseCommand<?> command) {
-        command.setCondition(c -> {
-            final CommandUser user = adapt(command.getUser(c));
-            return !user.isConsole() && user.hasPermission(getPermission());
-        });
         command.addSyntax((ctx) -> {
             final User user = ctx.getArgument("username", User.class);
             final UUID version = ctx.getArgument("version", UUID.class);
-            this.showSnapshotItems((OnlineUser) user(command, ctx), user, version);
+            final CommandUser executor = user(command, ctx);
+            if (!(executor instanceof OnlineUser online)) {
+                plugin.getLocales().getLocale("error_in_game_command_only")
+                    .ifPresent(executor::sendMessage);
+                return;
+            }
+            this.showSnapshotItems(online, user, version);
         }, user("username"), uuid("version"));
         command.addSyntax((ctx) -> {
             final User user = ctx.getArgument("username", User.class);
-            this.showLatestItems((OnlineUser) user(command, ctx), user);
+            final CommandUser executor = user(command, ctx);
+            if (!(executor instanceof OnlineUser online)) {
+                plugin.getLocales().getLocale("error_in_game_command_only")
+                    .ifPresent(executor::sendMessage);
+                return;
+            }
+            this.showLatestItems(online, user);
         }, user("username"));
     }
 

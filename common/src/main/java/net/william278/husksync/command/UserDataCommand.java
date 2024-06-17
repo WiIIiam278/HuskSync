@@ -31,36 +31,30 @@ import net.william278.husksync.util.DataSnapshotList;
 import net.william278.husksync.util.DataSnapshotOverview;
 import net.william278.uniform.BaseCommand;
 import net.william278.uniform.CommandProvider;
+import net.william278.uniform.Permission;
 import net.william278.uniform.element.ArgumentElement;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.List;
+import java.util.Locale;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.logging.Level;
 
 public class UserDataCommand extends PluginCommand {
 
-    private static final Map<String, Boolean> SUB_COMMANDS = Map.of(
-        "view", false,
-        "list", false,
-        "delete", true,
-        "restore", true,
-        "pin", true,
-        "dump", true
-    );
-
     public UserDataCommand(@NotNull HuskSync plugin) {
-        super("userdata", List.of("playerdata"), plugin);
+        super("userdata", List.of("playerdata"), Permission.Default.IF_OP, plugin);
     }
 
     @Override
     public void provide(@NotNull BaseCommand<?> command) {
-        command.setCondition(permission(command));
-        command.addSubCommand("view", view());
-        command.addSubCommand("list", list());
-        command.addSubCommand("delete", delete());
-        command.addSubCommand("restore", restore());
-        command.addSubCommand("pin", pin());
-        command.addSubCommand("dump", dump());
+        command.addSubCommand("view", needsOp("view"), view());
+        command.addSubCommand("list", needsOp("list"), list());
+        command.addSubCommand("delete", needsOp("delete"), delete());
+        command.addSubCommand("restore", needsOp("restore"), restore());
+        command.addSubCommand("pin", needsOp("pin"), pin());
+        command.addSubCommand("dump", needsOp("dump"), dump());
     }
 
     // Show the latest snapshot
@@ -202,7 +196,6 @@ public class UserDataCommand extends PluginCommand {
     @NotNull
     private CommandProvider view() {
         return (sub) -> {
-            sub.setCondition(permission(sub, "view"));
             sub.addSyntax((ctx) -> {
                 final User user = ctx.getArgument("username", User.class);
                 viewLatestSnapshot(user(sub, ctx), user);
@@ -218,7 +211,6 @@ public class UserDataCommand extends PluginCommand {
     @NotNull
     private CommandProvider list() {
         return (sub) -> {
-            sub.setCondition(permission(sub, "list"));
             sub.addSyntax((ctx) -> {
                 final User user = ctx.getArgument("username", User.class);
                 listSnapshots(user(sub, ctx), user, 1);
@@ -233,51 +225,39 @@ public class UserDataCommand extends PluginCommand {
 
     @NotNull
     private CommandProvider delete() {
-        return (sub) -> {
-            sub.setCondition(permission(sub, "delete"));
-            sub.addSyntax((ctx) -> {
-                final User user = ctx.getArgument("username", User.class);
-                final UUID version = ctx.getArgument("version", UUID.class);
-                deleteSnapshot(user(sub, ctx), user, version);
-            }, user("username"), uuid("version"));
-        };
+        return (sub) -> sub.addSyntax((ctx) -> {
+            final User user = ctx.getArgument("username", User.class);
+            final UUID version = ctx.getArgument("version", UUID.class);
+            deleteSnapshot(user(sub, ctx), user, version);
+        }, user("username"), uuid("version"));
     }
 
     @NotNull
     private CommandProvider restore() {
-        return (sub) -> {
-            sub.setCondition(permission(sub, "restore"));
-            sub.addSyntax((ctx) -> {
-                final User user = ctx.getArgument("username", User.class);
-                final UUID version = ctx.getArgument("version", UUID.class);
-                restoreSnapshot(user(sub, ctx), user, version);
-            }, user("username"), uuid("version"));
-        };
+        return (sub) -> sub.addSyntax((ctx) -> {
+            final User user = ctx.getArgument("username", User.class);
+            final UUID version = ctx.getArgument("version", UUID.class);
+            restoreSnapshot(user(sub, ctx), user, version);
+        }, user("username"), uuid("version"));
     }
 
     @NotNull
     private CommandProvider pin() {
-        return (sub) -> {
-            sub.setCondition(permission(sub, "pin"));
-            sub.addSyntax((ctx) -> {
-                final User user = ctx.getArgument("username", User.class);
-                final UUID version = ctx.getArgument("version", UUID.class);
-                pinSnapshot(user(sub, ctx), user, version);
-            }, user("username"), uuid("version"));
-        };
+        return (sub) -> sub.addSyntax((ctx) -> {
+            final User user = ctx.getArgument("username", User.class);
+            final UUID version = ctx.getArgument("version", UUID.class);
+            pinSnapshot(user(sub, ctx), user, version);
+        }, user("username"), uuid("version"));
     }
 
     @NotNull
     private CommandProvider dump() {
-        return (sub) -> {
-            sub.setCondition(permission(sub, "dump"));
-            sub.addSyntax((ctx) -> {
-                final User user = ctx.getArgument("username", User.class);
-                final UUID version = ctx.getArgument("version", UUID.class);
-                final DumpType type = ctx.getArgument("type", DumpType.class);
-                dumpSnapshot(user(sub, ctx), user, version, type == DumpType.WEB);
-            }, user("username"), uuid("version"), dumpType());
-        };
+        return (sub) -> sub.addSyntax((ctx) -> {
+            final User user = ctx.getArgument("username", User.class);
+            final UUID version = ctx.getArgument("version", UUID.class);
+            final DumpType type = ctx.getArgument("type", DumpType.class);
+            dumpSnapshot(user(sub, ctx), user, version, type == DumpType.WEB);
+        }, user("username"), uuid("version"), dumpType());
     }
 
     private <S> ArgumentElement<S, DumpType> dumpType() {
