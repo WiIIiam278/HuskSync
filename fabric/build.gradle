@@ -33,7 +33,7 @@ dependencies {
 
     annotationProcessor 'org.projectlombok:lombok:1.18.32'
 
-    implementation project(path: ":common")
+    shadow project(path: ":common")
 }
 
 shadowJar {
