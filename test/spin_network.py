@@ -12,8 +12,8 @@ from tqdm import tqdm
 # Parameters for starting a network of Minecraft servers
 class Parameters:
     root_dir = './servers/'
-    proxy_version = "1.20"
-    minecraft_version = '1.20.6'
+    proxy_version = "1.21"
+    minecraft_version = '1.21'
     eula_agreement = 'true'
 
     backend_names = ['alpha', 'beta']
