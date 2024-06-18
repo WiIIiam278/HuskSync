@@ -157,7 +157,7 @@ public class FabricHuskSync implements DedicatedServerModInitializer, HuskSync, 
             registerSerializer(Identifier.INVENTORY, new FabricSerializer.Inventory(this));
             registerSerializer(Identifier.ENDER_CHEST, new FabricSerializer.EnderChest(this));
             registerSerializer(Identifier.ADVANCEMENTS, new FabricSerializer.Advancements(this));
-            registerSerializer(Identifier.STATISTICS, new Serializer.Json<>(this, FabricData.Statistics.class)); // TODO APPLY
+            registerSerializer(Identifier.STATISTICS, new Serializer.Json<>(this, FabricData.Statistics.class));
             registerSerializer(Identifier.POTION_EFFECTS, new FabricSerializer.PotionEffects(this));
             registerSerializer(Identifier.GAME_MODE, new Serializer.Json<>(this, FabricData.GameMode.class));
             registerSerializer(Identifier.FLIGHT_STATUS, new Serializer.Json<>(this, FabricData.FlightStatus.class));
@@ -202,9 +202,7 @@ public class FabricHuskSync implements DedicatedServerModInitializer, HuskSync, 
         });
 
         // Register API
-        initialize("api", (plugin) -> {
-            FabricHuskSyncAPI.register(this);
-        });
+        initialize("api", (plugin) -> FabricHuskSyncAPI.register(this));
 
         // Check for updates
         this.checkForUpdates();
