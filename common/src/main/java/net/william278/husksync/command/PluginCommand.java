@@ -80,7 +80,7 @@ public abstract class PluginCommand extends Command {
         return new ArgumentElement<>(name, reader -> {
             final String username = reader.readString();
             return plugin.getDatabase().getUserByName(username).orElseThrow(
-                () -> CommandSyntaxException.BUILT_IN_EXCEPTIONS.dispatcherUnknownArgument().createWithContext(reader)
+                    () -> CommandSyntaxException.BUILT_IN_EXCEPTIONS.dispatcherUnknownArgument().createWithContext(reader)
             );
         }, (context, builder) -> {
             plugin.getOnlineUsers().forEach(u -> builder.suggest(u.getUsername()));
@@ -119,7 +119,9 @@ public abstract class PluginCommand extends Command {
 
         @NotNull
         public static PluginCommand[] create(@NotNull HuskSync plugin) {
-            return Arrays.stream(values()).map(type -> type.supply(plugin)).toArray(PluginCommand[]::new);
+            return Arrays.stream(values()).map(type -> type.supply(plugin))
+                    .filter(command -> !plugin.getSettings().isCommandDisabled(command))
+                    .toArray(PluginCommand[]::new);
         }
 
     }

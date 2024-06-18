@@ -33,6 +33,8 @@ debug_logging: true
 enable_plan_hook: true
 # Whether to cancel game event packets directly when handling locked players if ProtocolLib or PacketEvents is installed
 cancel_packets: true
+# Add HuskSync commands to this list to prevent them from being registered (e.g. ['userdata'])
+disabled_commands: []
 # Database settings
 database:
   # Type of database to use (MYSQL, MARIADB, POSTGRES, MONGO)
@@ -76,7 +78,7 @@ redis:
     # List of host:port pairs
     nodes: []
     password: ''
-# Redis settings
+# Data syncing settings
 synchronization:
   # The data synchronization mode to use (LOCKSTEP or DELAY). LOCKSTEP is recommended for most networks.
   # Docs: https://william278.net/docs/husksync/sync-modes
