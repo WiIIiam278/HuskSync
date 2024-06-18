@@ -38,7 +38,7 @@ Although it's a common request, HuskSync doesn't synchronize economy data for a 
 I strongly recommend making use of economy plugins that have cross-server economy balance synchronization built-in, of which there are a multitude of options available. Please see our [[FAQs]] section for more details on this decision.
 
 ## Toggling Sync Features
-All synchronization features, except location and locked map synchronising, are enabled by default. To toggle a feature, navigate to the `features:` section in the `synchronization:` part of your `config.yml` file, and change the option to `true`/`false` respectively.
+All synchronization features, except location and locked map synchronizing, are enabled by default. To toggle a feature, navigate to the `features:` section in the `synchronization:` part of your `config.yml` file, and change the option to `true`/`false` respectively.
 
 <details>
 <summary>Example in config.yml</summary>
