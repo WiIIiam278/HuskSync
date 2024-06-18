@@ -60,34 +60,34 @@ public class UserDataCommand extends PluginCommand {
     // Show the latest snapshot
     private void viewLatestSnapshot(@NotNull CommandUser executor, @NotNull User user) {
         plugin.getDatabase().getLatestSnapshot(user).ifPresentOrElse(
-            data -> {
-                if (data.isInvalid()) {
-                    plugin.getLocales().getLocale("error_invalid_data", data.getInvalidReason(plugin))
-                        .ifPresent(executor::sendMessage);
-                    return;
-                }
-                DataSnapshotOverview.of(data.unpack(plugin), data.getFileSize(plugin), user, plugin)
-                    .show(executor);
-            },
-            () -> plugin.getLocales().getLocale("error_no_data_to_display")
-                .ifPresent(executor::sendMessage)
+                data -> {
+                    if (data.isInvalid()) {
+                        plugin.getLocales().getLocale("error_invalid_data", data.getInvalidReason(plugin))
+                                .ifPresent(executor::sendMessage);
+                        return;
+                    }
+                    DataSnapshotOverview.of(data.unpack(plugin), data.getFileSize(plugin), user, plugin)
+                            .show(executor);
+                },
+                () -> plugin.getLocales().getLocale("error_no_data_to_display")
+                        .ifPresent(executor::sendMessage)
         );
     }
 
     // Show the specified snapshot
     private void viewSnapshot(@NotNull CommandUser executor, @NotNull User user, @NotNull UUID version) {
         plugin.getDatabase().getSnapshot(user, version).ifPresentOrElse(
-            data -> {
-                if (data.isInvalid()) {
-                    plugin.getLocales().getLocale("error_invalid_data", data.getInvalidReason(plugin))
-                        .ifPresent(executor::sendMessage);
-                    return;
-                }
-                DataSnapshotOverview.of(data.unpack(plugin), data.getFileSize(plugin), user, plugin)
-                    .show(executor);
-            },
-            () -> plugin.getLocales().getLocale("error_invalid_version_uuid")
-                .ifPresent(executor::sendMessage)
+                data -> {
+                    if (data.isInvalid()) {
+                        plugin.getLocales().getLocale("error_invalid_data", data.getInvalidReason(plugin))
+                                .ifPresent(executor::sendMessage);
+                        return;
+                    }
+                    DataSnapshotOverview.of(data.unpack(plugin), data.getFileSize(plugin), user, plugin)
+                            .show(executor);
+                },
+                () -> plugin.getLocales().getLocale("error_invalid_version_uuid")
+                        .ifPresent(executor::sendMessage)
         );
     }
 
@@ -96,7 +96,7 @@ public class UserDataCommand extends PluginCommand {
         final List<DataSnapshot.Packed> dataList = plugin.getDatabase().getAllSnapshots(user);
         if (dataList.isEmpty()) {
             plugin.getLocales().getLocale("error_no_data_to_display")
-                .ifPresent(executor::sendMessage);
+                    .ifPresent(executor::sendMessage);
             return;
         }
         DataSnapshotList.create(dataList, user, plugin).displayPage(executor, page);
@@ -106,16 +106,16 @@ public class UserDataCommand extends PluginCommand {
     private void deleteSnapshot(@NotNull CommandUser executor, @NotNull User user, @NotNull UUID version) {
         if (!plugin.getDatabase().deleteSnapshot(user, version)) {
             plugin.getLocales().getLocale("error_invalid_version_uuid")
-                .ifPresent(executor::sendMessage);
+                    .ifPresent(executor::sendMessage);
             return;
         }
         plugin.getRedisManager().clearUserData(user);
         plugin.getLocales().getLocale("data_deleted",
-                version.toString().split("-")[0],
-                version.toString(),
-                user.getUsername(),
-                user.getUuid().toString())
-            .ifPresent(executor::sendMessage);
+                        version.toString().split("-")[0],
+                        version.toString(),
+                        user.getUsername(),
+                        user.getUuid().toString())
+                .ifPresent(executor::sendMessage);
     }
 
     // Restore a snapshot
@@ -123,7 +123,7 @@ public class UserDataCommand extends PluginCommand {
         final Optional<DataSnapshot.Packed> optionalData = plugin.getDatabase().getSnapshot(user, version);
         if (optionalData.isEmpty()) {
             plugin.getLocales().getLocale("error_invalid_version_uuid")
-                .ifPresent(executor::sendMessage);
+                    .ifPresent(executor::sendMessage);
             return;
         }
 
@@ -131,14 +131,14 @@ public class UserDataCommand extends PluginCommand {
         final DataSnapshot.Packed data = optionalData.get().copy();
         if (data.isInvalid()) {
             plugin.getLocales().getLocale("error_invalid_data", data.getInvalidReason(plugin))
-                .ifPresent(executor::sendMessage);
+                    .ifPresent(executor::sendMessage);
             return;
         }
         data.edit(plugin, (unpacked -> {
             unpacked.getHealth().ifPresent(status -> status.setHealth(Math.max(1, status.getHealth())));
             unpacked.setSaveCause(DataSnapshot.SaveCause.BACKUP_RESTORE);
             unpacked.setPinned(
-                plugin.getSettings().getSynchronization().doAutoPin(DataSnapshot.SaveCause.BACKUP_RESTORE)
+                    plugin.getSettings().getSynchronization().doAutoPin(DataSnapshot.SaveCause.BACKUP_RESTORE)
             );
         }));
 
@@ -148,7 +148,7 @@ public class UserDataCommand extends PluginCommand {
             redis.getUserData(u).ifPresent(d -> redis.setUserData(u, s, RedisKeyType.TTL_1_YEAR));
             redis.sendUserDataUpdate(u, s);
             plugin.getLocales().getLocale("data_restored", u.getUsername(), u.getUuid().toString(),
-                s.getShortId(), s.getId().toString()).ifPresent(executor::sendMessage);
+                    s.getShortId(), s.getId().toString()).ifPresent(executor::sendMessage);
         });
     }
 
@@ -157,7 +157,7 @@ public class UserDataCommand extends PluginCommand {
         final Optional<DataSnapshot.Packed> optionalData = plugin.getDatabase().getSnapshot(user, version);
         if (optionalData.isEmpty()) {
             plugin.getLocales().getLocale("error_invalid_version_uuid")
-                .ifPresent(executor::sendMessage);
+                    .ifPresent(executor::sendMessage);
             return;
         }
 
@@ -169,16 +169,17 @@ public class UserDataCommand extends PluginCommand {
             plugin.getDatabase().pinSnapshot(user, data.getId());
         }
         plugin.getLocales().getLocale(data.isPinned() ? "data_unpinned" : "data_pinned", data.getShortId(),
-                data.getId().toString(), user.getUsername(), user.getUuid().toString())
-            .ifPresent(executor::sendMessage);
+                        data.getId().toString(), user.getUsername(), user.getUuid().toString())
+                .ifPresent(executor::sendMessage);
     }
 
     // Dump a snapshot
-    private void dumpSnapshot(@NotNull CommandUser executor, @NotNull User user, @NotNull UUID version, boolean webDump) {
+    private void dumpSnapshot(@NotNull CommandUser executor, @NotNull User user, @NotNull UUID version,
+                              @NotNull DumpType type) {
         final Optional<DataSnapshot.Packed> data = plugin.getDatabase().getSnapshot(user, version);
         if (data.isEmpty()) {
             plugin.getLocales().getLocale("error_invalid_version_uuid")
-                .ifPresent(executor::sendMessage);
+                    .ifPresent(executor::sendMessage);
             return;
         }
 
@@ -187,7 +188,8 @@ public class UserDataCommand extends PluginCommand {
         final DataDumper dumper = DataDumper.create(userData, user, plugin);
         try {
             plugin.getLocales().getLocale("data_dumped", userData.getShortId(), user.getUsername(),
-                (webDump ? dumper.toWeb() : dumper.toFile())).ifPresent(executor::sendMessage);
+                            (type == DumpType.WEB ? dumper.toWeb() : dumper.toFile()))
+                    .ifPresent(executor::sendMessage);
         } catch (Throwable e) {
             plugin.log(Level.SEVERE, "Failed to dump user data", e);
         }
@@ -256,7 +258,7 @@ public class UserDataCommand extends PluginCommand {
             final User user = ctx.getArgument("username", User.class);
             final UUID version = ctx.getArgument("version", UUID.class);
             final DumpType type = ctx.getArgument("type", DumpType.class);
-            dumpSnapshot(user(sub, ctx), user, version, type == DumpType.WEB);
+            dumpSnapshot(user(sub, ctx), user, version, type);
         }, user("username"), uuid("version"), dumpType());
     }
 
@@ -267,7 +269,7 @@ public class UserDataCommand extends PluginCommand {
                 case "web" -> DumpType.WEB;
                 case "file" -> DumpType.FILE;
                 default -> throw CommandSyntaxException.BUILT_IN_EXCEPTIONS
-                    .dispatcherUnknownArgument().createWithContext(reader);
+                        .dispatcherUnknownArgument().createWithContext(reader);
             };
         }, (context, builder) -> {
             builder.suggest("web");
