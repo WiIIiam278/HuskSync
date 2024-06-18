@@ -20,22 +20,26 @@
 package net.william278.husksync.mixins;
 
 import net.minecraft.entity.ItemEntity;
-import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ActionResult;
 import net.william278.husksync.event.ItemPickupCallback;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Redirect;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(ItemEntity.class)
 public class ItemEntityMixin {
 
-    @Redirect(at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/player/PlayerInventory;insertStack(Lnet/minecraft/item/ItemStack;)Z"),
-            method = "onPlayerCollision")
-    public boolean onPlayerCollision(PlayerInventory inventory, ItemStack stack) {
-        ActionResult result = ItemPickupCallback.EVENT.invoker().interact(inventory.player, stack);
-        return (result != ActionResult.FAIL && inventory.insertStack(stack));
+    @Inject(method = "onPlayerCollision", at = @At("HEAD"), cancellable = true)
+    private void onPlayerPickupItem(PlayerEntity player, CallbackInfo ci) {
+        final ItemStack stack = ((ItemEntity) (Object) this).getStack();
+        final ActionResult result = ItemPickupCallback.EVENT.invoker().interact(player, stack);
+
+        if (result == ActionResult.FAIL) {
+            ci.cancel();
+        }
     }
 
 }

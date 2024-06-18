@@ -21,6 +21,7 @@ package net.william278.husksync.mixins;
 
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.item.ItemStack;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.ActionResult;
 import net.william278.husksync.event.ItemDropCallback;
@@ -35,8 +36,8 @@ public class ServerPlayerEntityMixin {
     @Inject(method = "dropItem", at = @At("HEAD"), cancellable = true)
     private void onPlayerDropItem(ItemStack stack, boolean dropAtFeet, boolean saveThrower,
                                   final CallbackInfoReturnable<ItemEntity> ci) {
-        ServerPlayerEntity player = (ServerPlayerEntity) (Object) this;
-        ActionResult result = ItemDropCallback.EVENT.invoker().interact(player, stack);
+        final ServerPlayerEntity player = (ServerPlayerEntity) (Object) this;
+        final ActionResult result = ItemDropCallback.EVENT.invoker().interact(player, stack);
 
         if (result == ActionResult.FAIL) {
             ci.cancel();

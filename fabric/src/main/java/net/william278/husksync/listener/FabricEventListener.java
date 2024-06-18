@@ -69,7 +69,7 @@ public class FabricEventListener extends EventListener implements LockedHandler 
         WorldSaveCallback.EVENT.register(this::handleWorldSave);
         PlayerDeathDropsCallback.EVENT.register(this::handlePlayerDeathDrops);
 
-        // TODO: Events of extra things to cancel if the player has not been set yet
+        // Locked events handling
         ItemPickupCallback.EVENT.register(this::handleItemPickup);
         ItemDropCallback.EVENT.register(this::handleItemDrop);
         UseBlockCallback.EVENT.register(this::handleBlockInteract);
@@ -94,14 +94,15 @@ public class FabricEventListener extends EventListener implements LockedHandler 
     }
 
     private void handleWorldSave(@NotNull ServerWorld world) {
-        saveOnWorldSave(world.getPlayers().stream()
-                .map(player -> (OnlineUser) FabricUser.adapt(player, plugin)).collect(Collectors.toList()));
+        this.saveOnWorldSave(
+                world.getPlayers().stream().map(player -> (OnlineUser) FabricUser.adapt(player, plugin)).toList()
+        );
     }
 
     private void handlePlayerDeathDrops(@NotNull ServerPlayerEntity player, @Nullable ItemStack @NotNull [] toKeep,
                                         @Nullable ItemStack @NotNull [] toDrop) {
         final SaveOnDeathSettings settings = plugin.getSettings().getSynchronization().getSaveOnDeath();
-        saveOnPlayerDeath(
+        this.saveOnPlayerDeath(
                 FabricUser.adapt(player, plugin),
                 FabricData.Items.ItemArray.adapt(
                         settings.getItemsToSave() == SaveOnDeathSettings.DeathItemsMode.DROPS ? toDrop : toKeep

@@ -19,9 +19,12 @@
 
 package net.william278.husksync.mixins;
 
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.world.ServerWorld;
 import net.william278.husksync.event.WorldSaveCallback;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -29,8 +32,15 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(ServerWorld.class)
 public class ServerWorldMixin {
 
+    @Final
+    @Shadow
+    private MinecraftServer server;
+
     @Inject(method = "saveLevel", at = @At("HEAD"))
     public void saveLevel(CallbackInfo ci) {
+        if (server.isStopping() || server.isStopped()) {
+            return;
+        }
         WorldSaveCallback.EVENT.invoker().save((ServerWorld) (Object) this);
     }
 
