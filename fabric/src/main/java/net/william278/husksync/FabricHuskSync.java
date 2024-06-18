@@ -257,7 +257,7 @@ public class FabricHuskSync implements DedicatedServerModInitializer, HuskSync, 
     @Override
     @NotNull
     public Uniform getUniform() {
-        return FabricUniform.getInstance();
+        return FabricUniform.getInstance(mod.getMetadata().getId());
     }
 
     @Override
