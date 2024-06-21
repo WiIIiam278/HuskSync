@@ -155,14 +155,14 @@ public interface Data {
      */
     interface Advancements extends Data {
 
+        String RECIPE_ADVANCEMENT = "minecraft:recipe";
+
         @NotNull
         List<Advancement> getCompleted();
 
         @NotNull
         default List<Advancement> getCompletedExcludingRecipes() {
-            return getCompleted().stream()
-                .filter(advancement -> !advancement.getKey().startsWith("minecraft:recipe"))
-                .collect(Collectors.toList());
+            return getCompleted().stream().filter(adv -> !adv.getKey().startsWith(RECIPE_ADVANCEMENT)).toList();
         }
 
         void setCompleted(@NotNull List<Advancement> completed);
@@ -191,13 +191,13 @@ public interface Data {
             @NotNull
             private static Map<String, Long> adaptDateMap(@NotNull Map<String, Date> dateMap) {
                 return dateMap.entrySet().stream()
-                    .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().getTime()));
+                        .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().getTime()));
             }
 
             @NotNull
             private static Map<String, Date> adaptLongMap(@NotNull Map<String, Long> dateMap) {
                 return dateMap.entrySet().stream()
-                    .collect(Collectors.toMap(Map.Entry::getKey, e -> new Date(e.getValue())));
+                        .collect(Collectors.toMap(Map.Entry::getKey, e -> new Date(e.getValue())));
             }
 
             @NotNull
@@ -250,9 +250,9 @@ public interface Data {
         void setWorld(@NotNull World world);
 
         record World(
-            @SerializedName("name") @NotNull String name,
-            @SerializedName("uuid") @NotNull UUID uuid,
-            @SerializedName("environment") @NotNull String environment
+                @SerializedName("name") @NotNull String name,
+                @SerializedName("uuid") @NotNull UUID uuid,
+                @SerializedName("environment") @NotNull String environment
         ) {
         }
     }
@@ -324,9 +324,9 @@ public interface Data {
         List<Attribute> getAttributes();
 
         record Attribute(
-            @NotNull String name,
-            double baseValue,
-            @NotNull Set<Modifier> modifiers
+                @NotNull String name,
+                double baseValue,
+                @NotNull Set<Modifier> modifiers
         ) {
 
             public double getValue() {
@@ -387,8 +387,8 @@ public interface Data {
 
         default Optional<Attribute> getAttribute(@NotNull Key key) {
             return getAttributes().stream()
-                .filter(attribute -> attribute.name().equals(key.asString()))
-                .findFirst();
+                    .filter(attribute -> attribute.name().equals(key.asString()))
+                    .findFirst();
         }
 
         default void removeAttribute(@NotNull Key key) {
@@ -397,8 +397,8 @@ public interface Data {
 
         default double getMaxHealth() {
             return getAttribute(MAX_HEALTH_KEY)
-                .map(Attribute::getValue)
-                .orElse(20.0);
+                    .map(Attribute::getValue)
+                    .orElse(20.0);
         }
 
         default void setMaxHealth(double maxHealth) {

@@ -25,6 +25,7 @@ import com.google.gson.annotations.SerializedName;
 import de.tr7zw.changeme.nbtapi.NBTCompound;
 import de.tr7zw.changeme.nbtapi.NBTPersistentDataContainer;
 import lombok.*;
+import net.kyori.adventure.util.TriState;
 import net.william278.desertwell.util.ThrowingConsumer;
 import net.william278.desertwell.util.Version;
 import net.william278.husksync.BukkitHuskSync;
@@ -35,6 +36,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.Registry;
 import org.bukkit.Statistic;
+import org.bukkit.NamespacedKey;
 import org.bukkit.advancement.AdvancementProgress;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.attribute.AttributeModifier;
@@ -565,6 +567,11 @@ public abstract class BukkitData implements Data {
     @NoArgsConstructor(access = AccessLevel.PRIVATE)
     public static class Attributes extends BukkitData implements Data.Attributes, Adaptable {
 
+        private static final String EQUIPMENT_SLOT_GROUP = "org.bukkit.inventory.EquipmentSlotGroup";
+        private static final String EQUIPMENT_SLOT_GROUP$ANY = "ANY";
+        private static final String EQUIPMENT_SLOT$getGroup = "getGroup";
+        private static TriState USE_KEYED_MODIFIERS = TriState.NOT_SET;
+
         private List<Attribute> attributes;
 
         @NotNull
@@ -572,12 +579,12 @@ public abstract class BukkitData implements Data {
             final List<Attribute> attributes = Lists.newArrayList();
             Registry.ATTRIBUTE.forEach(id -> {
                 final AttributeInstance instance = player.getAttribute(id);
-                if (instance == null || instance.getValue() == instance.getDefaultValue() || plugin
-                        .getSettings().getSynchronization().isIgnoredAttribute(id.getKey().toString())) {
+                if (instance == null || Double.compare(instance.getValue(), instance.getDefaultValue()) == 0
+                        || plugin.getSettings().getSynchronization().isIgnoredAttribute(id.getKey().toString())) {
                     // We don't sync unmodified or disabled attributes
                     return;
                 }
-                attributes.add(adapt(instance, plugin.getMinecraftVersion()));
+                attributes.add(adapt(instance));
             });
             return new BukkitData.Attributes(attributes);
         }
@@ -596,18 +603,18 @@ public abstract class BukkitData implements Data {
         }
 
         @NotNull
-        private static Attribute adapt(@NotNull AttributeInstance instance, @NotNull Version version) {
+        private static Attribute adapt(@NotNull AttributeInstance instance) {
             return new Attribute(
                     instance.getAttribute().getKey().toString(),
                     instance.getBaseValue(),
-                    instance.getModifiers().stream().map(m -> adapt(m, version)).collect(Collectors.toSet())
+                    instance.getModifiers().stream().map(BukkitData.Attributes::adapt).collect(Collectors.toSet())
             );
         }
 
         @NotNull
-        private static Modifier adapt(@NotNull AttributeModifier modifier, @NotNull Version version) {
+        private static Modifier adapt(@NotNull AttributeModifier modifier) {
             return new Modifier(
-                    version.compareTo(Version.fromString("1.21")) >= 0 ? null : modifier.getUniqueId(),
+                    getModifierId(modifier),
                     modifier.getName(),
                     modifier.getAmount(),
                     modifier.getOperation().ordinal(),
@@ -615,26 +622,67 @@ public abstract class BukkitData implements Data {
             );
         }
 
-        @Override
-        public void apply(@NotNull BukkitUser user, @NotNull BukkitHuskSync plugin) throws IllegalStateException {
-            Registry.ATTRIBUTE.forEach(id -> applyAttribute(user.getPlayer().getAttribute(id), getAttribute(id).orElse(null)));
+        @Nullable
+        private static UUID getModifierId(@NotNull AttributeModifier modifier) {
+            try {
+                return UUID.fromString(modifier.getName());
+            } catch (Throwable e) {
+                return null;
+            }
         }
 
-        private static void applyAttribute(@Nullable AttributeInstance instance, @Nullable Attribute attribute) {
+        private static void applyAttribute(@Nullable AttributeInstance instance, @Nullable Attribute attribute,
+                                           @NotNull HuskSync plugin) {
             if (instance == null) {
                 return;
             }
             instance.setBaseValue(attribute == null ? instance.getDefaultValue() : attribute.baseValue());
             instance.getModifiers().forEach(instance::removeModifier);
             if (attribute != null) {
-                attribute.modifiers().forEach(modifier -> instance.addModifier(new AttributeModifier(
-                        modifier.uuid(),
-                        modifier.name(),
-                        modifier.amount(),
-                        AttributeModifier.Operation.values()[modifier.operationType()],
-                        modifier.equipmentSlot() != -1 ? EquipmentSlot.values()[modifier.equipmentSlot()] : null
-                )));
+                attribute.modifiers().forEach(modifier -> instance.addModifier(adapt(modifier, plugin)));
             }
+        }
+
+        @SuppressWarnings("JavaReflectionMemberAccess")
+        @NotNull
+        private static AttributeModifier adapt(@NotNull Modifier modifier, @NotNull HuskSync plugin) {
+            final int slotId = modifier.equipmentSlot();
+            if (USE_KEYED_MODIFIERS == TriState.NOT_SET) {
+                USE_KEYED_MODIFIERS = TriState.byBoolean(plugin.getMinecraftVersion()
+                        .compareTo(Version.fromString("1.21")) >= 0);
+            }
+            if (USE_KEYED_MODIFIERS == TriState.TRUE) {
+                try {
+                    // Reflexively create a modern keyed attribute modifier instance. Remove in favor of API long-term.
+                    final EquipmentSlot slot = slotId != -1 ? EquipmentSlot.values()[slotId] : null;
+                    final Class<?> slotGroup = Class.forName(EQUIPMENT_SLOT_GROUP);
+                    return AttributeModifier.class.getDeclaredConstructor(
+                            NamespacedKey.class, double.class, AttributeModifier.Operation.class, slotGroup
+                    ).newInstance(
+                            NamespacedKey.fromString(modifier.name()), modifier.amount(),
+                            AttributeModifier.Operation.values()[modifier.operationType()],
+                            slot == null ? slotGroup.getField(EQUIPMENT_SLOT_GROUP$ANY).get(null)
+                                    : EquipmentSlot.class.getDeclaredMethod(EQUIPMENT_SLOT$getGroup).invoke(slot)
+                    );
+                } catch (Throwable e) {
+                    plugin.log(Level.WARNING, "Error reflectively creating keyed attribute modifier", e);
+                    USE_KEYED_MODIFIERS = TriState.FALSE;
+                }
+            }
+            return new AttributeModifier(
+                    modifier.uuid(),
+                    modifier.name(),
+                    modifier.amount(),
+                    AttributeModifier.Operation.values()[modifier.operationType()],
+                    slotId != -1 ? EquipmentSlot.values()[slotId] : null
+            );
+        }
+
+        @Override
+        public void apply(@NotNull BukkitUser user, @NotNull BukkitHuskSync plugin) throws IllegalStateException {
+            Registry.ATTRIBUTE.forEach(id -> applyAttribute(
+                    user.getPlayer().getAttribute(id), getAttribute(id).orElse(null), plugin
+            ));
         }
 
     }
@@ -696,11 +744,12 @@ public abstract class BukkitData implements Data {
             }
 
             // Set health scale
+            double scale = healthScale <= 0 ? player.getMaxHealth() : healthScale;
             try {
-                player.setHealthScale(healthScale);
+                player.setHealthScale(scale);
                 player.setHealthScaled(isHealthScaled);
             } catch (Throwable e) {
-                plugin.log(Level.WARNING, "Error setting %s's health scale to %s".formatted(player.getName(), healthScale), e);
+                plugin.log(Level.WARNING, "Error setting %s's health scale to %s".formatted(player.getName(), scale), e);
             }
         }
 
