@@ -25,6 +25,7 @@ dependencies {
     implementation include("redis.clients:jedis:$jedis_version")
     implementation include("com.mysql:mysql-connector-j:$mysql_driver_version")
     implementation include("org.mariadb.jdbc:mariadb-java-client:$mariadb_driver_version")
+    implementation include("org.postgresql:postgresql:$postgres_driver_version")
     implementation include("org.xerial.snappy:snappy-java:$snappy_version")
 
     compileOnly 'org.jetbrains:annotations:24.1.0'
