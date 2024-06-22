@@ -395,7 +395,7 @@ public class DataSnapshot {
                     .map(entry -> Map.entry(plugin.getIdentifier(entry.getKey()).orElseThrow(), entry.getValue()))
                     .collect(Collectors.toMap(
                             Map.Entry::getKey,
-                            entry -> plugin.deserializeData(entry.getKey(), entry.getValue()),
+                            entry -> plugin.deserializeData(entry.getKey(), entry.getValue(), getMinecraftVersion()),
                             (a, b) -> b, () -> Maps.newTreeMap(SerializerRegistry.DEPENDENCY_ORDER_COMPARATOR)
                     ));
         }

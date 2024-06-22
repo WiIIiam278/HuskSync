@@ -19,6 +19,7 @@
 
 package net.william278.husksync.data;
 
+import net.william278.desertwell.util.Version;
 import net.william278.husksync.HuskSync;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -119,19 +120,36 @@ public interface SerializerRegistry {
     }
 
     /**
-     * Deserialize data for the given {@link Identifier}
+     * Deserialize data of a given {@link Version Minecraft version} for the given {@link Identifier data identifier}
+     *
+     * @param identifier    the {@link Identifier} to deserialize data for
+     * @param data          the data to deserialize
+     * @param dataMcVersion the Minecraft version of the data
+     * @return the deserialized data
+     * @throws IllegalStateException if no serializer is found for the given {@link Identifier}
+     * @since 3.6.4
+     */
+    @NotNull
+    default Data deserializeData(@NotNull Identifier identifier, @NotNull String data,
+                                 @NotNull Version dataMcVersion) throws IllegalStateException {
+        return getSerializer(identifier).map(serializer -> serializer.deserialize(data, dataMcVersion)).orElseThrow(
+                () -> new IllegalStateException("No serializer found for %s".formatted(identifier))
+        );
+    }
+
+    /**
+     * Deserialize data for the given {@link Identifier data identifier}
      *
      * @param identifier the {@link Identifier} to deserialize data for
      * @param data       the data to deserialize
      * @return the deserialized data
-     * @throws IllegalStateException if no serializer is found for the given {@link Identifier}
      * @since 3.5.4
+     * @deprecated Use {@link #deserializeData(Identifier, String, Version)} instead
      */
     @NotNull
-    default Data deserializeData(@NotNull Identifier identifier, @NotNull String data) throws IllegalStateException {
-        return getSerializer(identifier).map(serializer -> serializer.deserialize(data)).orElseThrow(
-                () -> new IllegalStateException("No serializer found for %s".formatted(identifier))
-        );
+    @Deprecated(since = "3.6.5")
+    default Data deserializeData(@NotNull Identifier identifier, @NotNull String data) {
+        return deserializeData(identifier, data, getPlugin().getMinecraftVersion());
     }
 
     /**
