@@ -255,7 +255,7 @@ public class MpdbMigrator extends Migrator {
                 If any of these are not correct, please correct them
                 using the command:
                 "husksync migrate mpdb set <parameter> <value>"
-                (e.g.: "husksync migrate mpdb set host 1.2.3.4")
+                (e.g.: "husksync migrate set mpdb host 1.2.3.4")
 
                 STEP 3] HuskSync will migrate data into the database
                 tables configures in the config.yml file of this
@@ -263,7 +263,7 @@ public class MpdbMigrator extends Migrator {
                 before proceeding.
 
                 STEP 4] To start the migration, please run:
-                "husksync migrate mpdb start"
+                "husksync migrate start mpdb"
                 
                 NOTE: This migrator currently WORKS WITH MPDB version
                 v4.9.2 and below!

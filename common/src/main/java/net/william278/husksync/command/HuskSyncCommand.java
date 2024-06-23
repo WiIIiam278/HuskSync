@@ -160,6 +160,10 @@ public class HuskSyncCommand extends PluginCommand {
                         .collect(Collectors.joining("\n"))
                 ));
             });
+            sub.addSubCommand("help", (help) -> help.addSyntax((cmd) -> {
+                final Migrator migrator = cmd.getArgument("migrator", Migrator.class);
+                plugin.log(Level.INFO, migrator.getHelpMenu());
+            }, migrator()));
             sub.addSubCommand("start", (start) -> start.addSyntax((cmd) -> {
                 final Migrator migrator = cmd.getArgument("migrator", Migrator.class);
                 migrator.start().thenAccept(succeeded -> {
