@@ -44,7 +44,7 @@ import java.util.logging.Level;
 public class UserDataCommand extends PluginCommand {
 
     public UserDataCommand(@NotNull HuskSync plugin) {
-        super("userdata", List.of("playerdata"), Permission.Default.IF_OP, plugin);
+        super("userdata", List.of("playerdata"), Permission.Default.IF_OP, ExecutionScope.ALL, plugin);
     }
 
     @Override

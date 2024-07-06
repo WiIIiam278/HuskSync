@@ -35,7 +35,7 @@ import java.util.UUID;
 public abstract class ItemsCommand extends PluginCommand {
 
     protected ItemsCommand(@NotNull String name, @NotNull List<String> aliases, @NotNull HuskSync plugin) {
-        super(name, aliases, Permission.Default.IF_OP, plugin);
+        super(name, aliases, Permission.Default.IF_OP, ExecutionScope.IN_GAME, plugin);
     }
 
     @Override

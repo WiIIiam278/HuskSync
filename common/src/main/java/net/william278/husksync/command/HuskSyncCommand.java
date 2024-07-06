@@ -52,7 +52,7 @@ public class HuskSyncCommand extends PluginCommand {
     private final AboutMenu aboutMenu;
 
     public HuskSyncCommand(@NotNull HuskSync plugin) {
-        super("husksync", List.of(), Permission.Default.TRUE, plugin);
+        super("husksync", List.of(), Permission.Default.TRUE, ExecutionScope.ALL, plugin);
         this.updateChecker = plugin.getUpdateChecker();
         this.aboutMenu = AboutMenu.builder()
             .title(Component.text("HuskSync"))
