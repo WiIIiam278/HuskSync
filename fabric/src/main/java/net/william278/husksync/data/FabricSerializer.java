@@ -27,6 +27,11 @@ import lombok.AllArgsConstructor;
 import net.minecraft.datafixer.TypeReferences;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.*;
+import net.minecraft.registry.DynamicRegistryManager;
+import net.minecraft.registry.Registries;
+import net.minecraft.world.World;
+import net.minecraft.world.dimension.DimensionType;
+import net.minecraft.world.dimension.DimensionTypes;
 import net.william278.desertwell.util.Version;
 import net.william278.husksync.FabricHuskSync;
 import net.william278.husksync.HuskSync;
@@ -94,7 +99,7 @@ public abstract class FabricSerializer {
         public String serialize(@NotNull FabricData.Items.Inventory data) throws SerializationException {
             try {
                 final NbtCompound root = new NbtCompound();
-                root.put(ITEMS_TAG, serializeItemArray(data.getContents()));
+                root.put(ITEMS_TAG, serializeItemArray(data.getContents(), (FabricHuskSync) getPlugin()));
                 root.putInt(HELD_ITEM_SLOT_TAG, data.getHeldItemSlot());
                 return root.toString();
             } catch (Throwable e) {
@@ -132,7 +137,7 @@ public abstract class FabricSerializer {
         @Override
         public String serialize(@NotNull FabricData.Items.EnderChest data) throws SerializationException {
             try {
-                return serializeItemArray(data.getContents()).toString();
+                return serializeItemArray(data.getContents(), (FabricHuskSync) getPlugin()).toString();
             } catch (Throwable e) {
                 throw new SerializationException("Failed to serialize ender chest item NBT to string", e);
             }
@@ -161,9 +166,10 @@ public abstract class FabricSerializer {
 
                 final ItemStack[] contents = new ItemStack[tag.getInt("size")];
                 final NbtList itemList = tag.getList("items", NbtElement.COMPOUND_TYPE);
+                final DynamicRegistryManager registryManager = plugin.getMinecraftServer().getRegistryManager();
                 itemList.forEach(element -> {
                     final NbtCompound compound = (NbtCompound) element;
-                    contents[compound.getInt("Slot")] = ItemStack.fromNbt(compound);
+                    contents[compound.getInt("Slot")] = ItemStack.fromNbt(registryManager, element).get();
                 });
                 plugin.debug(Arrays.toString(contents));
                 return contents;
@@ -174,18 +180,18 @@ public abstract class FabricSerializer {
 
         // Serialize items slot-by-slot
         @NotNull
-        default NbtCompound serializeItemArray(@Nullable ItemStack @NotNull [] items) {
+        default NbtCompound serializeItemArray(@Nullable ItemStack @NotNull [] items, @NotNull FabricHuskSync plugin) {
             final NbtCompound container = new NbtCompound();
             container.putInt("size", items.length);
             final NbtList itemList = new NbtList();
+            final DynamicRegistryManager registryManager = plugin.getMinecraftServer().getRegistryManager();
             for (int i = 0; i < items.length; i++) {
                 final ItemStack item = items[i];
                 if (item == null || item.isEmpty()) {
                     continue;
                 }
-                NbtCompound entry = new NbtCompound();
+                NbtCompound entry = (NbtCompound) item.encode(registryManager);
                 entry.putInt("Slot", i);
-                item.writeNbt(entry);
                 itemList.add(entry);
             }
             container.put(ITEMS_TAG, itemList);
@@ -205,7 +211,7 @@ public abstract class FabricSerializer {
                 }
                 final NbtCompound compound = list.getCompound(i);
                 final int slot = compound.getInt("Slot");
-                itemStacks[slot] = ItemStack.fromNbt(upgradeItemData(list.getCompound(i), mcVersion, plugin));
+                itemStacks[slot] = ItemStack.fromNbt(DynamicRegistryManager.of(Registries.REGISTRIES), upgradeItemData(list.getCompound(i), mcVersion, plugin)).get();
             }
             return itemStacks;
         }
