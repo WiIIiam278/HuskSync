@@ -24,7 +24,6 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.gson.annotations.SerializedName;
 import lombok.*;
-import net.fabricmc.fabric.api.dimension.v1.FabricDimensions;
 import net.minecraft.advancement.AdvancementProgress;
 import net.minecraft.advancement.PlayerAdvancementTracker;
 import net.minecraft.enchantment.EnchantmentHelper;
@@ -433,19 +432,16 @@ public abstract class FabricData implements Data {
             final MinecraftServer server = plugin.getMinecraftServer();
             try {
                 player.dismountVehicle();
-                FabricDimensions.teleport(
-                        player,
+                player.teleportTo(
+                    new TeleportTarget(
                         server.getWorld(server.getWorldRegistryKeys().stream()
-                                .filter(key -> key.getValue().equals(Identifier.tryParse(world.name())))
-                                .findFirst().orElseThrow(
-                                        () -> new IllegalStateException("Invalid world")
-                                )),
-                        new TeleportTarget(
-                                new Vec3d(x, y, z),
-                                Vec3d.ZERO,
-                                yaw,
-                                pitch
-                        )
+                            .filter(key -> key.getValue().equals(Identifier.tryParse(world.name())))
+                            .findFirst().orElseThrow(
+                                    () -> new IllegalStateException("Invalid world")
+                            )),
+                        player,
+                        TeleportTarget.NO_OP
+                    )
                 );
             } catch (Throwable e) {
                 throw new IllegalStateException("Failed to apply location", e);
