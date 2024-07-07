@@ -28,10 +28,6 @@ import net.minecraft.datafixer.TypeReferences;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.*;
 import net.minecraft.registry.DynamicRegistryManager;
-import net.minecraft.registry.Registries;
-import net.minecraft.world.World;
-import net.minecraft.world.dimension.DimensionType;
-import net.minecraft.world.dimension.DimensionTypes;
 import net.william278.desertwell.util.Version;
 import net.william278.husksync.FabricHuskSync;
 import net.william278.husksync.HuskSync;
@@ -204,6 +200,7 @@ public abstract class FabricSerializer {
             final int size = items.getInt("size");
             final NbtList list = items.getList("items", NbtElement.COMPOUND_TYPE);
             final ItemStack[] itemStacks = new ItemStack[size];
+            final DynamicRegistryManager registryManager = plugin.getMinecraftServer().getRegistryManager();
             Arrays.fill(itemStacks, ItemStack.EMPTY);
             for (int i = 0; i < size; i++) {
                 if (list.getCompound(i) == null) {
@@ -211,7 +208,7 @@ public abstract class FabricSerializer {
                 }
                 final NbtCompound compound = list.getCompound(i);
                 final int slot = compound.getInt("Slot");
-                itemStacks[slot] = ItemStack.fromNbt(DynamicRegistryManager.of(Registries.REGISTRIES), upgradeItemData(list.getCompound(i), mcVersion, plugin)).get();
+                itemStacks[slot] = ItemStack.fromNbt(registryManager, upgradeItemData(list.getCompound(i), mcVersion, plugin)).get();
             }
             return itemStacks;
         }
