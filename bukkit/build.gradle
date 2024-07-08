@@ -1,7 +1,7 @@
 dependencies {
     implementation project(path: ':common')
 
-    implementation 'net.william278.uniform:uniform-bukkit:1.2.1'
+    implementation 'net.william278.uniform:uniform-bukkit:1.2.1-0fd5d5d'
     implementation 'net.william278:mpdbdataconverter:1.0.1'
     implementation 'net.william278:hsldataconverter:1.0'
     implementation 'net.william278:mapdataapi:1.0.3'
