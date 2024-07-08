@@ -16,7 +16,7 @@ dependencies {
         exclude module: 'slf4j-api'
     }
 
-    compileOnly 'net.william278.uniform:uniform-common:1.2.1'
+    compileOnly 'net.william278.uniform:uniform-common:1.2.1-0fd5d5d'
     compileOnly 'com.mojang:brigadier:1.1.8'
     compileOnly 'org.projectlombok:lombok:1.18.34'
     compileOnly 'org.jetbrains:annotations:24.1.0'
