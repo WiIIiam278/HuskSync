@@ -44,7 +44,7 @@
 **Ready?** [It's syncing time!](https://william278.net/docs/husksync/setup)
 
 ## Setup
-Requires a MySQL/Mongo/PostgreSQL database, a Redis (v5.0+) server and a network of Spigot (1.17.1+) or Fabric (1.20.1) Minecraft servers, running Java 17+.
+Requires a MySQL/Mongo/PostgreSQL database, a Redis (v5.0+) server and a network of Spigot (1.17.1+) or Fabric (1.21) Minecraft servers, running Java 21+.
 
 1. Place the plugin jar file in the `/plugins` or `/mods` directory of each Spigot/Fabric server. You do not need to install HuskSync as a proxy plugin.
 2. Start, then stop every server to let HuskSync generate the config file.
