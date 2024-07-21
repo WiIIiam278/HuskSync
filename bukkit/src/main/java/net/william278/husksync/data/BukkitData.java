@@ -625,7 +625,7 @@ public abstract class BukkitData implements Data {
         @Nullable
         private static UUID getModifierId(@NotNull AttributeModifier modifier) {
             try {
-                return UUID.fromString(modifier.getName());
+                return modifier.getUniqueId();
             } catch (Throwable e) {
                 return null;
             }
@@ -656,10 +656,12 @@ public abstract class BukkitData implements Data {
                     // Reflexively create a modern keyed attribute modifier instance. Remove in favor of API long-term.
                     final EquipmentSlot slot = slotId != -1 ? EquipmentSlot.values()[slotId] : null;
                     final Class<?> slotGroup = Class.forName(EQUIPMENT_SLOT_GROUP);
+                    final String modifierName = modifier.name() == null ? modifier.uuid().toString() : modifier.name();
                     return AttributeModifier.class.getDeclaredConstructor(
                             NamespacedKey.class, double.class, AttributeModifier.Operation.class, slotGroup
                     ).newInstance(
-                            NamespacedKey.fromString(modifier.name()), modifier.amount(),
+                            NamespacedKey.fromString(modifierName),
+                            modifier.amount(),
                             AttributeModifier.Operation.values()[modifier.operationType()],
                             slot == null ? slotGroup.getField(EQUIPMENT_SLOT_GROUP$ANY).get(null)
                                     : EquipmentSlot.class.getDeclaredMethod(EQUIPMENT_SLOT$getGroup).invoke(slot)

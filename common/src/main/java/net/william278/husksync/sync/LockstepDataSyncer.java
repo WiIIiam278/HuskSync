@@ -43,7 +43,7 @@ public class LockstepDataSyncer extends DataSyncer {
 
     // Consume their data when they are checked in
     @Override
-    public void setUserData(@NotNull OnlineUser user) {
+    public void syncApplyUserData(@NotNull OnlineUser user) {
         this.listenForRedisData(user, () -> {
             if (getRedis().getUserCheckedOut(user).isPresent()) {
                 return false;
@@ -58,7 +58,7 @@ public class LockstepDataSyncer extends DataSyncer {
     }
 
     @Override
-    public void saveUserData(@NotNull OnlineUser onlineUser) {
+    public void syncSaveUserData(@NotNull OnlineUser onlineUser) {
         plugin.runAsync(() -> saveData(
                 onlineUser, onlineUser.createSnapshot(DataSnapshot.SaveCause.DISCONNECT),
                 (user, data) -> {

@@ -49,6 +49,7 @@ import net.william278.husksync.database.MongoDbDatabase;
 import net.william278.husksync.database.MySqlDatabase;
 import net.william278.husksync.database.PostgresDatabase;
 import net.william278.husksync.event.FabricEventDispatcher;
+import net.william278.husksync.event.ModLoadedCallback;
 import net.william278.husksync.hook.PlanHook;
 import net.william278.husksync.listener.EventListener;
 import net.william278.husksync.listener.FabricEventListener;
@@ -206,6 +207,8 @@ public class FabricHuskSync implements DedicatedServerModInitializer, HuskSync, 
 
         // Check for updates
         this.checkForUpdates();
+
+        ModLoadedCallback.EVENT.invoker().post(FabricHuskSyncAPI.getInstance());
     }
 
     private void onDisable() {

@@ -83,9 +83,9 @@ allprojects {
     }
 
     dependencies {
-        testImplementation 'org.junit.jupiter:junit-jupiter-api:5.10.2'
-        testImplementation 'org.junit.jupiter:junit-jupiter-params:5.10.2'
-        testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.10.2'
+        testImplementation 'org.junit.jupiter:junit-jupiter-api:5.10.3'
+        testImplementation 'org.junit.jupiter:junit-jupiter-params:5.10.3'
+        testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.10.3'
     }
 
     test {
@@ -99,9 +99,11 @@ allprojects {
     }
 
     processResources {
+        def tokenMap = rootProject.ext.properties
+        tokenMap.merge("grgit",'',(s, s2) -> s)
         filesMatching(['**/*.json', '**/*.yml']) {
             filter ReplaceTokens as Class, beginToken: '${', endToken: '}',
-                    tokens: rootProject.ext.properties
+                    tokens: tokenMap
         }
     }
 }

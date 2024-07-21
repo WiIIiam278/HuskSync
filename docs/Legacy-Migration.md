@@ -18,12 +18,12 @@ This guide will walk you through how to upgrade from HuskSync v1.4.x to HuskSync
 
 ### 3. Configure the migrator
 - With your servers back on and correctly configured to run HuskSync v3.x, ensure nobody is online.
-- Use the console on one of your Spigot servers to enter: `husksync migrate legacy`
-- Carefully read the migration configuration instructions. In most cases, you won't have to change the settings, but if you do need to adjust them, use `husksync migrate legacy set <setting> <value>`.
+- Use the console on one of your Spigot servers to enter: `husksync migrate help legacy`
+- Carefully read the migration configuration instructions. In most cases, you won't have to change the settings, but if you do need to adjust them, use `husksync migrate set legacy <setting> <value>`.
 - Migration will be carried out *from* the database you specify with the settings in console *to* the database configured in `config.yml`. If you're migrating from multiple clusters, ensure you run the migrator on the correct servers corresponding to the migrator.
 
 ### 4. Start the migrator
-- Run `husksync migrate legacy start` to begin the migration process. This may take some time, depending on the amount of data you're migrating.
+- Run `husksync migrate start legacy` to begin the migration process. This may take some time, depending on the amount of data you're migrating.
 
 ### 5. Ensure the migration was successful
 - HuskSync will notify in console when migration is complete. Verify that the migration went OK by logging in and using the `/userdata list <username>` command to see if the data was imported with the `legacy migration` saveCause. 

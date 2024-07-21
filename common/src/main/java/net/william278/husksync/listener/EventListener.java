@@ -53,7 +53,7 @@ public abstract class EventListener {
             return;
         }
         plugin.lockPlayer(user.getUuid());
-        plugin.getDataSyncer().setUserData(user);
+        plugin.getDataSyncer().syncApplyUserData(user);
     }
 
     /**
@@ -66,7 +66,7 @@ public abstract class EventListener {
             return;
         }
         plugin.lockPlayer(user.getUuid());
-        plugin.getDataSyncer().saveUserData(user);
+        plugin.getDataSyncer().syncSaveUserData(user);
     }
 
     /**

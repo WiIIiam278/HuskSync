@@ -52,7 +52,7 @@ public class HuskSyncCommand extends PluginCommand {
     private final AboutMenu aboutMenu;
 
     public HuskSyncCommand(@NotNull HuskSync plugin) {
-        super("husksync", List.of(), Permission.Default.TRUE, plugin);
+        super("husksync", List.of(), Permission.Default.TRUE, ExecutionScope.ALL, plugin);
         this.updateChecker = plugin.getUpdateChecker();
         this.aboutMenu = AboutMenu.builder()
             .title(Component.text("HuskSync"))
@@ -152,7 +152,7 @@ public class HuskSyncCommand extends PluginCommand {
         return (sub) -> {
             sub.setCondition((ctx) -> sub.getUser(ctx).isConsole());
             sub.setDefaultExecutor((ctx) -> {
-                plugin.log(Level.INFO, "Please choose a migrator, then run \"husksync migrate <migrator>\"");
+                plugin.log(Level.INFO, "Please choose a migrator, then run \"husksync migrate start <migrator>\"");
                 plugin.log(Level.INFO, String.format(
                     "List of available migrators:\nMigrator ID / Migrator Name:\n%s",
                     plugin.getAvailableMigrators().stream()
@@ -160,6 +160,10 @@ public class HuskSyncCommand extends PluginCommand {
                         .collect(Collectors.joining("\n"))
                 ));
             });
+            sub.addSubCommand("help", (help) -> help.addSyntax((cmd) -> {
+                final Migrator migrator = cmd.getArgument("migrator", Migrator.class);
+                plugin.log(Level.INFO, migrator.getHelpMenu());
+            }, migrator()));
             sub.addSubCommand("start", (start) -> start.addSyntax((cmd) -> {
                 final Migrator migrator = cmd.getArgument("migrator", Migrator.class);
                 migrator.start().thenAccept(succeeded -> {
@@ -173,7 +177,7 @@ public class HuskSyncCommand extends PluginCommand {
             sub.addSubCommand("set", (set) -> set.addSyntax((cmd) -> {
                 final Migrator migrator = cmd.getArgument("migrator", Migrator.class);
                 final String[] args = cmd.getArgument("args", String.class).split(" ");
-                migrator.handleConfigurationCommand(Arrays.copyOfRange(args, 3, args.length));
+                migrator.handleConfigurationCommand(args);
             }, migrator(), BaseCommand.greedyString("args")));
         };
     }

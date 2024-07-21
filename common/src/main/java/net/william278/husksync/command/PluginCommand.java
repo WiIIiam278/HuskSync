@@ -39,9 +39,9 @@ public abstract class PluginCommand extends Command {
 
     protected final HuskSync plugin;
 
-    protected PluginCommand(@NotNull String name, @NotNull List<String> aliases,
-                            @NotNull Permission.Default permissionDefault, @NotNull HuskSync plugin) {
-        super(name, aliases, getDescription(plugin, name), new Permission(createPermission(name), permissionDefault));
+    protected PluginCommand(@NotNull String name, @NotNull List<String> aliases, @NotNull Permission.Default defPerm,
+                            @NotNull ExecutionScope scope, @NotNull HuskSync plugin) {
+        super(name, aliases, getDescription(plugin, name), new Permission(createPermission(name), defPerm), scope);
         this.plugin = plugin;
     }
 

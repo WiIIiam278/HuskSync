@@ -1,7 +1,7 @@
 dependencies {
     implementation project(path: ':common')
 
-    implementation 'net.william278.uniform:uniform-bukkit:1.1.8'
+    implementation 'net.william278.uniform:uniform-bukkit:1.2.1'
     implementation 'net.william278:mpdbdataconverter:1.0.1'
     implementation 'net.william278:hsldataconverter:1.0'
     implementation 'net.william278:mapdataapi:1.0.3'
@@ -15,7 +15,7 @@ dependencies {
     compileOnly 'org.spigotmc:spigot-api:1.17.1-R0.1-SNAPSHOT'
     compileOnly 'com.github.retrooper.packetevents:spigot:2.3.0'
     compileOnly 'com.comphenix.protocol:ProtocolLib:5.1.0'
-    compileOnly 'org.projectlombok:lombok:1.18.32'
+    compileOnly 'org.projectlombok:lombok:1.18.34'
     compileOnly 'commons-io:commons-io:2.16.1'
     compileOnly 'org.json:json:20240303'
     compileOnly 'net.william278:minedown:1.8.2'
@@ -25,7 +25,7 @@ dependencies {
     compileOnly 'net.william278:AdvancementAPI:97a9583413'
     compileOnly "redis.clients:jedis:$jedis_version"
 
-    annotationProcessor 'org.projectlombok:lombok:1.18.32'
+    annotationProcessor 'org.projectlombok:lombok:1.18.34'
 }
 
 shadowJar {

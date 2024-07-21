@@ -290,7 +290,7 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
     @Override
     public boolean isDependencyLoaded(@NotNull String name) {
         final Plugin plugin = getServer().getPluginManager().getPlugin(name);
-        return plugin != null && plugin.isEnabled();
+        return plugin != null;
     }
 
     // Register bStats metrics

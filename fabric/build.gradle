@@ -18,20 +18,21 @@ dependencies {
     modImplementation include("net.kyori:adventure-platform-fabric:${adventure_platform_fabric_version}")
     modImplementation include("me.lucko:fabric-permissions-api:${fabric_permissions_api_version}")
     modImplementation include("eu.pb4:sgui:${sgui_version}")
-    modImplementation include('net.william278.uniform:uniform-fabric:1.1.8+1.20.1')
+    modImplementation include('net.william278.uniform:uniform-fabric:1.2.1+1.20.1')
     modCompileOnly "net.fabricmc.fabric-api:fabric-api:${fabric_api_version}"
 
     implementation include('org.apache.commons:commons-pool2:2.12.0')
     implementation include("redis.clients:jedis:$jedis_version")
     implementation include("com.mysql:mysql-connector-j:$mysql_driver_version")
     implementation include("org.mariadb.jdbc:mariadb-java-client:$mariadb_driver_version")
+    implementation include("org.postgresql:postgresql:$postgres_driver_version")
     implementation include("org.xerial.snappy:snappy-java:$snappy_version")
 
     compileOnly 'org.jetbrains:annotations:24.1.0'
     compileOnly 'net.william278:DesertWell:2.0.4'
-    compileOnly 'org.projectlombok:lombok:1.18.32'
+    compileOnly 'org.projectlombok:lombok:1.18.34'
 
-    annotationProcessor 'org.projectlombok:lombok:1.18.32'
+    annotationProcessor 'org.projectlombok:lombok:1.18.34'
 
     shadow project(path: ":common")
 }

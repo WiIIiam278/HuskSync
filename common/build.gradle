@@ -16,9 +16,9 @@ dependencies {
         exclude module: 'slf4j-api'
     }
 
-    compileOnly 'net.william278.uniform:uniform-common:1.1.8'
+    compileOnly 'net.william278.uniform:uniform-common:1.2.1'
     compileOnly 'com.mojang:brigadier:1.1.8'
-    compileOnly 'org.projectlombok:lombok:1.18.32'
+    compileOnly 'org.projectlombok:lombok:1.18.34'
     compileOnly 'org.jetbrains:annotations:24.1.0'
     compileOnly 'net.kyori:adventure-api:4.17.0'
     compileOnly 'net.kyori:adventure-platform-api:4.3.3'
@@ -38,5 +38,5 @@ dependencies {
     testCompileOnly 'de.exlll:configlib-yaml:4.5.0'
     testCompileOnly 'org.jetbrains:annotations:24.1.0'
 
-    annotationProcessor 'org.projectlombok:lombok:1.18.32'
+    annotationProcessor 'org.projectlombok:lombok:1.18.34'
 }
