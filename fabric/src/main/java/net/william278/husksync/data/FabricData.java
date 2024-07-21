@@ -269,7 +269,8 @@ public abstract class FabricData implements Data {
         @Override
         public void apply(@NotNull FabricUser user, @NotNull FabricHuskSync plugin) throws IllegalStateException {
             final ServerPlayerEntity player = user.getPlayer();
-            player.getActiveStatusEffects().forEach((effect, instance) -> player.removeStatusEffect(effect));
+            List<StatusEffect> effectsToRemove = new ArrayList<>(player.getActiveStatusEffects().keySet());
+            effectsToRemove.forEach(player::removeStatusEffect);
             getEffects().forEach(player::addStatusEffect);
         }
 
