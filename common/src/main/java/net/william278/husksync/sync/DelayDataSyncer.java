@@ -35,7 +35,7 @@ public class DelayDataSyncer extends DataSyncer {
     }
 
     @Override
-    public void setUserData(@NotNull OnlineUser user) {
+    public void syncApplyUserData(@NotNull OnlineUser user) {
         plugin.runAsyncDelayed(
                 () -> {
                     // Fetch from the database if the user isn't changing servers
@@ -58,7 +58,7 @@ public class DelayDataSyncer extends DataSyncer {
     }
 
     @Override
-    public void saveUserData(@NotNull OnlineUser onlineUser) {
+    public void syncSaveUserData(@NotNull OnlineUser onlineUser) {
         plugin.runAsync(() -> {
             getRedis().setUserServerSwitch(onlineUser);
             saveData(
