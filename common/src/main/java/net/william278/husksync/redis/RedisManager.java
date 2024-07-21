@@ -92,7 +92,7 @@ public class RedisManager extends JedisPubSub {
             jedisPool.getResource().ping();
         } catch (JedisException e) {
             throw new IllegalStateException("Failed to establish connection with Redis. "
-                    + "Please check the supplied credentials in the config file", e);
+                                            + "Please check the supplied credentials in the config file", e);
         }
 
         // Subscribe using a thread (rather than a task)
@@ -281,16 +281,21 @@ public class RedisManager extends JedisPubSub {
     @Blocking
     public void setUserCheckedOut(@NotNull User user, boolean checkedOut) {
         try (Jedis jedis = jedisPool.getResource()) {
+            final String key = getKeyString(RedisKeyType.DATA_CHECKOUT, user.getUuid(), clusterId);
             if (checkedOut) {
                 jedis.set(
-                        getKey(RedisKeyType.DATA_CHECKOUT, user.getUuid(), clusterId),
+                        key.getBytes(StandardCharsets.UTF_8),
                         plugin.getServerName().getBytes(StandardCharsets.UTF_8)
                 );
             } else {
-                jedis.del(getKey(RedisKeyType.DATA_CHECKOUT, user.getUuid(), clusterId));
+                if (jedis.del(key.getBytes(StandardCharsets.UTF_8)) == 0) {
+                    plugin.debug(String.format("[%s] %s key not set on Redis when attempting removal (%s)",
+                            user.getUsername(), RedisKeyType.DATA_CHECKOUT, key));
+                    return;
+                }
             }
-            plugin.debug(String.format("[%s] %s %s key to/from Redis", user.getUsername(),
-                    checkedOut ? "Set" : "Removed", RedisKeyType.DATA_CHECKOUT));
+            plugin.debug(String.format("[%s] %s %s key %s Redis (%s)", user.getUsername(),
+                    checkedOut ? "Set" : "Removed", RedisKeyType.DATA_CHECKOUT, checkedOut ? "to" : "from", key));
         } catch (Throwable e) {
             plugin.log(Level.SEVERE, "An exception occurred setting checkout to", e);
         }
@@ -418,7 +423,12 @@ public class RedisManager extends JedisPubSub {
     }
 
     private static byte[] getKey(@NotNull RedisKeyType keyType, @NotNull UUID uuid, @NotNull String clusterId) {
-        return String.format("%s:%s", keyType.getKeyPrefix(clusterId), uuid).getBytes(StandardCharsets.UTF_8);
+        return getKeyString(keyType, uuid, clusterId).getBytes(StandardCharsets.UTF_8);
+    }
+
+    @NotNull
+    private static String getKeyString(@NotNull RedisKeyType keyType, @NotNull UUID uuid, @NotNull String clusterId) {
+        return String.format("%s:%s", keyType.getKeyPrefix(clusterId), uuid);
     }
 
 }
