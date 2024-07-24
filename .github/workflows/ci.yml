@@ -42,3 +42,23 @@ jobs:
       - name: Get Version
         run: |
           echo "version_name=${{steps.fetch-version.outputs.VERSION_NAME}}" >> $GITHUB_ENV
+      - name: 'Publish to William278.net 🚀'
+        uses: WiIIiam278/bones-publish-action@v1
+        with:
+          api-key: ${{ secrets.BONES_API_KEY }}
+          project: 'husksync'
+          channel: 'alpha'
+          version: ${{ env.version_name }}
+          changelog: ${{ github.event.head_commit.message }}
+          distro-names: |
+            paper
+            fabric-1.20.1
+          distro-groups: |
+            paper
+            fabric
+          distro-descriptions: |
+            Paper
+            Fabric 1.20.1
+          files: |
+            target/HuskSync-Paper-${{ env.version_name }}.jar
+            target/HuskSync-Fabric-${{ env.version_name }}+mc.1.20.1.jar
