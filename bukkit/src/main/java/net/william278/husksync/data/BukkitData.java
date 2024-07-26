@@ -31,6 +31,7 @@ import net.william278.desertwell.util.Version;
 import net.william278.husksync.BukkitHuskSync;
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.adapter.Adaptable;
+import net.william278.husksync.config.Settings.SynchronizationSettings.AttributeSettings;
 import net.william278.husksync.user.BukkitUser;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -51,6 +52,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
 
+import java.lang.reflect.Constructor;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
@@ -366,7 +368,7 @@ public abstract class BukkitData implements Data {
 
                 // Set player experience and level (prevent advancement awards applying twice), reset game rule
                 if (!toAward.isEmpty()
-                        && (player.getLevel() != expLevel || player.getExp() != expProgress)) {
+                    && (player.getLevel() != expLevel || player.getExp() != expProgress)) {
                     player.setLevel(expLevel);
                     player.setExp(expProgress);
                 }
@@ -577,14 +579,14 @@ public abstract class BukkitData implements Data {
         @NotNull
         public static BukkitData.Attributes adapt(@NotNull Player player, @NotNull HuskSync plugin) {
             final List<Attribute> attributes = Lists.newArrayList();
+            final AttributeSettings settings = plugin.getSettings().getSynchronization().getAttributes();
             Registry.ATTRIBUTE.forEach(id -> {
                 final AttributeInstance instance = player.getAttribute(id);
                 if (instance == null || Double.compare(instance.getValue(), instance.getDefaultValue()) == 0
-                        || plugin.getSettings().getSynchronization().isIgnoredAttribute(id.getKey().toString())) {
-                    // We don't sync unmodified or disabled attributes
-                    return;
+                    || settings.isIgnoredAttribute(id.getKey().toString())) {
+                    return; // We don't sync unmodified or disabled attributes
                 }
-                attributes.add(adapt(instance));
+                attributes.add(adapt(instance, settings));
             });
             return new BukkitData.Attributes(attributes);
         }
@@ -603,11 +605,13 @@ public abstract class BukkitData implements Data {
         }
 
         @NotNull
-        private static Attribute adapt(@NotNull AttributeInstance instance) {
+        private static Attribute adapt(@NotNull AttributeInstance instance, @NotNull AttributeSettings settings) {
             return new Attribute(
                     instance.getAttribute().getKey().toString(),
                     instance.getBaseValue(),
-                    instance.getModifiers().stream().map(BukkitData.Attributes::adapt).collect(Collectors.toSet())
+                    instance.getModifiers().stream()
+                            .filter(modifier -> !settings.isIgnoredModifier(modifier.getName()))
+                            .map(BukkitData.Attributes::adapt).collect(Collectors.toSet())
             );
         }
 
@@ -639,7 +643,7 @@ public abstract class BukkitData implements Data {
             instance.setBaseValue(attribute == null ? instance.getDefaultValue() : attribute.baseValue());
             instance.getModifiers().forEach(instance::removeModifier);
             if (attribute != null) {
-                attribute.modifiers().forEach(modifier -> instance.addModifier(adapt(modifier, plugin)));
+                attribute.modifiers().forEach(mod -> instance.addModifier(adapt(mod, plugin)));
             }
         }
 
@@ -648,8 +652,8 @@ public abstract class BukkitData implements Data {
         private static AttributeModifier adapt(@NotNull Modifier modifier, @NotNull HuskSync plugin) {
             final int slotId = modifier.equipmentSlot();
             if (USE_KEYED_MODIFIERS == TriState.NOT_SET) {
-                USE_KEYED_MODIFIERS = TriState.byBoolean(plugin.getMinecraftVersion()
-                        .compareTo(Version.fromString("1.21")) >= 0);
+                boolean is1_21 = plugin.getMinecraftVersion().compareTo(Version.fromString("1.21")) >= 0;
+                USE_KEYED_MODIFIERS = TriState.byBoolean(is1_21);
             }
             if (USE_KEYED_MODIFIERS == TriState.TRUE) {
                 try {
@@ -657,10 +661,12 @@ public abstract class BukkitData implements Data {
                     final EquipmentSlot slot = slotId != -1 ? EquipmentSlot.values()[slotId] : null;
                     final Class<?> slotGroup = Class.forName(EQUIPMENT_SLOT_GROUP);
                     final String modifierName = modifier.name() == null ? modifier.uuid().toString() : modifier.name();
-                    return AttributeModifier.class.getDeclaredConstructor(
-                            NamespacedKey.class, double.class, AttributeModifier.Operation.class, slotGroup
-                    ).newInstance(
-                            NamespacedKey.fromString(modifierName),
+                    final NamespacedKey modifierKey = Objects.requireNonNull(NamespacedKey.fromString(modifierName),
+                            "Modifier key returned null");
+                    final Constructor<AttributeModifier> constructor = AttributeModifier.class.getDeclaredConstructor(
+                            NamespacedKey.class, double.class, AttributeModifier.Operation.class, slotGroup);
+                    return constructor.newInstance(
+                            modifierKey,
                             modifier.amount(),
                             AttributeModifier.Operation.values()[modifier.operationType()],
                             slot == null ? slotGroup.getField(EQUIPMENT_SLOT_GROUP$ANY).get(null)
