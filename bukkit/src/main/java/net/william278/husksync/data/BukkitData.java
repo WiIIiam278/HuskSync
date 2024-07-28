@@ -643,7 +643,11 @@ public abstract class BukkitData implements Data {
             instance.setBaseValue(attribute == null ? instance.getDefaultValue() : attribute.baseValue());
             instance.getModifiers().forEach(instance::removeModifier);
             if (attribute != null) {
-                attribute.modifiers().stream().distinct().forEach(mod -> instance.addModifier(adapt(mod, plugin)));
+                attribute.modifiers().stream()
+                        .filter(mod -> instance.getModifiers().stream().map(AttributeModifier::getName)
+                                .noneMatch(n -> n.equals(mod.name())))
+                        .distinct()
+                        .forEach(mod -> instance.addModifier(adapt(mod, plugin)));
             }
         }
 

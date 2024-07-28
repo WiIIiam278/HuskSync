@@ -283,7 +283,9 @@ public class Settings {
             @Comment({"Which modifiers should not be saved when syncing users. Supports wildcard matching.",
                     "(e.g. ['minecraft:effect.speed', 'minecraft:effect.*'])"})
             @Getter(AccessLevel.NONE)
-            private List<String> ignoredModifiers = new ArrayList<>(List.of("minecraft:effect.*"));
+            private List<String> ignoredModifiers = new ArrayList<>(List.of(
+                    "minecraft:effect.*", "minecraft:creative_mode_*"
+            ));
 
             private boolean matchesWildcard(@NotNull String pat, @NotNull String value) {
                 if (!pat.contains(":")) {
