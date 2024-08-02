@@ -384,6 +384,10 @@ public interface Data {
                 };
             }
 
+            public boolean hasUuid() {
+                return uuid != null;
+            }
+
             @NotNull
             public UUID uuid() {
                 return uuid != null ? uuid : UUID.nameUUIDFromBytes(name.getBytes());

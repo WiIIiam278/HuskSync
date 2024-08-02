@@ -635,6 +635,15 @@ public abstract class BukkitData implements Data {
             }
         }
 
+        private static boolean useKeyedModifiers(@NotNull HuskSync plugin) {
+            if (USE_KEYED_MODIFIERS == TriState.NOT_SET) {
+                boolean is1_21 = plugin.getMinecraftVersion().compareTo(Version.fromString("1.21")) >= 0;
+                USE_KEYED_MODIFIERS = TriState.byBoolean(is1_21);
+                return is1_21;
+            }
+            return Boolean.TRUE.equals(USE_KEYED_MODIFIERS.toBoolean());
+        }
+
         private static void applyAttribute(@Nullable AttributeInstance instance, @Nullable Attribute attribute,
                                            @NotNull HuskSync plugin) {
             if (instance == null) {
@@ -647,6 +656,7 @@ public abstract class BukkitData implements Data {
                         .filter(mod -> instance.getModifiers().stream().map(AttributeModifier::getName)
                                 .noneMatch(n -> n.equals(mod.name())))
                         .distinct()
+                        .filter(mod -> useKeyedModifiers(plugin) == !mod.hasUuid())
                         .forEach(mod -> instance.addModifier(adapt(mod, plugin)));
             }
         }
@@ -655,11 +665,7 @@ public abstract class BukkitData implements Data {
         @NotNull
         private static AttributeModifier adapt(@NotNull Modifier modifier, @NotNull HuskSync plugin) {
             final int slotId = modifier.equipmentSlot();
-            if (USE_KEYED_MODIFIERS == TriState.NOT_SET) {
-                boolean is1_21 = plugin.getMinecraftVersion().compareTo(Version.fromString("1.21")) >= 0;
-                USE_KEYED_MODIFIERS = TriState.byBoolean(is1_21);
-            }
-            if (USE_KEYED_MODIFIERS == TriState.TRUE) {
+            if (useKeyedModifiers(plugin)) {
                 try {
                     // Reflexively create a modern keyed attribute modifier instance. Remove in favor of API long-term.
                     final EquipmentSlot slot = slotId != -1 ? EquipmentSlot.values()[slotId] : null;
