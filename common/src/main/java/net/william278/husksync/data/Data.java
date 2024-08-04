@@ -366,7 +366,13 @@ public interface Data {
 
             @Override
             public boolean equals(Object obj) {
-                return obj instanceof Modifier modifier && modifier.uuid().equals(uuid());
+                if (obj instanceof Modifier other) {
+                    if (uuid == null || other.uuid == null) {
+                        return name.equals(other.name);
+                    }
+                    return uuid.equals(other.uuid);
+                }
+                return super.equals(obj);
             }
 
             public double modify(double value) {
@@ -376,6 +382,10 @@ public interface Data {
                     case 2 -> value * (1 + amount);
                     default -> value;
                 };
+            }
+
+            public boolean hasUuid() {
+                return uuid != null;
             }
 
             @NotNull

@@ -50,7 +50,8 @@ public class Identifier {
             Dependency.optional("game_mode")
     );
     public static final Identifier ATTRIBUTES = huskSync("attributes", true,
-            Dependency.required("potion_effects")
+            Dependency.optional("inventory"),
+            Dependency.optional("potion_effects")
     );
     public static final Identifier HEALTH = huskSync("health", true,
             Dependency.optional("attributes")

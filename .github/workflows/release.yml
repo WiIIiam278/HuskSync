@@ -31,3 +31,23 @@ jobs:
         if: success() || failure() # Continue on failure
         with:
           report_paths: '**/build/test-results/test/TEST-*.xml'
+      - name: 'Publish to William278.net 🚀'
+        uses: WiIIiam278/bones-publish-action@v1
+        with:
+          api-key: ${{ secrets.BONES_API_KEY }}
+          project: 'husksync'
+          channel: 'release'
+          version: ${{ github.event.release.tag_name }}
+          changelog: ${{ github.event.release.body }}
+          distro-names: |
+            paper
+            fabric-1.20.1
+          distro-groups: |
+            paper
+            fabric
+          distro-descriptions: |
+            Paper
+            Fabric 1.20.1
+          files: |
+            target/HuskSync-Paper-${{ github.event.release.tag_name }}.jar
+            target/HuskSync-Fabric-${{ github.event.release.tag_name }}+mc.1.20.1.jar
