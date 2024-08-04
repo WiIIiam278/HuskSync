@@ -104,7 +104,7 @@ public interface FabricUserDataHolder extends UserDataHolder {
     @Override
     default Optional<Data.Items.EnderChest> getEnderChest() {
         return Optional.of(FabricData.Items.EnderChest.adapt(
-                getPlayer().getEnderChestInventory().stacks
+                getPlayer().getEnderChestInventory().getHeldStacks()
         ));
     }
 

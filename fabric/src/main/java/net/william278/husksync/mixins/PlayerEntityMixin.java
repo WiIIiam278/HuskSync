@@ -20,9 +20,11 @@
 package net.william278.husksync.mixins;
 
 import net.minecraft.enchantment.EnchantmentHelper;
+import net.minecraft.enchantment.Enchantments;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
+import net.minecraft.registry.tag.TagKey;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.william278.husksync.event.PlayerDeathDropsCallback;
 import org.jetbrains.annotations.NotNull;
@@ -54,7 +56,7 @@ public class PlayerEntityMixin {
         final @Nullable ItemStack @NotNull [] toKeep = new ItemStack[inventory.size()];
         for (int i = 0; i < inventory.size(); ++i) {
             ItemStack itemStack = inventory.getStack(i);
-            if (!itemStack.isEmpty() && EnchantmentHelper.hasVanishingCurse(itemStack)) {
+            if (!itemStack.isEmpty() && EnchantmentHelper.hasAnyEnchantmentsIn(itemStack, TagKey.of(Enchantments.VANISHING_CURSE.getRegistryRef(), Enchantments.VANISHING_CURSE.getValue()))) {
                 toKeep[i] = null;
                 continue;
             }
@@ -69,7 +71,7 @@ public class PlayerEntityMixin {
         final @Nullable ItemStack @NotNull [] toDrop = new ItemStack[inventory.size()];
         for (int i = 0; i < inventory.size(); ++i) {
             ItemStack itemStack = inventory.getStack(i);
-            if (!itemStack.isEmpty() && EnchantmentHelper.hasVanishingCurse(itemStack)) {
+            if (!itemStack.isEmpty() && EnchantmentHelper.hasAnyEnchantmentsIn(itemStack, TagKey.of(Enchantments.VANISHING_CURSE.getRegistryRef(), Enchantments.VANISHING_CURSE.getValue()))) {
                 toDrop[i] = itemStack;
                 continue;
             }
