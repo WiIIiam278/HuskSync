@@ -53,6 +53,7 @@ import net.william278.husksync.user.FabricUser;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
+import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.*;
 
@@ -237,8 +238,8 @@ public abstract class FabricData implements Data {
         private final Collection<StatusEffectInstance> effects;
 
         @NotNull
-        public static FabricData.PotionEffects from(@NotNull Collection<StatusEffectInstance> effects) {
-            return new FabricData.PotionEffects(effects);
+        public static FabricData.PotionEffects from(@NotNull Collection<StatusEffectInstance> sei) {
+            return new FabricData.PotionEffects(Lists.newArrayList(sei.stream().filter(e -> !e.isAmbient()).toList()));
         }
 
         @NotNull
@@ -263,19 +264,21 @@ public abstract class FabricData implements Data {
         @NotNull
         @SuppressWarnings("unused")
         public static FabricData.PotionEffects empty() {
-            return new FabricData.PotionEffects(List.of());
+            return new FabricData.PotionEffects(Lists.newArrayList());
         }
 
         @Override
         public void apply(@NotNull FabricUser user, @NotNull FabricHuskSync plugin) throws IllegalStateException {
             final ServerPlayerEntity player = user.getPlayer();
-            List<StatusEffect> effectsToRemove = new ArrayList<>(player.getActiveStatusEffects().keySet());
+            final List<StatusEffect> effectsToRemove = player.getActiveStatusEffects().entrySet().stream()
+                    .filter(e -> !e.getValue().isAmbient()).map(Map.Entry::getKey).toList();
             effectsToRemove.forEach(player::removeStatusEffect);
             getEffects().forEach(player::addStatusEffect);
         }
 
         @NotNull
         @Override
+        @Unmodifiable
         public List<Effect> getActiveEffects() {
             return effects.stream()
                     .map(potionEffect -> {
@@ -368,7 +371,7 @@ public abstract class FabricData implements Data {
 
                 // Restore player exp level & progress
                 if (!toAward.isEmpty()
-                        && (player.experienceLevel != expLevel || player.experienceProgress != expProgress)) {
+                    && (player.experienceLevel != expLevel || player.experienceProgress != expProgress)) {
                     player.setExperienceLevel(expLevel);
                     player.setExperiencePoints((int) (player.getNextLevelExperience() * expProgress));
                 }

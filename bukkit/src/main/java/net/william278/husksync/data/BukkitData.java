@@ -47,6 +47,7 @@ import org.bukkit.potion.PotionEffectType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
+import org.jetbrains.annotations.Unmodifiable;
 
 import java.lang.reflect.Constructor;
 import java.util.*;
@@ -236,8 +237,9 @@ public abstract class BukkitData implements Data {
         private final Collection<PotionEffect> effects;
 
         @NotNull
-        public static BukkitData.PotionEffects from(@NotNull Collection<PotionEffect> effects) {
-            return new BukkitData.PotionEffects(effects);
+        public static BukkitData.PotionEffects from(@NotNull Collection<PotionEffect> sei) {
+            return new BukkitData.PotionEffects(Lists.newArrayList(sei.stream().filter(e -> !e.isAmbient()).toList()));
+
         }
 
         @NotNull
@@ -261,7 +263,7 @@ public abstract class BukkitData implements Data {
         @NotNull
         @SuppressWarnings("unused")
         public static BukkitData.PotionEffects empty() {
-            return new BukkitData.PotionEffects(List.of());
+            return new BukkitData.PotionEffects(Lists.newArrayList());
         }
 
         @Override
@@ -277,6 +279,7 @@ public abstract class BukkitData implements Data {
 
         @NotNull
         @Override
+        @Unmodifiable
         public List<Effect> getActiveEffects() {
             return effects.stream()
                     .map(potionEffect -> new Effect(
