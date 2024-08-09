@@ -23,6 +23,7 @@ import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
 import com.github.retrooper.packetevents.event.PacketListenerPriority;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
+import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.google.common.collect.Sets;
 import io.github.retrooper.packetevents.factory.spigot.SpigotPacketEventsBuilder;
@@ -78,7 +79,20 @@ public class BukkitPacketEventsLockedPacketListener extends BukkitLockedEventLis
 
         @Override
         public void onPacketReceive(PacketReceiveEvent event) {
-            if(!(event.getPacketType() instanceof PacketType.Play.Client client)) {
+            if (!(event.getPacketType() instanceof PacketType.Play.Client client)) {
+                return;
+            }
+            if (!CANCEL_PACKETS.contains(client)) {
+                return;
+            }
+            if (listener.cancelPlayerEvent(event.getUser().getUUID())) {
+                event.setCancelled(true);
+            }
+        }
+
+        @Override
+        public void onPacketSend(PacketSendEvent event) {
+            if (!(event.getPacketType() instanceof PacketType.Play.Client client)) {
                 return;
             }
             if (!CANCEL_PACKETS.contains(client)) {
