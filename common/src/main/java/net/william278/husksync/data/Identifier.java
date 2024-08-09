@@ -44,12 +44,12 @@ public class Identifier {
     public static final Identifier ENDER_CHEST = huskSync("ender_chest", true);
     public static final Identifier ADVANCEMENTS = huskSync("advancements", true);
     public static final Identifier STATISTICS = huskSync("statistics", true);
-    public static final Identifier POTION_EFFECTS = huskSync("potion_effects", true);
+    public static final Identifier POTION_EFFECTS = huskSync("potion_effects", false);
     public static final Identifier GAME_MODE = huskSync("game_mode", true);
     public static final Identifier FLIGHT_STATUS = huskSync("flight_status", true,
             Dependency.optional("game_mode")
     );
-    public static final Identifier ATTRIBUTES = huskSync("attributes", true,
+    public static final Identifier ATTRIBUTES = huskSync("attributes", false,
             Dependency.optional("inventory"),
             Dependency.optional("potion_effects")
     );
