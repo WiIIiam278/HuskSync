@@ -134,9 +134,14 @@ synchronization:
   # Commands which should be blocked before a player has finished syncing (Use * to block all commands)
   blacklisted_commands_while_locked:
     - '*'
-  # For attribute syncing, which attributes should be ignored/skipped when syncing
-  # (e.g. ['minecraft:generic.max_health', 'minecraft:generic.attack_damage'])
-  ignored_attributes: []
+  # Configuration for how to sync attributes
+  attributes:
+    # Which attributes should not be saved when syncing users. Supports wildcard matching.
+    # (e.g. ['minecraft:generic.max_health', 'minecraft:generic.*'])
+    ignored_attributes: []
+    # Which modifiers should not be saved when syncing users. Supports wildcard matching.
+    # (e.g. ['minecraft:effect.speed', 'minecraft:effect.*'])
+    ignored_modifiers: ['minecraft:effect.*', 'minecraft:creative_mode_*']
   # Event priorities for listeners (HIGHEST, NORMAL, LOWEST). Change if you encounter plugin conflicts
   event_priorities:
     quit_listener: LOWEST
