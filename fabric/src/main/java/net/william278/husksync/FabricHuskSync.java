@@ -340,6 +340,14 @@ public class FabricHuskSync implements DedicatedServerModInitializer, HuskSync, 
     }
 
     @Override
+    @NotNull
+    public String getServerVersion() {
+        return String.format("%s %s/%s", getPlatformType(), FabricLoader.getInstance()
+                .getModContainer("fabricloader").map(l -> l.getMetadata().getVersion().getFriendlyString())
+                .orElse("unknown"), minecraftServer.getVersion());
+    }
+
+    @Override
     public Optional<LegacyConverter> getLegacyConverter() {
         return Optional.empty();
     }

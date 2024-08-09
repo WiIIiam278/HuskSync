@@ -334,6 +334,12 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
     }
 
     @Override
+    @NotNull
+    public String getServerVersion() {
+        return String.format("%s/%s", getServer().getName(), getServer().getVersion());
+    }
+
+    @Override
     public Optional<LegacyConverter> getLegacyConverter() {
         return Optional.of(legacyConverter);
     }

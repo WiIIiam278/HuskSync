@@ -256,6 +256,14 @@ public interface HuskSync extends Task.Supplier, EventDispatcher, ConfigProvider
     String getPlatformType();
 
     /**
+     * Returns the server software version
+     *
+     * @return the server software version string
+     */
+    @NotNull
+    String getServerVersion();
+
+    /**
      * Returns the legacy data converter if it exists
      *
      * @return the {@link LegacyConverter}

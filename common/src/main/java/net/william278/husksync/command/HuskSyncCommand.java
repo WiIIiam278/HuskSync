@@ -204,19 +204,19 @@ public class HuskSyncCommand extends PluginCommand {
         PLUGIN_VERSION(plugin -> Component.text("v" + plugin.getPluginVersion().toStringWithoutMetadata())
                 .appendSpace().append(plugin.getPluginVersion().getMetadata().isBlank() ? Component.empty()
                         : Component.text("(build " + plugin.getPluginVersion().getMetadata() + ")"))),
-        PLATFORM_TYPE(plugin -> Component.text(WordUtils.capitalizeFully(plugin.getPlatformType()))),
+        SERVER_VERSION(plugin -> Component.text(plugin.getServerVersion())),
         LANGUAGE(plugin -> Component.text(plugin.getSettings().getLanguage())),
         MINECRAFT_VERSION(plugin -> Component.text(plugin.getMinecraftVersion().toString())),
         JAVA_VERSION(plugin -> Component.text(System.getProperty("java.version"))),
         JAVA_VENDOR(plugin -> Component.text(System.getProperty("java.vendor"))),
+        SERVER_NAME(plugin -> Component.text(plugin.getServerName())),
+        CLUSTER_ID(plugin -> Component.text(plugin.getSettings().getClusterId().isBlank() ? "None" : plugin.getSettings().getClusterId())),
         SYNC_MODE(plugin -> Component.text(WordUtils.capitalizeFully(
                 plugin.getSettings().getSynchronization().getMode().toString()
         ))),
         DELAY_LATENCY(plugin -> Component.text(
                 plugin.getSettings().getSynchronization().getNetworkLatencyMilliseconds() + "ms"
         )),
-        SERVER_NAME(plugin -> Component.text(plugin.getServerName())),
-        CLUSTER_ID(plugin -> Component.text(plugin.getSettings().getClusterId().isBlank() ? "None" : plugin.getSettings().getClusterId())),
         DATABASE_TYPE(plugin ->
                 Component.text(plugin.getSettings().getDatabase().getType().getDisplayName() +
                                (plugin.getSettings().getDatabase().getType() == Database.Type.MONGO ?
