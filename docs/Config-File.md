@@ -109,7 +109,7 @@ synchronization:
     sync_dead_players_changing_server: true
   # Whether to use the snappy data compression algorithm. Keep on unless you know what you're doing
   compress_data: true
-  # Where to display sync notifications (ACTION_BAR, CHAT, TOAST or NONE)
+  # Where to display sync notifications (ACTION_BAR, CHAT or NONE)
   notification_display_slot: ACTION_BAR
   # Persist maps locked in a Cartography Table to let them be viewed on any server
   persist_locked_maps: true

@@ -193,14 +193,20 @@ public class Locales {
          * Displays the notification in the action bar
          */
         ACTION_BAR,
+
         /**
          * Displays the notification in the chat
          */
         CHAT,
+
         /**
          * Displays the notification in an Advancement Toast
+         *
+         * @deprecated No longer supported
          */
+        @Deprecated(since = "3.6.7")
         TOAST,
+
         /**
          * Does not display the notification
          */

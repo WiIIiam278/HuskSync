@@ -40,6 +40,7 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Consumer;
+import java.util.logging.Level;
 
 public class FabricUser extends OnlineUser implements FabricUserDataHolder {
 
@@ -70,9 +71,12 @@ public class FabricUser extends OnlineUser implements FabricUserDataHolder {
     }
 
     @Override
+    @Deprecated(since = "3.6.7")
     public void sendToast(@NotNull MineDown title, @NotNull MineDown description, @NotNull String iconMaterial,
                           @NotNull String backgroundType) {
-        getAudience().sendActionBar(title.toComponent()); // Toasts unimplemented for now
+        plugin.log(Level.WARNING, "Toast notifications are deprecated. " +
+                                  "Please change your notification display slot to CHAT, ACTION_BAR or NONE.");
+        this.sendActionBar(title);
     }
 
     @Override

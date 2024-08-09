@@ -250,7 +250,7 @@ public class Settings {
         @Comment("Whether to use the snappy data compression algorithm. Keep on unless you know what you're doing")
         private boolean compressData = true;
 
-        @Comment("Where to display sync notifications (ACTION_BAR, CHAT, TOAST or NONE)")
+        @Comment("Where to display sync notifications (ACTION_BAR, CHAT or NONE)")
         private Locales.NotificationSlot notificationDisplaySlot = Locales.NotificationSlot.ACTION_BAR;
 
         @Comment("Persist maps locked in a Cartography Table to let them be viewed on any server")

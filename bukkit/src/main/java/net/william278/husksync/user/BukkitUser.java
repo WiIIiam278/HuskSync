@@ -23,14 +23,10 @@ import de.themoep.minedown.adventure.MineDown;
 import dev.triumphteam.gui.builder.gui.StorageBuilder;
 import dev.triumphteam.gui.guis.Gui;
 import dev.triumphteam.gui.guis.StorageGui;
-import net.roxeez.advancement.display.FrameType;
-import net.william278.andjam.Toast;
-import net.william278.husksync.BukkitHuskSync;
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.data.BukkitData;
 import net.william278.husksync.data.BukkitUserDataHolder;
 import net.william278.husksync.data.Data;
-import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.ApiStatus;
@@ -39,8 +35,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Arrays;
 import java.util.function.Consumer;
 import java.util.logging.Level;
-
-import static net.william278.husksync.util.BukkitKeyedAdapter.matchMaterial;
 
 /**
  * Bukkit platform implementation of an {@link OnlineUser}
@@ -68,20 +62,12 @@ public class BukkitUser extends OnlineUser implements BukkitUserDataHolder {
     }
 
     @Override
+    @Deprecated(since = "3.6.7")
     public void sendToast(@NotNull MineDown title, @NotNull MineDown description,
                           @NotNull String iconMaterial, @NotNull String backgroundType) {
-        try {
-            final Material material = matchMaterial(iconMaterial);
-            Toast.builder((BukkitHuskSync) plugin)
-                    .setTitle(title.toComponent())
-                    .setDescription(description.toComponent())
-                    .setIcon(material != null ? material : Material.BARRIER)
-                    .setFrameType(FrameType.valueOf(backgroundType))
-                    .build()
-                    .show(player);
-        } catch (Throwable e) {
-            plugin.log(Level.WARNING, "Failed to send toast to player " + player.getName(), e);
-        }
+        plugin.log(Level.WARNING, "Toast notifications are deprecated. " +
+                                  "Please change your notification display slot to CHAT, ACTION_BAR or NONE.");
+        this.sendActionBar(title);
     }
 
     @Override

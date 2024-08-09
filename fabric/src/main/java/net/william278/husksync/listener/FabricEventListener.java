@@ -54,8 +54,6 @@ import net.william278.husksync.user.OnlineUser;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.stream.Collectors;
-
 public class FabricEventListener extends EventListener implements LockedHandler {
 
     public FabricEventListener(@NotNull HuskSync plugin) {

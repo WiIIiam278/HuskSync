@@ -21,7 +21,6 @@ package net.william278.husksync.mixins;
 
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.ActionResult;
 import net.william278.husksync.event.ItemDropCallback;
