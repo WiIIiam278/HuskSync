@@ -62,7 +62,7 @@ public class BukkitHuskSyncAPI extends HuskSyncAPI {
     public static BukkitHuskSyncAPI getInstance() {
         if (!JavaPlugin.getProvidingPlugin(BukkitHuskSyncAPI.class).getName().equals("HuskSync")) {
             throw new NotRegisteredException("This is likely because you have shaded HuskSync into your plugin JAR " +
-                    "and need to fix your maven/gradle/build script so that it *compiles against* HuskSync instead.");
+                                             "and need to fix your maven/gradle/build script so that it *compiles against* HuskSync instead.");
         }
         if (instance == null) {
             throw new NotRegisteredException();

@@ -106,7 +106,7 @@ public class DataSnapshotOverview {
                 .ifPresent(user::sendMessage);
 
         if (user.hasPermission("husksync.command.inventory.edit")
-                && user.hasPermission("husksync.command.enderchest.edit")) {
+            && user.hasPermission("husksync.command.enderchest.edit")) {
             locales.getLocale("data_manager_item_buttons", dataOwner.getUsername(), snapshot.getId().toString())
                     .ifPresent(user::sendMessage);
         }

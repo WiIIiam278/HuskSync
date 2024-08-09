@@ -46,29 +46,29 @@ public class EnderChestCommand extends ItemsCommand {
         final Optional<Data.Items.EnderChest> optionalEnderChest = snapshot.getEnderChest();
         if (optionalEnderChest.isEmpty()) {
             plugin.getLocales().getLocale("error_no_data_to_display")
-                .ifPresent(viewer::sendMessage);
+                    .ifPresent(viewer::sendMessage);
             return;
         }
 
         // Display opening message
         plugin.getLocales().getLocale("ender_chest_viewer_opened", user.getUsername(),
-                snapshot.getTimestamp().format(DateTimeFormatter
-                    .ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.SHORT)))
-            .ifPresent(viewer::sendMessage);
+                        snapshot.getTimestamp().format(DateTimeFormatter
+                                .ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.SHORT)))
+                .ifPresent(viewer::sendMessage);
 
         // Show GUI
         final Data.Items.EnderChest enderChest = optionalEnderChest.get();
         viewer.showGui(
-            enderChest,
-            plugin.getLocales().getLocale("ender_chest_viewer_menu_title", user.getUsername())
-                .orElse(new MineDown(String.format("%s's Ender Chest", user.getUsername()))),
-            allowEdit,
-            enderChest.getSlotCount(),
-            (itemsOnClose) -> {
-                if (allowEdit && !enderChest.equals(itemsOnClose)) {
-                    plugin.runAsync(() -> this.updateItems(viewer, itemsOnClose, user));
+                enderChest,
+                plugin.getLocales().getLocale("ender_chest_viewer_menu_title", user.getUsername())
+                        .orElse(new MineDown(String.format("%s's Ender Chest", user.getUsername()))),
+                allowEdit,
+                enderChest.getSlotCount(),
+                (itemsOnClose) -> {
+                    if (allowEdit && !enderChest.equals(itemsOnClose)) {
+                        plugin.runAsync(() -> this.updateItems(viewer, itemsOnClose, user));
+                    }
                 }
-            }
         );
     }
 
@@ -78,7 +78,7 @@ public class EnderChestCommand extends ItemsCommand {
         final Optional<DataSnapshot.Packed> latestData = plugin.getDatabase().getLatestSnapshot(holder);
         if (latestData.isEmpty()) {
             plugin.getLocales().getLocale("error_no_data_to_display")
-                .ifPresent(viewer::sendMessage);
+                    .ifPresent(viewer::sendMessage);
             return;
         }
 
@@ -88,7 +88,7 @@ public class EnderChestCommand extends ItemsCommand {
             data.getEnderChest().ifPresent(enderChest -> enderChest.setContents(items));
             data.setSaveCause(DataSnapshot.SaveCause.ENDERCHEST_COMMAND);
             data.setPinned(
-                plugin.getSettings().getSynchronization().doAutoPin(DataSnapshot.SaveCause.ENDERCHEST_COMMAND)
+                    plugin.getSettings().getSynchronization().doAutoPin(DataSnapshot.SaveCause.ENDERCHEST_COMMAND)
             );
         });
 

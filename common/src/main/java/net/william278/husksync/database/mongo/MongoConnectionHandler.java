@@ -35,9 +35,10 @@ public class MongoConnectionHandler {
 
     /**
      * Initiate a connection to a Mongo Server
+     *
      * @param uri The connection string
      */
-    public MongoConnectionHandler(@NotNull ConnectionString uri, @NotNull  String databaseName) {
+    public MongoConnectionHandler(@NotNull ConnectionString uri, @NotNull String databaseName) {
         try {
             final MongoClientSettings settings = MongoClientSettings.builder()
                     .applyConnectionString(uri)
@@ -48,7 +49,7 @@ public class MongoConnectionHandler {
             this.database = mongoClient.getDatabase(databaseName);
         } catch (Exception e) {
             throw new IllegalStateException("Failed to establish a connection to the MongoDB database. " +
-                    "Please check the supplied database credentials in the config file", e);
+                                            "Please check the supplied database credentials in the config file", e);
         }
     }
 

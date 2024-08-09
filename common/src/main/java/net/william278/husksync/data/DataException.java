@@ -45,13 +45,13 @@ public class DataException extends IllegalStateException {
     @AllArgsConstructor
     public enum Reason {
         INVALID_MINECRAFT_VERSION((plugin, snapshot) -> String.format("The Minecraft version of the snapshot (%s) is " +
-                        "newer than the server's version (%s). Ensure each server is on the same version of Minecraft.",
+                                                                      "newer than the server's version (%s). Ensure each server is on the same version of Minecraft.",
                 snapshot.getMinecraftVersion(), plugin.getMinecraftVersion())),
         INVALID_FORMAT_VERSION((plugin, snapshot) -> String.format("The format version of the snapshot (%s) is newer " +
-                        "than the server's version (%s). Ensure each server is running the same version of HuskSync.",
+                                                                   "than the server's version (%s). Ensure each server is running the same version of HuskSync.",
                 snapshot.getFormatVersion(), DataSnapshot.CURRENT_FORMAT_VERSION)),
         INVALID_PLATFORM_TYPE((plugin, snapshot) -> String.format("The platform type of the snapshot (%s) does " +
-                        "not match the server's platform type (%s). Ensure each server has the same platform type.",
+                                                                  "not match the server's platform type (%s). Ensure each server has the same platform type.",
                 snapshot.getPlatformType(), plugin.getPlatformType())),
         NO_LEGACY_CONVERTER((plugin, snapshot) -> String.format("No legacy converter to convert format version: %s",
                 snapshot.getFormatVersion()));

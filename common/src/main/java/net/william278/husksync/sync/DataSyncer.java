@@ -150,7 +150,7 @@ public abstract class DataSyncer {
     private long getMaxListenAttempts() {
         return BASE_LISTEN_ATTEMPTS + (
                 (Math.max(100, plugin.getSettings().getSynchronization().getNetworkLatencyMilliseconds()) / 1000)
-                        * 20 / LISTEN_DELAY
+                * 20 / LISTEN_DELAY
         );
     }
 

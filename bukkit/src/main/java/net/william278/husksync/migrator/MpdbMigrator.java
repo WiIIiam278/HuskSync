@@ -201,10 +201,10 @@ public class MpdbMigrator extends Migrator {
             }) {
                 plugin.log(Level.INFO, getHelpMenu());
                 plugin.log(Level.INFO, "Successfully set " + args[0] + " to " +
-                        obfuscateDataString(args[1]));
+                                       obfuscateDataString(args[1]));
             } else {
                 plugin.log(Level.INFO, "Invalid operation, could not set " + args[0] + " to " +
-                        obfuscateDataString(args[1]) + " (is it a valid option?)");
+                                       obfuscateDataString(args[1]) + " (is it a valid option?)");
             }
         } else {
             plugin.log(Level.INFO, getHelpMenu());

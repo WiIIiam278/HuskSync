@@ -47,29 +47,29 @@ public class InventoryCommand extends ItemsCommand {
         if (optionalInventory.isEmpty()) {
             viewer.sendMessage(new MineDown("what the FUCK is happening"));
             plugin.getLocales().getLocale("error_no_data_to_display")
-                .ifPresent(viewer::sendMessage);
+                    .ifPresent(viewer::sendMessage);
             return;
         }
 
         // Display opening message
         plugin.getLocales().getLocale("inventory_viewer_opened", user.getUsername(),
-                snapshot.getTimestamp().format(DateTimeFormatter
-                    .ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.SHORT)))
-            .ifPresent(viewer::sendMessage);
+                        snapshot.getTimestamp().format(DateTimeFormatter
+                                .ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.SHORT)))
+                .ifPresent(viewer::sendMessage);
 
         // Show GUI
         final Data.Items.Inventory inventory = optionalInventory.get();
         viewer.showGui(
-            inventory,
-            plugin.getLocales().getLocale("inventory_viewer_menu_title", user.getUsername())
-                .orElse(new MineDown(String.format("%s's Inventory", user.getUsername()))),
-            allowEdit,
-            inventory.getSlotCount(),
-            (itemsOnClose) -> {
-                if (allowEdit && !inventory.equals(itemsOnClose)) {
-                    plugin.runAsync(() -> this.updateItems(viewer, itemsOnClose, user));
+                inventory,
+                plugin.getLocales().getLocale("inventory_viewer_menu_title", user.getUsername())
+                        .orElse(new MineDown(String.format("%s's Inventory", user.getUsername()))),
+                allowEdit,
+                inventory.getSlotCount(),
+                (itemsOnClose) -> {
+                    if (allowEdit && !inventory.equals(itemsOnClose)) {
+                        plugin.runAsync(() -> this.updateItems(viewer, itemsOnClose, user));
+                    }
                 }
-            }
         );
     }
 
@@ -79,7 +79,7 @@ public class InventoryCommand extends ItemsCommand {
         final Optional<DataSnapshot.Packed> latestData = plugin.getDatabase().getLatestSnapshot(holder);
         if (latestData.isEmpty()) {
             plugin.getLocales().getLocale("error_no_data_to_display")
-                .ifPresent(viewer::sendMessage);
+                    .ifPresent(viewer::sendMessage);
             return;
         }
 
@@ -89,7 +89,7 @@ public class InventoryCommand extends ItemsCommand {
             data.getInventory().ifPresent(inventory -> inventory.setContents(items));
             data.setSaveCause(DataSnapshot.SaveCause.INVENTORY_COMMAND);
             data.setPinned(
-                plugin.getSettings().getSynchronization().doAutoPin(DataSnapshot.SaveCause.INVENTORY_COMMAND)
+                    plugin.getSettings().getSynchronization().doAutoPin(DataSnapshot.SaveCause.INVENTORY_COMMAND)
             );
         });
 

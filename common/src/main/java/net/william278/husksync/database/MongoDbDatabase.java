@@ -50,6 +50,7 @@ public class MongoDbDatabase extends Database {
 
     private final String usersTable;
     private final String userDataTable;
+
     public MongoDbDatabase(@NotNull HuskSync plugin) {
         super(plugin);
         this.usersTable = plugin.getSettings().getDatabase().getTableName(TableName.USERS);
@@ -76,7 +77,7 @@ public class MongoDbDatabase extends Database {
             }
         } catch (Exception e) {
             throw new IllegalStateException("Failed to establish a connection to the MongoDB database. " +
-                    "Please check the supplied database credentials in the config file", e);
+                                            "Please check the supplied database credentials in the config file", e);
         }
     }
 
@@ -376,7 +377,7 @@ public class MongoDbDatabase extends Database {
     /**
      * Update a saved {@link DataSnapshot} by given version UUID
      *
-     * @param user     The user whose data snapshot
+     * @param user The user whose data snapshot
      * @param data The {@link DataSnapshot} to update
      */
     @Blocking
