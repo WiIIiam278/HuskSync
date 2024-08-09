@@ -79,12 +79,12 @@ import java.util.logging.Level;
 @Getter
 @NoArgsConstructor
 public class FabricHuskSync implements DedicatedServerModInitializer, HuskSync, FabricTask.Supplier,
-    FabricEventDispatcher {
+        FabricEventDispatcher {
 
     private static final String PLATFORM_TYPE_ID = "fabric";
 
     private final TreeMap<Identifier, Serializer<? extends Data>> serializers = Maps.newTreeMap(
-        SerializerRegistry.DEPENDENCY_ORDER_COMPARATOR
+            SerializerRegistry.DEPENDENCY_ORDER_COMPARATOR
     );
     private final Map<UUID, Map<Identifier, Data>> playerCustomDataStore = Maps.newConcurrentMap();
     private final Map<String, Boolean> permissions = Maps.newHashMap();
@@ -208,6 +208,14 @@ public class FabricHuskSync implements DedicatedServerModInitializer, HuskSync, 
         // Check for updates
         this.checkForUpdates();
 
+        log(Level.WARNING, """
+                **************
+                WARNING:
+                
+                HuskSync for Fabric is still in an alpha state and is
+                not considered production ready.
+                **************""");
+
         ModLoadedCallback.EVENT.invoker().post(FabricHuskSyncAPI.getInstance());
     }
 
@@ -267,15 +275,15 @@ public class FabricHuskSync implements DedicatedServerModInitializer, HuskSync, 
     @Nullable
     public InputStream getResource(@NotNull String name) {
         return this.mod.findPath(name)
-            .map(path -> {
-                try {
-                    return Files.newInputStream(path);
-                } catch (IOException e) {
-                    log(Level.WARNING, "Failed to load resource: " + name, e);
-                }
-                return null;
-            })
-            .orElse(this.getClass().getClassLoader().getResourceAsStream(name));
+                .map(path -> {
+                    try {
+                        return Files.newInputStream(path);
+                    } catch (IOException e) {
+                        log(Level.WARNING, "Failed to load resource: " + name, e);
+                    }
+                    return null;
+                })
+                .orElse(this.getClass().getClassLoader().getResourceAsStream(name));
     }
 
     @Override
@@ -295,11 +303,11 @@ public class FabricHuskSync implements DedicatedServerModInitializer, HuskSync, 
     @Override
     public void log(@NotNull Level level, @NotNull String message, @NotNull Throwable... throwable) {
         LoggingEventBuilder logEvent = logger.makeLoggingEventBuilder(
-            switch (level.getName()) {
-                case "WARNING" -> org.slf4j.event.Level.WARN;
-                case "SEVERE" -> org.slf4j.event.Level.ERROR;
-                default -> org.slf4j.event.Level.INFO;
-            }
+                switch (level.getName()) {
+                    case "WARNING" -> org.slf4j.event.Level.WARN;
+                    case "SEVERE" -> org.slf4j.event.Level.ERROR;
+                    default -> org.slf4j.event.Level.INFO;
+                }
         );
         if (throwable.length >= 1) {
             logEvent = logEvent.setCause(throwable[0]);
