@@ -424,19 +424,23 @@ public interface BukkitMapPersister {
         @NotNull
         private MapData extractMapData() {
             final List<MapBanner> banners = Lists.newArrayList();
-            final String BANNER_PREFIX = "banner_";
-            for (int i = 0; i < getCursors().size(); i++) {
-                final MapCursor cursor = getCursors().getCursor(i);
-                final String type = cursor.getType().name().toLowerCase(Locale.ENGLISH);
-                if (type.startsWith(BANNER_PREFIX)) {
-                    banners.add(new MapBanner(
-                            type.replaceAll(BANNER_PREFIX, ""),
-                            cursor.getCaption() == null ? "" : cursor.getCaption(),
-                            cursor.getX(),
-                            mapView.getWorld() != null ? mapView.getWorld().getSeaLevel() : 128,
-                            cursor.getY()
-                    ));
+            try {
+                final String BANNER_PREFIX = "banner_";
+                for (int i = 0; i < getCursors().size(); i++) {
+                    final MapCursor cursor = getCursors().getCursor(i);
+                    final String type = cursor.getType().name().toLowerCase(Locale.ENGLISH);
+                    if (type.startsWith(BANNER_PREFIX)) {
+                        banners.add(new MapBanner(
+                                type.replaceAll(BANNER_PREFIX, ""),
+                                cursor.getCaption() == null ? "" : cursor.getCaption(),
+                                cursor.getX(),
+                                mapView.getWorld() != null ? mapView.getWorld().getSeaLevel() : 128,
+                                cursor.getY()
+                        ));
+                    }
+
                 }
+            } catch (Throwable ignored) {
             }
             return MapData.fromPixels(pixels, getDimension(), (byte) 2, banners, List.of());
         }
