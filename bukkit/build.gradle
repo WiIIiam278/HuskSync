@@ -6,7 +6,7 @@ dependencies {
     implementation 'net.william278:hsldataconverter:1.0'
     implementation 'net.william278:mapdataapi:1.0.3'
     implementation 'org.bstats:bstats-bukkit:3.0.2'
-    implementation 'net.kyori:adventure-platform-bukkit:4.3.3'
+    implementation 'net.kyori:adventure-platform-bukkit:4.3.4'
     implementation 'dev.triumphteam:triumph-gui:3.1.10'
     implementation 'space.arim.morepaperlib:morepaperlib:0.4.4'
     implementation 'de.tr7zw:item-nbt-api:2.13.2'
