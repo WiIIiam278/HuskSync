@@ -40,7 +40,7 @@
   },
   "depends": {
     "fabricloader": ">=${fabric_loader_version}",
-    "minecraft": ">=${fabric_minecraft_version}",
+    "minecraft": ">=${minecraft_version}",
     "fabric-api": "*"
   },
   "suggests": {

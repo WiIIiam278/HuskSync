@@ -18,6 +18,7 @@ ext {
     set 'version', version.toString()
     set 'description', description.toString()
 
+    set 'minecraft_version', minecraft_version.toString()
     set 'jedis_version', jedis_version.toString()
     set 'mysql_driver_version', mysql_driver_version.toString()
     set 'mariadb_driver_version', mariadb_driver_version.toString()
@@ -63,7 +64,7 @@ allprojects {
     apply plugin: 'java'
 
     compileJava.options.encoding = 'UTF-8'
-    compileJava.options.release.set 17
+    compileJava.options.release.set Integer.parseInt(rootProject.ext.javaVersion)
     javadoc.options.encoding = 'UTF-8'
     javadoc.options.addStringOption('Xdoclint:none', '-quiet')
 
@@ -125,9 +126,9 @@ subprojects {
         archiveClassifier.set('')
     }
 
-    // Append the Minecraft to the version for Fabric projects
-    if (project.name == 'fabric') {
-        version += "+mc.${fabric_minecraft_version}"
+    // Append the compatible Minecraft version to the version
+    if (['bukkit', 'paper', 'fabric'].contains(project.name)) {
+        version += "+mc.${minecraft_version}"
     }
 
     // API publishing
@@ -163,7 +164,7 @@ subprojects {
                     mavenJavaBukkit(MavenPublication) {
                         groupId = 'net.william278.husksync'
                         artifactId = 'husksync-bukkit'
-                        version = "$rootProject.version"
+                        version = "$rootProject.version+${minecraft_version}"
                         artifact shadowJar
                         artifact sourcesJar
                         artifact javadocJar
@@ -176,7 +177,7 @@ subprojects {
                     mavenJavaFabric(MavenPublication) {
                         groupId = 'net.william278.husksync'
                         artifactId = 'husksync-fabric'
-                        version = "$rootProject.version+${fabric_minecraft_version}"
+                        version = "$rootProject.version+${minecraft_version}"
                         artifact remapJar
                         artifact sourcesJar
                         artifact javadocJar
@@ -190,7 +191,7 @@ subprojects {
     clean.delete "$rootDir/target"
 }
 
-logger.lifecycle("Building HuskSync ${version} by William278")
+logger.lifecycle("Building HuskSync ${version} by William278 for Minecraft ${minecraft_version}")
 
 @SuppressWarnings('GrMethodMayBeStatic')
 def versionMetadata() {

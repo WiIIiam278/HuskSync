@@ -1,17 +1,18 @@
-> **Warning:** Fabric support is currently in beta and is not production ready yet. Customers can get in touch on Discord to request the Fabric build, or you can self-compile.
+> **Warning:** Fabric support is currently in beta and is not production ready yet.
 
-This will walk you through installing HuskSync on your network of Spigot or Fabric servers.
+This will walk you through installing HuskSync on your network of Spigot or Fabric servers. Please check your server's [[Compatibility]] and download the correct version of HuskSync for your server.
+
 
 ## Requirements
 > **Warning:** Mixing and matching Fabric/Spigot servers is not supported, and all servers must be running the same Minecraft version.
 
-> **Note:** Please also note some specific legacy Paper/Purpur versions are [not compatible](Unsupported-Versions) with HuskSync.
+> **Note:** Please also note some specific legacy Paper/Purpur versions are [not compatible](Compatibility) with HuskSync.
 
 * A MySQL Database (v8.0+)
   * **OR** a MariaDB, PostrgreSQL or MongoDB database, which are also supported
 * A Redis Database (v5.0+) &mdash; see [[FAQs]] for more details.
-* Any number of Spigot servers, connected by a BungeeCord or Velocity-based proxy (Minecraft v1.17.1+, running Java 17+)
-  * **OR** a network of Fabric servers, connected by a Fabric proxy (Minecraft v1.20.1, running Java 17+)
+* Any number of Spigot servers, connected by a BungeeCord or Velocity-based proxy (see [[Compatibility]])
+  * **OR** a network of Fabric servers, connected by a Velocity-based proxy
 
 ## Setup Instructions
 ### 1. Install the jar

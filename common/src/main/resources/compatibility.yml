@@ -1,0 +1,2 @@
+# File used for checking Minecraft server compatibility with this version of HuskSync
+minecraft_version: '${minecraft_version}'

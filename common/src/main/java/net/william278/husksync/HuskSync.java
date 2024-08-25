@@ -39,6 +39,7 @@ import net.william278.husksync.redis.RedisManager;
 import net.william278.husksync.sync.DataSyncer;
 import net.william278.husksync.user.ConsoleUser;
 import net.william278.husksync.user.OnlineUser;
+import net.william278.husksync.util.CompatibilityChecker;
 import net.william278.husksync.util.LegacyConverter;
 import net.william278.husksync.util.Task;
 import net.william278.uniform.Uniform;
@@ -52,7 +53,8 @@ import java.util.logging.Level;
 /**
  * Abstract implementation of the HuskSync plugin.
  */
-public interface HuskSync extends Task.Supplier, EventDispatcher, ConfigProvider, SerializerRegistry {
+public interface HuskSync extends Task.Supplier, EventDispatcher, ConfigProvider, SerializerRegistry,
+        CompatibilityChecker {
 
     int SPIGOT_RESOURCE_ID = 97144;
 
@@ -338,7 +340,11 @@ public interface HuskSync extends Task.Supplier, EventDispatcher, ConfigProvider
                 
                 Caused by: %s""";
 
-        FailedToLoadException(@NotNull String message, @NotNull Throwable cause) {
+        public FailedToLoadException(@NotNull String message) {
+            super(String.format(FORMAT, message));
+        }
+
+        public FailedToLoadException(@NotNull String message, @NotNull Throwable cause) {
             super(String.format(FORMAT, message), cause);
         }
 

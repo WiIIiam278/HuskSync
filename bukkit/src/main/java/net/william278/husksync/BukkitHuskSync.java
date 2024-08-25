@@ -137,6 +137,9 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
     public void onEnable() {
         this.audiences = BukkitAudiences.create(this);
 
+        // Check compatibility
+        checkCompatibility();
+
         // Register commands
         initialize("commands", (plugin) -> getUniform().register(PluginCommand.Type.create(this)));
 

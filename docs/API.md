@@ -53,12 +53,12 @@ Add the repository to your `pom.xml` as per below. You can alternatively specify
     </repository>
 </repositories>
 ```
-Add the dependency to your `pom.xml` as per below. Replace `VERSION` with the latest version of HuskSync (without the v): ![Latest version](https://img.shields.io/github/v/tag/WiIIiam278/HuskSync?color=%23282828&label=%20&style=flat-square). Note for Fabric you must append the target Minecraft version to the version number (e.g. `3.6.1+1.20.1`).
+Add the dependency to your `pom.xml` as per below. Replace `HUSKSYNC_VERSION` with the latest version of HuskSync (without the v): ![Latest version](https://img.shields.io/github/v/tag/WiIIiam278/HuskSync?color=%23282828&label=%20&style=flat-square). and `MINECRAFT_VERSION` with the version of Minecraft you want to target (e.g. `1.20.1`). A correctly formed version target should look like: `3.7+1.20.1`. Omit the plus symbol and Minecraft version if you are targeting the `common` platform.
 ```xml
 <dependency>
     <groupId>net.william278.husksync</groupId>
     <artifactId>husksync-PLATFORM</artifactId>
-    <version>VERSION</version>
+    <version>HUSKSYNC_VERSION+MINECRAFT_VERSION</version>
     <scope>provided</scope>
 </dependency>
 ```
@@ -76,11 +76,11 @@ allprojects {
 	}
 }
 ```
-Add the dependency as per below. Replace `VERSION` with the latest version of HuskSync (without the v): ![Latest version](https://img.shields.io/github/v/tag/WiIIiam278/HuskSync?color=%23282828&label=%20&style=flat-square). Note for Fabric you must append the target Minecraft version to the version number (e.g. `3.6.1+1.20.1`).
+Add the dependency as per below. Replace `HUSKSYNC_VERSION` with the latest version of HuskSync (without the v): ![Latest version](https://img.shields.io/github/v/tag/WiIIiam278/HuskSync?color=%23282828&label=%20&style=flat-square). and `MINECRAFT_VERSION` with the version of Minecraft you want to target (e.g. `1.20.1`). A correctly formed version target should look like: `3.7+1.20.1`. Omit the plus symbol and Minecraft version if you are targeting the `common` platform.
 
 ```groovy
 dependencies {
-    compileOnly 'net.william278.husksync:husksync-PLATFORM:VERSION'
+    compileOnly 'net.william278.husksync:husksync-PLATFORM:HUSKSYNC_VERSION+MINECRAFT_VERSION'
 }
 ```
 </details>
