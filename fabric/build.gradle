@@ -15,7 +15,7 @@ dependencies {
     mappings "net.fabricmc:yarn:${fabric_yarn_mappings}:v2"
     modImplementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
 
-    modImplementation include("net.kyori:adventure-platform-fabric:${fabric_adventure_platform_version}")
+    modImplementation include("net.kyori:adventure-platform-mod-shared:${fabric_adventure_platform_version}")
     modImplementation include("me.lucko:fabric-permissions-api:${fabric_permissions_api_version}")
     modImplementation include("eu.pb4:sgui:${fabric_sgui_version}")
     modImplementation include('net.william278.uniform:uniform-fabric:1.2.1+1.20.1')

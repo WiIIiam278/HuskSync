@@ -1,7 +1,7 @@
 import org.apache.tools.ant.filters.ReplaceTokens
 
 plugins {
-    id 'com.github.johnrengelman.shadow' version '8.1.1'
+    id 'com.gradleup.shadow' version '8.3.0'
     id 'org.cadixdev.licenser' version '0.6.1' apply false
     id 'fabric-loom' version '1.7-SNAPSHOT' apply false
     id 'org.ajoberstar.grgit' version '5.2.2'
@@ -59,7 +59,7 @@ publishing {
 }
 
 allprojects {
-    apply plugin: 'com.github.johnrengelman.shadow'
+    apply plugin: 'com.gradleup.shadow'
     apply plugin: 'org.cadixdev.licenser'
     apply plugin: 'java'
 

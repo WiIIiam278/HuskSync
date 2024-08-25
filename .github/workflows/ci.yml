@@ -18,10 +18,10 @@ jobs:
     steps:
       - name: 'Checkout for CI 🛎️'
         uses: actions/checkout@v4
-      - name: 'Set up JDK 17 📦'
+      - name: 'Set up JDK 21 📦'
         uses: actions/setup-java@v4
         with:
-          java-version: '17'
+          java-version: '21'
           distribution: 'temurin'
       - name: 'Build with Gradle 🏗️'
         uses: gradle/gradle-build-action@v3
@@ -51,14 +51,14 @@ jobs:
           version: ${{ env.version_name }}
           changelog: ${{ github.event.head_commit.message }}
           distro-names: |
-            paper
-            fabric-1.20.1
+            paper-1.21.1
+            fabric-1.21.1
           distro-groups: |
             paper
             fabric
           distro-descriptions: |
-            Paper
-            Fabric 1.20.1
+            Paper 1.21.1
+            Fabric 1.21.1
           files: |
-            target/HuskSync-Paper-${{ env.version_name }}.jar
-            target/HuskSync-Fabric-${{ env.version_name }}+mc.1.20.1.jar
+            target/HuskSync-Paper-${{ env.version_name }}+mc.1.21.1.jar
+            target/HuskSync-Fabric-${{ env.version_name }}+mc.1.21.1.jar

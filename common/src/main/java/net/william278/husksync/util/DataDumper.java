@@ -28,6 +28,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -82,7 +83,7 @@ public class DataDumper {
     @NotNull
     public String toWeb() {
         try {
-            final URL url = new URL(LOGS_SITE_ENDPOINT);
+            final URL url = URI.create(LOGS_SITE_ENDPOINT).toURL();
             final HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("POST");
             connection.setDoOutput(true);

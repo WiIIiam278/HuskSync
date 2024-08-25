@@ -55,7 +55,7 @@ HuskSync supports the following [compatible versions](https://william278.net/doc
 | 1.17.1 - 1.19.4  |      3.6.8      |      17      | Paper         | ❌ _Support ended_         |
 |      1.16.5      |      3.2.1      |      16      | Paper         | ❌ _Support ended_         |
 
-HuskSync is primarily developed against the latest release. Old Minecraft versions are allocated support channels based on popularity, mod support, etc:
+HuskSync is primarily developed against the latest release. Old Minecraft versions are allocated a support channel based on popularity, mod support, etc:
 
 * Long Term Support (LTS) &ndash; Supported for up to 12-18 months
 * Standard Release Support (SRS) &ndash; Supported for 3-6 months
@@ -63,7 +63,7 @@ HuskSync is primarily developed against the latest release. Old Minecraft versio
 Verify your purchase on Discord and [Download HuskSync](https://william278.net/project/husksync#download) for your server.
 
 ## Setup
-Requires a MySQL/Mongo/PostgreSQL database, a Redis (v5.0+) server and a network of Spigot or Fabric Minecraft servers, running Java 17+.
+Requires a MySQL/Mongo/PostgreSQL database, a Redis (v5.0+) server and a network of Spigot or Fabric Minecraft servers (see [Compatibility](#compatibility)).
 
 1. Place the plugin jar file in the `/plugins` or `/mods` directory of each Spigot/Fabric server. You do not need to install HuskSync as a proxy plugin.
 2. Start, then stop every server to let HuskSync generate the config file.
@@ -71,7 +71,7 @@ Requires a MySQL/Mongo/PostgreSQL database, a Redis (v5.0+) server and a network
 4. Start every server again and synchronization will begin.
 
 ## Development
-To build HuskSync, simply run the following in the root of the repository (building requires Java 17). Builds will be output in `/target`:
+To build HuskSync, simply run the following in the root of the repository (building requires Java 21). Builds will be output in `/target`:
 
 ```bash
 ./gradlew clean build
