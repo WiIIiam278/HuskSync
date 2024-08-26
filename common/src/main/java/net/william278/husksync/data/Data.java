@@ -23,7 +23,6 @@ import com.google.common.collect.Sets;
 import com.google.gson.annotations.SerializedName;
 import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.kyori.adventure.key.Key;
@@ -342,15 +341,13 @@ public interface Data {
         @Getter
         @Accessors(fluent = true)
         @RequiredArgsConstructor
-        @NoArgsConstructor
         final class Modifier {
             final static String ANY_EQUIPMENT_SLOT_GROUP = "any";
 
             @Getter(AccessLevel.NONE)
             @Nullable
             @SerializedName("uuid")
-            @Deprecated(since = "3.7")
-            private UUID uuid;
+            private UUID uuid = null;
 
             // Since 1.21.1: Name, amount, operation, slotGroup
             @SerializedName("name")
@@ -366,24 +363,14 @@ public interface Data {
             @Deprecated(since = "3.7")
             private int equipmentSlot;
 
-            @Getter(AccessLevel.NONE)
             @SerializedName("equipment_slot_group")
-            @Nullable
-            private String slotGroup;
+            private String slotGroup = ANY_EQUIPMENT_SLOT_GROUP;
 
             public Modifier(@NotNull String name, double amount, int operation, @NotNull String slotGroup) {
                 this.name = name;
                 this.amount = amount;
                 this.operation = operation;
                 this.slotGroup = slotGroup;
-            }
-
-            @Deprecated(since = "3.7")
-            public Modifier(@NotNull String name, double amount, int operation, int equipmentSlot) {
-                this.name = name;
-                this.amount = amount;
-                this.operation = operation;
-                this.equipmentSlot = equipmentSlot;
             }
 
             @Deprecated(since = "3.7")
@@ -421,10 +408,6 @@ public interface Data {
             @NotNull
             public UUID uuid() {
                 return uuid != null ? uuid : UUID.nameUUIDFromBytes(name.getBytes());
-            }
-
-            Optional<String> equipmentSlotGroup() {
-                return Optional.ofNullable(slotGroup);
             }
 
         }

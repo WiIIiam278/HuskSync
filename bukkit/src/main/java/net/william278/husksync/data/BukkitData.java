@@ -636,7 +636,7 @@ public abstract class BukkitData implements Data {
                     Objects.requireNonNull(NamespacedKey.fromString(modifier.name())),
                     modifier.amount(),
                     AttributeModifier.Operation.values()[modifier.operation()],
-                    modifier.equipmentSlotGroup().map(EquipmentSlotGroup::getByName).orElse(EquipmentSlotGroup.ANY)
+                    Optional.ofNullable(EquipmentSlotGroup.getByName(modifier.slotGroup())).orElse(EquipmentSlotGroup.ANY)
             );
         }
 
