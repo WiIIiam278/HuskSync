@@ -31,7 +31,7 @@ import net.william278.mapdataapi.MapData;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.World;
-import org.bukkit.block.ShulkerBox;
+import org.bukkit.block.Container;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BlockStateMeta;
@@ -96,7 +96,7 @@ public interface BukkitMapPersister {
             }
             if (item.getType() == Material.FILLED_MAP && item.hasItemMeta()) {
                 items[i] = function.apply(item);
-            } else if (item.getItemMeta() instanceof BlockStateMeta b && b.getBlockState() instanceof ShulkerBox box) {
+            } else if (item.getItemMeta() instanceof BlockStateMeta b && b.getBlockState() instanceof Container box) {
                 forEachMap(box.getInventory().getContents(), function);
                 b.setBlockState(box);
             }
@@ -276,7 +276,7 @@ public interface BukkitMapPersister {
 
     @NotNull
     private static World getDefaultMapWorld() {
-        final World world = Bukkit.getWorlds().get(0);
+        final World world = Bukkit.getWorlds().getFirst();
         if (world == null) {
             throw new IllegalStateException("No worlds are loaded on the server!");
         }
@@ -447,7 +447,7 @@ public interface BukkitMapPersister {
             final String BANNER_PREFIX = "banner_";
             for (int i = 0; i < getCursors().size(); i++) {
                 final MapCursor cursor = getCursors().getCursor(i);
-                final String type = cursor.getType().name().toLowerCase(Locale.ENGLISH);
+                final String type = cursor.getType().getKey().getKey();
                 if (type.startsWith(BANNER_PREFIX)) {
                     banners.add(new MapBanner(
                             type.replaceAll(BANNER_PREFIX, ""),
