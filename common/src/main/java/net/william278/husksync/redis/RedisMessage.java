@@ -21,6 +21,8 @@ package net.william278.husksync.redis;
 
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.annotations.SerializedName;
+import lombok.Getter;
+import lombok.Setter;
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.adapter.Adaptable;
 import org.jetbrains.annotations.NotNull;
@@ -34,6 +36,8 @@ public class RedisMessage implements Adaptable {
 
     @SerializedName("target_uuid")
     private UUID targetUuid;
+    @Getter
+    @Setter
     @SerializedName("payload")
     private byte[] payload;
 
@@ -70,14 +74,6 @@ public class RedisMessage implements Adaptable {
 
     public void setTargetUuid(@NotNull UUID targetUuid) {
         this.targetUuid = targetUuid;
-    }
-
-    public byte[] getPayload() {
-        return payload;
-    }
-
-    public void setPayload(byte[] payload) {
-        this.payload = payload;
     }
 
     public enum Type {
