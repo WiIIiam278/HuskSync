@@ -20,6 +20,7 @@
 package net.william278.husksync;
 
 import net.kyori.adventure.audience.Audience;
+import net.william278.desertwell.util.Version;
 import net.william278.husksync.listener.BukkitEventListener;
 import net.william278.husksync.listener.PaperEventListener;
 import net.william278.uniform.Uniform;
@@ -43,6 +44,12 @@ public class PaperHuskSync extends BukkitHuskSync {
     public Audience getAudience(@NotNull UUID user) {
         final Player player = getServer().getPlayer(user);
         return player == null || !player.isOnline() ? Audience.empty() : player;
+    }
+
+    @NotNull
+    @Override
+    public Version getMinecraftVersion() {
+        return Version.fromString(getServer().getMinecraftVersion());
     }
 
     @Override

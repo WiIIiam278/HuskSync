@@ -50,7 +50,7 @@ public interface CompatibilityChecker {
         }
 
         // Check compatibility
-        if (!compatible.equals(getPlugin().getMinecraftVersion())) {
+        if (compatible.compareTo(getPlugin().getMinecraftVersion()) != 0) {
             throw new HuskSync.FailedToLoadException("""
                     Incompatible Minecraft version. This version of HuskSync is designed for Minecraft %s.
                     Please download the correct version of HuskSync for your server's Minecraft version (%s)."""
