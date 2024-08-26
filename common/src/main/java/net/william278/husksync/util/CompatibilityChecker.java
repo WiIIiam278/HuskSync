@@ -64,11 +64,11 @@ public interface CompatibilityChecker {
     HuskSync getPlugin();
 
     @Configuration
-    record CompatibilityConfig(@NotNull String compatibleMinecraftVersion) {
+    record CompatibilityConfig(@NotNull String minecraftVersion) {
 
         @NotNull
         public Version getCompatibleWith() {
-            return Version.fromString(compatibleMinecraftVersion);
+            return Version.fromString(minecraftVersion);
         }
 
     }
