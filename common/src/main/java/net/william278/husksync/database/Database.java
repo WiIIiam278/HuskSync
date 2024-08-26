@@ -107,6 +107,14 @@ public abstract class Database {
     @Blocking
     public abstract Optional<User> getUserByName(@NotNull String username);
 
+    /**
+     * Get all users
+     *
+     * @return A list of all users
+     */
+    @NotNull
+    @Blocking
+    public abstract List<User> getAllUsers();
 
     /**
      * Get the latest data snapshot for a user.

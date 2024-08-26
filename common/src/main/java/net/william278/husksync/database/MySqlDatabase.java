@@ -218,6 +218,27 @@ public class MySqlDatabase extends Database {
         return Optional.empty();
     }
 
+    @Override
+    @NotNull
+    public List<User> getAllUsers() {
+        final List<User> users = Lists.newArrayList();
+        try (Connection connection = getConnection()) {
+            try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
+                    SELECT `uuid`, `username`
+                    FROM `%users_table%`;
+                    """))) {
+                final ResultSet resultSet = statement.executeQuery();
+                while (resultSet.next()) {
+                    users.add(new User(UUID.fromString(resultSet.getString("uuid")),
+                            resultSet.getString("username")));
+                }
+            }
+        } catch (SQLException e) {
+            plugin.log(Level.SEVERE, "Failed to fetch a user by name from the database", e);
+        }
+        return users;
+    }
+
     @Blocking
     @Override
     public Optional<DataSnapshot.Packed> getLatestSnapshot(@NotNull User user) {
