@@ -159,6 +159,7 @@ public class RedisManager extends JedisPubSub {
         switch (messageType) {
             case UPDATE_USER_DATA -> plugin.getOnlineUser(redisMessage.getTargetUuid()).ifPresent(
                     user -> {
+                        plugin.lockPlayer(user.getUuid());
                         try {
                             final DataSnapshot.Packed data = DataSnapshot.deserialize(plugin, redisMessage.getPayload());
                             user.applySnapshot(data, DataSnapshot.UpdateCause.UPDATED);
