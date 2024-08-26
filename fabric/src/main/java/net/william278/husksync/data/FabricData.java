@@ -578,11 +578,10 @@ public abstract class FabricData implements Data {
                 }
                 final Set<Modifier> modifiers = Sets.newHashSet();
                 instance.getModifiers().forEach(modifier -> modifiers.add(new Modifier(
-                        UUID.nameUUIDFromBytes(modifier.id().toString().getBytes()),
-                        modifier.id().examinableName(),
+                        modifier.id().toString(),
                         modifier.value(),
                         modifier.operation().getId(),
-                        -1
+                        Modifier.ANY_EQUIPMENT_SLOT_GROUP
                 )));
                 attributes.add(new Attribute(
                         key.toString(),
@@ -624,10 +623,10 @@ public abstract class FabricData implements Data {
             instance.setBaseValue(attribute == null ? instance.getAttribute().value().getDefaultValue() : attribute.baseValue());
             instance.getModifiers().forEach(instance::removeModifier);
             if (attribute != null) {
-                attribute.modifiers().forEach(modifier -> instance.addPersistentModifier(new EntityAttributeModifier(
+                attribute.modifiers().forEach(modifier -> instance.addTemporaryModifier(new EntityAttributeModifier(
                         Identifier.of(modifier.uuid().toString()),
                         modifier.amount(),
-                        EntityAttributeModifier.Operation.ID_TO_VALUE.apply(modifier.operationType())
+                        EntityAttributeModifier.Operation.ID_TO_VALUE.apply(modifier.operation())
                 )));
             }
         }

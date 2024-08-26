@@ -25,9 +25,7 @@ import com.google.gson.annotations.SerializedName;
 import de.tr7zw.changeme.nbtapi.NBTCompound;
 import de.tr7zw.changeme.nbtapi.NBTPersistentDataContainer;
 import lombok.*;
-import net.kyori.adventure.util.TriState;
 import net.william278.desertwell.util.ThrowingConsumer;
-import net.william278.desertwell.util.Version;
 import net.william278.husksync.BukkitHuskSync;
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.adapter.Adaptable;
@@ -39,7 +37,7 @@ import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryType;
-import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.inventory.EquipmentSlotGroup;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.potion.PotionEffect;
@@ -49,7 +47,6 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
 import org.jetbrains.annotations.Unmodifiable;
 
-import java.lang.reflect.Constructor;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
@@ -280,7 +277,7 @@ public abstract class BukkitData implements Data {
         public List<Effect> getActiveEffects() {
             return effects.stream()
                     .map(potionEffect -> new Effect(
-                            potionEffect.getType().getName().toLowerCase(Locale.ENGLISH),
+                            potionEffect.getType().getKey().toString(),
                             potionEffect.getAmplifier(),
                             potionEffect.getDuration(),
                             potionEffect.isAmbient(),
@@ -563,12 +560,8 @@ public abstract class BukkitData implements Data {
     @Getter
     @AllArgsConstructor(access = AccessLevel.PRIVATE)
     @NoArgsConstructor(access = AccessLevel.PRIVATE)
+    @SuppressWarnings("UnstableApiUsage")
     public static class Attributes extends BukkitData implements Data.Attributes, Adaptable {
-
-        private static final String EQUIPMENT_SLOT_GROUP = "org.bukkit.inventory.EquipmentSlotGroup";
-        private static final String EQUIPMENT_SLOT_GROUP$ANY = "ANY";
-        private static final String EQUIPMENT_SLOT$getGroup = "getGroup";
-        private static TriState USE_KEYED_MODIFIERS = TriState.NOT_SET;
 
         private List<Attribute> attributes;
 
@@ -607,6 +600,7 @@ public abstract class BukkitData implements Data {
                     instance.getBaseValue(),
                     instance.getModifiers().stream()
                             .filter(modifier -> !settings.isIgnoredModifier(modifier.getName()))
+                            .filter(modifier -> modifier.getSlotGroup() != EquipmentSlotGroup.ANY)
                             .map(BukkitData.Attributes::adapt).collect(Collectors.toSet())
             );
         }
@@ -614,34 +608,14 @@ public abstract class BukkitData implements Data {
         @NotNull
         private static Modifier adapt(@NotNull AttributeModifier modifier) {
             return new Modifier(
-                    getModifierId(modifier),
-                    modifier.getName(),
+                    modifier.getKey().toString(),
                     modifier.getAmount(),
                     modifier.getOperation().ordinal(),
-                    modifier.getSlot() != null ? modifier.getSlot().ordinal() : -1
+                    modifier.getSlotGroup().toString()
             );
         }
 
-        @Nullable
-        private static UUID getModifierId(@NotNull AttributeModifier modifier) {
-            try {
-                return modifier.getUniqueId();
-            } catch (Throwable e) {
-                return null;
-            }
-        }
-
-        private static boolean useKeyedModifiers(@NotNull HuskSync plugin) {
-            if (USE_KEYED_MODIFIERS == TriState.NOT_SET) {
-                boolean is1_21 = plugin.getMinecraftVersion().compareTo(Version.fromString("1.21")) >= 0;
-                USE_KEYED_MODIFIERS = TriState.byBoolean(is1_21);
-                return is1_21;
-            }
-            return Boolean.TRUE.equals(USE_KEYED_MODIFIERS.toBoolean());
-        }
-
-        private static void applyAttribute(@Nullable AttributeInstance instance, @Nullable Attribute attribute,
-                                           @NotNull HuskSync plugin) {
+        private static void applyAttribute(@Nullable AttributeInstance instance, @Nullable Attribute attribute) {
             if (instance == null) {
                 return;
             }
@@ -651,51 +625,25 @@ public abstract class BukkitData implements Data {
                 attribute.modifiers().stream()
                         .filter(mod -> instance.getModifiers().stream().map(AttributeModifier::getName)
                                 .noneMatch(n -> n.equals(mod.name())))
-                        .distinct()
-                        .filter(mod -> useKeyedModifiers(plugin) == !mod.hasUuid())
-                        .forEach(mod -> instance.addModifier(adapt(mod, plugin)));
+                        .distinct().filter(mod -> !mod.hasUuid())
+                        .forEach(mod -> instance.addModifier(adapt(mod)));
             }
         }
 
-        @SuppressWarnings("JavaReflectionMemberAccess")
         @NotNull
-        private static AttributeModifier adapt(@NotNull Modifier modifier, @NotNull HuskSync plugin) {
-            final int slotId = modifier.equipmentSlot();
-            if (useKeyedModifiers(plugin)) {
-                try {
-                    // Reflexively create a modern keyed attribute modifier instance. Remove in favor of API long-term.
-                    final EquipmentSlot slot = slotId != -1 ? EquipmentSlot.values()[slotId] : null;
-                    final Class<?> slotGroup = Class.forName(EQUIPMENT_SLOT_GROUP);
-                    final String modifierName = modifier.name() == null ? modifier.uuid().toString() : modifier.name();
-                    final NamespacedKey modifierKey = Objects.requireNonNull(NamespacedKey.fromString(modifierName),
-                            "Modifier key returned null");
-                    final Constructor<AttributeModifier> constructor = AttributeModifier.class.getDeclaredConstructor(
-                            NamespacedKey.class, double.class, AttributeModifier.Operation.class, slotGroup);
-                    return constructor.newInstance(
-                            modifierKey,
-                            modifier.amount(),
-                            AttributeModifier.Operation.values()[modifier.operationType()],
-                            slot == null ? slotGroup.getField(EQUIPMENT_SLOT_GROUP$ANY).get(null)
-                                    : EquipmentSlot.class.getDeclaredMethod(EQUIPMENT_SLOT$getGroup).invoke(slot)
-                    );
-                } catch (Throwable e) {
-                    plugin.log(Level.WARNING, "Error reflectively creating keyed attribute modifier", e);
-                    USE_KEYED_MODIFIERS = TriState.FALSE;
-                }
-            }
+        private static AttributeModifier adapt(@NotNull Modifier modifier) {
             return new AttributeModifier(
-                    modifier.uuid(),
-                    modifier.name(),
+                    Objects.requireNonNull(NamespacedKey.fromString(modifier.name())),
                     modifier.amount(),
-                    AttributeModifier.Operation.values()[modifier.operationType()],
-                    slotId != -1 ? EquipmentSlot.values()[slotId] : null
+                    AttributeModifier.Operation.values()[modifier.operation()],
+                    modifier.equipmentSlotGroup().map(EquipmentSlotGroup::getByName).orElse(EquipmentSlotGroup.ANY)
             );
         }
 
         @Override
         public void apply(@NotNull BukkitUser user, @NotNull BukkitHuskSync plugin) throws IllegalStateException {
             Registry.ATTRIBUTE.forEach(id -> applyAttribute(
-                    user.getPlayer().getAttribute(id), getAttribute(id).orElse(null), plugin
+                    user.getPlayer().getAttribute(id), getAttribute(id).orElse(null)
             ));
         }
 
