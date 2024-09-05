@@ -25,23 +25,23 @@ jobs:
       - name: '[Current - 1.21.1] Checkout for CI 🛎️'
         uses: actions/checkout@v4
         with:
-          path: '1.21.1'
+          path: '1_21_1'
       - name: '[LTS - 1.20.1] Checkout for CI 🛎️'
         uses: actions/checkout@v4
         with:
           ref: 'minecraft/1.20.1'
-          path: '1.20.1'
+          path: '1_20_1'
         env:
           RELEASES_MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
           RELEASES_MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
       - name: '[Current - 1.21.1] Build 🛎️'
         run: |
-          cd 1.21.1
+          cd 1_21_1
           ./gradlew clean build publish
           cd ..
       - name: '[LTS - 1.20.1] Build 🛎️'
         run: |
-          cd 1.20.1
+          cd 1_20_1
           ./gradlew clean build publish
           cd ${{ github.workspace }}
       - name: 'Publish Test Report 📊'
@@ -73,7 +73,7 @@ jobs:
             Paper 1.20.1
             Fabric 1.20.1
           files: |
-            1.21.1/target/HuskSync-Paper-${{ github.event.release.tag_name }}+mc.1.21.1.jar
-            1.21.1/target/HuskSync-Fabric-${{ github.event.release.tag_name }}+mc.1.21.1.jar
-            1.20.1/target/HuskSync-Paper-${{ github.event.release.tag_name }}+mc.1.20.1.jar
-            1.20.1/target/HuskSync-Fabric-${{ github.event.release.tag_name }}+mc.1.20.1.jar
+            1_21_1/target/HuskSync-Paper-${{ github.event.release.tag_name }}+mc.1.21.1.jar
+            1_21_1/target/HuskSync-Fabric-${{ github.event.release.tag_name }}+mc.1.21.1.jar
+            1_20_1/target/HuskSync-Paper-${{ github.event.release.tag_name }}+mc.1.20.1.jar
+            1_20_1/target/HuskSync-Fabric-${{ github.event.release.tag_name }}+mc.1.20.1.jar
