@@ -38,15 +38,13 @@ jobs:
         run: |
           cd 1_21_1
           ./gradlew clean build publish
-          cp target/HuskSync-Paper-${{ github.event.release.tag_name }}+mc.1.21.1.jar ../target/HuskSync-Paper-${{ github.event.release.tag_name }}+mc.1.21.1.jar
-          cp target/HuskSync-Fabric-${{ github.event.release.tag_name }}+mc.1.21.1.jar ../target/HuskSync-Fabric-${{ github.event.release.tag_name }}+mc.1.21.1.jar
+          cp -R target ../target/
           cd ..
       - name: '[LTS - 1.20.1] Build 🛎️'
         run: |
           cd 1_20_1
           ./gradlew clean build publish
-          cp target/HuskSync-Paper-${{ github.event.release.tag_name }}+mc.1.20.1.jar ../target/HuskSync-Paper-${{ github.event.release.tag_name }}+mc.1.20.1.jar
-          cp target/HuskSync-Fabric-${{ github.event.release.tag_name }}+mc.1.20.1.jar ../target/HuskSync-Fabric-${{ github.event.release.tag_name }}+mc.1.20.1.jar
+          cp -R target ../target/
           cd ..
       - name: 'Publish Test Report 📊'
         uses: mikepenz/action-junit-report@v4

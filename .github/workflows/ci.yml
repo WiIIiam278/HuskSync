@@ -41,11 +41,13 @@ jobs:
         run: |
           cd 1_21_1
           ./gradlew clean build publish
+          cp -R target ../target/
           cd ..
       - name: '[LTS - 1.20.1] Build 🛎️'
         run: |
           cd 1_20_1
           ./gradlew clean build publish
+          cp -R target ../target/
           cd ..
       - name: 'Publish Test Report 📊'
         uses: mikepenz/action-junit-report@v4
@@ -85,7 +87,7 @@ jobs:
             Paper 1.20.1
             Fabric 1.20.1
           files: |
-            1_21_1/target/HuskSync-Paper-${{ env.version_name }}+mc.1.21.1.jar
-            1_21_1/target/HuskSync-Fabric-${{ env.version_name }}+mc.1.21.1.jar
-            1_20_1/target/HuskSync-Paper-${{ env.version_name }}+mc.1.20.1.jar
-            1_20_1/target/HuskSync-Fabric-${{ env.version_name }}+mc.1.20.1.jar
+            target/HuskSync-Paper-${{ env.version_name }}+mc.1.21.1.jar
+            target/HuskSync-Fabric-${{ env.version_name }}+mc.1.21.1.jar
+            target/HuskSync-Paper-${{ env.version_name }}+mc.1.20.1.jar
+            target/HuskSync-Fabric-${{ env.version_name }}+mc.1.20.1.jar
