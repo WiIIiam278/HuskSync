@@ -60,7 +60,7 @@ jobs:
       - name: 'Set Version Variable 📝'
         run: |
           echo "version_name=${{steps.fetch-version.outputs.VERSION_NAME}}" >> $GITHUB_ENV
-          cd ..
+          cd ${{ github.workspace }}
       - name: 'Publish to William278.net 🚀'
         uses: WiIIiam278/bones-publish-action@v1
         with:
@@ -85,7 +85,7 @@ jobs:
             Paper 1.20.1
             Fabric 1.20.1
           files: |
-            ${{ github.workspace }}/1.21.1/target/HuskSync-Paper-${{ env.version_name }}+mc.1.21.1.jar
-            ${{ github.workspace }}/1.21.1/target/HuskSync-Fabric-${{ env.version_name }}+mc.1.21.1.jar
-            ${{ github.workspace }}/1.20.1/target/HuskSync-Paper-${{ env.version_name }}+mc.1.20.1.jar
-            ${{ github.workspace }}/1.20.1/target/HuskSync-Fabric-${{ env.version_name }}+mc.1.20.1.jar
+            1.21.1/target/HuskSync-Paper-${{ env.version_name }}+mc.1.21.1.jar
+            1.21.1/target/HuskSync-Fabric-${{ env.version_name }}+mc.1.21.1.jar
+            1.20.1/target/HuskSync-Paper-${{ env.version_name }}+mc.1.20.1.jar
+            1.20.1/target/HuskSync-Fabric-${{ env.version_name }}+mc.1.20.1.jar
