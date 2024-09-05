@@ -73,7 +73,7 @@ jobs:
             Paper 1.20.1
             Fabric 1.20.1
           files: |
-            1.21.1/target/HuskSync-Paper-${{ github.event.release.tag_name }}+mc.1.21.1.jar
-            1.21.1/target/HuskSync-Fabric-${{ github.event.release.tag_name }}+mc.1.21.1.jar
-            1.20.1/target/HuskSync-Paper-${{ github.event.release.tag_name }}+mc.1.20.1.jar
-            1.20.1/target/HuskSync-Fabric-${{ github.event.release.tag_name }}+mc.1.20.1.jar
+            ${{ env.github_workspace }}/1.21.1/target/HuskSync-Paper-${{ github.event.release.tag_name }}+mc.1.21.1.jar
+            ${{ env.github_workspace }}/1.21.1/target/HuskSync-Fabric-${{ github.event.release.tag_name }}+mc.1.21.1.jar
+            ${{ env.github_workspace }}/1.20.1/target/HuskSync-Paper-${{ github.event.release.tag_name }}+mc.1.20.1.jar
+            ${{ env.github_workspace }}/1.20.1/target/HuskSync-Fabric-${{ github.event.release.tag_name }}+mc.1.20.1.jar
