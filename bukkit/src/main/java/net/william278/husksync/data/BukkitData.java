@@ -35,6 +35,7 @@ import org.bukkit.*;
 import org.bukkit.advancement.AdvancementProgress;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.attribute.AttributeModifier;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.EquipmentSlotGroup;
@@ -452,9 +453,10 @@ public abstract class BukkitData implements Data {
             Registry.STATISTIC.forEach(id -> {
                 switch (id.getType()) {
                     case UNTYPED -> addStatistic(player, id, generic);
-                    case BLOCK -> addMaterialStatistic(player, id, blocks, true);
-                    case ITEM -> addMaterialStatistic(player, id, items, false);
-                    case ENTITY -> addEntityStatistic(player, id, entities);
+                    // Todo - Future - Use BLOCK and ITEM registries when API stabilizes
+                    case BLOCK -> addStatistic(player, id, Registry.MATERIAL, blocks);
+                    case ITEM -> addStatistic(player, id, Registry.MATERIAL, items);
+                    case ENTITY -> addStatistic(player, id, Registry.ENTITY_TYPE, entities);
                 }
             });
             return new BukkitData.Statistics(generic, blocks, items, entities);
@@ -475,30 +477,19 @@ public abstract class BukkitData implements Data {
             }
         }
 
-        private static void addMaterialStatistic(@NotNull Player p, @NotNull Statistic id,
-                                                 @NotNull Map<String, Map<String, Integer>> map, boolean isBlock) {
-            Registry.MATERIAL.forEach(material -> {
-                if ((material.isBlock() && !isBlock) || (material.isItem() && isBlock)) {
-                    return;
-                }
-                final int stat = p.getStatistic(id, material);
-                if (stat != 0) {
-                    map.compute(id.getKey().getKey(), (k, v) -> v == null ? Maps.newHashMap() : v)
-                            .put(material.getKey().getKey(), stat);
-                }
-            });
-        }
-
-        private static void addEntityStatistic(@NotNull Player p, @NotNull Statistic id,
-                                               @NotNull Map<String, Map<String, Integer>> map) {
-            Registry.ENTITY_TYPE.forEach(entity -> {
-                if (!entity.isAlive()) {
-                    return;
-                }
-                final int stat = p.getStatistic(id, entity);
-                if (stat != 0) {
-                    map.compute(id.getKey().getKey(), (k, v) -> v == null ? Maps.newHashMap() : v)
-                            .put(entity.getKey().getKey(), stat);
+        private static <R extends Keyed> void addStatistic(@NotNull Player p, @NotNull Statistic id,
+                                                           @NotNull Registry<R> registry,
+                                                           @NotNull Map<String, Map<String, Integer>> map) {
+            registry.forEach(i -> {
+                try {
+                    final int stat = i instanceof Material m ? p.getStatistic(id, m) :
+                            (i instanceof EntityType e ? p.getStatistic(id, e) : -1);
+                    if (stat != 0) {
+                        map.compute(id.getKey().getKey(), (k, v) -> v == null ? Maps.newHashMap() : v)
+                                .put(i.getKey().getKey(), stat);
+                        System.out.println("Adding stat for " + id.getKey() + ", type: " + i.getKey());
+                    }
+                } catch (IllegalStateException ignored) {
                 }
             });
         }
