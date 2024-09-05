@@ -275,12 +275,19 @@ public class Settings {
         @NoArgsConstructor(access = AccessLevel.PRIVATE)
         public static class AttributeSettings {
 
-            @Comment({"Which attributes should not be saved when syncing users. Supports wildcard matching.",
+            @Comment({"Which attribute types should be saved as part of attribute syncing. Supports wildcard matching.",
                     "(e.g. ['minecraft:generic.max_health', 'minecraft:generic.*'])"})
             @Getter(AccessLevel.NONE)
-            private List<String> ignoredAttributes = new ArrayList<>(List.of(""));
+            private List<String> syncedAttributes = new ArrayList<>(List.of(
+                    "minecraft:generic.max_health", "minecraft:max_health",
+                    "minecraft:generic.max_absorption", "minecraft:max_absorption",
+                    "minecraft:generic.luck", "minecraft:luck",
+                    "minecraft:generic.scale", "minecraft:scale",
+                    "minecraft:generic.step_height", "minecraft:step_height",
+                    "minecraft:generic.gravity", "minecraft:gravity"
+            ));
 
-            @Comment({"Which modifiers should not be saved when syncing users. Supports wildcard matching.",
+            @Comment({"Which attribute modifiers should be saved. Supports wildcard matching.",
                     "(e.g. ['minecraft:effect.speed', 'minecraft:effect.*'])"})
             @Getter(AccessLevel.NONE)
             private List<String> ignoredModifiers = new ArrayList<>(List.of(
@@ -297,8 +304,8 @@ public class Settings {
                 return pat.contains("*") ? value.matches(pat.replace("*", ".*")) : pat.equals(value);
             }
 
-            public boolean isIgnoredAttribute(@NotNull String attribute) {
-                return ignoredAttributes.stream().anyMatch(wildcard -> matchesWildcard(wildcard, attribute));
+            public boolean isSyncedAttribute(@NotNull String attribute) {
+                return syncedAttributes.stream().anyMatch(wildcard -> matchesWildcard(wildcard, attribute));
             }
 
             public boolean isIgnoredModifier(@NotNull String modifier) {

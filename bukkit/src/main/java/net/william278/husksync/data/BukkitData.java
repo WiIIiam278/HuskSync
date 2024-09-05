@@ -571,9 +571,9 @@ public abstract class BukkitData implements Data {
             final AttributeSettings settings = plugin.getSettings().getSynchronization().getAttributes();
             Registry.ATTRIBUTE.forEach(id -> {
                 final AttributeInstance instance = player.getAttribute(id);
-                if (instance == null || Double.compare(instance.getValue(), instance.getDefaultValue()) == 0
-                    || settings.isIgnoredAttribute(id.getKey().toString())) {
-                    return; // We don't sync unmodified or disabled attributes
+                if (!settings.isSyncedAttribute(id.getKey().toString()) || instance == null
+                    || Double.compare(instance.getValue(), instance.getDefaultValue()) == 0) {
+                    return; // We don't sync attributes not marked as to be synced
                 }
                 attributes.add(adapt(instance, settings));
             });
