@@ -52,11 +52,12 @@ jobs:
         if: success() || failure() # Continue on failure
         with:
           report_paths: '**/build/test-results/test/TEST-*.xml'
-      - name: 'Fetch Version Name 📝'
+      - name: 'Fetch Version String 📝'
         run: |
-          echo "::set-output name=VERSION_NAME::$(${{github.workspace}}/1.21.1/gradlew properties --no-daemon --console=plain -q | grep "^version:" | awk '{printf $2}')"
+          cd 1.21.1
+          echo "::set-output name=VERSION_NAME::$(./gradlew properties --no-daemon --console=plain -q | grep "^version:" | awk '{printf $2}')"
         id: fetch-version
-      - name: Get Version
+      - name: 'Set Version Variable 📝'
         run: |
           echo "version_name=${{steps.fetch-version.outputs.VERSION_NAME}}" >> $GITHUB_ENV
           cd ..
