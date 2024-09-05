@@ -11,6 +11,7 @@ permissions:
 
 jobs:
   build:
+    name: 'Publish Release'
     runs-on: ubuntu-latest
     steps:
       - name: 'Setup JDK 21 📦'
@@ -38,13 +39,13 @@ jobs:
         run: |
           mkdir target
           cd 1_21_1
-          ./gradlew clean build publish
+          ./gradlew clean build publish -Dforce-hide-version-meta=1
           cp -rf target/* ../target/
           cd ..
       - name: '[LTS - 1.20.1] Build 🛎️'
         run: |
           cd 1_20_1
-          ./gradlew clean build publish
+          ./gradlew clean build publish -Dforce-hide-version-meta=1
           cp -rf target/* ../target/
           cd ..
       - name: 'Publish Test Report 📊'
