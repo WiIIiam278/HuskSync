@@ -487,7 +487,6 @@ public abstract class BukkitData implements Data {
                     if (stat != 0) {
                         map.compute(id.getKey().getKey(), (k, v) -> v == null ? Maps.newHashMap() : v)
                                 .put(i.getKey().getKey(), stat);
-                        System.out.println("Adding stat for " + id.getKey() + ", type: " + i.getKey());
                     }
                 } catch (IllegalStateException ignored) {
                 }
