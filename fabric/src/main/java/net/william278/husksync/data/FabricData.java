@@ -48,6 +48,7 @@ import net.william278.desertwell.util.ThrowingConsumer;
 import net.william278.husksync.FabricHuskSync;
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.adapter.Adaptable;
+import net.william278.husksync.config.Settings.SynchronizationSettings.AttributeSettings;
 import net.william278.husksync.user.FabricUser;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -377,7 +378,7 @@ public abstract class FabricData implements Data {
 
         // Performs a consuming function for every advancement entry registered on the server
         private static void forEachAdvancementEntry(@NotNull MinecraftServer server,
-                                               @NotNull ThrowingConsumer<net.minecraft.advancement.AdvancementEntry> con) {
+                                                    @NotNull ThrowingConsumer<net.minecraft.advancement.AdvancementEntry> con) {
             server.getAdvancementLoader().getAdvancements().forEach(con);
         }
 
@@ -434,15 +435,15 @@ public abstract class FabricData implements Data {
             try {
                 player.dismountVehicle();
                 player.teleportTo(
-                    new TeleportTarget(
-                        server.getWorld(server.getWorldRegistryKeys().stream()
-                            .filter(key -> key.getValue().equals(Identifier.tryParse(world.name())))
-                            .findFirst().orElseThrow(
-                                    () -> new IllegalStateException("Invalid world")
-                            )),
-                        player,
-                        TeleportTarget.NO_OP
-                    )
+                        new TeleportTarget(
+                                server.getWorld(server.getWorldRegistryKeys().stream()
+                                        .filter(key -> key.getValue().equals(Identifier.tryParse(world.name())))
+                                        .findFirst().orElseThrow(
+                                                () -> new IllegalStateException("Invalid world")
+                                        )),
+                                player,
+                                TeleportTarget.NO_OP
+                        )
                 );
             } catch (Throwable e) {
                 throw new IllegalStateException("Failed to apply location", e);
@@ -570,10 +571,11 @@ public abstract class FabricData implements Data {
         @NotNull
         public static FabricData.Attributes adapt(@NotNull ServerPlayerEntity player, @NotNull HuskSync plugin) {
             final List<Attribute> attributes = Lists.newArrayList();
+            final AttributeSettings settings = plugin.getSettings().getSynchronization().getAttributes();
             Registries.ATTRIBUTE.forEach(id -> {
                 final EntityAttributeInstance instance = player.getAttributeInstance(RegistryEntry.of(id));
                 final Identifier key = Registries.ATTRIBUTE.getId(id);
-                if (instance == null || key == null) {
+                if (instance == null || key == null || settings.isIgnoredAttribute(key.asString())) {
                     return;
                 }
                 final Set<Modifier> modifiers = Sets.newHashSet();
@@ -608,10 +610,17 @@ public abstract class FabricData implements Data {
 
         @Override
         protected void apply(@NotNull FabricUser user, @NotNull FabricHuskSync plugin) {
-            Registries.ATTRIBUTE.forEach(id -> applyAttribute(
-                    user.getPlayer().getAttributeInstance(RegistryEntry.of(id)),
-                    getAttribute(id).orElse(null)
-            ));
+            final AttributeSettings settings = plugin.getSettings().getSynchronization().getAttributes();
+            Registries.ATTRIBUTE.forEach(id -> {
+                final Identifier key = Registries.ATTRIBUTE.getId(id);
+                if (key == null || settings.isIgnoredAttribute(key.toString())) {
+                    return;
+                }
+                applyAttribute(
+                        user.getPlayer().getAttributeInstance(RegistryEntry.of(id)),
+                        getAttribute(id).orElse(null)
+                );
+            });
 
         }
 
@@ -620,8 +629,8 @@ public abstract class FabricData implements Data {
             if (instance == null) {
                 return;
             }
-            instance.setBaseValue(attribute == null ? instance.getAttribute().value().getDefaultValue() : attribute.baseValue());
             instance.getModifiers().forEach(instance::removeModifier);
+            instance.setBaseValue(attribute == null ? instance.getValue() : attribute.baseValue());
             if (attribute != null) {
                 attribute.modifiers().forEach(modifier -> instance.addTemporaryModifier(new EntityAttributeModifier(
                         Identifier.of(modifier.uuid().toString()),

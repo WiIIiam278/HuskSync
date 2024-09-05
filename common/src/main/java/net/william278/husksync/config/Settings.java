@@ -304,8 +304,8 @@ public class Settings {
                 return pat.contains("*") ? value.matches(pat.replace("*", ".*")) : pat.equals(value);
             }
 
-            public boolean isSyncedAttribute(@NotNull String attribute) {
-                return syncedAttributes.stream().anyMatch(wildcard -> matchesWildcard(wildcard, attribute));
+            public boolean isIgnoredAttribute(@NotNull String attribute) {
+                return syncedAttributes.stream().noneMatch(wildcard -> matchesWildcard(wildcard, attribute));
             }
 
             public boolean isIgnoredModifier(@NotNull String modifier) {
