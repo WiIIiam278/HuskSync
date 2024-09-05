@@ -54,8 +54,7 @@ jobs:
           report_paths: '**/build/test-results/test/TEST-*.xml'
       - name: 'Fetch Version Name 📝'
         run: |
-          cd 1.21.1
-          echo "::set-output name=VERSION_NAME::$(${{github.workspace}}/gradlew properties --no-daemon --console=plain -q | grep "^version:" | awk '{printf $2}')"
+          echo "::set-output name=VERSION_NAME::$(${{github.workspace}}/1.21.1/gradlew properties --no-daemon --console=plain -q | grep "^version:" | awk '{printf $2}')"
         id: fetch-version
       - name: Get Version
         run: |
