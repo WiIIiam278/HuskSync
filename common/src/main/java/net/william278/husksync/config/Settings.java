@@ -95,9 +95,6 @@ public class Settings {
         @Comment("Specify credentials here for your MYSQL, MARIADB, POSTGRES OR MONGO database")
         private DatabaseCredentials credentials = new DatabaseCredentials();
 
-        @Comment("Whether to run the creation SQL on the database when the server starts. Don't modify this unless you know what you're doing!")
-        private boolean createTables = true;
-
         @Getter
         @Configuration
         @NoArgsConstructor(access = AccessLevel.PRIVATE)
@@ -143,6 +140,9 @@ public class Settings {
         @Comment("Names of tables to use on your database. Don't modify this unless you know what you're doing!")
         @Getter(AccessLevel.NONE)
         private Map<String, String> tableNames = Database.TableName.getDefaults();
+
+        @Comment("Whether to run the creation SQL on the database when the server starts. Don't modify this unless you know what you're doing!")
+        private boolean createTables = true;
 
         @NotNull
         public String getTableName(@NotNull Database.TableName tableName) {
