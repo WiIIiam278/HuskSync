@@ -64,6 +64,10 @@ public class MongoDbDatabase extends Database {
             ConnectionString URI = createConnectionURI(credentials);
             mongoConnectionHandler = new MongoConnectionHandler(URI, credentials.getDatabase());
             mongoCollectionHelper = new MongoCollectionHelper(mongoConnectionHandler);
+
+            // Check config for if tables should be created
+            if (!plugin.getSettings().getDatabase().isCreateTables()) return;
+
             if (mongoCollectionHelper.getCollection(usersTable) == null) {
                 mongoCollectionHelper.createCollection(usersTable);
             }

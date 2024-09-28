@@ -141,6 +141,9 @@ public class Settings {
         @Getter(AccessLevel.NONE)
         private Map<String, String> tableNames = Database.TableName.getDefaults();
 
+        @Comment("Whether to run the creation SQL on the database when the server starts. Don't modify this unless you know what you're doing!")
+        private boolean createTables = true;
+
         @NotNull
         public String getTableName(@NotNull Database.TableName tableName) {
             return tableNames.getOrDefault(tableName.name().toLowerCase(Locale.ENGLISH), tableName.getDefaultName());
