@@ -115,6 +115,9 @@ public class MySqlDatabase extends Database {
         );
         dataSource.setDataSourceProperties(properties);
 
+        // Check config for if tables should be created
+        if (!plugin.getSettings().getDatabase().isCreateTables()) return;
+
         // Prepare database schema; make tables if they don't exist
         try (Connection connection = dataSource.getConnection()) {
             final String[] databaseSchema = getSchemaStatements(String.format("database/%s_schema.sql", flavor));
