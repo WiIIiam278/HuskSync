@@ -120,9 +120,6 @@ public class FabricHuskSync implements DedicatedServerModInitializer, HuskSync, 
         this.disabling = false;
         this.gson = createGson();
 
-        // Check compatibility
-        checkCompatibility();
-
         // Load settings and locales
         initialize("plugin config & locale files", (plugin) -> {
             loadSettings();
@@ -146,6 +143,9 @@ public class FabricHuskSync implements DedicatedServerModInitializer, HuskSync, 
     private void onEnable() {
         // Initial plugin setup
         this.audiences = FabricServerAudiences.of(minecraftServer);
+
+        // Check compatibility
+        checkCompatibility();
 
         // Prepare data adapter
         initialize("data adapter", (plugin) -> {
