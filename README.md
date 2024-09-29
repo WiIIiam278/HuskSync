@@ -1,8 +1,8 @@
 <!--suppress ALL -->
 <p align="center">
     <img src="images/banner.png" alt="HuskSync" />
-    <a href="https://github.com/WiIIiam278/HuskSync/actions/workflows/ci.yml">
-        <img src="https://img.shields.io/github/actions/workflow/status/WiIIiam278/HuskSync/ci.yml?branch=master&logo=github"/>
+    <a href="https://github.com/WiIIiam278/HuskSync/actions/workflows/ci_1.21.1.yml">
+        <img src="https://img.shields.io/github/actions/workflow/status/WiIIiam278/HuskSync/ci_1.21.1.yml?branch=master&logo=github"/>
     </a>
     <a href="https://repo.william278.net/#/releases/net/william278/husksync/">
         <img src="https://repo.william278.net/api/badge/latest/releases/net/william278/husksync/husksync-common?color=00fb9a&name=Maven&prefix=v" />
