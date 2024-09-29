@@ -328,11 +328,16 @@ public class PostgresDatabase extends Database {
         if (unpinnedUserData.size() > maxSnapshots) {
             try (Connection connection = getConnection()) {
                 try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
-                        DELETE FROM %user_data_table%
-                        WHERE player_uuid=?
-                        AND pinned=FALSE
-                        ORDER BY timestamp ASC
-                        LIMIT %entry_count%;""".replace("%entry_count%",
+                        WITH cte AS (
+                          SELECT id
+                          FROM user_data_table
+                          WHERE player_uuid=?
+                            AND pinned=FALSE
+                          ORDER BY timestamp ASC
+                          LIMIT %entry_count%
+                        )
+                        DELETE FROM user_data_table
+                        WHERE id IN (SELECT id FROM cte);""".replace("%entry_count%",
                         Integer.toString(unpinnedUserData.size() - maxSnapshots))))) {
                     statement.setObject(1, user.getUuid());
                     statement.executeUpdate();
@@ -349,10 +354,9 @@ public class PostgresDatabase extends Database {
         try (Connection connection = getConnection()) {
             try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
                     DELETE FROM %user_data_table%
-                    WHERE player_uuid=? AND version_uuid=?
-                    LIMIT 1;"""))) {
+                    WHERE player_uuid=? AND version_uuid=?;"""))) {
                 statement.setObject(1, user.getUuid());
-                statement.setString(2, versionUuid.toString());
+                statement.setObject(2, versionUuid);
                 return statement.executeUpdate() > 0;
             }
         } catch (SQLException e) {
