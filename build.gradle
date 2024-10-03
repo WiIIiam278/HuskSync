@@ -197,7 +197,7 @@ logger.lifecycle("Building HuskSync ${version} by William278 for Minecraft ${min
 @SuppressWarnings('GrMethodMayBeStatic')
 def versionMetadata() {
     // If the force-hide-version-meta environment variable is set, return ''
-    if (System.getenv('force-hide-version-meta') != null) {
+    if (System.getProperty('force-hide-version-meta') != null) {
         return ''
     }
 
