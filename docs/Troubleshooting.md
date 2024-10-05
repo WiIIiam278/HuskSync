@@ -25,3 +25,17 @@ If you are hosting your Redis server on the same node as your servers, you need 
 
 ### MySQL connection problems on Pterodactyl
 If you have more than one MySQL server connected to your panel, you may need to set `useSSL=true` in the parameters.
+
+### Issues with player data going out of sync during a server restart
+This can happen due to the way in which your server restarts. If your server uses either:
+
+* `/restart` (this is a weird Spigot command that uses legacy bash scripting)
+* ANY restart plugin, e.g. UltimateAutoRestart (these basically execute an API-called restart using the same legacy bash logic as per above)
+
+These are **not compatible** with HuskSync in most cases due to the way in which this causes restart servers causing shutdown logic to process in strange and unpredictable orders, usually before HuskSync has had a chance to scan and perform its shutdown logic. To safely restart your server, please use:
+
+* A Pterodactyl task to perform a Restart. This executes the Power Action program stopcode (and then execute the startup command when the container has terminated)
+* A cronjob to send a stop command / Power Action program stopcode, listen for the service to fully terminate, and then execute your startup command
+* For manual restarts, executing `/stop` and starting your server up with the startup command is totally fine.
+
+It's not a great idea to use a plugin to handle restarts. Plugins are only able to operate when your server is turned on and must rely on scripts which don't safely shutdown servers when restarting.

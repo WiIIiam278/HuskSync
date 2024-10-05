@@ -3,6 +3,7 @@ Welcome! This is the plugin documentation for HuskSync v3.x+. Please click throu
 
 ## Guides
 * 📚 [[Setup]]
+* ⚠️ [[Compatibility]]
 * 📄 [[Config File]]
 * 🔗 [[Troubleshooting]]
 * ↪️ [[Data Rotation]]

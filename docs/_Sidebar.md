@@ -1,5 +1,6 @@
 ## Guides
 * 📚 [[Setup]]
+* ⚠️ [[Compatibility]]
 * 📄 [[Config File]]
 * 🔗 [[Troubleshooting]]
 * ↪️ [[Data Rotation]]

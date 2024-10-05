@@ -14,7 +14,7 @@ HuskSync is primarily developed against the latest release. Old Minecraft versio
 * Long Term Support (LTS) &ndash; Supported for up to 12-18 months
 * Non-Long Term Support (Non-LTS) &ndash; Supported for 3-6 months
 
-## Incompatible 
+## Incompatible versions
 This plugin does not support the following software-Minecraft version combinations. The plugin will fail to load if you attempt to run it with these versions. Apologies for the inconvenience.
 
 | Minecraft         | Server Software                           | Notes                                  |
