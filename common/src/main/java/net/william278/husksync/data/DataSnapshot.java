@@ -913,6 +913,8 @@ public class DataSnapshot {
 
         private final boolean fireDataSaveEvent;
 
+        private static Map<String, SaveCause> registry;
+
         /**
          * Get or create a {@link SaveCause} from a name
          *
@@ -921,7 +923,7 @@ public class DataSnapshot {
          */
         @NotNull
         public static SaveCause of(@NotNull String name) {
-            return new SaveCause(name.length() > 32 ? name.substring(0, 31) : name, true);
+            return of(name,true);
         }
 
         /**
@@ -933,7 +935,14 @@ public class DataSnapshot {
          */
         @NotNull
         public static SaveCause of(@NotNull String name, boolean firesSaveEvent) {
-            return new SaveCause(name.length() > 32 ? name.substring(0, 31) : name, firesSaveEvent);
+            name = name.length() > 32 ? name.substring(0, 31) : name;
+
+            if (registry == null) registry = new HashMap<>();
+            if (registry.containsKey(name)) return registry.get(name);
+
+            SaveCause cause = new SaveCause(name, firesSaveEvent);
+            registry.put(cause.name(), cause);
+            return cause;
         }
 
         @NotNull
@@ -944,11 +953,10 @@ public class DataSnapshot {
         }
 
         @NotNull
+        @ApiStatus.Obsolete
         public static SaveCause[] values() {
-            return new SaveCause[]{
-                    DISCONNECT, WORLD_SAVE, DEATH, SERVER_SHUTDOWN, INVENTORY_COMMAND, ENDERCHEST_COMMAND,
-                    BACKUP_RESTORE, API, MPDB_MIGRATION, LEGACY_MIGRATION, CONVERTED_FROM_V2
-            };
+            if (registry == null) registry = new HashMap<>();
+            return registry.values().toArray(new SaveCause[0]);
         }
     }
 
