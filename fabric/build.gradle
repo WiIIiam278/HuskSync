@@ -28,7 +28,7 @@ dependencies {
     implementation include("org.postgresql:postgresql:$postgres_driver_version")
     implementation include("org.xerial.snappy:snappy-java:$snappy_version")
 
-    compileOnly 'org.jetbrains:annotations:26.0.0'
+    compileOnly 'org.jetbrains:annotations:26.0.1'
     compileOnly 'net.william278:DesertWell:2.0.4'
     compileOnly 'org.projectlombok:lombok:1.18.34'
 
