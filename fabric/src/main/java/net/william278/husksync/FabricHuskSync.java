@@ -274,6 +274,15 @@ public class FabricHuskSync implements DedicatedServerModInitializer, HuskSync, 
         return FabricUniform.getInstance(mod.getMetadata().getId());
     }
 
+    @NotNull
+    @Override
+    public Map<Identifier, Data> getPlayerCustomDataStore(@NotNull OnlineUser user) {
+        return playerCustomDataStore.compute(
+                user.getUuid(),
+                (uuid, data) -> data == null ? Maps.newHashMap() : data
+        );
+    }
+
     @Override
     @Nullable
     public InputStream getResource(@NotNull String name) {
