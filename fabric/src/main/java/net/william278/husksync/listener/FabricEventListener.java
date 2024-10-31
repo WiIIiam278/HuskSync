@@ -124,7 +124,6 @@ public class FabricEventListener extends EventListener implements LockedHandler 
     }
 
     private ActionResult handleItemInteract(PlayerEntity player, World world, Hand hand) {
-        ItemStack stackInHand = player.getStackInHand(hand);
         return (cancelPlayerEvent(player.getUuid())) ? ActionResult.FAIL : ActionResult.PASS;
     }
 

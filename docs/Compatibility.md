@@ -1,13 +1,14 @@
 HuskSync supports the following versions of Minecraft. Since v3.7, you must download the correct version of HuskSync for your server:
 
-|    Minecraft    | Latest HuskSync | Java Version | Platforms     | Support Ends              |
-|:---------------:|:---------------:|:------------:|:--------------|:--------------------------|
-|     1.21.1      |    _latest_     |      21      | Paper, Fabric | ✅ **Active Release**      |
-|     1.20.6      |      3.6.8      |      17      | Paper         | ❌ _October 2024_          |
-|     1.20.4      |      3.6.8      |      17      | Paper         | ❌ _July 2024_             |
-|     1.20.1      |    _latest_     |      17      | Paper, Fabric | ✅ **November 2025** (LTS) |
-| 1.17.1 - 1.19.4 |      3.6.8      |      17      | Paper         | ❌ _Support ended_         |
-|     1.16.5      |      3.2.1      |      16      | Paper         | ❌ _Support ended_         |
+|    Minecraft    | Latest HuskSync | Java Version | Platforms     | Support Ends                  |
+|:---------------:|:---------------:|:------------:|:--------------|:------------------------------|
+|     1.21.3      |    _latest_     |      21      | Paper, Fabric | ✅ **Active Release**          |
+|     1.21.1      |    _latest_     |      21      | Paper, Fabric | ✅ **December 2024** (Non-LTS) |
+|     1.20.6      |      3.6.8      |      17      | Paper         | ❌ _October 2024_              |
+|     1.20.4      |      3.6.8      |      17      | Paper         | ❌ _July 2024_                 |
+|     1.20.1      |    _latest_     |      17      | Paper, Fabric | ✅ **November 2025** (LTS)     |
+| 1.17.1 - 1.19.4 |      3.6.8      |      17      | Paper         | ❌ _Support ended_             |
+|     1.16.5      |      3.2.1      |      16      | Paper         | ❌ _Support ended_             |
 
 HuskSync is primarily developed against the latest release. Old Minecraft versions are allocated a support channel based on popularity, mod support, etc:
 

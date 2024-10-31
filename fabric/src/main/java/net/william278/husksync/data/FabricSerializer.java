@@ -148,10 +148,11 @@ public abstract class FabricSerializer {
         int VERSION1_19_2 = 3120;
         int VERSION1_19_4 = 3337;
         int VERSION1_20_1 = 3465;
-        int VERSION1_20_2 = 3578; // Future
-        int VERSION1_20_4 = 3700; // Future
-        int VERSION1_20_5 = 3837; // Future
-        int VERSION1_21 = 3953; // Future
+        int VERSION1_20_2 = 3578;
+        int VERSION1_20_4 = 3700;
+        int VERSION1_20_5 = 3837;
+        int VERSION1_21_1 = 3955;
+        int VERSION1_21_3 = 4082; // Current
 
         @NotNull
         default ItemStack[] getItems(@NotNull NbtCompound tag, @NotNull Version mcVersion, @NotNull FabricHuskSync plugin) {
@@ -186,7 +187,7 @@ public abstract class FabricSerializer {
                 if (item == null || item.isEmpty()) {
                     continue;
                 }
-                NbtCompound entry = (NbtCompound) item.encode(registryManager);
+                NbtCompound entry = (NbtCompound) item.toNbt(registryManager);
                 entry.putInt("Slot", i);
                 itemList.add(entry);
             }
@@ -213,7 +214,6 @@ public abstract class FabricSerializer {
             return itemStacks;
         }
 
-
         @NotNull
         @SuppressWarnings({"rawtypes", "unchecked"}) // For NBTOps lookup
         private NbtCompound upgradeItemData(@NotNull NbtCompound tag, @NotNull Version mcVersion,
@@ -232,11 +232,12 @@ public abstract class FabricSerializer {
                 case "1.19", "1.19.1", "1.19.2" -> VERSION1_19_2;
                 case "1.19.4" -> VERSION1_19_4;
                 case "1.20", "1.20.1" -> VERSION1_20_1;
-                case "1.20.2" -> VERSION1_20_2; // Future
-                case "1.20.4" -> VERSION1_20_4; // Future
-                case "1.20.5", "1.20.6" -> VERSION1_20_5; // Future
-                case "1.21" -> VERSION1_21; // Future
-                default -> VERSION1_20_1; // Current supported ver
+                case "1.20.2" -> VERSION1_20_2;
+                case "1.20.4" -> VERSION1_20_4;
+                case "1.20.5", "1.20.6" -> VERSION1_20_5;
+                case "1.21", "1.21.1" -> VERSION1_21_1;
+                case "1.21.2", "1.21.3" -> VERSION1_21_3;
+                default -> VERSION1_21_3; // Current supported ver
             };
         }
 

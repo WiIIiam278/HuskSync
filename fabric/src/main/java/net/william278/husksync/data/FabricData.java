@@ -49,6 +49,7 @@ import net.william278.husksync.FabricHuskSync;
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.adapter.Adaptable;
 import net.william278.husksync.config.Settings.SynchronizationSettings.AttributeSettings;
+import net.william278.husksync.mixins.HungerManagerMixin;
 import net.william278.husksync.user.FabricUser;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -693,8 +694,7 @@ public abstract class FabricData implements Data {
         @NotNull
         public static FabricData.Hunger adapt(@NotNull ServerPlayerEntity player) {
             final HungerManager hunger = player.getHungerManager();
-            // todo mixin for hunger
-            return from(hunger.getFoodLevel(), hunger.getSaturationLevel(), hunger.getExhaustion());
+            return from(hunger.getFoodLevel(), hunger.getSaturationLevel(), ((HungerManagerMixin) hunger).getExhaustion());
         }
 
         @NotNull
@@ -708,7 +708,7 @@ public abstract class FabricData implements Data {
             final HungerManager hunger = player.getHungerManager();
             hunger.setFoodLevel(foodLevel);
             hunger.setSaturationLevel(saturation);
-            hunger.setExhaustion(exhaustion);
+            ((HungerManagerMixin) hunger).setExhaustion(exhaustion);
         }
 
     }

@@ -4,12 +4,12 @@
   "package": "net.william278.husksync.mixins",
   "compatibilityLevel": "JAVA_17",
   "server": [
+    "HungerManagerMixin",
     "ItemEntityMixin",
     "PlayerEntityMixin",
     "ServerPlayerEntityMixin",
     "ServerPlayNetworkHandlerMixin",
-    "ServerWorldMixin",
-    "HungerManagerMixin"
+    "ServerWorldMixin"
   ],
   "client": [],
   "injectors": {
