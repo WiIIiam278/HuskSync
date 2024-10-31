@@ -32,7 +32,7 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
 import net.kyori.adventure.platform.AudienceProvider;
-import net.kyori.adventure.platform.fabric.FabricServerAudiences;
+import net.kyori.adventure.platform.modcommon.MinecraftServerAudiences;
 import net.minecraft.server.MinecraftServer;
 import net.william278.desertwell.util.Version;
 import net.william278.husksync.adapter.DataAdapter;
@@ -142,7 +142,7 @@ public class FabricHuskSync implements DedicatedServerModInitializer, HuskSync, 
 
     private void onEnable() {
         // Initial plugin setup
-        this.audiences = FabricServerAudiences.of(minecraftServer);
+        this.audiences = MinecraftServerAudiences.of(minecraftServer);
 
         // Check compatibility
         checkCompatibility();

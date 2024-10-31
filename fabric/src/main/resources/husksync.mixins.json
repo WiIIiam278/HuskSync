@@ -8,7 +8,8 @@
     "PlayerEntityMixin",
     "ServerPlayerEntityMixin",
     "ServerPlayNetworkHandlerMixin",
-    "ServerWorldMixin"
+    "ServerWorldMixin",
+    "HungerManagerMixin"
   ],
   "client": [],
   "injectors": {

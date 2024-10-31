@@ -1,5 +1,5 @@
 plugins {
-    id 'fabric-loom' version '1.7-SNAPSHOT'
+    id 'fabric-loom' version "$fabric_loom_version"
 }
 
 apply plugin: 'fabric-loom'
@@ -18,7 +18,7 @@ dependencies {
     modImplementation include("net.kyori:adventure-platform-fabric:${fabric_adventure_platform_version}")
     modImplementation include("me.lucko:fabric-permissions-api:${fabric_permissions_api_version}")
     modImplementation include("eu.pb4:sgui:${fabric_sgui_version}")
-    modImplementation include('net.william278.uniform:uniform-fabric:1.2.1+1.20.1')
+    modImplementation include('net.william278.uniform:uniform-fabric:1.2.2+1.21.3')
     modCompileOnly "net.fabricmc.fabric-api:fabric-api:${fabric_api_version}"
 
     implementation include('org.apache.commons:commons-pool2:2.12.0')

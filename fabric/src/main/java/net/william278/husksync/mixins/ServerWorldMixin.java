@@ -36,7 +36,7 @@ public class ServerWorldMixin {
     @Shadow
     private MinecraftServer server;
 
-    @Inject(method = "saveLevel", at = @At("HEAD"))
+    @Inject(method = "savePersistentState", at = @At("HEAD"))
     public void saveLevel(CallbackInfo ci) {
         if (server.isStopping() || server.isStopped()) {
             return;

@@ -39,7 +39,6 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
-import net.minecraft.util.TypedActionResult;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.EntityHitResult;
 import net.minecraft.util.math.BlockPos;
@@ -124,9 +123,9 @@ public class FabricEventListener extends EventListener implements LockedHandler 
         return (cancelPlayerEvent(player.getUuid())) ? ActionResult.FAIL : ActionResult.PASS;
     }
 
-    private TypedActionResult<ItemStack> handleItemInteract(PlayerEntity player, World world, Hand hand) {
+    private ActionResult handleItemInteract(PlayerEntity player, World world, Hand hand) {
         ItemStack stackInHand = player.getStackInHand(hand);
-        return (cancelPlayerEvent(player.getUuid())) ? TypedActionResult.fail(stackInHand) : TypedActionResult.pass(stackInHand);
+        return (cancelPlayerEvent(player.getUuid())) ? ActionResult.FAIL : ActionResult.PASS;
     }
 
     private boolean handleBlockBreak(World world, PlayerEntity player, BlockPos blockPos, BlockState blockState, BlockEntity blockEntity) {

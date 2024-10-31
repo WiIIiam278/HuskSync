@@ -157,7 +157,7 @@ public abstract class FabricData implements Data {
             @Override
             public void apply(@NotNull FabricUser user, @NotNull FabricHuskSync plugin) throws IllegalStateException {
                 final ServerPlayerEntity player = user.getPlayer();
-                player.playerScreenHandler.clearCraftingSlots();
+                player.playerScreenHandler.getCraftingInput().clear();
                 player.currentScreenHandler.setCursorStack(ItemStack.EMPTY);
                 final ItemStack[] items = getContents();
                 for (int slot = 0; slot < player.getInventory().size(); slot++) {
@@ -693,6 +693,7 @@ public abstract class FabricData implements Data {
         @NotNull
         public static FabricData.Hunger adapt(@NotNull ServerPlayerEntity player) {
             final HungerManager hunger = player.getHungerManager();
+            // todo mixin for hunger
             return from(hunger.getFoodLevel(), hunger.getSaturationLevel(), hunger.getExhaustion());
         }
 
