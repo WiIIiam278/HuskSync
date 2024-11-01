@@ -64,6 +64,7 @@ allprojects {
     apply plugin: 'java'
 
     compileJava.options.encoding = 'UTF-8'
+    compileJava.options.compilerArgs += ['-Xlint:unchecked', '-Xlint:deprecation']
     compileJava.options.release.set Integer.parseInt(rootProject.ext.javaVersion)
     javadoc.options.encoding = 'UTF-8'
     javadoc.options.addStringOption('Xdoclint:none', '-quiet')

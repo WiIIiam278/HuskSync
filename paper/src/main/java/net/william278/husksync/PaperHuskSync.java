@@ -30,7 +30,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
-@SuppressWarnings("unused")
+@SuppressWarnings({"unchecked", "unused"})
 public class PaperHuskSync extends BukkitHuskSync {
 
     @NotNull

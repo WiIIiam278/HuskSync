@@ -78,6 +78,7 @@ import java.util.stream.Collectors;
 
 @Getter
 @NoArgsConstructor
+@SuppressWarnings("unchecked")
 public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.Supplier,
         BukkitEventDispatcher, BukkitMapPersister {
 

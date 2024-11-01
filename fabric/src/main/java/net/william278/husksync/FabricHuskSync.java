@@ -78,6 +78,7 @@ import java.util.logging.Level;
 
 @Getter
 @NoArgsConstructor
+@SuppressWarnings("unchecked")
 public class FabricHuskSync implements DedicatedServerModInitializer, HuskSync, FabricTask.Supplier,
         FabricEventDispatcher {
 

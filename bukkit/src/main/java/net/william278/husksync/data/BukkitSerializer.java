@@ -230,7 +230,7 @@ public class BukkitSerializer {
 
         @Override
         public BukkitData.PersistentData deserialize(@NotNull String serialized) throws DeserializationException {
-            return BukkitData.PersistentData.from(new NBTContainer(serialized));
+            return BukkitData.PersistentData.from((NBTContainer) NBT.parseNBT(serialized));
         }
 
         @NotNull
