@@ -30,12 +30,12 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: 'minecraft/1.21.1'
-        env:
-          SNAPSHOTS_MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
-          SNAPSHOTS_MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
       - name: '[Current - 1.21.1] Build 🛎️'
         run: |
           ./gradlew clean build publish
+        env:
+          SNAPSHOTS_MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
+          SNAPSHOTS_MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
       - name: 'Publish Test Report 📊'
         uses: mikepenz/action-junit-report@v4
         if: success() || failure() # Continue on failure
