@@ -250,6 +250,14 @@ public interface HuskSync extends Task.Supplier, EventDispatcher, ConfigProvider
     Version getMinecraftVersion();
 
     /**
+     * Returns the data version for a Minecraft version
+     *
+     * @param minecraftVersion the Minecraft version
+     * @return the data version int
+     */
+    int getDataVersion(@NotNull Version minecraftVersion);
+
+    /**
      * Returns the platform type
      *
      * @return the platform type
@@ -332,12 +340,12 @@ public interface HuskSync extends Task.Supplier, EventDispatcher, ConfigProvider
         private static final String FORMAT = """
                 HuskSync has failed to load! The plugin will not be enabled and no data will be synchronized.
                 Please make sure the plugin has been setup correctly (https://william278.net/docs/husksync/setup):
-                
+                                
                 1) Make sure you've entered your MySQL, MariaDB or MongoDB database details correctly in config.yml
                 2) Make sure your Redis server details are also correct in config.yml
                 3) Make sure your config is up-to-date (https://william278.net/docs/husksync/config-file)
                 4) Check the error below for more details
-                
+                                
                 Caused by: %s""";
 
         public FailedToLoadException(@NotNull String message) {

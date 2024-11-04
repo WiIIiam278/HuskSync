@@ -23,6 +23,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.gson.Gson;
+import de.tr7zw.changeme.nbtapi.utils.DataFixerUtil;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -329,6 +330,21 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
     @Override
     public Version getMinecraftVersion() {
         return Version.fromString(getServer().getBukkitVersion());
+    }
+
+    public int getDataVersion(@NotNull Version mcVersion) {
+        return switch (mcVersion.toStringWithoutMetadata()) {
+            case "1.16", "1.16.1", "1.16.2", "1.16.3", "1.16.4", "1.16.5" -> DataFixerUtil.VERSION1_16_5;
+            case "1.17", "1.17.1" -> DataFixerUtil.VERSION1_17_1;
+            case "1.18", "1.18.1", "1.18.2" -> DataFixerUtil.VERSION1_18_2;
+            case "1.19", "1.19.1", "1.19.2" -> DataFixerUtil.VERSION1_19_2;
+            case "1.20", "1.20.1", "1.20.2" -> DataFixerUtil.VERSION1_20_2;
+            case "1.20.3", "1.20.4" -> DataFixerUtil.VERSION1_20_4;
+            case "1.20.5", "1.20.6" -> DataFixerUtil.VERSION1_20_5;
+            case "1.21", "1.21.1" -> DataFixerUtil.VERSION1_21;
+            case "1.21.2", "1.21.3" -> DataFixerUtil.VERSION1_21_2;
+            default -> DataFixerUtil.getCurrentVersion();
+        };
     }
 
     @NotNull
