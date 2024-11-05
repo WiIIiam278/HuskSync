@@ -24,7 +24,7 @@ jobs:
         with:
           arguments: test
       - name: 'Publish Test Report 📊'
-        uses: mikepenz/action-junit-report@v4
+        uses: mikepenz/action-junit-report@v5
         if: success() || failure() # Continue on failure
         with:
           report_paths: '**/build/test-results/test/TEST-*.xml'
