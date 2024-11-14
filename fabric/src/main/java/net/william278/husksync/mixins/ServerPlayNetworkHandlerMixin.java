@@ -34,6 +34,7 @@ import net.william278.husksync.event.ItemDropCallback;
 import net.william278.husksync.event.PlayerCommandCallback;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -44,18 +45,21 @@ public abstract class ServerPlayNetworkHandlerMixin {
     @Shadow
     public ServerPlayerEntity player;
 
-    public abstract void sendPacket(Packet<?> packet);
+    @Unique
+    private void sendToPlayer(Packet<?> packet) {
+        this.player.networkHandler.sendPacket(packet);
+    }
 
     @Inject(method = "onPlayerAction", at = @At("HEAD"), cancellable = true)
     public void onPlayerAction(PlayerActionC2SPacket packet, CallbackInfo ci) {
         if (packet.getAction() == PlayerActionC2SPacket.Action.DROP_ITEM
-            || packet.getAction() == PlayerActionC2SPacket.Action.DROP_ALL_ITEMS) {
+                || packet.getAction() == PlayerActionC2SPacket.Action.DROP_ALL_ITEMS) {
             ItemStack stack = player.getStackInHand(Hand.MAIN_HAND);
             ActionResult result = ItemDropCallback.EVENT.invoker().interact(player, stack);
 
             if (result == ActionResult.FAIL) {
                 ci.cancel();
-                this.sendPacket(new ScreenHandlerSlotUpdateS2CPacket(
+                sendToPlayer(new ScreenHandlerSlotUpdateS2CPacket(
                         -2,
                         1,
                         player.getInventory().getSlotWithStack(stack),
@@ -68,30 +72,34 @@ public abstract class ServerPlayNetworkHandlerMixin {
     @Inject(method = "onClickSlot", at = @At("HEAD"), cancellable = true)
     public void onClickSlot(ClickSlotC2SPacket packet, CallbackInfo ci) {
         int slot = packet.getSlot();
-        if (slot < 0) return;
+        if (slot < 0) {
+            return;
+        }
 
         ItemStack stack = this.player.getInventory().getStack(slot);
         ActionResult result = ItemDropCallback.EVENT.invoker().interact(player, stack);
 
         if (result == ActionResult.FAIL) {
             ci.cancel();
-            this.sendPacket(new ScreenHandlerSlotUpdateS2CPacket(-2, 1, slot, stack));
-            this.sendPacket(new ScreenHandlerSlotUpdateS2CPacket(-1, 1, -1, ItemStack.EMPTY));
+            sendToPlayer(new ScreenHandlerSlotUpdateS2CPacket(-2, 1, slot, stack));
+            sendToPlayer(new ScreenHandlerSlotUpdateS2CPacket(-1, 1, -1, ItemStack.EMPTY));
         }
     }
 
     @Inject(method = "onCreativeInventoryAction", at = @At("HEAD"), cancellable = true)
     public void onCreativeInventoryAction(CreativeInventoryActionC2SPacket packet, CallbackInfo ci) {
         int slot = packet.slot();
-        if (slot < 0) return;
+        if (slot < 0) {
+            return;
+        }
 
         ItemStack stack = this.player.getInventory().getStack(slot);
         ActionResult result = ItemDropCallback.EVENT.invoker().interact(player, stack);
 
         if (result == ActionResult.FAIL) {
             ci.cancel();
-            this.sendPacket(new ScreenHandlerSlotUpdateS2CPacket(-2, 1, slot, stack));
-            this.sendPacket(new ScreenHandlerSlotUpdateS2CPacket(-1, 1, -1, ItemStack.EMPTY));
+            sendToPlayer(new ScreenHandlerSlotUpdateS2CPacket(-2, 1, slot, stack));
+            sendToPlayer(new ScreenHandlerSlotUpdateS2CPacket(-1, 1, -1, ItemStack.EMPTY));
         }
     }
 
