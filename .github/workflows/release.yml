@@ -48,7 +48,6 @@ jobs:
           RELEASES_MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
       - name: '[Non-LTS - 1.21.1] Build 🛎️'
         run: |
-          mkdir target
           cd 1_21_1
           ./gradlew clean build publish -Dforce-hide-version-meta=1
           cp -rf target/* ../target/
