@@ -129,6 +129,7 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
             loadSettings();
             loadLocales();
             loadServer();
+            validateConfigFiles();
         });
 
         this.eventListener = createEventListener();

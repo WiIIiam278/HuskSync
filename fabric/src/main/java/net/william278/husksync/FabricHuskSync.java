@@ -138,6 +138,7 @@ public class FabricHuskSync implements DedicatedServerModInitializer, HuskSync, 
             loadSettings();
             loadLocales();
             loadServer();
+            validateConfigFiles();
         });
 
         // Register commands

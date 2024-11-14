@@ -131,6 +131,15 @@ public interface ConfigProvider {
         ));
     }
 
+    default void validateConfigFiles() {
+        // Validate server name is default
+        if (getServerName().equals("server")) {
+            getPlugin().log(Level.WARNING, "The server name set in ~/plugins/HuskSync/server.yml appears to" +
+                    "be unchanged from the default (currently set to: \"server\"). Please check that this value has" +
+                    "been updated to match the case-sensitive ID of this server in your proxy config file!");
+        }
+    }
+
     /**
      * Get a plugin resource
      *
