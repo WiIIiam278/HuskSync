@@ -78,7 +78,7 @@ public class BukkitUser extends OnlineUser implements BukkitUserDataHolder {
         if (!editable) {
             builder.disableAllInteractions();
         }
-        final StorageGui gui = builder.enableOtherActions()
+        final StorageGui gui = builder
                 .apply(a -> a.getInventory().setContents(contents))
                 .title(title.toComponent()).create();
         gui.setCloseGuiAction((close) -> onClose.accept(BukkitData.Items.ItemArray.adapt(
