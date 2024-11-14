@@ -12,7 +12,7 @@ dependencies {
     api 'de.exlll:configlib-yaml:4.5.0'
     api 'net.william278:paginedown:1.1.2'
     api 'net.william278:DesertWell:2.0.4'
-    api('com.zaxxer:HikariCP:6.0.0') {
+    api('com.zaxxer:HikariCP:6.1.0') {
         exclude module: 'slf4j-api'
     }
 
