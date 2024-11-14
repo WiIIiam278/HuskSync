@@ -297,6 +297,7 @@ public interface BukkitMapPersister {
     /**
      * A {@link MapRenderer} that can be used to render persistently serialized {@link MapData} to a {@link MapView}
      */
+    @SuppressWarnings("deprecation")
     class PersistentMapRenderer extends MapRenderer {
 
         private final MapData canvasData;
@@ -311,7 +312,7 @@ public interface BukkitMapPersister {
             // We set the pixels in this order to avoid the map being rendered upside down
             for (int i = 0; i < 128; i++) {
                 for (int j = 0; j < 128; j++) {
-                    canvas.setPixelColor(j, i, canvasData.getMapColorAt(i, j));
+                    canvas.setPixel(j, i, (byte) canvasData.getColorAt(i, j));
                 }
             }
 
@@ -358,6 +359,7 @@ public interface BukkitMapPersister {
     /**
      * A {@link MapCanvas} implementation used for pre-rendering maps to be converted into {@link MapData}
      */
+    @SuppressWarnings("deprecation")
     class PersistentMapCanvas implements MapCanvas {
 
         private final int mapDataVersion;
@@ -402,24 +404,24 @@ public interface BukkitMapPersister {
         @Override
         @Deprecated
         public byte getBasePixel(int x, int y) {
-            return getPixel(x, y);
+            return (byte) pixels[x][y];
         }
 
         @Override
-        public void setPixelColor(int i, int i1, @Nullable Color color) {
-            pixels[i][i1] = color == null ? 0 : color.getRGB();
+        public void setPixelColor(int x, int y, @Nullable Color color) {
+            pixels[x][y] = color == null ? -1 : MapPalette.matchColor(color);
         }
 
         @Nullable
         @Override
         public Color getPixelColor(int x, int y) {
-            return getBasePixelColor(x, y);
+            return MapPalette.getColor((byte) pixels[x][y]);
         }
 
         @NotNull
         @Override
         public Color getBasePixelColor(int x, int y) {
-            return new Color(pixels[x][y]);
+            return MapPalette.getColor((byte) pixels[x][y]);
         }
 
         @Override
