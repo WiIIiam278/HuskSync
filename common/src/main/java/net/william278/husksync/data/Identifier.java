@@ -25,6 +25,7 @@ import net.kyori.adventure.key.Key;
 import org.intellij.lang.annotations.Subst;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.Comparator;
@@ -229,11 +230,8 @@ public class Identifier {
      * @return {@code true} if the given object is an identifier with the same key as this identifier
      */
     @Override
-    public boolean equals(Object obj) {
-        if (obj instanceof Identifier other) {
-            return key.equals(other.key);
-        }
-        return false;
+    public boolean equals(@Nullable Object obj) {
+        return obj instanceof Identifier other ? toString().equals(other.toString()) : super.equals(obj);
     }
 
     // Get the config entry for the identifier
