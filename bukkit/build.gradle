@@ -14,7 +14,7 @@ dependencies {
     compileOnly "org.spigotmc:spigot-api:${bukkit_spigot_api}"
     compileOnly 'com.github.retrooper.packetevents:spigot:2.3.0'
     compileOnly 'com.comphenix.protocol:ProtocolLib:5.1.0'
-    compileOnly 'org.projectlombok:lombok:1.18.34'
+    compileOnly 'org.projectlombok:lombok:1.18.36'
     compileOnly 'commons-io:commons-io:2.17.0'
     compileOnly 'org.json:json:20240303'
     compileOnly 'net.william278:minedown:1.8.2'
@@ -24,7 +24,7 @@ dependencies {
     compileOnly 'net.william278:AdvancementAPI:97a9583413'
     compileOnly "redis.clients:jedis:$jedis_version"
 
-    annotationProcessor 'org.projectlombok:lombok:1.18.34'
+    annotationProcessor 'org.projectlombok:lombok:1.18.36'
 }
 
 shadowJar {
