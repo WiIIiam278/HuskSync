@@ -43,6 +43,7 @@ huskSyncAPI.getUser(uuid).thenAccept(optionalUser -> {
 </details>
 
 * If you have an online `org.bukkit.Player` object, you can use `BukkitPlayer#adapt(player)` to get an `OnlineUser` (extends `User`), representing a logged-in user.
+* You can also use `#getOnlineUser(UUID)` to get an OnlineUser by their UUID - note this only works for players online on the server the logic is called from, however.
 
 <details>
 <summary>Code Example &mdash; Getting an online user</summary>

@@ -20,7 +20,6 @@ The HuskSync API is available for the following platforms:
 * `fabric` - Fabric API for Minecraft. Provides Fabric API event listeners and adapters to `net.minecraft` objects.
 * `common` - Common API for all platforms.
 
-
 <details>
 <summary>Targeting older versions</summary>
 

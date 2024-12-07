@@ -100,6 +100,18 @@ public class HuskSyncAPI {
     }
 
     /**
+     * Get an {@link OnlineUser} by their UUID
+     *
+     * @param uuid the UUID of the user to get
+     * @return The {@link OnlineUser} wrapped in an optional, if they are online on <i>this</i> server.
+     * @since 3.7.2
+     */
+    @NotNull
+    public Optional<OnlineUser> getOnlineUser(@NotNull UUID uuid) {
+        return plugin.getOnlineUser(uuid);
+    }
+
+    /**
      * Get a {@link User} by their username
      *
      * @param username The username of the user to get
