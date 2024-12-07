@@ -62,7 +62,7 @@ HuskSync is primarily developed against the latest release. Old Minecraft versio
 * Long Term Support (LTS) &ndash; Supported for up to 12-18 months
 * Non-Long Term Support (Non-LTS) &ndash; Supported for 3-6 months
 
-Verify your purchase on Discord and [Download HuskSync](https://william278.net/project/husksync#download) for your server.
+Verify your purchase on Discord and [Download HuskSync](https://william278.net/project/husksync/download) for your server.
 
 ## Setup
 Requires a MySQL/Mongo/PostgreSQL database, a Redis (v5.0+) server and a network of Spigot or Fabric Minecraft servers (see [Compatibility](#compatibility)).
