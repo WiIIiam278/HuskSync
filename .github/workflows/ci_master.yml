@@ -14,7 +14,7 @@ permissions:
 
 jobs:
   build:
-    name: 'Build - 1.21.3'
+    name: 'Build - 1.21.4'
     runs-on: ubuntu-latest
     steps:
       - name: 'Setup JDK 21 📦'
@@ -28,7 +28,7 @@ jobs:
           gradle-version: '8.8'
       - name: 'Checkout for CI 🛎️'
         uses: actions/checkout@v4
-      - name: '[Current - 1.21.3] Build 🛎️'
+      - name: '[Current - 1.21.4] Build 🛎️'
         run: |
           ./gradlew clean build publish
         env:
@@ -55,14 +55,14 @@ jobs:
           version: ${{ env.version_name }}
           changelog: ${{ github.event.head_commit.message }}
           distro-names: |
-            paper-1.21.3
-            fabric-1.21.3
+            paper-1.21.4
+            fabric-1.21.4
           distro-groups: |
             paper
             fabric
           distro-descriptions: |
-            Paper 1.21.3
-            Fabric 1.21.3
+            Paper 1.21.4
+            Fabric 1.21.4
           files: |
-            target/HuskSync-Paper-${{ env.version_name }}+mc.1.21.3.jar
-            target/HuskSync-Fabric-${{ env.version_name }}+mc.1.21.3.jar
+            target/HuskSync-Paper-${{ env.version_name }}+mc.1.21.4.jar
+            target/HuskSync-Fabric-${{ env.version_name }}+mc.1.21.4.jar

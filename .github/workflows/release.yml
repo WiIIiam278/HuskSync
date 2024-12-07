@@ -23,10 +23,10 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.8'
-      - name: '[Current - 1.21.3] Checkout for CI 🛎️'
+      - name: '[Current - 1.21.4] Checkout for CI 🛎️'
         uses: actions/checkout@v4
         with:
-          path: '1_21_3'
+          path: '1_21_4'
       - name: '[Non-LTS - 1.21.1] Checkout for CI 🛎️'
         uses: actions/checkout@v4
         with:
@@ -37,10 +37,10 @@ jobs:
         with:
           ref: 'minecraft/1.20.1'
           path: '1_20_1'
-      - name: '[Current - 1.21.3] Build 🛎️'
+      - name: '[Current - 1.21.4] Build 🛎️'
         run: |
           mkdir target
-          cd 1_21_3
+          cd 1_21_4
           ./gradlew clean build publish -Dforce-hide-version-meta=1
           cp -rf target/* ../target/
           cd ..
@@ -79,8 +79,8 @@ jobs:
           version: ${{ github.event.release.tag_name }}
           changelog: ${{ github.event.release.body }}
           distro-names: |
-            paper-1.21.3
-            fabric-1.21.3
+            paper-1.21.4
+            fabric-1.21.4
             paper-1.21.1
             fabric-1.21.1
             paper-1.20.1
@@ -93,15 +93,15 @@ jobs:
             paper
             fabric
           distro-descriptions: |
-            Paper 1.21.3
-            Fabric 1.21.3
+            Paper 1.21.4
+            Fabric 1.21.4
             Paper 1.21.1
             Fabric 1.21.1
             Paper 1.20.1
             Fabric 1.20.1
           files: |
-            target/HuskSync-Paper-${{ github.event.release.tag_name }}+mc.1.21.3.jar
-            target/HuskSync-Fabric-${{ github.event.release.tag_name }}+mc.1.21.3.jar
+            target/HuskSync-Paper-${{ github.event.release.tag_name }}+mc.1.21.4.jar
+            target/HuskSync-Fabric-${{ github.event.release.tag_name }}+mc.1.21.4.jar
             target/HuskSync-Paper-${{ github.event.release.tag_name }}+mc.1.21.1.jar
             target/HuskSync-Fabric-${{ github.event.release.tag_name }}+mc.1.21.1.jar
             target/HuskSync-Paper-${{ github.event.release.tag_name }}+mc.1.20.1.jar
