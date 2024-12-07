@@ -1,7 +1,7 @@
 dependencies {
     implementation project(path: ':common')
 
-    implementation 'net.william278.uniform:uniform-bukkit:1.2.2'
+    implementation 'net.william278.uniform:uniform-bukkit:1.2.3'
     implementation 'net.william278:mpdbdataconverter:1.0.1'
     implementation 'net.william278:hsldataconverter:1.0'
     implementation 'net.william278:mapdataapi:2.0'
@@ -13,7 +13,7 @@ dependencies {
 
     compileOnly "org.spigotmc:spigot-api:${bukkit_spigot_api}"
     compileOnly 'com.github.retrooper.packetevents:spigot:2.3.0'
-    compileOnly 'com.comphenix.protocol:ProtocolLib:5.1.0'
+    compileOnly 'com.comphenix.protocol:ProtocolLib:5.3.0'
     compileOnly 'org.projectlombok:lombok:1.18.36'
     compileOnly 'commons-io:commons-io:2.18.0'
     compileOnly 'org.json:json:20240303'
