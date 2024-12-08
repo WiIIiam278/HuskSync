@@ -1,22 +1,28 @@
-## Guides
+## Setup
 * 📚 [[Setup]]
+* 💾 [[Database]]
+* ✨ [[Redis]]
 * ⚠️ [[Compatibility]]
 * 📄 [[Config File]]
 * 🔗 [[Troubleshooting]]
-* ↪️ [[Data Rotation]]
-* ↗️ [[Legacy Migration]]
-* ✨ [[MPDB Migration]]
-* 🎏 [[Translations]]
-* ❓ [[FAQs]]
 
-## Documentation
+## Features
 * 🖥️ [[Commands]]
 * ✅ [[Sync Features]]
 * ⚙️ [[Sync Modes]]
-* 🟩 [[Plan Hook]]
+* ↪️ [[Data Rotation]]
+* ❓ [[FAQs]]
+
+## Guides
+* ↗️ [[Legacy Migration]]
+* ✨ [[MPDB Migration]]
 * ☂️ [[Dumping UserData]]
+* 🟩 [[Plan Hook]]
 * 📋 [[Event Priorities]]
 * ⚔️ [[Keep Inventory]]
+* 🎏 [[Translations]]
+
+## Developers
 * 📦 [[API]] v3
   * 📝 [[Data Snapshot API]]
   * 📝 [[Custom Data API]]

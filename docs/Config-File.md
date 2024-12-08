@@ -65,7 +65,7 @@ database:
     user_data: husksync_user_data
 # Redis settings
 redis:
-  # Specify the credentials of your Redis database here. Set "password" to '' if you don't have one
+  # Specify the credentials of your Redis server here. Set "password" to '' if you don't have one
   credentials:
     host: localhost
     port: 6379

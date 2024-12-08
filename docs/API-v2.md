@@ -1,6 +1,6 @@
-> **Warning:** API v2 is no longer supported or compatible with HuskSync v3.0. See [[Data Snapshot API]] for the equivalent v3 API. 🚨
-
 HuskSync v2.0 provides an API for fetching and retrieving `UserData`; a snapshot of a user's synchronization.
+
+> **Warning:** API v2 is no longer supported or compatible with HuskSync v3.0. See [[Data Snapshot API]] for the equivalent v3 API. 🚨
 
 This page assumes you've read the general [[API]] introduction and imported HuskSync (v2.x) into your project, and added it as a dependency.
 

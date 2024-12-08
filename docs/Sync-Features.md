@@ -1,4 +1,4 @@
-This page contains a list of the features HuskSync is and isn't able to syncrhonise on your server.
+This page contains a list of the features HuskSync is and isn't able to synchronise on your server.
 
 You can customise how much data HuskSync saves about a player by [turning each synchronization feature on or off](#toggling-sync-features). When a synchronization feature is turned off, HuskSync won't touch that part of a player's profile; in other words, the data they will inherit when changing servers will be read from their player data file on the local server.
 

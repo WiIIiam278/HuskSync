@@ -1,9 +1,9 @@
-This page addresses a number of frequently asked questions about the plugin.
+This page addresses a number of frequently asked questions about HuskSync.
 
 ## Frequently Asked Questions
 
 <details>
-<summary>&nbsp;<b>What data can be synchronized?</b></summary>
+<summary>&nbsp;<b>What data can be synced?</b></summary>
 
 HuskSync supports synchronising a wide range of different data elements, each of which can be toggled to your liking. Please check out the [[Sync Features]] page for a full list.
 
@@ -30,16 +30,56 @@ Please note we cannot guarantee compatibility with everything &mdash; test thoro
 </details>
 
 <details>
-<summary>&nbsp;<b>Is Redis required? What is Redis?</b></summary>
+<summary>&nbsp;<b>What versions of Minecraft does HuskSync support?</b></summary>
 
-Yes! HuskSync requires Redis to operate (for reasons demonstrated below).
+Check the [[Compatibility]] table. In addition to the latest release of Minecraft, the latest version of HuskSync will support specific older versions based on popularity and mod support.
 
-Redis is an in-memory database server used for caching data at scale and sending messages across a network. You have a Redis server in a similar fashion to the way you have a MySQL database server. If you're using a Minecraft hosting company, you'll want to contact their support and ask if they offer Redis. If you're looking for a host, I have a list of some popular hosts and whether they support Redis [available to read here.](https://william278.net/redis-hosts)
+If your server's version of Minecraft isn't supported by the latest release, there's plenty of older, stable versions of HuskSync you can download, though note support for these versions will be limited.
 
 </details>
 
 <details>
-<summary>&nbsp;<b>How does the plugin synchronize data?</b></summary>
+<summary>&nbsp;<b>What do I need to run HuskSync?</b></summary>
+
+See the [Requirements](setup#requirements) section under Setup.
+
+You need a [[Database]] server, a [[Redis]] server, and [compatible Minecraft servers](compatibility).
+
+</details>
+
+<details>
+<summary>&nbsp;<b>Is Redis required? What is Redis?</b></summary>
+
+Yes, HuskSync requires a [[Redis]] server **in addition to a [[Database]] server** to operate.
+
+Redis is an in-memory database server used for caching data at scale and sending messages across a network. You have a Redis server in a similar fashion to the way you have a MySQL database server. If you're using a Minecraft hosting company, you'll want to contact their support and ask if they offer Redis. If you're looking for a host, I have a list of some popular hosts and whether they support Redis [available to view here.](https://william278.net/docs/website/redis-hosts)
+
+For more information, check our [Redis setup instructions](redis).
+
+</details>
+
+<details>
+<summary>&nbsp;<b>How much RAM does my Redis server need?</b></summary>
+
+We recommend your Redis server has 1GB of RAM, and that your Redis server is installed locally (on the same server as your game servers, or at least on the server running your Velocity/BungeeCord/Waterfall proxy).
+
+</details>
+
+<details>
+<summary>&nbsp;<b>Is a Database required? What Databases are supported?</b></summary>
+
+Yes. HuskSync requires both a [[Database]] server and a [[Redis]] server to operate.
+
+HuskSync supports the following database types:
+* MySQL v8.0+
+* MariaDB v5.0+
+* PostgreSQL
+* MongoDB
+
+</details>
+
+<details>
+<summary>&nbsp;<b>How does data syncing work?</b></summary>
 
 HuskSync makes use of both MySQL and Redis for optimal data synchronization. You have the option of using one of two [[Sync Modes]], which synchronize data between servers (`DELAY` or `LOCKSTEP`)
 
@@ -71,9 +111,10 @@ Indeed, there exist economy plugins &mdash; such as [XConomy](https://github.com
 </details>
 
 <details>
-<summary>&nbsp;<b>Is this better than MySQLPlayerDataBridge?</b></summary>
+<summary>&nbsp;<b>Is HuskSync better than MySQLPlayerDataBridge?</b></summary>
 
 I can't provide a fair answer to this question! What I can say is that your mileage will of course vary. 
 
 The performance improvements offered by HuskSync's synchronization method will depend on your network environment and the economies of scale that come with your player count. In terms of featureset, HuskSync does feature greater rollback and snapshot backup/management features if this is something you are looking for.
+
 </details>

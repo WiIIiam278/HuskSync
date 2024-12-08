@@ -1,25 +1,31 @@
 # [![HuskSync banner](https://raw.githubusercontent.com/WiIIiam278/HuskSync/master/images/banner.png)](https://github.com/WiIIiam278/HuskSync)
 Welcome! This is the plugin documentation for HuskSync v3.x+. Please click through to the topic you'd like to read about.
 
-## Guides
+## Setup
 * 📚 [[Setup]]
+* 💾 [[Database]]
+* ✨ [[Redis]]
 * ⚠️ [[Compatibility]]
 * 📄 [[Config File]]
 * 🔗 [[Troubleshooting]]
-* ↪️ [[Data Rotation]]
-* ↗️ [[Legacy Migration]]
-* ✨ [[MPDB Migration]]
-* 🎏 [[Translations]]
-* ❓ [[FAQs]]
 
-## Documentation
+## Features
 * 🖥️ [[Commands]]
 * ✅ [[Sync Features]]
 * ⚙️ [[Sync Modes]]
-* 🟩 [[Plan Hook]]
+* ↪️ [[Data Rotation]]
+* ❓ [[FAQs]]
+
+## Guides
+* ↗️ [[Legacy Migration]]
+* ✨ [[MPDB Migration]]
 * ☂️ [[Dumping UserData]]
+* 🟩 [[Plan Hook]]
 * 📋 [[Event Priorities]]
 * ⚔️ [[Keep Inventory]]
+* 🎏 [[Translations]]
+
+## Developers
 * 📦 [[API]] v3
   * 📝 [[Data Snapshot API]]
   * 📝 [[Custom Data API]]
