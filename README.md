@@ -50,7 +50,7 @@ HuskSync supports the following [compatible versions](https://william278.net/doc
 |:---------------:|:---------------:|:------------:|:--------------|:-----------------------------|
 |     1.21.4      |    _latest_     |      21      | Paper, Fabric | ✅ **Active Release**         |
 |     1.21.3      |      3.7.1      |      21      | Paper, Fabric | 🗃️ Archived (December 2024) |
-|     1.21.1      |    _latest_     |      21      | Paper, Fabric | ✅ **November 2024** (LTS)    |
+|     1.21.1      |    _latest_     |      21      | Paper, Fabric | ✅ **November 2025** (LTS)    |
 |     1.20.6      |      3.6.8      |      17      | Paper         | 🗃️ Archived (October 2024)  |
 |     1.20.4      |      3.6.8      |      17      | Paper         | 🗃️ Archived (July 2024)     |
 |     1.20.1      |    _latest_     |      17      | Paper, Fabric | ✅ **November 2025** (LTS)    |
