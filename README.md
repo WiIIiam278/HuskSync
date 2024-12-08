@@ -65,7 +65,7 @@ HuskSync is primarily developed against the latest release. Old Minecraft versio
 Verify your purchase on Discord and [Download HuskSync](https://william278.net/project/husksync/download) for your server.
 
 ## Setup
-Requires a MySQL/Mongo/PostgreSQL database, a Redis (v5.0+) server and a network of Spigot or Fabric Minecraft servers (see [Compatibility](#compatibility)).
+Requires a [MySQL/MariaDB/Mongo/PostgreSQL database](https://william278.net/docs/husksync/database), a [Redis (v5.0+) server]((https://william278.net/docs/husksync/redis)) and a network of [compatible Spigot or Fabric Minecraft servers](https://william278.net/docs/husksync/compatibility).
 
 1. Place the plugin jar file in the `/plugins` or `/mods` directory of each Spigot/Fabric server. You do not need to install HuskSync as a proxy plugin.
 2. Start, then stop every server to let HuskSync generate the config file.

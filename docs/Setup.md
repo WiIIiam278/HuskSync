@@ -6,7 +6,7 @@ HuskSync requires a Database server, a Redis server, and any number of compatibl
 * Any number of [compatible Fabric or Spigot/Paper-based](Compatibility) servers
   * Each server must be running the same exact version of Minecraft
   * It is not possible to sync data between a mixture of Fabric and Spigot servers
-  * HuskSync does not need to be installed on your Velocity, BungeeCord, or Waterfall proxy
+  * HuskSync should not be installed on your Velocity, BungeeCord, or Waterfall proxy
 * A [[Database]] server running MySQL v8.0+, MariaDB v5.0+, PostgreSQL or MongoDB
 * A [[Redis]] server running Redis v5.0+
 
