@@ -1,5 +1,3 @@
-> **Warning:** Fabric support is currently in beta and is not production ready yet.
-
 This will walk you through installing HuskSync on your network of Spigot or Fabric servers. Please check your server's [[Compatibility]] and download the correct version of HuskSync for your server.
 
 

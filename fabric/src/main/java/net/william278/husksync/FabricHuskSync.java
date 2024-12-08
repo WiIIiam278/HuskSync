@@ -226,14 +226,6 @@ public class FabricHuskSync implements DedicatedServerModInitializer, HuskSync, 
         // Check for updates
         this.checkForUpdates();
 
-        log(Level.WARNING, """
-                **************
-                WARNING:
-                                
-                HuskSync for Fabric is still in an alpha state and is
-                not considered production ready.
-                **************""");
-
         ModLoadedCallback.EVENT.invoker().post(FabricHuskSyncAPI.getInstance());
     }
 
