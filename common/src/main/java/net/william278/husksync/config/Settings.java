@@ -159,7 +159,7 @@ public class Settings {
     @NoArgsConstructor(access = AccessLevel.PRIVATE)
     public static class RedisSettings {
 
-        @Comment("Specify the credentials of your Redis database here. Set \"password\" to '' if you don't have one")
+        @Comment("Specify the credentials of your Redis server here. Set \"password\" to '' if you don't have one")
         private RedisCredentials credentials = new RedisCredentials();
 
         @Getter
