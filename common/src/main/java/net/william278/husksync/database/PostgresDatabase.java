@@ -416,8 +416,8 @@ public class PostgresDatabase extends Database {
             try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
                     UPDATE %user_data_table%
                     SET save_cause=?,pinned=?,data=?
-                    WHERE player_uuid=? AND version_uuid=?
-                    LIMIT 1;"""))) {
+                    WHERE player_uuid=? AND version_uuid=?;
+                    """))) {
                 statement.setString(1, data.getSaveCause().name());
                 statement.setBoolean(2, data.isPinned());
                 statement.setBytes(3, data.asBytes(plugin));
