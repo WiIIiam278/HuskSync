@@ -9,7 +9,7 @@ dependencies {
     implementation 'net.kyori:adventure-platform-bukkit:4.3.4'
     implementation 'dev.triumphteam:triumph-gui:3.1.11'
     implementation 'space.arim.morepaperlib:morepaperlib:0.4.4'
-    implementation 'de.tr7zw:item-nbt-api:2.14.1-SNAPSHOT'
+    implementation 'de.tr7zw:item-nbt-api:2.14.2-SNAPSHOT'
 
     compileOnly "org.spigotmc:spigot-api:${bukkit_spigot_api}"
     compileOnly 'com.github.retrooper.packetevents:spigot:2.3.0'
