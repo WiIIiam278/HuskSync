@@ -20,7 +20,7 @@ dependencies {
     compileOnly 'com.mojang:brigadier:1.1.8'
     compileOnly 'org.projectlombok:lombok:1.18.36'
     compileOnly 'org.jetbrains:annotations:26.0.1'
-    compileOnly 'net.kyori:adventure-api:4.17.0'
+    compileOnly 'net.kyori:adventure-api:4.18.0'
     compileOnly 'net.kyori:adventure-platform-api:4.3.4'
     compileOnly 'com.google.guava:guava:33.3.1-jre'
     compileOnly 'com.github.plan-player-analytics:Plan:5.5.2272'
