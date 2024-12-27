@@ -35,6 +35,7 @@ import org.bukkit.block.Container;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BlockStateMeta;
+import org.bukkit.inventory.meta.BundleMeta;
 import org.bukkit.inventory.meta.MapMeta;
 import org.bukkit.map.*;
 import org.jetbrains.annotations.ApiStatus;
@@ -56,6 +57,8 @@ public interface BukkitMapPersister {
     String MAP_PIXEL_DATA_KEY = "canvas_data";
     // The key used to store the map of World UIDs to MapView IDs in NBT
     String MAP_VIEW_ID_MAPPINGS_KEY = "id_mappings";
+    // ID of world the map originates from
+    String MAP_ORIGIN = "origin";
 
     /**
      * Persist locked maps in an array of {@link ItemStack}s
@@ -99,6 +102,10 @@ public interface BukkitMapPersister {
             } else if (item.getItemMeta() instanceof BlockStateMeta b && b.getBlockState() instanceof Container box) {
                 forEachMap(box.getInventory().getContents(), function);
                 b.setBlockState(box);
+                item.setItemMeta(b);
+            } else if (item.getItemMeta() instanceof BundleMeta bundle) {
+                bundle.setItems(List.of(forEachMap(bundle.getItems().toArray(ItemStack[]::new), function)));
+                item.setItemMeta(bundle);
             }
         }
         return items;
@@ -134,11 +141,13 @@ public interface BukkitMapPersister {
             final String worldUid = view.getWorld().getUID().toString();
             mapData.setByteArray(MAP_PIXEL_DATA_KEY, canvas.extractMapData().toBytes());
             nbt.getOrCreateCompound(MAP_VIEW_ID_MAPPINGS_KEY).setInteger(worldUid, view.getId());
+            nbt.setString(MAP_ORIGIN, worldUid);
             getPlugin().debug(String.format("Saved data for locked map (#%s, UID: %s)", view.getId(), worldUid));
         });
         return map;
     }
 
+    @SuppressWarnings("deprecation")
     @NotNull
     private ItemStack applyMapView(@NotNull ItemStack map) {
         final int dataVersion = getPlugin().getDataVersion(getPlugin().getMinecraftVersion());
@@ -172,6 +181,11 @@ public interface BukkitMapPersister {
                     meta.setMapView(view);
                     map.setItemMeta(meta);
                     getPlugin().debug(String.format("View exists (#%s); updated map (UID: %s)", view.getId(), uid));
+                    return;
+                } else if (nbt.getString(MAP_ORIGIN).equals(uid)) {
+                    meta.setMapId(mapIds.getInteger(uid));
+                    map.setItemMeta(meta);
+                    getPlugin().debug(String.format("Map %s originates from this world, only ID was set", mapIds.getInteger(uid)));
                     return;
                 }
             }
