@@ -31,11 +31,8 @@ import net.william278.mapdataapi.MapData;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.World;
-import org.bukkit.block.Container;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.BlockStateMeta;
-import org.bukkit.inventory.meta.BundleMeta;
 import org.bukkit.inventory.meta.MapMeta;
 import org.bukkit.map.*;
 import org.jetbrains.annotations.ApiStatus;
@@ -46,19 +43,16 @@ import java.awt.*;
 import java.io.File;
 import java.util.List;
 import java.util.*;
-import java.util.function.Function;
 import java.util.logging.Level;
 
 public interface BukkitMapPersister {
 
     // The map used to store HuskSync data in ItemStack NBT
     String MAP_DATA_KEY = "husksync:persisted_locked_map";
-    // The key used to store the serialized map data in NBT
-    String MAP_PIXEL_DATA_KEY = "canvas_data";
-    // The key used to store the map of World UIDs to MapView IDs in NBT
-    String MAP_VIEW_ID_MAPPINGS_KEY = "id_mappings";
     // ID of world the map originates from
-    String MAP_ORIGIN = "origin";
+    String MAP_ORIGIN_KEY = "origin";
+    // Original map id
+    String MAP_ID_KEY = "id";
 
     /**
      * Persist locked maps in an array of {@link ItemStack}s
@@ -111,6 +105,7 @@ public interface BukkitMapPersister {
         return items;
     }
 
+    @SuppressWarnings("deprecation")
     @NotNull
     private ItemStack persistMapView(@NotNull ItemStack map, @NotNull Player delegateRenderer) {
         final MapMeta meta = Objects.requireNonNull((MapMeta) map.getItemMeta());
@@ -138,11 +133,14 @@ public interface BukkitMapPersister {
 
             // Persist map data
             final ReadWriteNBT mapData = nbt.getOrCreateCompound(MAP_DATA_KEY);
-            final String worldUid = view.getWorld().getUID().toString();
-            mapData.setByteArray(MAP_PIXEL_DATA_KEY, canvas.extractMapData().toBytes());
-            nbt.getOrCreateCompound(MAP_VIEW_ID_MAPPINGS_KEY).setInteger(worldUid, view.getId());
-            nbt.setString(MAP_ORIGIN, worldUid);
-            getPlugin().debug(String.format("Saved data for locked map (#%s, UID: %s)", view.getId(), worldUid));
+            final UUID worldUid = view.getWorld().getUID();
+            final String worldUidString = worldUid.toString();
+            mapData.setString(MAP_ORIGIN_KEY, worldUidString);
+            mapData.setInteger(MAP_ID_KEY, meta.getMapId());
+            if (getPlugin().getDatabase().readMapData(worldUid, meta.getMapId()) == null) {
+                getPlugin().getDatabase().writeMapData(worldUid, meta.getMapId(), canvas.extractMapData().toBytes());
+            }
+            getPlugin().debug(String.format("Saved data for locked map (#%s, UID: %s)", view.getId(), worldUidString));
         });
         return map;
     }
@@ -157,37 +155,29 @@ public interface BukkitMapPersister {
                 return;
             }
             final ReadableNBT mapData = nbt.getCompound(MAP_DATA_KEY);
-            final ReadableNBT mapIds = nbt.getCompound(MAP_VIEW_ID_MAPPINGS_KEY);
-            if (mapData == null || mapIds == null) {
+            if (mapData == null) {
                 return;
             }
 
-            // Search for an existing map view
-            Optional<String> world = Optional.empty();
-            for (String worldUid : mapIds.getKeys()) {
-                world = getPlugin().getServer().getWorlds().stream()
-                        .map(w -> w.getUID().toString()).filter(u -> u.equals(worldUid))
-                        .findFirst();
-                if (world.isPresent()) {
-                    break;
-                }
+            final UUID originWorldId = UUID.fromString(mapData.getString(MAP_ORIGIN_KEY));
+            final UUID currentWorldId = getDefaultMapWorld().getUID();
+            final int originalMapId = mapData.getInteger(MAP_ID_KEY);
+            int newId;
+            if (currentWorldId.equals(originWorldId)) {
+                newId = originalMapId;
+            } else {
+                newId = getPlugin().getDatabase().getNewMapId(
+                        originWorldId,
+                        originalMapId,
+                        currentWorldId
+                );
             }
-            if (world.isPresent()) {
-                final String uid = world.get();
-                final Optional<MapView> existingView = this.getMapView(mapIds.getInteger(uid));
-                if (existingView.isPresent()) {
-                    final MapView view = existingView.get();
-                    view.setLocked(true);
-                    meta.setMapView(view);
-                    map.setItemMeta(meta);
-                    getPlugin().debug(String.format("View exists (#%s); updated map (UID: %s)", view.getId(), uid));
-                    return;
-                } else if (nbt.getString(MAP_ORIGIN).equals(uid)) {
-                    meta.setMapId(mapIds.getInteger(uid));
-                    map.setItemMeta(meta);
-                    getPlugin().debug(String.format("Map %s originates from this world, only ID was set", mapIds.getInteger(uid)));
-                    return;
-                }
+
+            if (newId != -1) {
+                meta.setMapId(newId);
+                map.setItemMeta(meta);
+                getPlugin().debug(String.format("Map ID set to %s", newId));
+                return;
             }
 
             // Read the pixel data and generate a map view otherwise
@@ -196,7 +186,7 @@ public interface BukkitMapPersister {
                 getPlugin().debug("Deserializing map data from NBT and generating view...");
                 canvasData = MapData.fromByteArray(
                         dataVersion,
-                        Objects.requireNonNull(mapData.getByteArray(MAP_PIXEL_DATA_KEY), "Pixel data null!"));
+                        Objects.requireNonNull(getPlugin().getDatabase().readMapData(originWorldId, originalMapId), "Pixel data null!").getKey());
             } catch (Throwable e) {
                 getPlugin().log(Level.WARNING, "Failed to deserialize map data from NBT", e);
                 return;
@@ -204,31 +194,33 @@ public interface BukkitMapPersister {
 
             // Add a renderer to the map with the data and save to file
             final MapView view = generateRenderedMap(canvasData);
-            final String worldUid = getDefaultMapWorld().getUID().toString();
             meta.setMapView(view);
             map.setItemMeta(meta);
-            saveMapToFile(canvasData, view.getId());
+            getPlugin().getDatabase().connectMapIds(originWorldId, originalMapId, currentWorldId, view.getId());
 
-            // Set the map view ID in NBT
-            NBT.modify(map, editable -> {
-                Objects.requireNonNull(editable.getCompound(MAP_VIEW_ID_MAPPINGS_KEY),
-                                "Map view ID mappings compound is null")
-                        .setInteger(worldUid, view.getId());
-            });
-            getPlugin().debug(String.format("Generated view (#%s) and updated map (UID: %s)", view.getId(), worldUid));
+            getPlugin().debug(String.format("Connected map to view (#%s) in world %s", view.getId(), currentWorldId));
         });
         return map;
     }
 
-    default void renderMapFromFile(@NotNull MapView view) {
-        final File mapFile = new File(getMapCacheFolder(), view.getId() + ".dat");
-        if (!mapFile.exists()) {
+    default void renderMapFromDb(@NotNull MapView view) {
+        @Nullable Map.Entry<byte[], Boolean> data = getPlugin().getDatabase().readMapData(getDefaultMapWorld().getUID(), view.getId());
+        if (data == null) {
+            getPlugin().log(Level.WARNING, "Cannot render map: no data in DB for world " + getDefaultMapWorld().getUID() + ", map " + view.getId());
+            return;
+        }
+
+        if (data.getValue()) {
+            // from this server, doesn't need tweaking
             return;
         }
 
         final MapData canvasData;
         try {
-            canvasData = MapData.fromNbt(mapFile);
+            canvasData = MapData.fromByteArray(
+                    getPlugin().getDataVersion(getPlugin().getMinecraftVersion()),
+                    data.getKey()
+            );
         } catch (Throwable e) {
             getPlugin().log(Level.WARNING, "Failed to deserialize map data from file", e);
             return;

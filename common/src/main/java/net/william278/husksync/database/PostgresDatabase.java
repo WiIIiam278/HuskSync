@@ -27,6 +27,7 @@ import net.william278.husksync.data.DataSnapshot;
 import net.william278.husksync.user.User;
 import org.jetbrains.annotations.Blocking;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.sql.*;
@@ -428,6 +429,104 @@ public class PostgresDatabase extends Database {
         } catch (SQLException e) {
             plugin.log(Level.SEVERE, "Failed to pin user data in the database", e);
         }
+    }
+
+    @Blocking
+    @Override
+    public void writeMapData(@NotNull UUID worldId, int mapId, byte @NotNull [] data) {
+        try (Connection connection = getConnection()) {
+            try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
+                    INSERT INTO %map_data_table%
+                    (world_uuid,map_id,data)
+                    VALUES (?,?,?);"""))) {
+                statement.setObject(1, worldId);
+                statement.setInt(2, mapId);
+                statement.setBytes(3, data);
+                statement.executeUpdate();
+            }
+        } catch (SQLException | DataAdapter.AdaptionException e) {
+            plugin.log(Level.SEVERE, "Failed to write map data to the database", e);
+        }
+    }
+
+    @Blocking
+    @Override
+    public @Nullable Map.Entry<byte[], Boolean> readMapData(@NotNull UUID worldId, int mapId) {
+        try (Connection connection = getConnection()) {
+            try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
+                    SELECT data
+                    FROM %map_data_table%
+                    WHERE world_uuid=? AND map_id=?
+                    LIMIT 1;"""))) {
+                statement.setObject(1, worldId);
+                statement.setInt(2, mapId);
+                final ResultSet resultSet = statement.executeQuery();
+                if (resultSet.next()) {
+                    return Map.entry(resultSet.getBytes("data"), true);
+                } else {
+                    PreparedStatement statement2 = connection.prepareStatement(formatStatementTables("""
+                        SELECT from_world_uuid, from_id
+                        FROM %map_ids_table%
+                        WHERE to_world_uuid=? AND to_id=?
+                        LIMIT 1;
+                    """));
+                    statement2.setObject(1, worldId);
+                    statement2.setInt(2, mapId);
+                    final ResultSet resultSet2 = statement2.executeQuery();
+                    if (resultSet2.next()) {
+                        var result = readMapData(resultSet2.getObject("from_world_uuid", UUID.class), resultSet2.getInt("from_id"));
+                        if (result != null) {
+                            return Map.entry(result.getKey(), false);
+                        }
+                    }
+                }
+            }
+        } catch (SQLException | DataAdapter.AdaptionException e) {
+            plugin.log(Level.SEVERE, "Failed to get map data from the database", e);
+        }
+        return null;
+    }
+
+    @Blocking
+    @Override
+    public void connectMapIds(@NotNull UUID fromWorldId, int fromMapId, @NotNull UUID toWorldId, int toMapId) {
+        try (Connection connection = getConnection()) {
+            try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
+                    INSERT INTO %map_ids_table%
+                    (from_world_uuid,from_id,to_world_uuid,to_id)
+                    VALUES (?,?,?,?);"""))) {
+                statement.setObject(1, fromWorldId);
+                statement.setInt(2, fromMapId);
+                statement.setObject(3, toWorldId);
+                statement.setInt(4, toMapId);
+                statement.executeUpdate();
+            }
+        } catch (SQLException | DataAdapter.AdaptionException e) {
+            plugin.log(Level.SEVERE, "Failed to connect map IDs in the database", e);
+        }
+    }
+
+    @Blocking
+    @Override
+    public int getNewMapId(@NotNull UUID fromWorldId, int fromMapId, @NotNull UUID toWorldId) {
+        try (Connection connection = getConnection()) {
+            try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
+                    SELECT to_id
+                    FROM %map_ids_table%
+                    WHERE from_world_uuid=? AND from_id=? AND to_world_uuid=?
+                    LIMIT 1;"""))) {
+                statement.setObject(1, fromWorldId);
+                statement.setInt(2, fromMapId);
+                statement.setObject(3, toWorldId);
+                final ResultSet resultSet = statement.executeQuery();
+                if (resultSet.next()) {
+                    return resultSet.getInt("to_id");
+                }
+            }
+        } catch (SQLException | DataAdapter.AdaptionException e) {
+            plugin.log(Level.SEVERE, "Failed to get new map id from the database", e);
+        }
+        return -1;
     }
 
     @Override

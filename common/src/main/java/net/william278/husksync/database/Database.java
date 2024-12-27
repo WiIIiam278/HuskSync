@@ -26,6 +26,7 @@ import net.william278.husksync.data.DataSnapshot;
 import net.william278.husksync.user.User;
 import org.jetbrains.annotations.Blocking;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -70,7 +71,9 @@ public abstract class Database {
     protected final String formatStatementTables(@NotNull String sql) {
         final Settings.DatabaseSettings settings = plugin.getSettings().getDatabase();
         return sql.replaceAll("%users_table%", settings.getTableName(TableName.USERS))
-                .replaceAll("%user_data_table%", settings.getTableName(TableName.USER_DATA));
+                .replaceAll("%user_data_table%", settings.getTableName(TableName.USER_DATA))
+                .replaceAll("%map_data_table%", settings.getTableName(TableName.MAP_DATA))
+                .replaceAll("%map_ids_table%", settings.getTableName(TableName.MAP_IDS));
     }
 
     /**
@@ -247,6 +250,48 @@ public abstract class Database {
     }
 
     /**
+     * Write map data to a database
+     *
+     * @param worldId ID of the world the map originates from
+     * @param mapId   Original map ID
+     * @param data    Map data
+     */
+    @Blocking
+    public abstract void writeMapData(@NotNull UUID worldId, int mapId, byte @NotNull [] data);
+
+    /**
+     * Read map data from a database
+     *
+     * @param worldId ID of the world the map originates from
+     * @param mapId   Original map ID
+     * @return Map.Entry (key: map data, value: is from current world)
+     */
+    @Blocking
+    public abstract @Nullable Map.Entry<byte[], Boolean> readMapData(@NotNull UUID worldId, int mapId);
+
+    /**
+     * Connect map IDs across different worlds
+     *
+     * @param fromWorldId ID of the world the map originates from
+     * @param fromMapId   Original map ID
+     * @param toWorldId   ID of the new world
+     * @param toMapId     New map ID
+     */
+    @Blocking
+    public abstract void connectMapIds(@NotNull UUID fromWorldId, int fromMapId, @NotNull UUID toWorldId, int toMapId);
+
+    /**
+     * Get map ID for the new world
+     *
+     * @param fromWorldId ID of the world the map originates from
+     * @param fromMapId   Original map ID
+     * @param toWorldId   ID of the new world
+     * @return            New map ID or -1 if not found
+     */
+    @Blocking
+    public abstract int getNewMapId(@NotNull UUID fromWorldId, int fromMapId, @NotNull UUID toWorldId);
+
+    /**
      * Wipes <b>all</b> {@link User} entries from the database.
      * <b>This should only be used when preparing tables for a data migration.</b>
      */
@@ -283,7 +328,9 @@ public abstract class Database {
     @Getter
     public enum TableName {
         USERS("husksync_users"),
-        USER_DATA("husksync_user_data");
+        USER_DATA("husksync_user_data"),
+        MAP_DATA("husksync_map_data"),
+        MAP_IDS("husksync_map_ids");
 
         private final String defaultName;
 
