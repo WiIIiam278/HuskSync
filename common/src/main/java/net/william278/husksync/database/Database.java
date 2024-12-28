@@ -57,8 +57,8 @@ public abstract class Database {
     @SuppressWarnings("SameParameterValue")
     @NotNull
     protected final String[] getSchemaStatements(@NotNull String schemaFileName) throws IOException {
-        return formatStatementTables(new String(Objects.requireNonNull(plugin.getResource(schemaFileName))
-                .readAllBytes(), StandardCharsets.UTF_8)).split(";");
+        return Arrays.stream(formatStatementTables(new String(Objects.requireNonNull(plugin.getResource(schemaFileName))
+                .readAllBytes(), StandardCharsets.UTF_8)).split(";")).filter(s -> !s.isBlank()).toArray(String[]::new);
     }
 
     /**
