@@ -396,7 +396,7 @@ public class MongoDbDatabase extends Database {
 
     @Blocking
     @Override
-    public void connectMapIds(@NotNull UUID fromWorldId, int fromMapId, @NotNull UUID toWorldId, int toMapId) {
+    public void bindMapIds(@NotNull UUID fromWorldId, int fromMapId, @NotNull UUID toWorldId, int toMapId) {
         try {
             Document doc = new Document("from_world_uuid", fromWorldId)
                     .append("from_id", fromMapId)

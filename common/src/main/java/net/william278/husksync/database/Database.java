@@ -270,7 +270,7 @@ public abstract class Database {
     public abstract @Nullable Map.Entry<byte[], Boolean> readMapData(@NotNull UUID worldId, int mapId);
 
     /**
-     * Connect map IDs across different worlds
+     * Bind map IDs across different worlds
      *
      * @param fromWorldId ID of the world the map originates from
      * @param fromMapId   Original map ID
@@ -278,7 +278,7 @@ public abstract class Database {
      * @param toMapId     New map ID
      */
     @Blocking
-    public abstract void connectMapIds(@NotNull UUID fromWorldId, int fromMapId, @NotNull UUID toWorldId, int toMapId);
+    public abstract void bindMapIds(@NotNull UUID fromWorldId, int fromMapId, @NotNull UUID toWorldId, int toMapId);
 
     /**
      * Get map ID for the new world

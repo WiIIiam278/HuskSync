@@ -200,9 +200,9 @@ public interface BukkitMapPersister {
             final MapView view = generateRenderedMap(canvasData);
             meta.setMapView(view);
             map.setItemMeta(meta);
-            getPlugin().getDatabase().connectMapIds(originWorldId, originalMapId, currentWorldId, view.getId());
+            getPlugin().getDatabase().bindMapIds(originWorldId, originalMapId, currentWorldId, view.getId());
 
-            getPlugin().debug(String.format("Connected map to view (#%s) in world %s", view.getId(), currentWorldId));
+            getPlugin().debug(String.format("Bound map to view (#%s) in world %s", view.getId(), currentWorldId));
         });
         return map;
     }
