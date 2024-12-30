@@ -470,20 +470,30 @@ public class MySqlDatabase extends Database {
                     blob.free();
                     return Map.entry(dataByteArray, true);
                 } else {
-                    PreparedStatement statement2 = connection.prepareStatement(formatStatementTables("""
-                        SELECT `from_world_uuid`, `from_id`
-                        FROM `%map_ids_table%`
-                        WHERE `to_world_uuid`=? AND `to_id`=?
-                        LIMIT 1;
-                    """));
-                    statement2.setString(1, worldId.toString());
-                    statement2.setInt(2, mapId);
-                    final ResultSet resultSet2 = statement2.executeQuery();
-                    if (resultSet2.next()) {
-                        var result = readMapData(UUID.fromString(resultSet2.getString("from_world_uuid")), resultSet2.getInt("from_id"));
-                        if (result != null) {
-                            return Map.entry(result.getKey(), false);
-                        }
+                    return readMapDataFromAnotherServer(worldId, mapId);
+                }
+            }
+        } catch (SQLException | DataAdapter.AdaptionException e) {
+            plugin.log(Level.SEVERE, "Failed to get map data from the database", e);
+        }
+        return null;
+    }
+
+    public @Nullable Map.Entry<byte[], Boolean> readMapDataFromAnotherServer(@NotNull UUID worldId, int mapId) {
+        try (Connection connection = getConnection()) {
+            try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
+                    SELECT `from_world_uuid`, `from_id`
+                    FROM `%map_ids_table%`
+                    WHERE `to_world_uuid`=? AND `to_id`=?
+                    LIMIT 1;
+                    """))) {
+                statement.setString(1, worldId.toString());
+                statement.setInt(2, mapId);
+                final ResultSet resultSet = statement.executeQuery();
+                if (resultSet.next()) {
+                    var result = readMapData(UUID.fromString(resultSet.getString("from_world_uuid")), resultSet.getInt("from_id"));
+                    if (result != null) {
+                        return Map.entry(result.getKey(), false);
                     }
                 }
             }
