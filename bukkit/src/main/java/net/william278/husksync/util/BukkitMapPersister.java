@@ -23,8 +23,6 @@ import com.google.common.collect.Lists;
 import de.tr7zw.changeme.nbtapi.NBT;
 import de.tr7zw.changeme.nbtapi.iface.ReadWriteNBT;
 import de.tr7zw.changeme.nbtapi.iface.ReadableNBT;
-import net.querz.nbt.io.NBTUtil;
-import net.querz.nbt.tag.CompoundTag;
 import net.william278.husksync.BukkitHuskSync;
 import net.william278.husksync.data.AdaptableMapData;
 import net.william278.mapdataapi.MapBanner;
@@ -44,7 +42,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
-import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.*;
@@ -225,6 +222,10 @@ public interface BukkitMapPersister {
     }
 
     default void renderMapFromDb(@NotNull MapView view) {
+        if (getMapView(view.getId()).isPresent()) {
+            return;
+        }
+
         @Nullable Map.Entry<MapData, Boolean> data = readMapData(getPlugin().getServerName(), view.getId());
         if (data == null) {
             getPlugin().log(Level.WARNING, "Cannot render map: no data in DB for world " + getDefaultMapWorld().getUID() + ", map " + view.getId());
@@ -249,32 +250,6 @@ public interface BukkitMapPersister {
 
         // Set the view to the map
         setMapView(view);
-    }
-
-    default void saveMapToFile(@NotNull MapData data, int id) {
-        getPlugin().runAsync(() -> {
-            final File mapFile = new File(getMapCacheFolder(), id + ".dat");
-            if (mapFile.exists()) {
-                return;
-            }
-
-            try {
-                final CompoundTag rootTag = new CompoundTag();
-                rootTag.put("data", data.toNBT().getTag());
-                NBTUtil.write(rootTag, mapFile);
-            } catch (Throwable e) {
-                getPlugin().log(Level.WARNING, "Failed to serialize map data to file", e);
-            }
-        });
-    }
-
-    @NotNull
-    private File getMapCacheFolder() {
-        final File mapCache = new File(getPlugin().getDataFolder(), "maps");
-        if (!mapCache.exists() && !mapCache.mkdirs()) {
-            getPlugin().log(Level.WARNING, "Failed to create maps folder");
-        }
-        return mapCache;
     }
 
     // Sets the renderer of a map, and returns the generated MapView
