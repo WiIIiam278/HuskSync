@@ -26,6 +26,7 @@ import de.tr7zw.changeme.nbtapi.iface.ReadableNBT;
 import net.querz.nbt.io.NBTUtil;
 import net.querz.nbt.tag.CompoundTag;
 import net.william278.husksync.BukkitHuskSync;
+import net.william278.husksync.data.AdaptableMapData;
 import net.william278.mapdataapi.MapBanner;
 import net.william278.mapdataapi.MapData;
 import org.bukkit.Bukkit;
@@ -44,6 +45,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.*;
 import java.util.function.Function;
@@ -109,6 +111,31 @@ public interface BukkitMapPersister {
         return items;
     }
 
+    private void writeMapData(UUID worldId, int mapId, MapData data) {
+        getPlugin().getDatabase().writeMapData(
+                worldId,
+                mapId,
+                getPlugin().getDataAdapter().toBytes(new AdaptableMapData(data))
+        );
+    }
+
+    private Map.Entry<MapData, Boolean> readMapData(UUID worldId, int mapId) {
+        Map.Entry<byte[], Boolean> result = getPlugin().getDatabase().readMapData(worldId, mapId);
+        if (result == null) {
+            return null;
+        }
+        try {
+            return Map.entry(
+                    getPlugin().getDataAdapter().fromBytes(result.getKey(), AdaptableMapData.class)
+                            .getData(getPlugin().getDataVersion(getPlugin().getMinecraftVersion())),
+                    result.getValue()
+            );
+        } catch (IOException e) {
+            getPlugin().log(Level.WARNING, "Failed to deserialize map data", e);
+            return null;
+        }
+    }
+
     @SuppressWarnings("deprecation")
     @NotNull
     private ItemStack persistMapView(@NotNull ItemStack map, @NotNull Player delegateRenderer) {
@@ -141,8 +168,8 @@ public interface BukkitMapPersister {
             final String worldUidString = worldUid.toString();
             mapData.setString(MAP_ORIGIN_KEY, worldUidString);
             mapData.setInteger(MAP_ID_KEY, meta.getMapId());
-            if (getPlugin().getDatabase().readMapData(worldUid, meta.getMapId()) == null) {
-                getPlugin().getDatabase().writeMapData(worldUid, meta.getMapId(), canvas.extractMapData().toBytes());
+            if (readMapData(worldUid, meta.getMapId()) == null) {
+                writeMapData(worldUid, meta.getMapId(), canvas.extractMapData());
             }
             getPlugin().debug(String.format("Saved data for locked map (#%s, UID: %s)", view.getId(), worldUidString));
         });
@@ -152,7 +179,6 @@ public interface BukkitMapPersister {
     @SuppressWarnings("deprecation")
     @NotNull
     private ItemStack applyMapView(@NotNull ItemStack map) {
-        final int dataVersion = getPlugin().getDataVersion(getPlugin().getMinecraftVersion());
         final MapMeta meta = Objects.requireNonNull((MapMeta) map.getItemMeta());
         NBT.get(map, nbt -> {
             if (!nbt.hasTag(MAP_DATA_KEY)) {
@@ -185,16 +211,8 @@ public interface BukkitMapPersister {
             }
 
             // Read the pixel data and generate a map view otherwise
-            final MapData canvasData;
-            try {
-                getPlugin().debug("Deserializing map data from NBT and generating view...");
-                canvasData = MapData.fromByteArray(
-                        dataVersion,
-                        Objects.requireNonNull(getPlugin().getDatabase().readMapData(originWorldId, originalMapId), "Pixel data null!").getKey());
-            } catch (Throwable e) {
-                getPlugin().log(Level.WARNING, "Failed to deserialize map data from NBT", e);
-                return;
-            }
+            getPlugin().debug("Deserializing map data from NBT and generating view...");
+            final MapData canvasData = Objects.requireNonNull(readMapData(originWorldId, originalMapId), "Pixel data null!").getKey();
 
             // Add a renderer to the map with the data and save to file
             final MapView view = generateRenderedMap(canvasData);
@@ -208,7 +226,7 @@ public interface BukkitMapPersister {
     }
 
     default void renderMapFromDb(@NotNull MapView view) {
-        @Nullable Map.Entry<byte[], Boolean> data = getPlugin().getDatabase().readMapData(getDefaultMapWorld().getUID(), view.getId());
+        @Nullable Map.Entry<MapData, Boolean> data = readMapData(getDefaultMapWorld().getUID(), view.getId());
         if (data == null) {
             getPlugin().log(Level.WARNING, "Cannot render map: no data in DB for world " + getDefaultMapWorld().getUID() + ", map " + view.getId());
             return;
@@ -219,16 +237,7 @@ public interface BukkitMapPersister {
             return;
         }
 
-        final MapData canvasData;
-        try {
-            canvasData = MapData.fromByteArray(
-                    getPlugin().getDataVersion(getPlugin().getMinecraftVersion()),
-                    data.getKey()
-            );
-        } catch (Throwable e) {
-            getPlugin().log(Level.WARNING, "Failed to deserialize map data from file", e);
-            return;
-        }
+        final MapData canvasData = data.getKey();
 
         // Create a new map view renderer with the map data color at each pixel
         // use view.removeRenderer() to remove all this maps renderers
