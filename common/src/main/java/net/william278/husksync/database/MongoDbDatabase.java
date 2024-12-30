@@ -355,9 +355,9 @@ public class MongoDbDatabase extends Database {
 
     @Blocking
     @Override
-    public void writeMapData(@NotNull UUID worldId, int mapId, byte @NotNull [] data) {
+    public void writeMapData(@NotNull String serverName, int mapId, byte @NotNull [] data) {
         try {
-            Document doc = new Document("world_uuid", worldId)
+            Document doc = new Document("server_name", serverName)
                     .append("map_id", mapId)
                     .append("data", new Binary(data));
             mongoCollectionHelper.insertDocument(mapDataTable, doc);
@@ -368,16 +368,16 @@ public class MongoDbDatabase extends Database {
 
     @Blocking
     @Override
-    public @Nullable Map.Entry<byte[], Boolean> readMapData(@NotNull UUID worldId, int mapId) {
+    public @Nullable Map.Entry<byte[], Boolean> readMapData(@NotNull String serverName, int mapId) {
         try {
-            Document filter = new Document("world_uuid", worldId).append("map_id", mapId);
+            Document filter = new Document("server_name", serverName).append("map_id", mapId);
             FindIterable<Document> iterable = mongoCollectionHelper.getCollection(mapDataTable).find(filter);
             Document doc = iterable.first();
             if (doc != null) {
                 final Binary bin = doc.get("data", Binary.class);
                 return Map.entry(bin.getData(), true);
             } else {
-                return readMapDataFromAnotherServer(worldId, mapId);
+                return readMapDataFromAnotherServer(serverName, mapId);
             }
         } catch (MongoException e) {
             plugin.log(Level.SEVERE, "Failed to get map data from the database", e);
@@ -385,12 +385,12 @@ public class MongoDbDatabase extends Database {
         }
     }
 
-    private @Nullable Map.Entry<byte[], Boolean> readMapDataFromAnotherServer(@NotNull UUID worldId, int mapId) {
-        Document filter = new Document("to_world_uuid", worldId).append("to_id", mapId);
+    private @Nullable Map.Entry<byte[], Boolean> readMapDataFromAnotherServer(@NotNull String serverName, int mapId) {
+        Document filter = new Document("to_server_name", serverName).append("to_id", mapId);
         FindIterable<Document> iterable = mongoCollectionHelper.getCollection(mapIdsTable).find(filter);
         Document doc = iterable.first();
         if (doc != null) {
-            var result = readMapData(doc.get("from_world_uuid", UUID.class), doc.getInteger("from_id"));
+            var result = readMapData(doc.getString("from_server_name"), doc.getInteger("from_id"));
             if (result != null) {
                 return Map.entry(result.getKey(), false);
             }
@@ -400,11 +400,11 @@ public class MongoDbDatabase extends Database {
 
     @Blocking
     @Override
-    public void bindMapIds(@NotNull UUID fromWorldId, int fromMapId, @NotNull UUID toWorldId, int toMapId) {
+    public void bindMapIds(@NotNull String fromServerName, int fromMapId, @NotNull String toServerName, int toMapId) {
         try {
-            Document doc = new Document("from_world_uuid", fromWorldId)
+            Document doc = new Document("from_server_name", fromServerName)
                     .append("from_id", fromMapId)
-                    .append("to_world_uuid", toWorldId)
+                    .append("to_server_name", toServerName)
                     .append("to_id", toMapId);
             mongoCollectionHelper.insertDocument(mapIdsTable, doc);
         } catch (MongoException e) {
@@ -414,10 +414,10 @@ public class MongoDbDatabase extends Database {
 
     @Blocking
     @Override
-    public int getNewMapId(@NotNull UUID fromWorldId, int fromMapId, @NotNull UUID toWorldId) {
+    public int getNewMapId(@NotNull String fromServerName, int fromMapId, @NotNull String toServerName) {
         try {
-            Document filter = new Document("from_world_uuid", fromWorldId).append("from_id", fromMapId)
-                    .append("to_world_uuid", toWorldId);
+            Document filter = new Document("from_server_name", fromServerName).append("from_id", fromMapId)
+                    .append("to_server_name", toServerName);
             FindIterable<Document> iterable = mongoCollectionHelper.getCollection(mapIdsTable).find(filter);
             Document doc = iterable.first();
             if (doc != null) {
