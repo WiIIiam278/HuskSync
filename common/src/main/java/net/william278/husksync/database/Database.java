@@ -252,44 +252,44 @@ public abstract class Database {
     /**
      * Write map data to a database
      *
-     * @param worldId ID of the world the map originates from
-     * @param mapId   Original map ID
-     * @param data    Map data
+     * @param serverName Name of the server the map originates from
+     * @param mapId      Original map ID
+     * @param data       Map data
      */
     @Blocking
-    public abstract void writeMapData(@NotNull UUID worldId, int mapId, byte @NotNull [] data);
+    public abstract void writeMapData(@NotNull String serverName, int mapId, byte @NotNull [] data);
 
     /**
      * Read map data from a database
      *
-     * @param worldId ID of the world the map originates from
-     * @param mapId   Original map ID
-     * @return Map.Entry (key: map data, value: is from current world)
+     * @param serverName Name of the server the map originates from
+     * @param mapId      Original map ID
+     * @return           Map.Entry (key: map data, value: is from current world)
      */
     @Blocking
-    public abstract @Nullable Map.Entry<byte[], Boolean> readMapData(@NotNull UUID worldId, int mapId);
+    public abstract @Nullable Map.Entry<byte[], Boolean> readMapData(@NotNull String serverName, int mapId);
 
     /**
-     * Bind map IDs across different worlds
+     * Bind map IDs across different servers
      *
-     * @param fromWorldId ID of the world the map originates from
-     * @param fromMapId   Original map ID
-     * @param toWorldId   ID of the new world
-     * @param toMapId     New map ID
+     * @param fromServerName Name of the server the map originates from
+     * @param fromMapId      Original map ID
+     * @param toServerName   Name of the new server
+     * @param toMapId        New map ID
      */
     @Blocking
-    public abstract void bindMapIds(@NotNull UUID fromWorldId, int fromMapId, @NotNull UUID toWorldId, int toMapId);
+    public abstract void bindMapIds(@NotNull String fromServerName, int fromMapId, @NotNull String toServerName, int toMapId);
 
     /**
-     * Get map ID for the new world
+     * Get map ID for the new server
      *
-     * @param fromWorldId ID of the world the map originates from
-     * @param fromMapId   Original map ID
-     * @param toWorldId   ID of the new world
-     * @return            New map ID or -1 if not found
+     * @param fromServerName Name of the server the map originates from
+     * @param fromMapId      Original map ID
+     * @param toServerName   Name of the new server
+     * @return               New map ID or -1 if not found
      */
     @Blocking
-    public abstract int getNewMapId(@NotNull UUID fromWorldId, int fromMapId, @NotNull UUID toWorldId);
+    public abstract int getNewMapId(@NotNull String fromServerName, int fromMapId, @NotNull String toServerName);
 
     /**
      * Wipes <b>all</b> {@link User} entries from the database.
