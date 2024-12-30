@@ -55,7 +55,7 @@ public interface BukkitMapPersister {
 
     // The map used to store HuskSync data in ItemStack NBT
     String MAP_DATA_KEY = "husksync:persisted_locked_map";
-    // ID of world the map originates from
+    // Name of server the map originates from
     String MAP_ORIGIN_KEY = "origin";
     // Original map id
     String MAP_ID_KEY = "id";
@@ -111,16 +111,16 @@ public interface BukkitMapPersister {
         return items;
     }
 
-    private void writeMapData(UUID worldId, int mapId, MapData data) {
+    private void writeMapData(@NotNull String serverName, int mapId, MapData data) {
         getPlugin().getDatabase().writeMapData(
-                worldId,
+                serverName,
                 mapId,
                 getPlugin().getDataAdapter().toBytes(new AdaptableMapData(data))
         );
     }
 
-    private Map.Entry<MapData, Boolean> readMapData(UUID worldId, int mapId) {
-        Map.Entry<byte[], Boolean> result = getPlugin().getDatabase().readMapData(worldId, mapId);
+    private Map.Entry<MapData, Boolean> readMapData(@NotNull String serverName, int mapId) {
+        Map.Entry<byte[], Boolean> result = getPlugin().getDatabase().readMapData(serverName, mapId);
         if (result == null) {
             return null;
         }
@@ -164,14 +164,13 @@ public interface BukkitMapPersister {
 
             // Persist map data
             final ReadWriteNBT mapData = nbt.getOrCreateCompound(MAP_DATA_KEY);
-            final UUID worldUid = view.getWorld().getUID();
-            final String worldUidString = worldUid.toString();
-            mapData.setString(MAP_ORIGIN_KEY, worldUidString);
+            final String serverName = getPlugin().getServerName();
+            mapData.setString(MAP_ORIGIN_KEY, serverName);
             mapData.setInteger(MAP_ID_KEY, meta.getMapId());
-            if (readMapData(worldUid, meta.getMapId()) == null) {
-                writeMapData(worldUid, meta.getMapId(), canvas.extractMapData());
+            if (readMapData(serverName, meta.getMapId()) == null) {
+                writeMapData(serverName, meta.getMapId(), canvas.extractMapData());
             }
-            getPlugin().debug(String.format("Saved data for locked map (#%s, UID: %s)", view.getId(), worldUidString));
+            getPlugin().debug(String.format("Saved data for locked map (#%s, server: %s)", view.getId(), serverName));
         });
         return map;
     }
@@ -189,17 +188,17 @@ public interface BukkitMapPersister {
                 return;
             }
 
-            final UUID originWorldId = UUID.fromString(mapData.getString(MAP_ORIGIN_KEY));
-            final UUID currentWorldId = getDefaultMapWorld().getUID();
+            final String originServerName = mapData.getString(MAP_ORIGIN_KEY);
+            final String currentServerName = getPlugin().getServerName();
             final int originalMapId = mapData.getInteger(MAP_ID_KEY);
             int newId;
-            if (currentWorldId.equals(originWorldId)) {
+            if (currentServerName.equals(originServerName)) {
                 newId = originalMapId;
             } else {
                 newId = getPlugin().getDatabase().getNewMapId(
-                        originWorldId,
+                        originServerName,
                         originalMapId,
-                        currentWorldId
+                        currentServerName
                 );
             }
 
@@ -212,21 +211,21 @@ public interface BukkitMapPersister {
 
             // Read the pixel data and generate a map view otherwise
             getPlugin().debug("Deserializing map data from NBT and generating view...");
-            final MapData canvasData = Objects.requireNonNull(readMapData(originWorldId, originalMapId), "Pixel data null!").getKey();
+            final MapData canvasData = Objects.requireNonNull(readMapData(originServerName, originalMapId), "Pixel data null!").getKey();
 
             // Add a renderer to the map with the data and save to file
             final MapView view = generateRenderedMap(canvasData);
             meta.setMapView(view);
             map.setItemMeta(meta);
-            getPlugin().getDatabase().bindMapIds(originWorldId, originalMapId, currentWorldId, view.getId());
+            getPlugin().getDatabase().bindMapIds(originServerName, originalMapId, currentServerName, view.getId());
 
-            getPlugin().debug(String.format("Bound map to view (#%s) in world %s", view.getId(), currentWorldId));
+            getPlugin().debug(String.format("Bound map to view (#%s) on server %s", view.getId(), currentServerName));
         });
         return map;
     }
 
     default void renderMapFromDb(@NotNull MapView view) {
-        @Nullable Map.Entry<MapData, Boolean> data = readMapData(getDefaultMapWorld().getUID(), view.getId());
+        @Nullable Map.Entry<MapData, Boolean> data = readMapData(getPlugin().getServerName(), view.getId());
         if (data == null) {
             getPlugin().log(Level.WARNING, "Cannot render map: no data in DB for world " + getDefaultMapWorld().getUID() + ", map " + view.getId());
             return;
