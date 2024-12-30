@@ -433,13 +433,13 @@ public class PostgresDatabase extends Database {
 
     @Blocking
     @Override
-    public void writeMapData(@NotNull UUID worldId, int mapId, byte @NotNull [] data) {
+    public void writeMapData(@NotNull String serverName, int mapId, byte @NotNull [] data) {
         try (Connection connection = getConnection()) {
             try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
                     INSERT INTO %map_data_table%
-                    (world_uuid,map_id,data)
+                    (server_name,map_id,data)
                     VALUES (?,?,?);"""))) {
-                statement.setObject(1, worldId);
+                statement.setString(1, serverName);
                 statement.setInt(2, mapId);
                 statement.setBytes(3, data);
                 statement.executeUpdate();
@@ -451,20 +451,20 @@ public class PostgresDatabase extends Database {
 
     @Blocking
     @Override
-    public @Nullable Map.Entry<byte[], Boolean> readMapData(@NotNull UUID worldId, int mapId) {
+    public @Nullable Map.Entry<byte[], Boolean> readMapData(@NotNull String serverName, int mapId) {
         try (Connection connection = getConnection()) {
             try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
                     SELECT data
                     FROM %map_data_table%
-                    WHERE world_uuid=? AND map_id=?
+                    WHERE server_name=? AND map_id=?
                     LIMIT 1;"""))) {
-                statement.setObject(1, worldId);
+                statement.setString(1, serverName);
                 statement.setInt(2, mapId);
                 final ResultSet resultSet = statement.executeQuery();
                 if (resultSet.next()) {
                     return Map.entry(resultSet.getBytes("data"), true);
                 } else {
-                    return readMapDataFromAnotherServer(worldId, mapId);
+                    return readMapDataFromAnotherServer(serverName, mapId);
                 }
             }
         } catch (SQLException | DataAdapter.AdaptionException e) {
@@ -473,19 +473,19 @@ public class PostgresDatabase extends Database {
         return null;
     }
 
-    public @Nullable Map.Entry<byte[], Boolean> readMapDataFromAnotherServer(@NotNull UUID worldId, int mapId) {
+    public @Nullable Map.Entry<byte[], Boolean> readMapDataFromAnotherServer(@NotNull String serverName, int mapId) {
         try (Connection connection = getConnection()) {
             try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
-                    SELECT from_world_uuid, from_id
+                    SELECT from_server_name, from_id
                     FROM %map_ids_table%
-                    WHERE to_world_uuid=? AND to_id=?
+                    WHERE to_server_name=? AND to_id=?
                     LIMIT 1;
                     """))) {
-                statement.setObject(1, worldId);
+                statement.setString(1, serverName);
                 statement.setInt(2, mapId);
                 final ResultSet resultSet = statement.executeQuery();
                 if (resultSet.next()) {
-                    var result = readMapData(resultSet.getObject("from_world_uuid", UUID.class), resultSet.getInt("from_id"));
+                    var result = readMapData(resultSet.getString("from_server_name"), resultSet.getInt("from_id"));
                     if (result != null) {
                         return Map.entry(result.getKey(), false);
                     }
@@ -499,15 +499,15 @@ public class PostgresDatabase extends Database {
 
     @Blocking
     @Override
-    public void bindMapIds(@NotNull UUID fromWorldId, int fromMapId, @NotNull UUID toWorldId, int toMapId) {
+    public void bindMapIds(@NotNull String fromServerName, int fromMapId, @NotNull String toServerName, int toMapId) {
         try (Connection connection = getConnection()) {
             try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
                     INSERT INTO %map_ids_table%
-                    (from_world_uuid,from_id,to_world_uuid,to_id)
+                    (from_server_name,from_id,to_server_name,to_id)
                     VALUES (?,?,?,?);"""))) {
-                statement.setObject(1, fromWorldId);
+                statement.setString(1, fromServerName);
                 statement.setInt(2, fromMapId);
-                statement.setObject(3, toWorldId);
+                statement.setString(3, toServerName);
                 statement.setInt(4, toMapId);
                 statement.executeUpdate();
             }
@@ -518,16 +518,16 @@ public class PostgresDatabase extends Database {
 
     @Blocking
     @Override
-    public int getNewMapId(@NotNull UUID fromWorldId, int fromMapId, @NotNull UUID toWorldId) {
+    public int getNewMapId(@NotNull String fromServerName, int fromMapId, @NotNull String toServerName) {
         try (Connection connection = getConnection()) {
             try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
                     SELECT to_id
                     FROM %map_ids_table%
-                    WHERE from_world_uuid=? AND from_id=? AND to_world_uuid=?
+                    WHERE from_server_name=? AND from_id=? AND to_server_name=?
                     LIMIT 1;"""))) {
-                statement.setObject(1, fromWorldId);
+                statement.setString(1, fromServerName);
                 statement.setInt(2, fromMapId);
-                statement.setObject(3, toWorldId);
+                statement.setString(3, toServerName);
                 final ResultSet resultSet = statement.executeQuery();
                 if (resultSet.next()) {
                     return resultSet.getInt("to_id");
