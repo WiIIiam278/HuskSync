@@ -377,21 +377,25 @@ public class MongoDbDatabase extends Database {
                 final Binary bin = doc.get("data", Binary.class);
                 return Map.entry(bin.getData(), true);
             } else {
-                filter = new Document("to_world_uuid", worldId).append("to_id", mapId);
-                iterable = mongoCollectionHelper.getCollection(mapIdsTable).find(filter);
-                doc = iterable.first();
-                if (doc != null) {
-                    var result = readMapData(doc.get("from_world_uuid", UUID.class), doc.getInteger("from_id"));
-                    if (result != null) {
-                        return Map.entry(result.getKey(), false);
-                    }
-                }
+                return readMapDataFromAnotherServer(worldId, mapId);
             }
-            return null;
         } catch (MongoException e) {
             plugin.log(Level.SEVERE, "Failed to get map data from the database", e);
             return null;
         }
+    }
+
+    private @Nullable Map.Entry<byte[], Boolean> readMapDataFromAnotherServer(@NotNull UUID worldId, int mapId) {
+        Document filter = new Document("to_world_uuid", worldId).append("to_id", mapId);
+        FindIterable<Document> iterable = mongoCollectionHelper.getCollection(mapIdsTable).find(filter);
+        Document doc = iterable.first();
+        if (doc != null) {
+            var result = readMapData(doc.get("from_world_uuid", UUID.class), doc.getInteger("from_id"));
+            if (result != null) {
+                return Map.entry(result.getKey(), false);
+            }
+        }
+        return null;
     }
 
     @Blocking
