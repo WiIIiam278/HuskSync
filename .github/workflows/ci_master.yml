@@ -22,10 +22,10 @@ jobs:
         with:
           java-version: '21'
           distribution: 'temurin'
-      - name: 'Setup Gradle 8.8 🏗️'
+      - name: 'Setup Gradle 8.12 🏗️'
         uses: gradle/actions/setup-gradle@v4
         with:
-          gradle-version: '8.8'
+          gradle-version: '8.12'
       - name: 'Checkout for CI 🛎️'
         uses: actions/checkout@v4
       - name: '[Current - 1.21.4] Build 🛎️'
