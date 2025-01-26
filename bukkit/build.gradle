@@ -12,7 +12,7 @@ dependencies {
     implementation 'de.tr7zw:item-nbt-api:2.14.2-SNAPSHOT'
 
     compileOnly "org.spigotmc:spigot-api:${bukkit_spigot_api}"
-    compileOnly 'com.github.retrooper.packetevents:spigot:2.3.0'
+    compileOnly 'com.github.retrooper:packetevents-spigot:2.7.0'
     compileOnly 'com.comphenix.protocol:ProtocolLib:5.3.0'
     compileOnly 'org.projectlombok:lombok:1.18.36'
     compileOnly 'commons-io:commons-io:2.18.0'
