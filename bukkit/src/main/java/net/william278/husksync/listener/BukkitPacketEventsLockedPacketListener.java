@@ -40,10 +40,11 @@ public class BukkitPacketEventsLockedPacketListener extends BukkitLockedEventLis
     }
 
     @Override
+    @SuppressWarnings("UnstableApiUsage")
     public void onLoad() {
         super.onLoad();
         PacketEvents.setAPI(SpigotPacketEventsBuilder.build(getPlugin()));
-        PacketEvents.getAPI().getSettings().reEncodeByDefault(false).checkForUpdates(false).bStats(true);
+        PacketEvents.getAPI().getSettings().reEncodeByDefault(false).checkForUpdates(false);
         PacketEvents.getAPI().load();
     }
 
