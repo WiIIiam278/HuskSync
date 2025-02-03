@@ -1,7 +1,7 @@
 import org.apache.tools.ant.filters.ReplaceTokens
 
 plugins {
-    id 'com.gradleup.shadow' version '8.3.5'
+    id 'com.gradleup.shadow' version '8.3.6'
     id 'org.cadixdev.licenser' version '0.6.1' apply false
     id 'fabric-loom' version "$fabric_loom_version" apply false
     id 'org.ajoberstar.grgit' version '5.3.0'
