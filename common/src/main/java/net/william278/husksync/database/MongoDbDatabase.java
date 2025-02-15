@@ -412,6 +412,7 @@ public class MongoDbDatabase extends Database {
     @Blocking
     @Override
     public void bindMapIds(@NotNull String fromServerName, int fromMapId, @NotNull String toServerName, int toMapId) {
+        plugin.getRedisManager().bindMapIds(fromServerName, fromMapId, toServerName, toMapId);
         try {
             Document doc = new Document("from_server_name", fromServerName)
                     .append("from_id", fromMapId)

@@ -517,6 +517,7 @@ public class MySqlDatabase extends Database {
     @Blocking
     @Override
     public void bindMapIds(@NotNull String fromServerName, int fromMapId, @NotNull String toServerName, int toMapId) {
+        plugin.getRedisManager().bindMapIds(fromServerName, fromMapId, toServerName, toMapId);
         try (Connection connection = getConnection()) {
             try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
                     INSERT INTO `%map_ids_table%`
