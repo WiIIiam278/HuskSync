@@ -356,6 +356,7 @@ public class MongoDbDatabase extends Database {
     @Blocking
     @Override
     public void writeMapData(@NotNull String serverName, int mapId, byte @NotNull [] data) {
+        plugin.getRedisManager().setMapData(serverName, mapId, data);
         try {
             Document doc = new Document("server_name", serverName)
                     .append("map_id", mapId)
@@ -369,13 +370,17 @@ public class MongoDbDatabase extends Database {
     @Blocking
     @Override
     public @Nullable Map.Entry<byte[], Boolean> readMapData(@NotNull String serverName, int mapId) {
+        byte[] data = plugin.getRedisManager().getMapData(serverName, mapId);
+        if (data != null) return Map.entry(data, true);
         try {
             Document filter = new Document("server_name", serverName).append("map_id", mapId);
             FindIterable<Document> iterable = mongoCollectionHelper.getCollection(mapDataTable).find(filter);
             Document doc = iterable.first();
             if (doc != null) {
                 final Binary bin = doc.get("data", Binary.class);
-                return Map.entry(bin.getData(), true);
+                data = bin.getData();
+                plugin.getRedisManager().setMapData(serverName, mapId, data);
+                return Map.entry(data, true);
             } else {
                 return readMapDataFromAnotherServer(serverName, mapId);
             }

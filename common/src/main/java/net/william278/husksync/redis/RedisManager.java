@@ -472,6 +472,39 @@ public class RedisManager extends JedisPubSub {
     }
 
     @Blocking
+    public void setMapData(@NotNull String serverName, int mapId, byte[] data) {
+        try (Jedis jedis = jedisPool.getResource()) {
+            jedis.setex(
+                    getMapDataKey(serverName, mapId, clusterId),
+                    RedisKeyType.TTL_1_YEAR,
+                    data
+            );
+            plugin.debug(String.format("Set map data %s:%s on Redis", serverName, mapId));
+        } catch (Throwable e) {
+            plugin.log(Level.SEVERE, "An exception occurred setting map data on Redis", e);
+        }
+    }
+
+    @Blocking
+    public byte @Nullable [] getMapData(@NotNull String serverName, int mapId) {
+        try (Jedis jedis = jedisPool.getResource()) {
+            final byte[] readData = jedis.get(getMapDataKey(serverName, mapId, clusterId));
+            if (readData == null) {
+                plugin.debug(String.format("[%s:%s] No map data on Redis",
+                        serverName, mapId));
+                return null;
+            }
+            plugin.debug(String.format("[%s:%s] Read map data from Redis",
+                    serverName, mapId));
+
+            return readData;
+        } catch (Throwable e) {
+            plugin.log(Level.SEVERE, "An exception occurred reading map data from Redis", e);
+            return null;
+        }
+    }
+
+    @Blocking
     public void terminate() {
         enabled = false;
         if (jedisPool != null) {
@@ -497,6 +530,10 @@ public class RedisManager extends JedisPubSub {
 
     private static byte[] getReversedMapIdKey(@NotNull String toServer, int toId, @NotNull String clusterId) {
         return String.format("%s:%s:%s", RedisKeyType.MAP_ID_REVERSED.getKeyPrefix(clusterId), toServer, toId).getBytes(StandardCharsets.UTF_8);
+    }
+
+    private static byte[] getMapDataKey(@NotNull String serverName, int mapId, @NotNull String clusterId) {
+        return String.format("%s:%s:%s", RedisKeyType.MAP_DATA.getKeyPrefix(clusterId), serverName, mapId).getBytes(StandardCharsets.UTF_8);
     }
 
 }

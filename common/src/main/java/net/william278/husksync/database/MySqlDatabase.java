@@ -437,6 +437,7 @@ public class MySqlDatabase extends Database {
     @Blocking
     @Override
     public void writeMapData(@NotNull String serverName, int mapId, byte @NotNull [] data) {
+        plugin.getRedisManager().setMapData(serverName, mapId, data);
         try (Connection connection = getConnection()) {
             try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
                     INSERT INTO `%map_data_table%`
@@ -455,6 +456,8 @@ public class MySqlDatabase extends Database {
     @Blocking
     @Override
     public @Nullable Map.Entry<byte[], Boolean> readMapData(@NotNull String serverName, int mapId) {
+        byte[] data = plugin.getRedisManager().getMapData(serverName, mapId);
+        if (data != null) return Map.entry(data, true);
         try (Connection connection = getConnection()) {
             try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
                     SELECT `data`
@@ -468,6 +471,7 @@ public class MySqlDatabase extends Database {
                     final Blob blob = resultSet.getBlob("data");
                     final byte[] dataByteArray = blob.getBytes(1, (int) blob.length());
                     blob.free();
+                    plugin.getRedisManager().setMapData(serverName, mapId, dataByteArray);
                     return Map.entry(dataByteArray, true);
                 } else {
                     return readMapDataFromAnotherServer(serverName, mapId);

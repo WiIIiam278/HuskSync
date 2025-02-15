@@ -434,6 +434,7 @@ public class PostgresDatabase extends Database {
     @Blocking
     @Override
     public void writeMapData(@NotNull String serverName, int mapId, byte @NotNull [] data) {
+        plugin.getRedisManager().setMapData(serverName, mapId, data);
         try (Connection connection = getConnection()) {
             try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
                     INSERT INTO %map_data_table%
@@ -452,6 +453,8 @@ public class PostgresDatabase extends Database {
     @Blocking
     @Override
     public @Nullable Map.Entry<byte[], Boolean> readMapData(@NotNull String serverName, int mapId) {
+        byte[] data = plugin.getRedisManager().getMapData(serverName, mapId);
+        if (data != null) return Map.entry(data, true);
         try (Connection connection = getConnection()) {
             try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
                     SELECT data
@@ -462,7 +465,9 @@ public class PostgresDatabase extends Database {
                 statement.setInt(2, mapId);
                 final ResultSet resultSet = statement.executeQuery();
                 if (resultSet.next()) {
-                    return Map.entry(resultSet.getBytes("data"), true);
+                    data = resultSet.getBytes("data");
+                    plugin.getRedisManager().setMapData(serverName, mapId, data);
+                    return Map.entry(data, true);
                 } else {
                     return readMapDataFromAnotherServer(serverName, mapId);
                 }
