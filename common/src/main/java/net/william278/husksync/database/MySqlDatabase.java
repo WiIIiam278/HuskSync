@@ -480,6 +480,14 @@ public class MySqlDatabase extends Database {
     }
 
     public @Nullable Map.Entry<byte[], Boolean> readMapDataFromAnotherServer(@NotNull String serverName, int mapId) {
+        Map.Entry<String, Integer> reverseBound = plugin.getRedisManager().getReversedMapBound(serverName, mapId);
+        if (reverseBound != null) {
+            var result = readMapData(reverseBound.getKey(), reverseBound.getValue());
+            if (result != null) {
+                return Map.entry(result.getKey(), false);
+            }
+            return null;
+        }
         try (Connection connection = getConnection()) {
             try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
                     SELECT `from_server_name`, `from_id`
@@ -491,7 +499,10 @@ public class MySqlDatabase extends Database {
                 statement.setInt(2, mapId);
                 final ResultSet resultSet = statement.executeQuery();
                 if (resultSet.next()) {
-                    var result = readMapData(resultSet.getString("from_server_name"), resultSet.getInt("from_id"));
+                    String fromServer = resultSet.getString("from_server_name");
+                    int fromId = resultSet.getInt("from_id");
+                    plugin.getRedisManager().bindMapIds(fromServer, fromId, serverName, mapId);
+                    var result = readMapData(fromServer, fromId);
                     if (result != null) {
                         return Map.entry(result.getKey(), false);
                     }

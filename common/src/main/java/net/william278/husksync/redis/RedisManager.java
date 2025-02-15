@@ -25,6 +25,7 @@ import net.william278.husksync.data.DataSnapshot;
 import net.william278.husksync.user.User;
 import org.jetbrains.annotations.Blocking;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import redis.clients.jedis.*;
 import redis.clients.jedis.exceptions.JedisException;
 import redis.clients.jedis.util.Pool;
@@ -447,6 +448,26 @@ public class RedisManager extends JedisPubSub {
         } catch (Throwable e) {
             plugin.log(Level.SEVERE, "An exception occurred getting bound map id from Redis", e);
             return Optional.empty();
+        }
+    }
+
+    @Blocking
+    public @Nullable Map.Entry<String, Integer> getReversedMapBound(@NotNull String toServer, int toId) {
+        try (Jedis jedis = jedisPool.getResource()) {
+            final byte[] readData = jedis.get(getReversedMapIdKey(toServer, toId, clusterId));
+            if (readData == null) {
+                plugin.debug(String.format("[%s:%s] No reversed map bound on Redis",
+                        toServer, toId));
+                return null;
+            }
+            plugin.debug(String.format("[%s:%s] Read reversed map bound from Redis",
+                    toServer, toId));
+
+            String[] parts = new String(readData, StandardCharsets.UTF_8).split(":");
+            return Map.entry(parts[0], Integer.parseInt(parts[1]));
+        } catch (Throwable e) {
+            plugin.log(Level.SEVERE, "An exception occurred reading reversed map bound from Redis", e);
+            return null;
         }
     }
 

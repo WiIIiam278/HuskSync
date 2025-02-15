@@ -386,11 +386,22 @@ public class MongoDbDatabase extends Database {
     }
 
     private @Nullable Map.Entry<byte[], Boolean> readMapDataFromAnotherServer(@NotNull String serverName, int mapId) {
+        Map.Entry<String, Integer> reverseBound = plugin.getRedisManager().getReversedMapBound(serverName, mapId);
+        if (reverseBound != null) {
+            var result = readMapData(reverseBound.getKey(), reverseBound.getValue());
+            if (result != null) {
+                return Map.entry(result.getKey(), false);
+            }
+            return null;
+        }
         Document filter = new Document("to_server_name", serverName).append("to_id", mapId);
         FindIterable<Document> iterable = mongoCollectionHelper.getCollection(mapIdsTable).find(filter);
         Document doc = iterable.first();
         if (doc != null) {
-            var result = readMapData(doc.getString("from_server_name"), doc.getInteger("from_id"));
+            String fromServer = doc.getString("from_server_name");
+            int fromId = doc.getInteger("from_id");
+            plugin.getRedisManager().bindMapIds(fromServer, fromId, serverName, mapId);
+            var result = readMapData(fromServer, fromId);
             if (result != null) {
                 return Map.entry(result.getKey(), false);
             }
