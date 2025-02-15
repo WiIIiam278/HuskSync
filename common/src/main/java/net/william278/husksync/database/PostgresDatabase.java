@@ -519,6 +519,8 @@ public class PostgresDatabase extends Database {
     @Blocking
     @Override
     public int getNewMapId(@NotNull String fromServerName, int fromMapId, @NotNull String toServerName) {
+        Optional<Integer> toIdOptional = plugin.getRedisManager().getBoundMapId(fromServerName, fromMapId, toServerName);
+        if (toIdOptional.isPresent()) return toIdOptional.get();
         try (Connection connection = getConnection()) {
             try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
                     SELECT to_id
@@ -530,7 +532,9 @@ public class PostgresDatabase extends Database {
                 statement.setString(3, toServerName);
                 final ResultSet resultSet = statement.executeQuery();
                 if (resultSet.next()) {
-                    return resultSet.getInt("to_id");
+                    int toId = resultSet.getInt("to_id");
+                    plugin.getRedisManager().bindMapIds(fromServerName, fromMapId, toServerName, toId);
+                    return toId;
                 }
             }
         } catch (SQLException | DataAdapter.AdaptionException e) {

@@ -413,6 +413,44 @@ public class RedisManager extends JedisPubSub {
     }
 
     @Blocking
+    public void bindMapIds(@NotNull String fromServer, int fromId, @NotNull String toServer, int toId) {
+        try (Jedis jedis = jedisPool.getResource()) {
+            jedis.setex(
+                    getMapIdKey(fromServer, fromId, toServer, clusterId),
+                    RedisKeyType.TTL_1_YEAR,
+                    String.valueOf(toId).getBytes(StandardCharsets.UTF_8)
+            );
+            jedis.setex(
+                    getReversedMapIdKey(toServer, toId, clusterId),
+                    RedisKeyType.TTL_1_YEAR,
+                    String.format("%s:%s", fromServer, fromId).getBytes(StandardCharsets.UTF_8)
+            );
+            plugin.debug(String.format("Bound map %s:%s -> %s:%s on Redis", fromServer, fromId, toServer, toId));
+        } catch (Throwable e) {
+            plugin.log(Level.SEVERE, "An exception occurred binding map ids on Redis", e);
+        }
+    }
+
+    @Blocking
+    public Optional<Integer> getBoundMapId(@NotNull String fromServer, int fromId, @NotNull String toServer) {
+        try (Jedis jedis = jedisPool.getResource()) {
+            final byte[] readData = jedis.get(getMapIdKey(fromServer, fromId, toServer, clusterId));
+            if (readData == null) {
+                plugin.debug(String.format("[%s:%s] No bound map id for server %s Redis",
+                        fromServer, fromId, toServer));
+                return Optional.empty();
+            }
+            plugin.debug(String.format("[%s:%s] Read bound map id for server %s from Redis",
+                    fromServer, fromId, toServer));
+
+            return Optional.of(Integer.parseInt(new String(readData, StandardCharsets.UTF_8)));
+        } catch (Throwable e) {
+            plugin.log(Level.SEVERE, "An exception occurred getting bound map id from Redis", e);
+            return Optional.empty();
+        }
+    }
+
+    @Blocking
     public void terminate() {
         enabled = false;
         if (jedisPool != null) {
@@ -430,6 +468,14 @@ public class RedisManager extends JedisPubSub {
     @NotNull
     private static String getKeyString(@NotNull RedisKeyType keyType, @NotNull UUID uuid, @NotNull String clusterId) {
         return String.format("%s:%s", keyType.getKeyPrefix(clusterId), uuid);
+    }
+
+    private static byte[] getMapIdKey(@NotNull String fromServer, int fromId, @NotNull String toServer, @NotNull String clusterId) {
+        return String.format("%s:%s:%s:%s", RedisKeyType.MAP_ID.getKeyPrefix(clusterId), fromServer, fromId, toServer).getBytes(StandardCharsets.UTF_8);
+    }
+
+    private static byte[] getReversedMapIdKey(@NotNull String toServer, int toId, @NotNull String clusterId) {
+        return String.format("%s:%s:%s", RedisKeyType.MAP_ID_REVERSED.getKeyPrefix(clusterId), toServer, toId).getBytes(StandardCharsets.UTF_8);
     }
 
 }

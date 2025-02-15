@@ -415,13 +415,17 @@ public class MongoDbDatabase extends Database {
     @Blocking
     @Override
     public int getNewMapId(@NotNull String fromServerName, int fromMapId, @NotNull String toServerName) {
+        Optional<Integer> toIdOptional = plugin.getRedisManager().getBoundMapId(fromServerName, fromMapId, toServerName);
+        if (toIdOptional.isPresent()) return toIdOptional.get();
         try {
             Document filter = new Document("from_server_name", fromServerName).append("from_id", fromMapId)
                     .append("to_server_name", toServerName);
             FindIterable<Document> iterable = mongoCollectionHelper.getCollection(mapIdsTable).find(filter);
             Document doc = iterable.first();
             if (doc != null) {
-                return doc.getInteger("to_id");
+                int toId = doc.getInteger("to_id");
+                plugin.getRedisManager().bindMapIds(fromServerName, fromMapId, toServerName, toId);
+                return toId;
             }
             return -1;
         } catch (MongoException e) {
