@@ -42,7 +42,7 @@ public class PlayerEntityMixin {
 
     @Final
     @Shadow
-    private PlayerInventory inventory;
+    PlayerInventory inventory;
 
     @Inject(method = "dropInventory", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/player/PlayerEntity;vanishCursedItems()V"))
     protected void dropInventory(@NotNull CallbackInfo ci) {
@@ -56,7 +56,7 @@ public class PlayerEntityMixin {
         final @Nullable ItemStack @NotNull [] toKeep = new ItemStack[inventory.size()];
         for (int i = 0; i < inventory.size(); ++i) {
             ItemStack itemStack = inventory.getStack(i);
-            if (!itemStack.isEmpty() && EnchantmentHelper.hasAnyEnchantmentsIn(itemStack, TagKey.of(Enchantments.VANISHING_CURSE.getRegistryRef(), Enchantments.VANISHING_CURSE.getValue()))) {
+            if (!itemStack.isEmpty() && hasVanishingCurse(itemStack)) {
                 toKeep[i] = null;
                 continue;
             }
@@ -71,13 +71,24 @@ public class PlayerEntityMixin {
         final @Nullable ItemStack @NotNull [] toDrop = new ItemStack[inventory.size()];
         for (int i = 0; i < inventory.size(); ++i) {
             ItemStack itemStack = inventory.getStack(i);
-            if (!itemStack.isEmpty() && EnchantmentHelper.hasAnyEnchantmentsIn(itemStack, TagKey.of(Enchantments.VANISHING_CURSE.getRegistryRef(), Enchantments.VANISHING_CURSE.getValue()))) {
+            if (!itemStack.isEmpty() && hasVanishingCurse(itemStack)) {
                 toDrop[i] = itemStack;
                 continue;
             }
             toDrop[i] = null;
         }
         return toDrop;
+    }
+
+    @Unique
+    private boolean hasVanishingCurse(@NotNull ItemStack stack) {
+        //#if MC==12001
+        //$$ return EnchantmentHelper.hasVanishingCurse(stack);
+        //#else
+        return EnchantmentHelper.hasAnyEnchantmentsIn(
+                stack, TagKey.of(Enchantments.VANISHING_CURSE.getRegistryRef(), Enchantments.VANISHING_CURSE.getValue())
+        );
+        //#endif
     }
 
 }

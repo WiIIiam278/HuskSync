@@ -279,7 +279,7 @@ public interface BukkitMapPersister {
 
     @NotNull
     private static World getDefaultMapWorld() {
-        final World world = Bukkit.getWorlds().getFirst();
+        final World world = Bukkit.getWorlds().get(0);
         if (world == null) {
             throw new IllegalStateException("No worlds are loaded on the server!");
         }

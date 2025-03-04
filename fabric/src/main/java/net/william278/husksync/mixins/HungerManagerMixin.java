@@ -17,6 +17,7 @@
  *  limitations under the License.
  */
 
+//#if MC==12104
 package net.william278.husksync.mixins;
 
 import net.minecraft.entity.player.HungerManager;
@@ -33,3 +34,4 @@ public interface HungerManagerMixin {
     void setExhaustion(float exhaustion);
 
 }
+//#endif
