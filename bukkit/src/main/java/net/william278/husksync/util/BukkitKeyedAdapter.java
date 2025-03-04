@@ -51,7 +51,11 @@ public final class BukkitKeyedAdapter {
 
     @Nullable
     public static PotionEffectType matchEffectType(@NotNull String key) {
+        //#if MC==12001
+        //$$ return PotionEffectType.getByName(key);
+        //#else
         return getRegistryValue(Registry.EFFECT, key);
+        //#endif
     }
 
     private static <T extends Keyed> T getRegistryValue(@NotNull Registry<T> registry, @NotNull String keyString) {

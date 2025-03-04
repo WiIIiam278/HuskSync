@@ -11,7 +11,6 @@ repositories {
 }
 
 dependencies {
-
     modImplementation include("net.kyori:adventure-platform-fabric:${fabric_adventure_platform_version}")
     modImplementation include("me.lucko:fabric-permissions-api:${fabric_permissions_api_version}")
     modImplementation include("eu.pb4:sgui:${fabric_sgui_version}")

@@ -1,0 +1,13 @@
+plugins {
+    id 'com.replaymod.preprocess-root' //todo fix
+}
+
+preprocess {
+    def bukkit12104 = createNode("1.21.4", 12104, 'paper')
+    def bukkit12101 = createNode("1.21.1", 12101, 'paper')
+    def bukkit12001 = createNode("1.20.1", 12001, 'paper')
+
+    strictExtraMappings.set(true)
+    bukkit12101.link(bukkit12104, null)
+    bukkit12001.link(bukkit12104, null)
+}

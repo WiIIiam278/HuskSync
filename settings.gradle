@@ -14,14 +14,24 @@ pluginManagement {
     }
 }
 
+// Common
 rootProject.name = 'HuskSync'
-include(
-        'common',
+include("common")
 
-        // Paper/Spigot
-        'bukkit',
-        'paper',
-)
+// Bukkit
+include("bukkit")
+project(":bukkit").with {
+    projectDir = file("bukkit/")
+    buildFileName = "root.gradle"
+}
+
+file('bukkit').listFiles((FileFilter) ((File file) -> file.isDirectory() && file.name ==~ /(\d+)\.(\d+)(\.(\d+))?/)).each {
+    include("bukkit:$it.name")
+    project(":bukkit:$it.name").with {
+        projectDir = file("bukkit/${it.name}")
+        buildFileName = '../build.gradle'
+    }
+}
 
 // Fabric
 include("fabric")

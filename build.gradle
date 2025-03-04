@@ -59,7 +59,8 @@ publishing {
 }
 
 allprojects {
-    if (project.name == 'fabric') {
+    // Ignore parent projects (no jars)
+    if (project.name == 'fabric' || project.name == 'bukkit') {
         return
     }
     
@@ -116,8 +117,8 @@ allprojects {
 }
 
 subprojects {
-    // Ignore root fabric project (no jars)
-    if (project.name == 'fabric') {
+    // Ignore parent projects (no jars)
+    if (project.name == 'fabric' || project.name == 'bukkit') {
         return
     }
 
@@ -131,9 +132,13 @@ subprojects {
     }
     archivesBaseName = name
 
-    // Fabric-specific configuration
+    // Version-specific configuration
     if (project.parent?.name?.equals('fabric')) {
         apply plugin: 'fabric-loom'
+        compileJava.options.release.set (project.name == '1.20.1' ? 17 : 21) // 1.20.1 requires Java 17
+        version += "+mc.${project.name}"
+    }
+    if (project.parent?.name?.equals('bukkit')) {
         compileJava.options.release.set (project.name == '1.20.1' ? 17 : 21) // 1.20.1 requires Java 17
         version += "+mc.${project.name}"
     }
@@ -148,7 +153,7 @@ subprojects {
     }
 
     // API publishing
-    if (['common', 'bukkit'].contains(project.name) || project.parent?.name?.equals('fabric')) {
+    if (project.name == 'common' || ['fabric', 'bukkit'].contains(project.parent?.name)) {
         java {
             withSourcesJar()
             withJavadocJar()
@@ -175,12 +180,12 @@ subprojects {
                 }
             }
 
-            if (['bukkit'].contains(project.name)) {
+            if (project.parent?.name?.equals('bukkit')) {
                 publications {
-                    mavenJavaBukkit(MavenPublication) {
+                    "mavenJavaBukkit_${project.name.replace('.', '_')}"(MavenPublication) {
                         groupId = 'net.william278.husksync'
                         artifactId = 'husksync-bukkit'
-                        version = "$rootProject.version"
+                        version = "$rootProject.version+$project.name"
                         artifact shadowJar
                         artifact sourcesJar
                         artifact javadocJar
