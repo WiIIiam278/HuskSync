@@ -38,11 +38,11 @@ dependencies {
 }
 
 processResources {
-    filesMatching(Arrays.asList("fabric.mod.json")) {
+    filesMatching(Arrays.asList("fabric.mod.json", "compatibility.yml")) {
         expand([
                 version: version,
                 fabric_loader_version: fabric_loader_version,
-                fabric_minecraft_version: project.name,
+                fabric_minecraft_version: project.name
         ])
     }
 }
