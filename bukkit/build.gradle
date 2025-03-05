@@ -21,7 +21,7 @@ dependencies {
 
     compileOnly "io.papermc.paper:paper-api:${paper_api_version}"
     compileOnly 'com.github.retrooper:packetevents-spigot:2.7.0'
-    compileOnly 'com.comphenix.protocol:ProtocolLib:5.3.0'
+    compileOnly 'com.github.dmulloy2:ProtocolLib:5.3.0'
     compileOnly 'org.projectlombok:lombok:1.18.36'
     compileOnly 'commons-io:commons-io:2.18.0'
     compileOnly 'org.json:json:20250107'
