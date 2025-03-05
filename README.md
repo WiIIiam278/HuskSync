@@ -79,6 +79,8 @@ To build HuskSync, simply run the following in the root of the repository (build
 ./gradlew clean build
 ```
 
+HuskSync uses `essential-multi-version` (Fabric) and `preprocessor` (Bukkit) to target multiple versions of Minecraft in one codebase - [check here](https://github.com/WiIIiam278/PreProcessor?tab=readme-ov-file#code-example) for a preprocessor comment logic reference.
+
 ### License
 HuskSync is licensed under the Apache 2.0 license.
 
