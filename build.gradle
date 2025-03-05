@@ -118,7 +118,7 @@ allprojects {
 
 subprojects {
     // Ignore parent projects (no jars)
-    if (project.name == 'fabric' || project.name == 'bukkit') {
+    if (['fabric', 'bukkit'].contains(project.name)) {
         return
     }
 
@@ -133,14 +133,13 @@ subprojects {
     archivesBaseName = name
 
     // Version-specific configuration
-    if (project.parent?.name?.equals('fabric')) {
-        apply plugin: 'fabric-loom'
+    if (['fabric', 'bukkit'].contains(project.parent?.name)) {
         compileJava.options.release.set (project.name == '1.20.1' ? 17 : 21) // 1.20.1 requires Java 17
         version += "+mc.${project.name}"
-    }
-    if (project.parent?.name?.equals('bukkit')) {
-        compileJava.options.release.set (project.name == '1.20.1' ? 17 : 21) // 1.20.1 requires Java 17
-        version += "+mc.${project.name}"
+
+        if (project.parent?.name?.equals('fabric')) {
+            apply plugin: 'fabric-loom'
+        }
     }
 
     jar {
