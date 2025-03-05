@@ -5,7 +5,7 @@ website: 'https://william278.net/'
 main: 'net.william278.husksync.PaperHuskSync'
 loader: 'net.william278.husksync.PaperHuskSyncLoader'
 version: '${version}'
-api-version: '1.19'
+api-version: '${minecraft_api_version}'
 folia-supported: true
 dependencies:
   server:

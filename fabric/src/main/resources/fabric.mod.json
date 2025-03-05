@@ -40,11 +40,12 @@
   },
   "depends": {
     "fabricloader": ">=${fabric_loader_version}",
-    "minecraft": ">=${minecraft_version}",
+    "minecraft": "${fabric_minecraft_version}",
     "fabric-api": "*"
   },
   "suggests": {
-    "plan": "*"
+    "luckperms": ">=5.4",
+    "plan": ">=5.5"
   },
   "mixins": [
     "husksync.mixins.json"

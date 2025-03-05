@@ -31,8 +31,11 @@ import net.fabricmc.api.DedicatedServerModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
-import net.kyori.adventure.platform.AudienceProvider;
+//#if MC==12104
 import net.kyori.adventure.platform.modcommon.MinecraftServerAudiences;
+//#else
+//$$ import net.kyori.adventure.platform.fabric.FabricServerAudiences;
+//#endif
 import net.minecraft.server.MinecraftServer;
 import net.william278.desertwell.util.Version;
 import net.william278.husksync.adapter.DataAdapter;
@@ -78,7 +81,6 @@ import java.util.logging.Level;
 
 @Getter
 @NoArgsConstructor
-@SuppressWarnings("unchecked")
 public class FabricHuskSync implements DedicatedServerModInitializer, HuskSync, FabricTask.Supplier,
         FabricEventDispatcher {
 
@@ -111,7 +113,11 @@ public class FabricHuskSync implements DedicatedServerModInitializer, HuskSync, 
     private MinecraftServer minecraftServer;
     private boolean disabling;
     private Gson gson;
-    private AudienceProvider audiences;
+    //#if MC==12104
+    private MinecraftServerAudiences audiences;
+    //#else
+    //$$ private FabricServerAudiences audiences;
+    //#endif
     private Database database;
     private RedisManager redisManager;
     private EventListener eventListener;
@@ -156,11 +162,21 @@ public class FabricHuskSync implements DedicatedServerModInitializer, HuskSync, 
     }
 
     private void onEnable() {
-        // Initial plugin setup
+        // Audiences
+        //#if MC==12104
         this.audiences = MinecraftServerAudiences.of(minecraftServer);
+        //#else
+        //$$ this.audiences = FabricServerAudiences.of(minecraftServer);
+        //#endif
 
         // Check compatibility
         checkCompatibility();
+        log(Level.WARNING, """
+                **************
+                WARNING:
+                HuskSync for Fabric is still in an alpha state and is
+                not considered production ready.
+                **************""");
 
         // Prepare data adapter
         initialize("data adapter", (plugin) -> {
@@ -352,7 +368,6 @@ public class FabricHuskSync implements DedicatedServerModInitializer, HuskSync, 
         return Version.fromString(minecraftServer.getVersion());
     }
 
-    @NotNull
     public int getDataVersion(@NotNull Version mcVersion) {
         return switch (mcVersion.toStringWithoutMetadata()) {
             case "1.16", "1.16.1", "1.16.2", "1.16.3", "1.16.4", "1.16.5" -> VERSION1_16_5;
@@ -367,7 +382,13 @@ public class FabricHuskSync implements DedicatedServerModInitializer, HuskSync, 
             case "1.21", "1.21.1" -> VERSION1_21_1;
             case "1.21.2", "1.21.3" -> VERSION1_21_3;
             case "1.21.4" -> VERSION1_21_4;
-            default -> VERSION1_21_4; // Current supported ver
+            //#if MC==12104
+            default -> VERSION1_21_4;
+            //#elseif MC==12101
+            //$$ default -> VERSION1_21_1;
+            //#elseif MC==12001
+            //$$ default -> VERSION1_20_1;
+            //#endif
         };
     }
 

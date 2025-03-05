@@ -1,14 +1,50 @@
 pluginManagement {
     repositories {
         gradlePluginPortal()
+        maven { url 'https://repo.william278.net/releases' }
         maven { url 'https://maven.fabricmc.net/' }
+        maven { url 'https://maven.architectury.dev/' }
+        maven { url 'https://maven.minecraftforge.net' }
+        maven { url 'https://repo.essential.gg/repository/maven-public' }
+    }
+
+    plugins {
+        def egtVersion = "0.6.5"
+        id("gg.essential.defaults") version egtVersion
+        id("gg.essential.multi-version.root") version egtVersion
     }
 }
 
+// Common
 rootProject.name = 'HuskSync'
-include(
-        'common',
-        'bukkit',
-        'paper',
-        'fabric'
-)
+include("common")
+
+// Bukkit
+include("bukkit")
+project(":bukkit").with {
+    projectDir = file("bukkit/")
+    buildFileName = "root.gradle"
+}
+
+file('bukkit').listFiles((FileFilter) ((File file) -> file.isDirectory() && file.name ==~ /(\d+)\.(\d+)(\.(\d+))?/)).each {
+    include("bukkit:$it.name")
+    project(":bukkit:$it.name").with {
+        projectDir = file("bukkit/${it.name}")
+        buildFileName = '../build.gradle'
+    }
+}
+
+// Fabric
+include("fabric")
+project(":fabric").with {
+    projectDir = file("fabric/")
+    buildFileName = "root.gradle"
+}
+
+file('fabric').listFiles((FileFilter) ((File file) -> file.isDirectory() && file.name ==~ /(\d+)\.(\d+)(\.(\d+))?/)).each {
+    include("fabric:$it.name")
+    project(":fabric:$it.name").with {
+        projectDir = file("fabric/${it.name}")
+        buildFileName = '../build.gradle'
+    }
+}

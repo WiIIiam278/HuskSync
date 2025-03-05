@@ -88,7 +88,11 @@ public abstract class ServerPlayNetworkHandlerMixin {
 
     @Inject(method = "onCreativeInventoryAction", at = @At("HEAD"), cancellable = true)
     public void onCreativeInventoryAction(CreativeInventoryActionC2SPacket packet, CallbackInfo ci) {
+        //#if MC==12001
+        //$$ int slot = packet.getSlot();
+        //#else
         int slot = packet.slot();
+        //#endif
         if (slot < 0) {
             return;
         }
@@ -111,4 +115,5 @@ public abstract class ServerPlayNetworkHandlerMixin {
             ci.cancel();
         }
     }
+
 }
