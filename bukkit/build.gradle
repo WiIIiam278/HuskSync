@@ -1,8 +1,8 @@
-import org.apache.tools.ant.filters.ReplaceTokens
-
 plugins {
-    id 'com.replaymod.preprocess' //todo fix
-    id 'xyz.jpenilla.run-paper' version '2.3.1' apply false
+    id 'java'
+    id 'net.william278.preprocessor' version '1.0'
+    id 'xyz.jpenilla.run-paper' version '2.3.1'
+    id 'maven-publish'
 }
 
 dependencies {
@@ -46,10 +46,20 @@ processResources {
     }
 }
 
+sourceSets.main {
+    java.srcDirs '../src/main/java'
+    resources.srcDirs '../src/main/resources'
+}
+
+preprocess {
+    vars.put('MC', minecraft_version_numeric)
+}
+
 shadowJar {
     dependencies {
         exclude(dependency('com.mojang:brigadier'))
     }
+
     relocate 'org.apache.commons.io', 'net.william278.husksync.libraries.commons.io'
     relocate 'org.apache.commons.text', 'net.william278.husksync.libraries.commons.text'
     relocate 'org.apache.commons.lang3', 'net.william278.husksync.libraries.commons.lang3'
@@ -77,8 +87,8 @@ shadowJar {
     minimize()
 }
 
-//tasks {
-//    runServer {
-//        minecraftVersion(project.name)
-//    }
-//}
+tasks {
+    runServer {
+        minecraftVersion(project.name)
+    }
+}
