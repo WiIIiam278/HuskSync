@@ -50,6 +50,7 @@ sourceSets.main {
     java.srcDirs '../src/main/java'
     resources.srcDirs '../src/main/resources'
 }
+javadoc.setSource('./build/generated/preprocessed/main/java')
 
 preprocess {
     vars.put('MC', minecraft_version_numeric)

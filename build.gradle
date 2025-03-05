@@ -156,15 +156,15 @@ subprojects {
     if (project.name == 'common' || ['fabric', 'bukkit'].contains(project.parent?.name)) {
         java {
             withSourcesJar()
-//            withJavadocJar()
+            withJavadocJar()
         }
         sourcesJar {
             destinationDirectory.set(file("$rootDir/target"))
         }
-//        javadocJar {
-//            destinationDirectory.set(file("$rootDir/target"))
-//        }
-        shadowJar.dependsOn(sourcesJar/*, javadocJar*/)
+        javadocJar {
+            destinationDirectory.set(file("$rootDir/target"))
+        }
+        shadowJar.dependsOn(sourcesJar, javadocJar)
 
         publishing {
             if (['common'].contains(project.name)) {
@@ -175,7 +175,7 @@ subprojects {
                         version = "$rootProject.version"
                         artifact shadowJar
                         artifact sourcesJar
-//                        artifact javadocJar
+                        artifact javadocJar
                     }
                 }
             }
@@ -188,7 +188,7 @@ subprojects {
                         version = "$rootProject.version+$project.name"
                         artifact shadowJar
                         artifact sourcesJar
-//                        artifact javadocJar
+                        artifact javadocJar
                     }
                 }
             }
@@ -201,7 +201,7 @@ subprojects {
                         version = "$rootProject.version+$project.name"
                         artifact remapJar
                         artifact sourcesJar
-//                        artifact javadocJar
+                        artifact javadocJar
                     }
                 }
             }
