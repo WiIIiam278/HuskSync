@@ -19,6 +19,7 @@
 
 package net.william278.husksync.listener;
 
+import lombok.Getter;
 import net.william278.husksync.BukkitHuskSync;
 import net.william278.husksync.data.BukkitData;
 import net.william278.husksync.user.BukkitUser;
@@ -36,6 +37,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.stream.Collectors;
 
+@Getter
 public class BukkitEventListener extends EventListener implements BukkitJoinEventListener, BukkitQuitEventListener,
         BukkitDeathEventListener, Listener {
 

@@ -26,7 +26,7 @@ import net.william278.husksync.redis.RedisKeyType;
 import net.william278.husksync.redis.RedisManager;
 import net.william278.husksync.user.CommandUser;
 import net.william278.husksync.user.User;
-import net.william278.husksync.util.DataDumper;
+import net.william278.husksync.util.UserDataDumper;
 import net.william278.husksync.util.DataSnapshotList;
 import net.william278.husksync.util.DataSnapshotOverview;
 import net.william278.uniform.BaseCommand;
@@ -185,7 +185,7 @@ public class UserDataCommand extends PluginCommand {
 
         // Dump the data
         final DataSnapshot.Packed userData = data.get();
-        final DataDumper dumper = DataDumper.create(userData, user, plugin);
+        final UserDataDumper dumper = UserDataDumper.create(userData, user, plugin);
         try {
             plugin.getLocales().getLocale("data_dumped", userData.getShortId(), user.getUsername(),
                             (type == DumpType.WEB ? dumper.toWeb() : dumper.toFile()))

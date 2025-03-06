@@ -10,6 +10,7 @@ dependencies {
 
     implementation 'net.william278.uniform:uniform-bukkit:1.3.1'
     implementation 'net.william278.uniform:uniform-paper:1.3.1'
+    implementation 'net.william278.toilet:toilet-bukkit:1.0.12'
     implementation 'net.william278:mpdbdataconverter:1.0.1'
     implementation 'net.william278:hsldataconverter:1.0'
     implementation 'net.william278:mapdataapi:2.0'
@@ -72,6 +73,7 @@ shadowJar {
     relocate 'com.zaxxer', 'net.william278.husksync.libraries'
     relocate 'de.exlll', 'net.william278.husksync.libraries'
     relocate 'net.william278.uniform', 'net.william278.husksync.libraries.uniform'
+    relocate 'net.william278.toilet', 'net.william278.husksync.libraries.toilet'
     relocate 'net.william278.desertwell', 'net.william278.husksync.libraries.desertwell'
     relocate 'net.william278.paginedown', 'net.william278.husksync.libraries.paginedown'
     relocate 'net.william278.mapdataapi', 'net.william278.husksync.libraries.mapdataapi'

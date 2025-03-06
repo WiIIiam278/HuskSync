@@ -42,7 +42,7 @@ import java.util.logging.Level;
 /**
  * Utility class for dumping {@link DataSnapshot}s to a file or as a paste on the web
  */
-public class DataDumper {
+public class UserDataDumper {
 
     private static final String LOGS_SITE_ENDPOINT = "https://api.mclo.gs/1/log";
 
@@ -50,23 +50,23 @@ public class DataDumper {
     private final DataSnapshot.Packed snapshot;
     private final User user;
 
-    private DataDumper(@NotNull DataSnapshot.Packed snapshot, @NotNull User user, @NotNull HuskSync implementor) {
+    private UserDataDumper(@NotNull DataSnapshot.Packed snapshot, @NotNull User user, @NotNull HuskSync implementor) {
         this.snapshot = snapshot;
         this.user = user;
         this.plugin = implementor;
     }
 
     /**
-     * Create a {@link DataDumper} of the given {@link DataSnapshot}
+     * Create a {@link UserDataDumper} of the given {@link DataSnapshot}
      *
      * @param dataSnapshot The {@link DataSnapshot} to dump
      * @param user         The {@link User} whose data is being dumped
      * @param plugin       The implementing {@link HuskSync} plugin
-     * @return A {@link DataDumper} for the given {@link DataSnapshot}
+     * @return A {@link UserDataDumper} for the given {@link DataSnapshot}
      */
-    public static DataDumper create(@NotNull DataSnapshot.Packed dataSnapshot,
-                                    @NotNull User user, @NotNull HuskSync plugin) {
-        return new DataDumper(dataSnapshot, user, plugin);
+    public static UserDataDumper create(@NotNull DataSnapshot.Packed dataSnapshot,
+                                        @NotNull User user, @NotNull HuskSync plugin) {
+        return new UserDataDumper(dataSnapshot, user, plugin);
     }
 
     /**
@@ -179,11 +179,11 @@ public class DataDumper {
     @NotNull
     private String getFileName() {
         return new StringJoiner("_")
-                       .add(user.getUsername())
-                       .add(snapshot.getTimestamp().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss")))
-                       .add(snapshot.getSaveCause().name().toLowerCase(Locale.ENGLISH))
-                       .add(snapshot.getShortId())
-               + ".json";
+                .add(user.getUsername())
+                .add(snapshot.getTimestamp().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss")))
+                .add(snapshot.getSaveCause().name().toLowerCase(Locale.ENGLISH))
+                .add(snapshot.getShortId())
+                + ".json";
     }
 
 }

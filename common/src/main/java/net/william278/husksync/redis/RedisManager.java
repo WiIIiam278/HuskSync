@@ -413,6 +413,33 @@ public class RedisManager extends JedisPubSub {
     }
 
     @Blocking
+    public String getStatusDump() {
+        try (Jedis jedis = jedisPool.getResource()) {
+            return jedis.info();
+        }
+    }
+
+    @Blocking
+    public long getLatency() {
+        final long startTime = System.currentTimeMillis();
+        try (Jedis jedis = jedisPool.getResource()) {
+            jedis.ping();
+            return startTime - System.currentTimeMillis();
+        }
+    }
+
+    @Blocking
+    public String getVersion() {
+        final String info = getStatusDump();
+        for (String line : info.split("\n")) {
+            if (line.startsWith("redis_version:")) {
+                return line.split(":")[1];
+            }
+        }
+        return "unknown";
+    }
+
+    @Blocking
     public void terminate() {
         enabled = false;
         if (jedisPool != null) {
