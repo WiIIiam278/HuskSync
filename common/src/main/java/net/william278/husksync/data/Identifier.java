@@ -234,6 +234,11 @@ public class Identifier {
         return obj instanceof Identifier other ? toString().equals(other.toString()) : super.equals(obj);
     }
 
+    @Override
+    public int hashCode() {
+        return key.toString().hashCode();
+    }
+
     // Get the config entry for the identifier
     @NotNull
     private Map.Entry<String, Boolean> getConfigEntry() {
@@ -312,6 +317,11 @@ public class Identifier {
                 return key.equals(other.key);
             }
             return false;
+        }
+
+        @Override
+        public int hashCode() {
+            return key.toString().hashCode();
         }
     }
 
