@@ -28,7 +28,7 @@ locales:
   data_restored: '[⏪](#00fb9a) [スナップショット](#00fb9a) [%3%](#00fb9a show_text=&7Version UUID:\n&8%4%) [から](#00fb9a) [%1%](#00fb9a show_text=&7Player UUID:\n&8%2%) [の現在のユーザーデータの復元に成功しました。](#00fb9a)'
   data_pinned: '[※](#00fb9a) [%3%](#00fb9a show_text=&7Player UUID:\n&8%4%) [のユーザーデータスナップショット](#00fb9a) [%1%](#00fb9a show_text=&7Version UUID:\n&8%2%) [のピン留めに成功しました。](#00fb9a)'
   data_unpinned: '[※](#00fb9a) [%3%](#00fb9a show_text=&7Player UUID:\n&8%4%) [のユーザーデータスナップショット](#00fb9a) [%1%](#00fb9a show_text=&7Version UUID:\n&8%2%) [のピン外しに成功しました。](#00fb9a)'
-  data_dumped: '[☂ %2% のユーザーデータスナップショット %1% のダンプに成功:](#00fb9a) &7%3%'
+  data_dumped: '[☂ %2% のユーザーデータスナップショット %1% のダンプに成功:](#00fb9a)'
   list_footer: '\n%1%[ページ](#00fb9a) [%2%](#00fb9a)/[%3%](#00fb9a)%4%   %5%'
   list_previous_page_button: '[◀](white show_text=&7前のページへ run_command=%2% %1%) '
   list_next_page_button: ' [▶](white show_text=&7次のページへ run_command=%2% %1%)'

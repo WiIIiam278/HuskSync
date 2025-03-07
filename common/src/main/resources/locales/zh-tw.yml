@@ -28,7 +28,7 @@ locales:
   data_restored: '[⏪ 成功將玩家](#00fb9a) [%1%](#00fb9a show_text=&7玩家 UUID:\n&8%2%)[的資料恢復為 快照:](#00fb9a) [%3%.](#00fb9a show_text=&7Version UUID:\n&8%4%)'
   data_pinned: '[※ 成功標記](#00fb9a) [%3%](#00fb9a show_text=&7玩家 UUID:\n&8%4%) [的快照:](#00fb9a) [%1%](#00fb9a show_text=&7Version UUID:\n&8%2%)'
   data_unpinned: '[※ 成功解除](#00fb9a) [%3%](#00fb9a show_text=&7玩家 UUID:\n&8%4%) [快照:](#00fb9a) [%1%](#00fb9a show_text=&7Version UUID:\n&8%2%) [的標記](#00fb9a)'
-  data_dumped: '[☂ 成功將 %2% 資料快照 %1% 儲存至:](#00fb9a) &7%3%'
+  data_dumped: '[☂ 成功將 %2% 資料快照 %1% 儲存至:](#00fb9a)'
   list_footer: '\n%1%[頁面](#00fb9a) [%2%](#00fb9a)/[%3%](#00fb9a)%4%   %5%'
   list_previous_page_button: '[◀](white show_text=&7查看上一頁 run_command=%2% %1%) '
   list_next_page_button: ' [▶](white show_text=&7查看下一頁 run_command=%2% %1%)'

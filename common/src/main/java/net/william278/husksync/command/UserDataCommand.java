@@ -20,6 +20,10 @@
 package net.william278.husksync.command;
 
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.event.ClickEvent;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.data.DataSnapshot;
 import net.william278.husksync.redis.RedisManager;
@@ -195,9 +199,12 @@ public class UserDataCommand extends PluginCommand {
         final DataSnapshot.Packed userData = data.get();
         final UserDataDumper dumper = UserDataDumper.create(userData, user, plugin);
         try {
-            plugin.getLocales().getLocale("data_dumped", userData.getShortId(), user.getName(),
-                            (type == DumpType.WEB ? dumper.toWeb() : dumper.toFile()))
+            final String url = type == DumpType.WEB ? dumper.toWeb() : dumper.toFile();
+            plugin.getLocales().getLocale("data_dumped", userData.getShortId(), user.getName())
                     .ifPresent(executor::sendMessage);
+            executor.sendMessage(Component.text(url)
+                    .clickEvent(type == DumpType.WEB ? ClickEvent.openUrl(url) : ClickEvent.copyToClipboard(url))
+                    .decorate(TextDecoration.UNDERLINED).color(NamedTextColor.GRAY));
         } catch (Throwable e) {
             plugin.log(Level.SEVERE, "Failed to dump user data", e);
         }

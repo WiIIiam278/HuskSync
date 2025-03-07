@@ -28,7 +28,7 @@ locales:
   data_restored: '[⏪ Succesvol hersteld](#00fb9a) [%1%](#00fb9a show_text=&7Speler UUID:\n&8%2%)[''s huidige gebruikersgegevens uit momentopname](#00fb9a) [%3%.](#00fb9a show_text=&7Versie UUID:\n&8%4%)'
   data_pinned: '[※ Momentopname van gebruikersgegevens is vastgezet](#00fb9a) [%1%](#00fb9a show_text=&7Versie UUID:\n&8%2%) [voor](#00fb9a) [%3%.](#00fb9a show_text=&7Speler UUID:\n&8%4%)'
   data_unpinned: '[※ Momentopname van gebruikersgegevens is losgemaakt](#00fb9a) [%1%](#00fb9a show_text=&7Versie UUID:\n&8%2%) [voor](#00fb9a) [%3%.](#00fb9a show_text=&7Speler UUID:\n&8%4%)'
-  data_dumped: '[☂ De momentopname van gebruikersgegevens %1% voor %2% is met succes gedumpt naar:](#00fb9a) &7%3%'
+  data_dumped: '[☂ De momentopname van gebruikersgegevens %1% voor %2% is met succes gedumpt naar:](#00fb9a)'
   list_footer: '\n%1%[Pagina](#00fb9a) [%2%](#00fb9a)/[%3%](#00fb9a)%4%   %5%'
   list_previous_page_button: '[◀](white show_text=&7Bekijk vorige pagina run_command=%2% %1%) '
   list_next_page_button: ' [▶](white show_text=&7Bekijk volgende pagina run_command=%2% %1%)'

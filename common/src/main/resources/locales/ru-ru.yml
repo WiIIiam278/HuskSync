@@ -28,7 +28,7 @@ locales:
   data_restored: '[⏪ Данные пользователя](#00fb9a) [%1%](#00fb9a show_text=&7UUID игрока:\n&8%2%) [из снимка](#00fb9a) [%3%](#00fb9a show_text=&7UUID снимка:\n&8%4%) [успешно восстановлены.](#00fb9a)'
   data_pinned: '[※ Снимок данных](#00fb9a) [%1%](#00fb9a show_text=&7UUID снимка:\n&8%2%) [пользователя](#00fb9a) [%3%](#00fb9a show_text=&7UUID игрока:\n&8%4%) [успешно закреплен.](#00fb9a)'
   data_unpinned: '[※ Снимок данных](#00fb9a) [%1%](#00fb9a show_text=&7UUID снимка:\n&8%2%) [пользователя](#00fb9a) [%3%](#00fb9a show_text=&7UUID пользователя:\n&8%4%) [успешно откреплен.](#00fb9a)'
-  data_dumped: '[☂ Дамп снимка данных %1% пользователя %2% успешно выгружен:](#00fb9a) &7%3%'
+  data_dumped: '[☂ Дамп снимка данных %1% пользователя %2% успешно выгружен:](#00fb9a)'
   list_footer: '\n%1%[Страница](#00fb9a) [%2%](#00fb9a)/[%3%](#00fb9a)%4%   %5%\n'
   list_previous_page_button: '[◀](white show_text=&7Просмотр предыдущей страницы run_command=%2% %1%) '
   list_next_page_button: ' [▶](white show_text=&7Просмотр следующей страницы run_command=%2% %1%)'

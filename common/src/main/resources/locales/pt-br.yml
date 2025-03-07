@@ -28,7 +28,7 @@ locales:
   data_restored: '[⏪ Restaurada com sucesso](#00fb9a) [%1%](#00fb9a show_text=&7Player UUID:\n&8%2%)[''s current user data from snapshot](#00fb9a) [%3%.](#00fb9a show_text=&7Version UUID:\n&8%4%)'
   data_pinned: '[※ Snapshot de dados do usuário marcada com sucesso](#00fb9a) [%1%](#00fb9a show_text=&7Version UUID:\n&8%2%) [for](#00fb9a) [%3%.](#00fb9a show_text=&7Player UUID:\n&8%4%)'
   data_unpinned: '[※ Snapshot de dados do usuário desmarcada com sucesso](#00fb9a) [%1%](#00fb9a show_text=&7Version UUID:\n&8%2%) [for](#00fb9a) [%3%.](#00fb9a show_text=&7Player UUID:\n&8%4%)'
-  data_dumped: '[☂ Successfully dumped the user data snapshot %1% for %2% to:](#00fb9a) &7%3%'
+  data_dumped: '[☂ Successfully dumped user data snapshot %1% for %2%. Click to view:](#00fb9a)'
   list_footer: '\n%1%[Page](#00fb9a) [%2%](#00fb9a)/[%3%](#00fb9a)%4%   %5%'
   list_previous_page_button: '[◀](white show_text=&7View previous page run_command=%2% %1%) '
   list_next_page_button: ' [▶](white show_text=&7View next page run_command=%2% %1%)'

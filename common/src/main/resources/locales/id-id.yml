@@ -28,7 +28,7 @@ locales:
   data_restored: '[⏪ Berhasil dipulihkan](#00fb9a) [%1%](#00fb9a show_text=&7UUID Pemain:\n&8%2%)[data pengguna saat ini dari cuplikan](#00fb9a) [%3%.](#00fb9a show_text=&7Versi UUID:\n&8%4%)'
   data_pinned: '[※ Berhasil menyematkan cuplikan data pengguna](#00fb9a) [%1%](#00fb9a show_text=&7Versi UUID:\n&8%2%) [untuk](#00fb9a) [%3%.](#00fb9a show_text=&7UUID Pemain:\n&8%4%)'
   data_unpinned: '[※ Berhasil melepaskan cuplikan data pengguna yang disematkan](#00fb9a) [%1%](#00fb9a show_text=&7Versi UUID:\n&8%2%) [untuk](#00fb9a) [%3%.](#00fb9a show_text=&7UUID Pemain:\n&8%4%)'
-  data_dumped: '[☂ Berhasil membuang cuplikan data pengguna %1% untuk %2% ke:](#00fb9a) &7%3%'
+  data_dumped: '[☂ Berhasil membuang cuplikan data pengguna %1% untuk %2% ke:](#00fb9a)'
   list_footer: '\n%1%[Halaman](#00fb9a) [%2%](#00fb9a)/[%3%](#00fb9a)%4%   %5%'
   list_previous_page_button: '[◀](white show_text=&7Lihat halaman sebelumnya run_command=%2% %1%) '
   list_next_page_button: ' [▶](white show_text=&7Lihat halaman selanjutnya run_command=%2% %1%)'

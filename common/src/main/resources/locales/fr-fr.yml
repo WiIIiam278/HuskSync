@@ -28,7 +28,7 @@ locales:
   data_restored: '[⏪ Données utilisateur actuelles de %1% restaurées avec succès à partir de l''instantané](#00fb9a) [%3%.](#00fb9a show_text=&7UUID de la version:\n&8%4%)'
   data_pinned: '[※ Instantané des données utilisateur épinglé avec succès](#00fb9a) [%1%](#00fb9ashow_text=&7UUID de la version:\n&8%2%) [pour](#00fb9a) [%3%.](#00fb9a show_text=&7UUID du joueur:\n&8%4%)'
   data_unpinned: '[※ Instantané des données utilisateur détaché avec succès](#00fb9a) [%1%](#00fb9ashow_text=&7UUID de la version:\n&8%2%) [pour](#00fb9a) [%3%.](#00fb9a show_text=&7UUID du joueur:\n&8%4%)'
-  data_dumped: '[☂ Dump de l''instantané des données utilisateur %1% pour %2% à:](#00fb9a)&7%3%'
+  data_dumped: '[☂ Dump de l''instantané des données utilisateur %1% pour %2% à:](#00fb9a)'
   list_footer: '\n%1%[Page](#00fb9a) [%2%](#00fb9a)/[%3%](#00fb9a)%4%   %5%'
   list_previous_page_button: '[◀](white show_text=&7Voir la page précédente run_command=%2%%1%) '
   list_next_page_button: ' [▶](white show_text=&7Voir la page suivante run_command=%2% %1%)'

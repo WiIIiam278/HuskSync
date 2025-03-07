@@ -28,7 +28,7 @@ locales:
   data_restored: '[⏪ Erfgreich wiederhergestellt](#00fb9a) [Aktuelle Nutzerdaten des Schnappschusses von %1%](#00fb9a show_text=&7Spieler-UUID:\n&8%2%) [%3%.](#00fb9a show_text=&7Versions-UUID:\n&8%4%)'
   data_pinned: '[※ Nutzerdaten-Schnappschuss erfolgreich angepinnt](#00fb9a) [%1%](#00fb9a show_text=&7Versions-UUID:\n&8%2%) [für](#00fb9a) [%3%.](#00fb9a show_text=&7Spieler-UUID:\n&8%4%)'
   data_unpinned: '[※ Nutzerdaten-Schnappschuss erfolgreich losgelöst](#00fb9a) [%1%](#00fb9a show_text=&7Versions-UUID:\n&8%2%) [für](#00fb9a) [%3%.](#00fb9a show_text=&7Spieler-UUID:\n&8%4%)'
-  data_dumped: '[☂ Nutzerdaten-Schnappschuss %1% für %2% erfolgreich gedumpt nach:](#00fb9a) &7%3%'
+  data_dumped: '[☂ Nutzerdaten-Schnappschuss %1% für %2% erfolgreich gedumpt nach:](#00fb9a)'
   list_footer: '\n%1%[Seite](#00fb9a) [%2%](#00fb9a)/[%3%](#00fb9a)%4%   %5%'
   list_previous_page_button: '[◀](white show_text=&7Siehe vorherige Seite run_command=%2% %1%) '
   list_next_page_button: ' [▶](white show_text=&7Siehe nächste Seite run_command=%2% %1%)'

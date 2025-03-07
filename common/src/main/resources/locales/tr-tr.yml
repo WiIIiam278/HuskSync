@@ -28,7 +28,7 @@ locales:
   data_restored: '[⏪ Başarıyla geri yüklendi](#00fb9a) [%1%](#00fb9a show_text=&7Oyuncu UUID:\n&8%2%)[''ın mevcut kullanıcı verisi anlığından](#00fb9a) [%3%.](#00fb9a show_text=&7Versiyon UUID:\n&8%4%)'
   data_pinned: '[※ Kullanıcı veri anlığı başarıyla sabitlendi](#00fb9a) [%1%](#00fb9a show_text=&7Versiyon UUID:\n&8%2%) [için](#00fb9a) [%3%.](#00fb9a show_text=&7Oyuncu UUID:\n&8%4%)'
   data_unpinned: '[※ Kullanıcı veri anlığı başarıyla çözüldü](#00fb9a) [%1%](#00fb9a show_text=&7Versiyon UUID:\n&8%2%) [için](#00fb9a) [%3%.](#00fb9a show_text=&7Oyuncu UUID:\n&8%4%)'
-  data_dumped: '[☂ Kullanıcı veri anlığı başarıyla döküldü %1% için %2%:](#00fb9a) &7%3%'
+  data_dumped: '[☂ Kullanıcı veri anlığı başarıyla döküldü %1% için %2%:](#00fb9a)'
   list_footer: '\n%1%[Sayfa](#00fb9a) [%2%](#00fb9a)/[%3%](#00fb9a)%4%   %5%'
   list_previous_page_button: '[◀](white show_text=&7Önceki sayfayı görüntüle run_command=%2% %1%) '
   list_next_page_button: ' [▶](white show_text=&7Sonraki sayfayı görüntüle run_command=%2% %1%)'
