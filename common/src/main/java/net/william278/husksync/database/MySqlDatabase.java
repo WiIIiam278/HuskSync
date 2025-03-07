@@ -128,11 +128,11 @@ public class MySqlDatabase extends Database {
                 }
             } catch (SQLException e) {
                 throw new IllegalStateException("Failed to create database tables. Please ensure you are running MySQL v8.0+ " +
-                                                "and that your connecting user account has privileges to create tables.", e);
+                        "and that your connecting user account has privileges to create tables.", e);
             }
         } catch (SQLException | IOException e) {
             throw new IllegalStateException("Failed to establish a connection to the MySQL database. " +
-                                            "Please check the supplied database credentials in the config file", e);
+                    "Please check the supplied database credentials in the config file", e);
         }
     }
 
@@ -141,7 +141,7 @@ public class MySqlDatabase extends Database {
     public void ensureUser(@NotNull User user) {
         getUser(user.getUuid()).ifPresentOrElse(
                 existingUser -> {
-                    if (!existingUser.getUsername().equals(user.getUsername())) {
+                    if (!existingUser.getName().equals(user.getName())) {
                         // Update a user's name if it has changed in the database
                         try (Connection connection = getConnection()) {
                             try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
@@ -149,11 +149,12 @@ public class MySqlDatabase extends Database {
                                     SET `username`=?
                                     WHERE `uuid`=?"""))) {
 
-                                statement.setString(1, user.getUsername());
+                                statement.setString(1, user.getName());
                                 statement.setString(2, existingUser.getUuid().toString());
                                 statement.executeUpdate();
                             }
-                            plugin.log(Level.INFO, "Updated " + user.getUsername() + "'s name in the database (" + existingUser.getUsername() + " -> " + user.getUsername() + ")");
+                            plugin.log(Level.INFO, "Updated " + user.getName() + "'s name in the database ("
+                                    + existingUser.getName() + " -> " + user.getName() + ")");
                         } catch (SQLException e) {
                             plugin.log(Level.SEVERE, "Failed to update a user's name on the database", e);
                         }
@@ -167,7 +168,7 @@ public class MySqlDatabase extends Database {
                                 VALUES (?,?);"""))) {
 
                             statement.setString(1, user.getUuid().toString());
-                            statement.setString(2, user.getUsername());
+                            statement.setString(2, user.getName());
                             statement.executeUpdate();
                         }
                     } catch (SQLException e) {
@@ -436,8 +437,7 @@ public class MySqlDatabase extends Database {
 
     @Blocking
     @Override
-    public void writeMapData(@NotNull String serverName, int mapId, byte @NotNull [] data) {
-        plugin.getRedisManager().setMapData(serverName, mapId, data);
+    public void saveMapData(@NotNull String serverName, int mapId, byte @NotNull [] data) {
         try (Connection connection = getConnection()) {
             try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
                     INSERT INTO `%map_data_table%`
@@ -455,9 +455,7 @@ public class MySqlDatabase extends Database {
 
     @Blocking
     @Override
-    public @Nullable Map.Entry<byte[], Boolean> readMapData(@NotNull String serverName, int mapId) {
-        byte[] data = plugin.getRedisManager().getMapData(serverName, mapId);
-        if (data != null) return Map.entry(data, true);
+    public @Nullable Map.Entry<byte[], Boolean> getMapData(@NotNull String serverName, int mapId) {
         try (Connection connection = getConnection()) {
             try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
                     SELECT `data`
@@ -466,50 +464,13 @@ public class MySqlDatabase extends Database {
                     LIMIT 1;"""))) {
                 statement.setString(1, serverName);
                 statement.setInt(2, mapId);
+
                 final ResultSet resultSet = statement.executeQuery();
                 if (resultSet.next()) {
                     final Blob blob = resultSet.getBlob("data");
                     final byte[] dataByteArray = blob.getBytes(1, (int) blob.length());
                     blob.free();
-                    plugin.getRedisManager().setMapData(serverName, mapId, dataByteArray);
                     return Map.entry(dataByteArray, true);
-                } else {
-                    return readMapDataFromAnotherServer(serverName, mapId);
-                }
-            }
-        } catch (SQLException | DataAdapter.AdaptionException e) {
-            plugin.log(Level.SEVERE, "Failed to get map data from the database", e);
-        }
-        return null;
-    }
-
-    public @Nullable Map.Entry<byte[], Boolean> readMapDataFromAnotherServer(@NotNull String serverName, int mapId) {
-        Map.Entry<String, Integer> reverseBound = plugin.getRedisManager().getReversedMapBound(serverName, mapId);
-        if (reverseBound != null) {
-            var result = readMapData(reverseBound.getKey(), reverseBound.getValue());
-            if (result != null) {
-                return Map.entry(result.getKey(), false);
-            }
-            return null;
-        }
-        try (Connection connection = getConnection()) {
-            try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
-                    SELECT `from_server_name`, `from_id`
-                    FROM `%map_ids_table%`
-                    WHERE `to_server_name`=? AND `to_id`=?
-                    LIMIT 1;
-                    """))) {
-                statement.setString(1, serverName);
-                statement.setInt(2, mapId);
-                final ResultSet resultSet = statement.executeQuery();
-                if (resultSet.next()) {
-                    String fromServer = resultSet.getString("from_server_name");
-                    int fromId = resultSet.getInt("from_id");
-                    plugin.getRedisManager().bindMapIds(fromServer, fromId, serverName, mapId);
-                    var result = readMapData(fromServer, fromId);
-                    if (result != null) {
-                        return Map.entry(result.getKey(), false);
-                    }
                 }
             }
         } catch (SQLException | DataAdapter.AdaptionException e) {
@@ -520,8 +481,34 @@ public class MySqlDatabase extends Database {
 
     @Blocking
     @Override
-    public void bindMapIds(@NotNull String fromServerName, int fromMapId, @NotNull String toServerName, int toMapId) {
-        plugin.getRedisManager().bindMapIds(fromServerName, fromMapId, toServerName, toMapId);
+    public @Nullable Map.Entry<String, Integer> getMapBinding(@NotNull String serverName, int mapId) {
+        try (Connection connection = getConnection()) {
+            try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
+                    SELECT `from_server_name`, `from_id`
+                    FROM `%map_ids_table%`
+                    WHERE `to_server_name`=? AND `to_id`=?
+                    LIMIT 1;
+                    """))) {
+                statement.setString(1, serverName);
+                statement.setInt(2, mapId);
+
+                final ResultSet resultSet = statement.executeQuery();
+                if (resultSet.next()) {
+                    return new AbstractMap.SimpleImmutableEntry<>(
+                            resultSet.getString("from_server_name"),
+                            resultSet.getInt("from_id")
+                    );
+                }
+            }
+        } catch (SQLException | DataAdapter.AdaptionException e) {
+            plugin.log(Level.SEVERE, "Failed to get map data from the database", e);
+        }
+        return null;
+    }
+
+    @Blocking
+    @Override
+    public void setMapBinding(@NotNull String fromServerName, int fromMapId, @NotNull String toServerName, int toMapId) {
         try (Connection connection = getConnection()) {
             try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
                     INSERT INTO `%map_ids_table%`
@@ -540,9 +527,7 @@ public class MySqlDatabase extends Database {
 
     @Blocking
     @Override
-    public int getNewMapId(@NotNull String fromServerName, int fromMapId, @NotNull String toServerName) {
-        Optional<Integer> toIdOptional = plugin.getRedisManager().getBoundMapId(fromServerName, fromMapId, toServerName);
-        if (toIdOptional.isPresent()) return toIdOptional.get();
+    public int getBoundMapId(@NotNull String fromServerName, int fromMapId, @NotNull String toServerName) {
         try (Connection connection = getConnection()) {
             try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
                     SELECT `to_id`
@@ -552,11 +537,10 @@ public class MySqlDatabase extends Database {
                 statement.setString(1, fromServerName);
                 statement.setInt(2, fromMapId);
                 statement.setString(3, toServerName);
+
                 final ResultSet resultSet = statement.executeQuery();
                 if (resultSet.next()) {
-                    int toId = resultSet.getInt("to_id");
-                    plugin.getRedisManager().bindMapIds(fromServerName, fromMapId, toServerName, toId);
-                    return toId;
+                    return resultSet.getInt("to_id");
                 }
             }
         } catch (SQLException | DataAdapter.AdaptionException e) {

@@ -163,7 +163,7 @@ public abstract class DataSyncer {
                     () -> user.completeSync(true, DataSnapshot.UpdateCause.NEW_USER, plugin)
             );
         } catch (Throwable e) {
-            plugin.log(Level.WARNING, "Failed to set %s's data from the database".formatted(user.getUsername()), e);
+            plugin.log(Level.WARNING, "Failed to set %s's data from the database".formatted(user.getName()), e);
             user.completeSync(false, DataSnapshot.UpdateCause.SYNCHRONIZED, plugin);
         }
     }
@@ -188,7 +188,7 @@ public abstract class DataSyncer {
             if (plugin.isDisabling() || timesRun.getAndIncrement() > maxListenAttempts) {
                 task.get().cancel();
                 plugin.debug(String.format("[%s] Redis timed out after %s attempts; setting from database",
-                        user.getUsername(), timesRun.get()));
+                        user.getName(), timesRun.get()));
                 setUserFromDatabase(user);
                 return;
             }

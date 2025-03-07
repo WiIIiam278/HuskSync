@@ -17,14 +17,14 @@
  *  limitations under the License.
  */
 
-package net.william278.husksync.util;
+package net.william278.husksync.maps;
 
 import com.google.common.collect.Lists;
 import de.tr7zw.changeme.nbtapi.NBT;
 import de.tr7zw.changeme.nbtapi.iface.ReadWriteNBT;
 import de.tr7zw.changeme.nbtapi.iface.ReadableNBT;
 import net.william278.husksync.BukkitHuskSync;
-import net.william278.husksync.data.AdaptableMapData;
+import net.william278.husksync.redis.RedisManager;
 import net.william278.mapdataapi.MapBanner;
 import net.william278.mapdataapi.MapData;
 import org.bukkit.Bukkit;
@@ -38,6 +38,7 @@ import org.bukkit.inventory.meta.BundleMeta;
 import org.bukkit.inventory.meta.MapMeta;
 import org.bukkit.map.*;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.Blocking;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -48,7 +49,7 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.logging.Level;
 
-public interface BukkitMapPersister {
+public interface BukkitMapHandler {
 
     // The map used to store HuskSync data in ItemStack NBT
     String MAP_DATA_KEY = "husksync:persisted_locked_map";
@@ -108,24 +109,76 @@ public interface BukkitMapPersister {
         return items;
     }
 
+    @Blocking
     private void writeMapData(@NotNull String serverName, int mapId, MapData data) {
-        getPlugin().getDatabase().writeMapData(
-                serverName,
-                mapId,
-                getPlugin().getDataAdapter().toBytes(new AdaptableMapData(data))
-        );
+        final byte[] dataBytes = getPlugin().getDataAdapter().toBytes(new AdaptableMapData(data));
+        getRedisManager().setMapData(serverName, mapId, dataBytes);
+        getPlugin().getDatabase().saveMapData(serverName, mapId, dataBytes);
     }
 
+    @Nullable
+    @Blocking
     private Map.Entry<MapData, Boolean> readMapData(@NotNull String serverName, int mapId) {
-        Map.Entry<byte[], Boolean> result = getPlugin().getDatabase().readMapData(serverName, mapId);
-        if (result == null) {
+        final Map.Entry<byte[], Boolean> readData = fetchMapData(serverName, mapId);
+        if (readData == null) {
             return null;
         }
+        return deserializeMapData(readData);
+    }
+
+    @Nullable
+    @Blocking
+    private Map.Entry<byte[], Boolean> fetchMapData(@NotNull String serverName, int mapId) {
+        return fetchMapData(serverName, mapId, true);
+    }
+
+    @Nullable
+    @Blocking
+    private Map.Entry<byte[], Boolean> fetchMapData(@NotNull String serverName, int mapId, boolean doReverseLookup) {
+        // Read from Redis cache
+        final byte[] redisData = getRedisManager().getMapData(serverName, mapId);
+        if (redisData != null) {
+            return new AbstractMap.SimpleImmutableEntry<>(redisData, true);
+        }
+
+        // Read from database and set to Redis
+        @Nullable Map.Entry<byte[], Boolean> databaseData = getPlugin().getDatabase().getMapData(serverName, mapId);
+        if (databaseData != null) {
+            getRedisManager().setMapData(serverName, mapId, databaseData.getKey());
+            return databaseData;
+        }
+
+        // Otherwise, lookup a reverse map binding
+        if (doReverseLookup) {
+            return fetchReversedMapData(serverName, mapId);
+        }
+        return null;
+    }
+
+    @Nullable
+    private Map.Entry<byte[], Boolean> fetchReversedMapData(@NotNull String serverName, int mapId) {
+        // Lookup binding from Redis cache, then fetch data if found
+        Map.Entry<String, Integer> binding = getRedisManager().getReversedMapBound(serverName, mapId);
+        if (binding != null) {
+            return fetchMapData(binding.getKey(), binding.getValue(), false);
+        }
+
+        // Lookup binding from database, then set to Redis & fetch data if found
+        binding = getPlugin().getDatabase().getMapBinding(serverName, mapId);
+        if (binding != null) {
+            getRedisManager().bindMapIds(binding.getKey(), binding.getValue(), serverName, mapId);
+            return fetchMapData(binding.getKey(), binding.getValue(), false);
+        }
+        return null;
+    }
+
+    @Nullable
+    private Map.Entry<MapData, Boolean> deserializeMapData(@NotNull Map.Entry<byte[], Boolean> data) {
         try {
-            return Map.entry(
-                    getPlugin().getDataAdapter().fromBytes(result.getKey(), AdaptableMapData.class)
+            return new AbstractMap.SimpleImmutableEntry<>(
+                    getPlugin().getDataAdapter().fromBytes(data.getKey(), AdaptableMapData.class)
                             .getData(getPlugin().getDataVersion(getPlugin().getMinecraftVersion())),
-                    result.getValue()
+                    data.getValue()
             );
         } catch (IOException e) {
             getPlugin().log(Level.WARNING, "Failed to deserialize map data", e);
@@ -133,7 +186,22 @@ public interface BukkitMapPersister {
         }
     }
 
-    @SuppressWarnings("deprecation")
+    // Get the bound map ID
+    private int getBoundMapId(@NotNull String fromServerName, int fromMapId, @NotNull String toServerName) {
+        // Get the map ID from Redis, if set
+        final Optional<Integer> redisId = getRedisManager().getBoundMapId(fromServerName, fromMapId, toServerName);
+        if (redisId.isPresent()) {
+            return redisId.get();
+        }
+
+        // Get from the database; if found, set to Redis
+        final int result = getPlugin().getDatabase().getBoundMapId(fromServerName, fromMapId, toServerName);
+        if (result != -1) {
+            getPlugin().getRedisManager().bindMapIds(fromServerName, fromMapId, toServerName, result);
+        }
+        return result;
+    }
+
     @NotNull
     private ItemStack persistMapView(@NotNull ItemStack map, @NotNull Player delegateRenderer) {
         final MapMeta meta = Objects.requireNonNull((MapMeta) map.getItemMeta());
@@ -185,20 +253,12 @@ public interface BukkitMapPersister {
                 return;
             }
 
+            // Determine map ID
             final String originServerName = mapData.getString(MAP_ORIGIN_KEY);
             final String currentServerName = getPlugin().getServerName();
             final int originalMapId = mapData.getInteger(MAP_ID_KEY);
-            int newId;
-            if (currentServerName.equals(originServerName)) {
-                newId = originalMapId;
-            } else {
-                newId = getPlugin().getDatabase().getNewMapId(
-                        originServerName,
-                        originalMapId,
-                        currentServerName
-                );
-            }
-
+            int newId = currentServerName.equals(originServerName)
+                    ? originalMapId : getBoundMapId(originServerName, originalMapId, currentServerName);
             if (newId != -1) {
                 meta.setMapId(newId);
                 map.setItemMeta(meta);
@@ -214,9 +274,13 @@ public interface BukkitMapPersister {
             final MapView view = generateRenderedMap(canvasData);
             meta.setMapView(view);
             map.setItemMeta(meta);
-            getPlugin().getDatabase().bindMapIds(originServerName, originalMapId, currentServerName, view.getId());
 
-            getPlugin().debug(String.format("Bound map to view (#%s) on server %s", view.getId(), currentServerName));
+            // Bind in the database & Redis
+            final int id = view.getId();
+            getRedisManager().bindMapIds(originServerName, originalMapId, currentServerName, id);
+            getPlugin().getDatabase().setMapBinding(originServerName, originalMapId, currentServerName, id);
+
+            getPlugin().debug(String.format("Bound map to view (#%s) on server %s", id, currentServerName));
         });
         return map;
     }
@@ -226,9 +290,11 @@ public interface BukkitMapPersister {
             return;
         }
 
-        @Nullable Map.Entry<MapData, Boolean> data = readMapData(getPlugin().getServerName(), view.getId());
+        @Nullable final Map.Entry<MapData, Boolean> data = readMapData(getPlugin().getServerName(), view.getId());
         if (data == null) {
-            getPlugin().log(Level.WARNING, "Cannot render map: no data in DB for world " + getDefaultMapWorld().getUID() + ", map " + view.getId());
+            final World world = view.getWorld() == null ? getDefaultMapWorld() : view.getWorld();
+            getPlugin().debug("Not rendering map: no data in DB for world %s, map #%s."
+                    .formatted(world.getName(), view.getId()));
             return;
         }
 
@@ -355,6 +421,8 @@ public interface BukkitMapPersister {
     @SuppressWarnings({"deprecation", "removal"})
     class PersistentMapCanvas implements MapCanvas {
 
+        private static final String BANNER_PREFIX = "banner_";
+
         private final int mapDataVersion;
         private final MapView mapView;
         private final int[][] pixels = new int[128][128];
@@ -444,7 +512,6 @@ public interface BukkitMapPersister {
         @NotNull
         private MapData extractMapData() {
             final List<MapBanner> banners = Lists.newArrayList();
-            final String BANNER_PREFIX = "banner_";
             for (int i = 0; i < getCursors().size(); i++) {
                 final MapCursor cursor = getCursors().getCursor(i);
                 //#if MC==12001
@@ -469,6 +536,9 @@ public interface BukkitMapPersister {
 
     @NotNull
     Map<Integer, MapView> getMapViews();
+
+    @ApiStatus.Internal
+    RedisManager getRedisManager();
 
     @ApiStatus.Internal
     @NotNull

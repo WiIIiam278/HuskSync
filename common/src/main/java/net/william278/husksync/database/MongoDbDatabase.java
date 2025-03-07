@@ -84,7 +84,7 @@ public class MongoDbDatabase extends Database {
             }
         } catch (Exception e) {
             throw new IllegalStateException("Failed to establish a connection to the MongoDB database. " +
-                                            "Please check the supplied database credentials in the config file", e);
+                    "Please check the supplied database credentials in the config file", e);
         }
     }
 
@@ -107,7 +107,7 @@ public class MongoDbDatabase extends Database {
         try {
             getUser(user.getUuid()).ifPresentOrElse(
                     existingUser -> {
-                        if (!existingUser.getUsername().equals(user.getUsername())) {
+                        if (!existingUser.getName().equals(user.getName())) {
                             // Update a user's name if it has changed in the database
                             try {
                                 Document filter = new Document("uuid", existingUser.getUuid());
@@ -116,7 +116,7 @@ public class MongoDbDatabase extends Database {
                                     throw new MongoException("User document returned null!");
                                 }
 
-                                Bson updates = Updates.set("username", user.getUsername());
+                                Bson updates = Updates.set("username", user.getName());
                                 mongoCollectionHelper.updateDocument(usersTable, doc, updates);
                             } catch (MongoException e) {
                                 plugin.log(Level.SEVERE, "Failed to insert a user into the database", e);
@@ -126,7 +126,7 @@ public class MongoDbDatabase extends Database {
                     () -> {
                         // Insert new player data into the database
                         try {
-                            Document doc = new Document("uuid", user.getUuid()).append("username", user.getUsername());
+                            Document doc = new Document("uuid", user.getUuid()).append("username", user.getName());
                             mongoCollectionHelper.insertDocument(usersTable, doc);
                         } catch (MongoException e) {
                             plugin.log(Level.SEVERE, "Failed to insert a user into the database", e);
@@ -355,8 +355,7 @@ public class MongoDbDatabase extends Database {
 
     @Blocking
     @Override
-    public void writeMapData(@NotNull String serverName, int mapId, byte @NotNull [] data) {
-        plugin.getRedisManager().setMapData(serverName, mapId, data);
+    public void saveMapData(@NotNull String serverName, int mapId, byte @NotNull [] data) {
         try {
             Document doc = new Document("server_name", serverName)
                     .append("map_id", mapId)
@@ -369,57 +368,41 @@ public class MongoDbDatabase extends Database {
 
     @Blocking
     @Override
-    public @Nullable Map.Entry<byte[], Boolean> readMapData(@NotNull String serverName, int mapId) {
-        byte[] data = plugin.getRedisManager().getMapData(serverName, mapId);
-        if (data != null) return Map.entry(data, true);
+    public @Nullable Map.Entry<byte[], Boolean> getMapData(@NotNull String serverName, int mapId) {
         try {
             Document filter = new Document("server_name", serverName).append("map_id", mapId);
             FindIterable<Document> iterable = mongoCollectionHelper.getCollection(mapDataTable).find(filter);
             Document doc = iterable.first();
             if (doc != null) {
                 final Binary bin = doc.get("data", Binary.class);
-                data = bin.getData();
-                plugin.getRedisManager().setMapData(serverName, mapId, data);
-                return Map.entry(data, true);
-            } else {
-                return readMapDataFromAnotherServer(serverName, mapId);
+                return Map.entry(bin.getData(), true);
             }
         } catch (MongoException e) {
             plugin.log(Level.SEVERE, "Failed to get map data from the database", e);
-            return null;
-        }
-    }
-
-    private @Nullable Map.Entry<byte[], Boolean> readMapDataFromAnotherServer(@NotNull String serverName, int mapId) {
-        Map.Entry<String, Integer> reverseBound = plugin.getRedisManager().getReversedMapBound(serverName, mapId);
-        if (reverseBound != null) {
-            var result = readMapData(reverseBound.getKey(), reverseBound.getValue());
-            if (result != null) {
-                return Map.entry(result.getKey(), false);
-            }
-            return null;
-        }
-        Document filter = new Document("to_server_name", serverName).append("to_id", mapId);
-        FindIterable<Document> iterable = mongoCollectionHelper.getCollection(mapIdsTable).find(filter);
-        Document doc = iterable.first();
-        if (doc != null) {
-            String fromServer = doc.getString("from_server_name");
-            int fromId = doc.getInteger("from_id");
-            plugin.getRedisManager().bindMapIds(fromServer, fromId, serverName, mapId);
-            var result = readMapData(fromServer, fromId);
-            if (result != null) {
-                return Map.entry(result.getKey(), false);
-            }
         }
         return null;
     }
 
     @Blocking
     @Override
-    public void bindMapIds(@NotNull String fromServerName, int fromMapId, @NotNull String toServerName, int toMapId) {
-        plugin.getRedisManager().bindMapIds(fromServerName, fromMapId, toServerName, toMapId);
+    public @Nullable Map.Entry<String, Integer> getMapBinding(@NotNull String serverName, int mapId) {
+        final Document filter = new Document("to_server_name", serverName).append("to_id", mapId);
+        final FindIterable<Document> iterable = mongoCollectionHelper.getCollection(mapIdsTable).find(filter);
+        final Document doc = iterable.first();
+        if (doc != null) {
+            return new AbstractMap.SimpleImmutableEntry<>(
+                    doc.getString("server_name"),
+                    doc.getInteger("to_id")
+            );
+        }
+        return null;
+    }
+
+    @Blocking
+    @Override
+    public void setMapBinding(@NotNull String fromServerName, int fromMapId, @NotNull String toServerName, int toMapId) {
         try {
-            Document doc = new Document("from_server_name", fromServerName)
+            final Document doc = new Document("from_server_name", fromServerName)
                     .append("from_id", fromMapId)
                     .append("to_server_name", toServerName)
                     .append("to_id", toMapId);
@@ -431,18 +414,16 @@ public class MongoDbDatabase extends Database {
 
     @Blocking
     @Override
-    public int getNewMapId(@NotNull String fromServerName, int fromMapId, @NotNull String toServerName) {
-        Optional<Integer> toIdOptional = plugin.getRedisManager().getBoundMapId(fromServerName, fromMapId, toServerName);
-        if (toIdOptional.isPresent()) return toIdOptional.get();
+    public int getBoundMapId(@NotNull String fromServerName, int fromMapId, @NotNull String toServerName) {
         try {
-            Document filter = new Document("from_server_name", fromServerName).append("from_id", fromMapId)
+            final Document filter = new Document("from_server_name", fromServerName)
+                    .append("from_id", fromMapId)
                     .append("to_server_name", toServerName);
-            FindIterable<Document> iterable = mongoCollectionHelper.getCollection(mapIdsTable).find(filter);
-            Document doc = iterable.first();
+            final FindIterable<Document> iterable = mongoCollectionHelper.getCollection(mapIdsTable).find(filter);
+
+            final Document doc = iterable.first();
             if (doc != null) {
-                int toId = doc.getInteger("to_id");
-                plugin.getRedisManager().bindMapIds(fromServerName, fromMapId, toServerName, toId);
-                return toId;
+                return doc.getInteger("to_id");
             }
             return -1;
         } catch (MongoException e) {

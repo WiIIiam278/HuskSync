@@ -49,7 +49,7 @@ public class DataSnapshotList {
                         .map(snapshot -> plugin.getLocales()
                                 .getRawLocale(!snapshot.isInvalid() ? "data_list_item" : "data_list_item_invalid",
                                         getNumberIcon(snapshotNumber.getAndIncrement()),
-                                        dataOwner.getUsername(),
+                                        dataOwner.getName(),
                                         snapshot.getId().toString(),
                                         snapshot.getShortId(),
                                         snapshot.isPinned() ? "※" : "  ",
@@ -63,10 +63,10 @@ public class DataSnapshotList {
                                 .orElse("• " + snapshot.getId())).toList(),
                 plugin.getLocales().getBaseChatList(6)
                         .setHeaderFormat(plugin.getLocales()
-                                .getRawLocale("data_list_title", dataOwner.getUsername(),
+                                .getRawLocale("data_list_title", dataOwner.getName(),
                                         "%first_item_on_page_index%", "%last_item_on_page_index%", "%total_items%")
                                 .orElse(""))
-                        .setCommand("/husksync:userdata list " + dataOwner.getUsername())
+                        .setCommand("/husksync:userdata list " + dataOwner.getName())
                         .build());
     }
 

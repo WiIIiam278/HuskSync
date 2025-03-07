@@ -146,7 +146,7 @@ public class LegacyMigrator extends Migrator {
                     try {
                         plugin.getDatabase().addSnapshot(data.user(), convertedData);
                     } catch (Throwable e) {
-                        plugin.log(Level.SEVERE, "Failed to migrate legacy data for " + data.user().getUsername() + ": " + e.getMessage());
+                        plugin.log(Level.SEVERE, "Failed to migrate legacy data for " + data.user().getName() + ": " + e.getMessage());
                         return;
                     }
 

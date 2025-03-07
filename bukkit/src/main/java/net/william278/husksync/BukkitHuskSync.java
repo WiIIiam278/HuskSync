@@ -56,7 +56,7 @@ import net.william278.husksync.sync.DataSyncer;
 import net.william278.husksync.user.BukkitUser;
 import net.william278.husksync.user.OnlineUser;
 import net.william278.husksync.util.BukkitLegacyConverter;
-import net.william278.husksync.util.BukkitMapPersister;
+import net.william278.husksync.maps.BukkitMapHandler;
 import net.william278.husksync.util.BukkitTask;
 import net.william278.husksync.util.LegacyConverter;
 import net.william278.toilet.BukkitToilet;
@@ -84,7 +84,7 @@ import java.util.stream.Collectors;
 @NoArgsConstructor
 @SuppressWarnings("unchecked")
 public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.Supplier,
-        BukkitEventDispatcher, BukkitMapPersister {
+        BukkitEventDispatcher, BukkitMapHandler {
 
     /**
      * Metrics ID for <a href="https://bstats.org/plugin/bukkit/HuskSync%20-%20Bukkit/13140">HuskSync on Bukkit</a>.

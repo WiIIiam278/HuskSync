@@ -262,7 +262,7 @@ public class RedisManager extends JedisPubSub {
                     timeToLive,
                     data.asBytes(plugin)
             );
-            plugin.debug(String.format("[%s] Set %s key on Redis", user.getUsername(), RedisKeyType.LATEST_SNAPSHOT));
+            plugin.debug(String.format("[%s] Set %s key on Redis", user.getName(), RedisKeyType.LATEST_SNAPSHOT));
         } catch (Throwable e) {
             plugin.log(Level.SEVERE, "An exception occurred setting user data on Redis", e);
         }
@@ -274,7 +274,7 @@ public class RedisManager extends JedisPubSub {
             jedis.del(
                     getKey(RedisKeyType.LATEST_SNAPSHOT, user.getUuid(), clusterId)
             );
-            plugin.debug(String.format("[%s] Cleared %s on Redis", user.getUsername(), RedisKeyType.LATEST_SNAPSHOT));
+            plugin.debug(String.format("[%s] Cleared %s on Redis", user.getName(), RedisKeyType.LATEST_SNAPSHOT));
         } catch (Throwable e) {
             plugin.log(Level.SEVERE, "An exception occurred clearing user data on Redis", e);
         }
@@ -292,11 +292,11 @@ public class RedisManager extends JedisPubSub {
             } else {
                 if (jedis.del(key.getBytes(StandardCharsets.UTF_8)) == 0) {
                     plugin.debug(String.format("[%s] %s key not set on Redis when attempting removal (%s)",
-                            user.getUsername(), RedisKeyType.DATA_CHECKOUT, key));
+                            user.getName(), RedisKeyType.DATA_CHECKOUT, key));
                     return;
                 }
             }
-            plugin.debug(String.format("[%s] %s %s key %s Redis (%s)", user.getUsername(),
+            plugin.debug(String.format("[%s] %s %s key %s Redis (%s)", user.getName(),
                     checkedOut ? "Set" : "Removed", RedisKeyType.DATA_CHECKOUT, checkedOut ? "to" : "from", key));
         } catch (Throwable e) {
             plugin.log(Level.SEVERE, "An exception occurred setting checkout to", e);
@@ -311,13 +311,13 @@ public class RedisManager extends JedisPubSub {
             if (readData != null) {
                 final String checkoutServer = new String(readData, StandardCharsets.UTF_8);
                 plugin.debug(String.format("[%s] Waiting for %s %s key to be unset on Redis",
-                        user.getUsername(), checkoutServer, RedisKeyType.DATA_CHECKOUT));
+                        user.getName(), checkoutServer, RedisKeyType.DATA_CHECKOUT));
                 return Optional.of(checkoutServer);
             }
         } catch (Throwable e) {
             plugin.log(Level.SEVERE, "An exception occurred getting a user's checkout key from Redis", e);
         }
-        plugin.debug(String.format("[%s] %s key not set on Redis", user.getUsername(),
+        plugin.debug(String.format("[%s] %s key not set on Redis", user.getName(),
                 RedisKeyType.DATA_CHECKOUT));
         return Optional.empty();
     }
@@ -355,7 +355,7 @@ public class RedisManager extends JedisPubSub {
                     new byte[0]
             );
             plugin.debug(String.format("[%s] Set %s key to Redis",
-                    user.getUsername(), RedisKeyType.SERVER_SWITCH));
+                    user.getName(), RedisKeyType.SERVER_SWITCH));
         } catch (Throwable e) {
             plugin.log(Level.SEVERE, "An exception occurred setting a user's server switch key from Redis", e);
         }
@@ -374,11 +374,11 @@ public class RedisManager extends JedisPubSub {
             final byte[] dataByteArray = jedis.get(key);
             if (dataByteArray == null) {
                 plugin.debug(String.format("[%s] Waiting for %s key from Redis",
-                        user.getUsername(), RedisKeyType.LATEST_SNAPSHOT));
+                        user.getName(), RedisKeyType.LATEST_SNAPSHOT));
                 return Optional.empty();
             }
             plugin.debug(String.format("[%s] Read %s key from Redis",
-                    user.getUsername(), RedisKeyType.LATEST_SNAPSHOT));
+                    user.getName(), RedisKeyType.LATEST_SNAPSHOT));
 
             // Consume the key (delete from redis)
             jedis.del(key);
@@ -398,11 +398,11 @@ public class RedisManager extends JedisPubSub {
             final byte[] readData = jedis.get(key);
             if (readData == null) {
                 plugin.debug(String.format("[%s] Waiting for %s key from Redis",
-                        user.getUsername(), RedisKeyType.SERVER_SWITCH));
+                        user.getName(), RedisKeyType.SERVER_SWITCH));
                 return false;
             }
             plugin.debug(String.format("[%s] Read %s key from Redis",
-                    user.getUsername(), RedisKeyType.SERVER_SWITCH));
+                    user.getName(), RedisKeyType.SERVER_SWITCH));
 
             // Consume the key (delete from redis)
             jedis.del(key);

@@ -257,7 +257,7 @@ public abstract class Database {
      * @param data       Map data
      */
     @Blocking
-    public abstract void writeMapData(@NotNull String serverName, int mapId, byte @NotNull [] data);
+    public abstract void saveMapData(@NotNull String serverName, int mapId, byte @NotNull [] data);
 
     /**
      * Read map data from a database
@@ -267,7 +267,17 @@ public abstract class Database {
      * @return           Map.Entry (key: map data, value: is from current world)
      */
     @Blocking
-    public abstract @Nullable Map.Entry<byte[], Boolean> readMapData(@NotNull String serverName, int mapId);
+    public abstract @Nullable Map.Entry<byte[], Boolean> getMapData(@NotNull String serverName, int mapId);
+
+    /**
+     * Get a map server -> ID binding in the database
+     *
+     * @param serverName Name of the server the map originates from
+     * @param mapId      Original map ID
+     * @return           Map.Entry (key: server name, value: map ID)
+     */
+    @Blocking
+    public abstract @Nullable Map.Entry<String, Integer> getMapBinding(@NotNull String serverName, int mapId);
 
     /**
      * Bind map IDs across different servers
@@ -278,7 +288,7 @@ public abstract class Database {
      * @param toMapId        New map ID
      */
     @Blocking
-    public abstract void bindMapIds(@NotNull String fromServerName, int fromMapId, @NotNull String toServerName, int toMapId);
+    public abstract void setMapBinding(@NotNull String fromServerName, int fromMapId, @NotNull String toServerName, int toMapId);
 
     /**
      * Get map ID for the new server
@@ -289,7 +299,7 @@ public abstract class Database {
      * @return               New map ID or -1 if not found
      */
     @Blocking
-    public abstract int getNewMapId(@NotNull String fromServerName, int fromMapId, @NotNull String toServerName);
+    public abstract int getBoundMapId(@NotNull String fromServerName, int fromMapId, @NotNull String toServerName);
 
     /**
      * Wipes <b>all</b> {@link User} entries from the database.
