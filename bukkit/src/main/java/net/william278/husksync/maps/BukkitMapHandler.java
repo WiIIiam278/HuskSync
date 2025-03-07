@@ -285,7 +285,7 @@ public interface BukkitMapHandler {
         return map;
     }
 
-    default void renderMapFromDb(@NotNull MapView view) {
+    default void renderPersistedMap(@NotNull MapView view) {
         if (getMapView(view.getId()).isPresent()) {
             return;
         }
