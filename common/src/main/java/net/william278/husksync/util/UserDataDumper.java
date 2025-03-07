@@ -65,7 +65,7 @@ public class UserDataDumper implements Flusher {
     @NotNull
     public String toWeb() {
         try {
-            return uploadDump(toString(), BYTEBIN_URL, "husksync");
+            return "%s/%s".formatted(BYTEBIN_URL, uploadDump(toString(), BYTEBIN_URL, "husksync"));
         } catch (Throwable e) {
             plugin.log(Level.SEVERE, "Failed to upload data.", e);
         }
