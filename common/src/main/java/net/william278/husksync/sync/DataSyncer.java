@@ -23,6 +23,7 @@ import net.william278.husksync.HuskSync;
 import net.william278.husksync.api.HuskSyncAPI;
 import net.william278.husksync.data.DataSnapshot;
 import net.william278.husksync.database.Database;
+import net.william278.husksync.redis.RedisKeyType;
 import net.william278.husksync.redis.RedisManager;
 import net.william278.husksync.user.OnlineUser;
 import net.william278.husksync.user.User;
@@ -95,6 +96,19 @@ public abstract class DataSyncer {
     public abstract void syncSaveUserData(@NotNull OnlineUser user);
 
     /**
+     * Save a user's current data
+     *
+     * @param onlineUser the user to save data of
+     * @param cause      the save cause
+     */
+    public void saveCurrentUserData(@NotNull OnlineUser onlineUser, @NotNull DataSnapshot.SaveCause cause) {
+        this.saveData(
+                onlineUser, onlineUser.createSnapshot(cause),
+                (user, data) -> getRedis().setUserData(user, data, RedisKeyType.TTL_10_SECONDS)
+        );
+    }
+
+    /**
      * Save a {@link DataSnapshot.Packed user's data snapshot} to the database,
      * first firing the {@link net.william278.husksync.event.DataSaveEvent}. This will not update data on Redis.
      *
@@ -150,7 +164,7 @@ public abstract class DataSyncer {
     private long getMaxListenAttempts() {
         return BASE_LISTEN_ATTEMPTS + (
                 (Math.max(100, plugin.getSettings().getSynchronization().getNetworkLatencyMilliseconds()) / 1000)
-                * 20 / LISTEN_DELAY
+                        * 20 / LISTEN_DELAY
         );
     }
 

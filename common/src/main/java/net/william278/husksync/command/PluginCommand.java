@@ -23,6 +23,7 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.user.CommandUser;
+import net.william278.husksync.user.OnlineUser;
 import net.william278.husksync.user.User;
 import net.william278.uniform.BaseCommand;
 import net.william278.uniform.Command;
@@ -73,6 +74,19 @@ public abstract class PluginCommand extends Command {
     @NotNull
     protected CommandUser adapt(net.william278.uniform.CommandUser user) {
         return user.getUuid() == null ? plugin.getConsole() : plugin.getOnlineUser(user.getUuid()).orElseThrow();
+    }
+
+    @NotNull
+    protected <S> ArgumentElement<S, OnlineUser> onlineUser(@NotNull String name) {
+        return new ArgumentElement<>(name, reader -> {
+            final String username = reader.readString();
+            return plugin.getOnlineUsers().stream()
+                    .filter(user -> username.equals(user.getName()))
+                    .findFirst().orElse(null);
+        }, (context, builder) -> {
+            plugin.getOnlineUsers().forEach(u -> builder.suggest(u.getName()));
+            return builder.buildFuture();
+        });
     }
 
     @NotNull

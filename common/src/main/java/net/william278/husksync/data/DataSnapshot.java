@@ -535,9 +535,9 @@ public class DataSnapshot {
         public Builder timestamp(@NotNull OffsetDateTime timestamp) {
             if (timestamp.isAfter(OffsetDateTime.now())) {
                 throw new IllegalArgumentException("Data snapshots cannot have a timestamp set in the future! "
-                                                   + "Make sure your database server time matches the server time.\n"
-                                                   + "Current game server timestamp: " + OffsetDateTime.now() + " / "
-                                                   + "Snapshot timestamp: " + timestamp);
+                        + "Make sure your database server time matches the server time.\n"
+                        + "Current game server timestamp: " + OffsetDateTime.now() + " / "
+                        + "Snapshot timestamp: " + timestamp);
             }
             this.timestamp = timestamp;
             return this;
@@ -881,6 +881,13 @@ public class DataSnapshot {
         public static final SaveCause BACKUP_RESTORE = of("BACKUP_RESTORE");
 
         /**
+         * Indicates data was saved from executing the {@code /userdata save} command
+         *
+         * @since 3.8
+         */
+        public static final SaveCause SAVE_COMMAND = of("SAVE_COMMAND", true);
+
+        /**
          * Indicates data was saved by an API call
          *
          * @since 2.0
@@ -923,7 +930,7 @@ public class DataSnapshot {
          */
         @NotNull
         public static SaveCause of(@NotNull String name) {
-            return of(name,true);
+            return of(name, true);
         }
 
         /**

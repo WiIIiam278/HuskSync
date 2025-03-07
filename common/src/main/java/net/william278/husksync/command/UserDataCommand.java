@@ -25,6 +25,7 @@ import net.william278.husksync.data.DataSnapshot;
 import net.william278.husksync.redis.RedisKeyType;
 import net.william278.husksync.redis.RedisManager;
 import net.william278.husksync.user.CommandUser;
+import net.william278.husksync.user.OnlineUser;
 import net.william278.husksync.user.User;
 import net.william278.husksync.util.UserDataDumper;
 import net.william278.husksync.util.DataSnapshotList;
@@ -52,6 +53,7 @@ public class UserDataCommand extends PluginCommand {
         command.addSubCommand("view", needsOp("view"), view());
         command.addSubCommand("list", needsOp("list"), list());
         command.addSubCommand("delete", needsOp("delete"), delete());
+        command.addSubCommand("save", needsOp("save"), save());
         command.addSubCommand("restore", needsOp("restore"), restore());
         command.addSubCommand("pin", needsOp("pin"), pin());
         command.addSubCommand("dump", needsOp("dump"), dump());
@@ -100,6 +102,13 @@ public class UserDataCommand extends PluginCommand {
             return;
         }
         DataSnapshotList.create(dataList, user, plugin).displayPage(executor, page);
+    }
+
+    // Create and save a snapshot of a user's current data
+    private void createAndSaveSnapshot(@NotNull CommandUser executor, @NotNull OnlineUser onlineUser) {
+        plugin.getDataSyncer().saveCurrentUserData(onlineUser, DataSnapshot.SaveCause.SAVE_COMMAND);
+        plugin.getLocales().getLocale("data_saved", onlineUser.getName())
+                .ifPresent(executor::sendMessage);
     }
 
     // Delete a snapshot
@@ -232,6 +241,14 @@ public class UserDataCommand extends PluginCommand {
             final UUID version = ctx.getArgument("version", UUID.class);
             deleteSnapshot(user(sub, ctx), user, version);
         }, user("username"), uuid("version"));
+    }
+
+    @NotNull
+    private CommandProvider save() {
+        return (sub) -> sub.addSyntax((ctx) -> {
+            final OnlineUser user = ctx.getArgument("username", OnlineUser.class);
+            createAndSaveSnapshot(user(sub, ctx), user);
+        }, onlineUser("username"));
     }
 
     @NotNull
