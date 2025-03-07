@@ -51,7 +51,7 @@ public class EnderChestCommand extends ItemsCommand {
         }
 
         // Display opening message
-        plugin.getLocales().getLocale("ender_chest_viewer_opened", user.getUsername(),
+        plugin.getLocales().getLocale("ender_chest_viewer_opened", user.getName(),
                         snapshot.getTimestamp().format(DateTimeFormatter
                                 .ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.SHORT)))
                 .ifPresent(viewer::sendMessage);
@@ -60,8 +60,8 @@ public class EnderChestCommand extends ItemsCommand {
         final Data.Items.EnderChest enderChest = optionalEnderChest.get();
         viewer.showGui(
                 enderChest,
-                plugin.getLocales().getLocale("ender_chest_viewer_menu_title", user.getUsername())
-                        .orElse(new MineDown(String.format("%s's Ender Chest", user.getUsername()))),
+                plugin.getLocales().getLocale("ender_chest_viewer_menu_title", user.getName())
+                        .orElse(new MineDown(String.format("%s's Ender Chest", user.getName()))),
                 allowEdit,
                 enderChest.getSlotCount(),
                 (itemsOnClose) -> {

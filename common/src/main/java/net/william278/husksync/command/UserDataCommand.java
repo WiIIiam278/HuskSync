@@ -113,7 +113,7 @@ public class UserDataCommand extends PluginCommand {
         plugin.getLocales().getLocale("data_deleted",
                         version.toString().split("-")[0],
                         version.toString(),
-                        user.getUsername(),
+                        user.getName(),
                         user.getUuid().toString())
                 .ifPresent(executor::sendMessage);
     }
@@ -147,7 +147,7 @@ public class UserDataCommand extends PluginCommand {
         plugin.getDataSyncer().saveData(user, data, (u, s) -> {
             redis.getUserData(u).ifPresent(d -> redis.setUserData(u, s, RedisKeyType.TTL_1_YEAR));
             redis.sendUserDataUpdate(u, s);
-            plugin.getLocales().getLocale("data_restored", u.getUsername(), u.getUuid().toString(),
+            plugin.getLocales().getLocale("data_restored", u.getName(), u.getUuid().toString(),
                     s.getShortId(), s.getId().toString()).ifPresent(executor::sendMessage);
         });
     }
@@ -169,7 +169,7 @@ public class UserDataCommand extends PluginCommand {
             plugin.getDatabase().pinSnapshot(user, data.getId());
         }
         plugin.getLocales().getLocale(data.isPinned() ? "data_unpinned" : "data_pinned", data.getShortId(),
-                        data.getId().toString(), user.getUsername(), user.getUuid().toString())
+                        data.getId().toString(), user.getName(), user.getUuid().toString())
                 .ifPresent(executor::sendMessage);
     }
 
@@ -187,7 +187,7 @@ public class UserDataCommand extends PluginCommand {
         final DataSnapshot.Packed userData = data.get();
         final UserDataDumper dumper = UserDataDumper.create(userData, user, plugin);
         try {
-            plugin.getLocales().getLocale("data_dumped", userData.getShortId(), user.getUsername(),
+            plugin.getLocales().getLocale("data_dumped", userData.getShortId(), user.getName(),
                             (type == DumpType.WEB ? dumper.toWeb() : dumper.toFile()))
                     .ifPresent(executor::sendMessage);
         } catch (Throwable e) {

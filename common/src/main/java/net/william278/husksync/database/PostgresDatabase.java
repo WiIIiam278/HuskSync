@@ -27,6 +27,7 @@ import net.william278.husksync.data.DataSnapshot;
 import net.william278.husksync.user.User;
 import org.jetbrains.annotations.Blocking;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.sql.*;
@@ -120,11 +121,11 @@ public class PostgresDatabase extends Database {
                 }
             } catch (SQLException e) {
                 throw new IllegalStateException("Failed to create database tables. Please ensure you are running PostgreSQL " +
-                                                "and that your connecting user account has privileges to create tables.", e);
+                        "and that your connecting user account has privileges to create tables.", e);
             }
         } catch (SQLException | IOException e) {
             throw new IllegalStateException("Failed to establish a connection to the PostgreSQL database. " +
-                                            "Please check the supplied database credentials in the config file", e);
+                    "Please check the supplied database credentials in the config file", e);
         }
     }
 
@@ -133,7 +134,7 @@ public class PostgresDatabase extends Database {
     public void ensureUser(@NotNull User user) {
         getUser(user.getUuid()).ifPresentOrElse(
                 existingUser -> {
-                    if (!existingUser.getUsername().equals(user.getUsername())) {
+                    if (!existingUser.getName().equals(user.getName())) {
                         // Update a user's name if it has changed in the database
                         try (Connection connection = getConnection()) {
                             try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
@@ -141,11 +142,11 @@ public class PostgresDatabase extends Database {
                                     SET username=?
                                     WHERE uuid=?;"""))) {
 
-                                statement.setString(1, user.getUsername());
+                                statement.setString(1, user.getName());
                                 statement.setObject(2, existingUser.getUuid());
                                 statement.executeUpdate();
                             }
-                            plugin.log(Level.INFO, "Updated " + user.getUsername() + "'s name in the database (" + existingUser.getUsername() + " -> " + user.getUsername() + ")");
+                            plugin.log(Level.INFO, "Updated " + user.getName() + "'s name in the database (" + existingUser.getName() + " -> " + user.getName() + ")");
                         } catch (SQLException e) {
                             plugin.log(Level.SEVERE, "Failed to update a user's name on the database", e);
                         }
@@ -159,7 +160,7 @@ public class PostgresDatabase extends Database {
                                 VALUES (?,?);"""))) {
 
                             statement.setObject(1, user.getUuid());
-                            statement.setString(2, user.getUsername());
+                            statement.setString(2, user.getName());
                             statement.executeUpdate();
                         }
                     } catch (SQLException e) {
@@ -428,6 +429,118 @@ public class PostgresDatabase extends Database {
         } catch (SQLException e) {
             plugin.log(Level.SEVERE, "Failed to pin user data in the database", e);
         }
+    }
+
+    @Blocking
+    @Override
+    public void saveMapData(@NotNull String serverName, int mapId, byte @NotNull [] data) {
+        try (Connection connection = getConnection()) {
+            try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
+                    INSERT INTO %map_data_table%
+                    (server_name,map_id,data)
+                    VALUES (?,?,?);"""))) {
+                statement.setString(1, serverName);
+                statement.setInt(2, mapId);
+                statement.setBytes(3, data);
+                statement.executeUpdate();
+            }
+        } catch (SQLException | DataAdapter.AdaptionException e) {
+            plugin.log(Level.SEVERE, "Failed to write map data to the database", e);
+        }
+    }
+
+    @Blocking
+    @Override
+    public @Nullable Map.Entry<byte[], Boolean> getMapData(@NotNull String serverName, int mapId) {
+        try (Connection connection = getConnection()) {
+            try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
+                    SELECT data
+                    FROM %map_data_table%
+                    WHERE server_name=? AND map_id=?
+                    LIMIT 1;"""))) {
+                statement.setString(1, serverName);
+                statement.setInt(2, mapId);
+                final ResultSet resultSet = statement.executeQuery();
+                if (resultSet.next()) {
+                    final byte[] data = resultSet.getBytes("data");
+                    return new AbstractMap.SimpleImmutableEntry<>(data, true);
+                }
+                return null;
+            }
+        } catch (SQLException | DataAdapter.AdaptionException e) {
+            plugin.log(Level.SEVERE, "Failed to get map data from the database", e);
+        }
+        return null;
+    }
+
+    @Blocking
+    @Override
+    public @Nullable Map.Entry<String, Integer> getMapBinding(@NotNull String serverName, int mapId) {
+        try (Connection connection = getConnection()) {
+            try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
+                    SELECT from_server_name, from_id
+                    FROM %map_ids_table%
+                    WHERE to_server_name=? AND to_id=?
+                    LIMIT 1;
+                    """))) {
+                statement.setString(1, serverName);
+                statement.setInt(2, mapId);
+
+                final ResultSet resultSet = statement.executeQuery();
+                if (resultSet.next()) {
+                    return new AbstractMap.SimpleImmutableEntry<>(
+                            resultSet.getString("from_server_name"),
+                            resultSet.getInt("from_id")
+                    );
+                }
+            }
+        } catch (SQLException | DataAdapter.AdaptionException e) {
+            plugin.log(Level.SEVERE, "Failed to get map data from the database", e);
+        }
+        return null;
+    }
+
+    @Blocking
+    @Override
+    public void setMapBinding(@NotNull String fromServerName, int fromMapId, @NotNull String toServerName, int toMapId) {
+        try (Connection connection = getConnection()) {
+            try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
+                    INSERT INTO %map_ids_table%
+                    (from_server_name,from_id,to_server_name,to_id)
+                    VALUES (?,?,?,?);"""))) {
+                statement.setString(1, fromServerName);
+                statement.setInt(2, fromMapId);
+                statement.setString(3, toServerName);
+                statement.setInt(4, toMapId);
+                statement.executeUpdate();
+            }
+        } catch (SQLException | DataAdapter.AdaptionException e) {
+            plugin.log(Level.SEVERE, "Failed to connect map IDs in the database", e);
+        }
+    }
+
+    @Blocking
+    @Override
+    public int getBoundMapId(@NotNull String fromServerName, int fromMapId, @NotNull String toServerName) {
+        try (Connection connection = getConnection()) {
+            try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
+                    SELECT to_id
+                    FROM %map_ids_table%
+                    WHERE from_server_name=? AND from_id=? AND to_server_name=?
+                    LIMIT 1;"""))) {
+                statement.setString(1, fromServerName);
+                statement.setInt(2, fromMapId);
+                statement.setString(3, toServerName);
+
+                final ResultSet resultSet = statement.executeQuery();
+                if (resultSet.next()) {
+                    return resultSet.getInt("to_id");
+                }
+            }
+        } catch (SQLException | DataAdapter.AdaptionException e) {
+            plugin.log(Level.SEVERE, "Failed to get new map id from the database", e);
+        }
+        return -1;
     }
 
     @Override

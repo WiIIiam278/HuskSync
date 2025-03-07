@@ -52,7 +52,7 @@ public class InventoryCommand extends ItemsCommand {
         }
 
         // Display opening message
-        plugin.getLocales().getLocale("inventory_viewer_opened", user.getUsername(),
+        plugin.getLocales().getLocale("inventory_viewer_opened", user.getName(),
                         snapshot.getTimestamp().format(DateTimeFormatter
                                 .ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.SHORT)))
                 .ifPresent(viewer::sendMessage);
@@ -61,8 +61,8 @@ public class InventoryCommand extends ItemsCommand {
         final Data.Items.Inventory inventory = optionalInventory.get();
         viewer.showGui(
                 inventory,
-                plugin.getLocales().getLocale("inventory_viewer_menu_title", user.getUsername())
-                        .orElse(new MineDown(String.format("%s's Inventory", user.getUsername()))),
+                plugin.getLocales().getLocale("inventory_viewer_menu_title", user.getName())
+                        .orElse(new MineDown(String.format("%s's Inventory", user.getName()))),
                 allowEdit,
                 inventory.getSlotCount(),
                 (itemsOnClose) -> {

@@ -179,7 +179,7 @@ public class UserDataDumper {
     @NotNull
     private String getFileName() {
         return new StringJoiner("_")
-                .add(user.getUsername())
+                .add(user.getName())
                 .add(snapshot.getTimestamp().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss")))
                 .add(snapshot.getSaveCause().name().toLowerCase(Locale.ENGLISH))
                 .add(snapshot.getShortId())

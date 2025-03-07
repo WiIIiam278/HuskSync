@@ -35,13 +35,11 @@ import org.bson.conversions.Bson;
 import org.bson.types.Binary;
 import org.jetbrains.annotations.Blocking;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.time.Instant;
 import java.time.OffsetDateTime;
-import java.util.List;
-import java.util.Optional;
-import java.util.TimeZone;
-import java.util.UUID;
+import java.util.*;
 import java.util.logging.Level;
 
 public class MongoDbDatabase extends Database {
@@ -50,11 +48,15 @@ public class MongoDbDatabase extends Database {
 
     private final String usersTable;
     private final String userDataTable;
+    private final String mapDataTable;
+    private final String mapIdsTable;
 
     public MongoDbDatabase(@NotNull HuskSync plugin) {
         super(plugin);
         this.usersTable = plugin.getSettings().getDatabase().getTableName(TableName.USERS);
         this.userDataTable = plugin.getSettings().getDatabase().getTableName(TableName.USER_DATA);
+        this.mapDataTable = plugin.getSettings().getDatabase().getTableName(TableName.MAP_DATA);
+        this.mapIdsTable = plugin.getSettings().getDatabase().getTableName(TableName.MAP_IDS);
     }
 
     @Override
@@ -74,9 +76,15 @@ public class MongoDbDatabase extends Database {
             if (mongoCollectionHelper.getCollection(userDataTable) == null) {
                 mongoCollectionHelper.createCollection(userDataTable);
             }
+            if (mongoCollectionHelper.getCollection(mapDataTable) == null) {
+                mongoCollectionHelper.createCollection(mapDataTable);
+            }
+            if (mongoCollectionHelper.getCollection(mapIdsTable) == null) {
+                mongoCollectionHelper.createCollection(mapIdsTable);
+            }
         } catch (Exception e) {
             throw new IllegalStateException("Failed to establish a connection to the MongoDB database. " +
-                                            "Please check the supplied database credentials in the config file", e);
+                    "Please check the supplied database credentials in the config file", e);
         }
     }
 
@@ -99,7 +107,7 @@ public class MongoDbDatabase extends Database {
         try {
             getUser(user.getUuid()).ifPresentOrElse(
                     existingUser -> {
-                        if (!existingUser.getUsername().equals(user.getUsername())) {
+                        if (!existingUser.getName().equals(user.getName())) {
                             // Update a user's name if it has changed in the database
                             try {
                                 Document filter = new Document("uuid", existingUser.getUuid());
@@ -108,7 +116,7 @@ public class MongoDbDatabase extends Database {
                                     throw new MongoException("User document returned null!");
                                 }
 
-                                Bson updates = Updates.set("username", user.getUsername());
+                                Bson updates = Updates.set("username", user.getName());
                                 mongoCollectionHelper.updateDocument(usersTable, doc, updates);
                             } catch (MongoException e) {
                                 plugin.log(Level.SEVERE, "Failed to insert a user into the database", e);
@@ -118,7 +126,7 @@ public class MongoDbDatabase extends Database {
                     () -> {
                         // Insert new player data into the database
                         try {
-                            Document doc = new Document("uuid", user.getUuid()).append("username", user.getUsername());
+                            Document doc = new Document("uuid", user.getUuid()).append("username", user.getName());
                             mongoCollectionHelper.insertDocument(usersTable, doc);
                         } catch (MongoException e) {
                             plugin.log(Level.SEVERE, "Failed to insert a user into the database", e);
@@ -342,6 +350,85 @@ public class MongoDbDatabase extends Database {
             mongoCollectionHelper.updateDocument(userDataTable, doc, updates);
         } catch (MongoException e) {
             plugin.log(Level.SEVERE, "Failed to update snapshot in the database", e);
+        }
+    }
+
+    @Blocking
+    @Override
+    public void saveMapData(@NotNull String serverName, int mapId, byte @NotNull [] data) {
+        try {
+            Document doc = new Document("server_name", serverName)
+                    .append("map_id", mapId)
+                    .append("data", new Binary(data));
+            mongoCollectionHelper.insertDocument(mapDataTable, doc);
+        } catch (MongoException e) {
+            plugin.log(Level.SEVERE, "Failed to write map data to the database", e);
+        }
+    }
+
+    @Blocking
+    @Override
+    public @Nullable Map.Entry<byte[], Boolean> getMapData(@NotNull String serverName, int mapId) {
+        try {
+            Document filter = new Document("server_name", serverName).append("map_id", mapId);
+            FindIterable<Document> iterable = mongoCollectionHelper.getCollection(mapDataTable).find(filter);
+            Document doc = iterable.first();
+            if (doc != null) {
+                final Binary bin = doc.get("data", Binary.class);
+                return Map.entry(bin.getData(), true);
+            }
+        } catch (MongoException e) {
+            plugin.log(Level.SEVERE, "Failed to get map data from the database", e);
+        }
+        return null;
+    }
+
+    @Blocking
+    @Override
+    public @Nullable Map.Entry<String, Integer> getMapBinding(@NotNull String serverName, int mapId) {
+        final Document filter = new Document("to_server_name", serverName).append("to_id", mapId);
+        final FindIterable<Document> iterable = mongoCollectionHelper.getCollection(mapIdsTable).find(filter);
+        final Document doc = iterable.first();
+        if (doc != null) {
+            return new AbstractMap.SimpleImmutableEntry<>(
+                    doc.getString("server_name"),
+                    doc.getInteger("to_id")
+            );
+        }
+        return null;
+    }
+
+    @Blocking
+    @Override
+    public void setMapBinding(@NotNull String fromServerName, int fromMapId, @NotNull String toServerName, int toMapId) {
+        try {
+            final Document doc = new Document("from_server_name", fromServerName)
+                    .append("from_id", fromMapId)
+                    .append("to_server_name", toServerName)
+                    .append("to_id", toMapId);
+            mongoCollectionHelper.insertDocument(mapIdsTable, doc);
+        } catch (MongoException e) {
+            plugin.log(Level.SEVERE, "Failed to connect map IDs in the database", e);
+        }
+    }
+
+    @Blocking
+    @Override
+    public int getBoundMapId(@NotNull String fromServerName, int fromMapId, @NotNull String toServerName) {
+        try {
+            final Document filter = new Document("from_server_name", fromServerName)
+                    .append("from_id", fromMapId)
+                    .append("to_server_name", toServerName);
+            final FindIterable<Document> iterable = mongoCollectionHelper.getCollection(mapIdsTable).find(filter);
+
+            final Document doc = iterable.first();
+            if (doc != null) {
+                return doc.getInteger("to_id");
+            }
+            return -1;
+        } catch (MongoException e) {
+            plugin.log(Level.SEVERE, "Failed to get new map id from the database", e);
+            return -1;
         }
     }
 

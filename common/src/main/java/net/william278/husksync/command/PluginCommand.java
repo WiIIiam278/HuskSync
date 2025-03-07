@@ -83,7 +83,7 @@ public abstract class PluginCommand extends Command {
                     () -> CommandSyntaxException.BUILT_IN_EXCEPTIONS.dispatcherUnknownArgument().createWithContext(reader)
             );
         }, (context, builder) -> {
-            plugin.getOnlineUsers().forEach(u -> builder.suggest(u.getUsername()));
+            plugin.getOnlineUsers().forEach(u -> builder.suggest(u.getName()));
             return builder.buildFuture();
         });
     }
