@@ -19,6 +19,9 @@
 
 package net.william278.husksync.user;
 
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
@@ -26,39 +29,18 @@ import java.util.UUID;
 /**
  * Represents a user who has their data synchronized by HuskSync
  */
+@Getter
+@AllArgsConstructor
+@EqualsAndHashCode(exclude = {"name"})
 public class User {
 
     private final UUID uuid;
+    private final String name;
 
-    private final String username;
-
-    public User(@NotNull UUID uuid, @NotNull String username) {
-        this.username = username;
-        this.uuid = uuid;
-    }
-
-    /**
-     * Get the user's unique account ID
-     */
     @NotNull
-    public UUID getUuid() {
-        return uuid;
-    }
-
-    /**
-     * Get the user's username
-     */
-    @NotNull
+    @Deprecated(since = "3.7.4")
     public String getUsername() {
-        return username;
-    }
-
-    @Override
-    public boolean equals(Object object) {
-        if (object instanceof User other) {
-            return this.getUuid().equals(other.getUuid());
-        }
-        return super.equals(object);
+        return name;
     }
 
 }

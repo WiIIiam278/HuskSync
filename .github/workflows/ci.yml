@@ -1,8 +1,8 @@
-name: CI Tests
+name: CI Tests & Publish
 
 on:
   push:
-    branches: [ 'minecraft/1.20.1' ]
+    branches: [ 'master' ]
     paths-ignore:
       - 'docs/**'
       - 'workflows/**'
@@ -14,25 +14,19 @@ permissions:
 
 jobs:
   build:
-    name: 'Build - 1.20.1'
     runs-on: ubuntu-latest
     steps:
-      - name: 'Setup JDK 21 📦'
+      - name: 'Checkout for CI 🛎️'
+        uses: actions/checkout@v4
+      - name: 'Set up JDK 21 📦'
         uses: actions/setup-java@v4
         with:
           java-version: '21'
           distribution: 'temurin'
-      - name: 'Setup Gradle 8.8 🏗️'
-        uses: gradle/actions/setup-gradle@v4
+      - name: 'Build with Gradle 🏗️'
+        uses: gradle/gradle-build-action@v3
         with:
-          gradle-version: '8.8'
-      - name: 'Checkout for CI 🛎️'
-        uses: actions/checkout@v4
-        with:
-          ref: 'minecraft/1.20.1'
-      - name: '[Current - 1.20.1] Build 🛎️'
-        run: |
-          ./gradlew clean build publish
+          arguments: build test publish
         env:
           SNAPSHOTS_MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
           SNAPSHOTS_MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
@@ -41,11 +35,11 @@ jobs:
         if: success() || failure() # Continue on failure
         with:
           report_paths: '**/build/test-results/test/TEST-*.xml'
-      - name: 'Fetch Version String 📝'
+      - name: 'Fetch Version Name 📝'
         run: |
-          echo "::set-output name=VERSION_NAME::$(./gradlew properties --no-daemon --console=plain -q | grep "^version:" | awk '{printf $2}')"
+          echo "::set-output name=VERSION_NAME::$(${{github.workspace}}/gradlew properties --no-daemon --console=plain -q | grep "^version:" | awk '{printf $2}')"
         id: fetch-version
-      - name: 'Set Version Variable 📝'
+      - name: Get Version
         run: |
           echo "version_name=${{steps.fetch-version.outputs.VERSION_NAME}}" >> $GITHUB_ENV
       - name: 'Publish to William278.net 🚀'
@@ -58,13 +52,29 @@ jobs:
           changelog: ${{ github.event.head_commit.message }}
           distro-names: |
             paper-1.20.1
+            paper-1.21.1
+            paper-1.21.4
             fabric-1.20.1
+            fabric-1.21.1
+            fabric-1.21.4
           distro-groups: |
             paper
+            paper
+            paper
+            fabric
+            fabric
             fabric
           distro-descriptions: |
             Paper 1.20.1
+            Paper 1.21.1
+            Paper 1.21.4
             Fabric 1.20.1
+            Fabric 1.21.1
+            Fabric 1.21.4
           files: |
-            target/HuskSync-Paper-${{ env.version_name }}+mc.1.20.1.jar
+            target/HuskSync-Bukkit-${{ env.version_name }}+mc.1.20.1.jar
+            target/HuskSync-Bukkit-${{ env.version_name }}+mc.1.21.1.jar
+            target/HuskSync-Bukkit-${{ env.version_name }}+mc.1.21.4.jar
             target/HuskSync-Fabric-${{ env.version_name }}+mc.1.20.1.jar
+            target/HuskSync-Fabric-${{ env.version_name }}+mc.1.21.1.jar
+            target/HuskSync-Fabric-${{ env.version_name }}+mc.1.21.4.jar

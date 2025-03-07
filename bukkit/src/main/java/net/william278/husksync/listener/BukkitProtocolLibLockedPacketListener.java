@@ -49,7 +49,7 @@ public class BukkitProtocolLibLockedPacketListener extends BukkitLockedEventList
 
     private static class PlayerPacketAdapter extends PacketAdapter {
 
-        // Packets we want the player to still be able to send/receiver to/from the server
+        // Packets we want the player to still be able to send/receiver to/from the server - //todo update 1.21.4
         private static final Set<PacketType> ALLOWED_PACKETS = Set.of(
                 Client.KEEP_ALIVE, Client.PONG, Client.CUSTOM_PAYLOAD, // Connection packets
                 Client.CHAT_COMMAND, Client.CLIENT_COMMAND, Client.CHAT, Client.CHAT_SESSION_UPDATE, // Chat / command packets

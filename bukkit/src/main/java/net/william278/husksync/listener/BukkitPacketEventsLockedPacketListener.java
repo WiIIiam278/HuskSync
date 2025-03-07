@@ -40,12 +40,11 @@ public class BukkitPacketEventsLockedPacketListener extends BukkitLockedEventLis
     }
 
     @Override
+    @SuppressWarnings("UnstableApiUsage")
     public void onLoad() {
         super.onLoad();
         PacketEvents.setAPI(SpigotPacketEventsBuilder.build(getPlugin()));
-        PacketEvents.getAPI().getSettings().reEncodeByDefault(false)
-                .checkForUpdates(false)
-                .bStats(true);
+        PacketEvents.getAPI().getSettings().reEncodeByDefault(false).checkForUpdates(false);
         PacketEvents.getAPI().load();
     }
 
@@ -61,6 +60,7 @@ public class BukkitPacketEventsLockedPacketListener extends BukkitLockedEventLis
 
         private static final Set<PacketType.Play.Client> ALLOWED_PACKETS = Set.of(
                 PacketType.Play.Client.KEEP_ALIVE, PacketType.Play.Client.PONG, PacketType.Play.Client.PLUGIN_MESSAGE, // Connection packets
+                PacketType.Play.Client.PLAYER_LOADED, PacketType.Play.Client.CLIENT_TICK_END, // Connection packets
                 PacketType.Play.Client.CHAT_MESSAGE, PacketType.Play.Client.CHAT_COMMAND, PacketType.Play.Client.CHAT_SESSION_UPDATE, // Chat / command packets
                 PacketType.Play.Client.PLAYER_POSITION, PacketType.Play.Client.PLAYER_POSITION_AND_ROTATION, PacketType.Play.Client.PLAYER_ROTATION, // Movement packets
                 PacketType.Play.Client.HELD_ITEM_CHANGE, PacketType.Play.Client.ANIMATION, PacketType.Play.Client.TELEPORT_CONFIRM, // Animation packets

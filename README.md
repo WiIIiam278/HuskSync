@@ -1,8 +1,8 @@
 <!--suppress ALL -->
 <p align="center">
     <img src="images/banner.png" alt="HuskSync" />
-    <a href="https://github.com/WiIIiam278/HuskSync/actions/workflows/ci_master.yml">
-        <img src="https://img.shields.io/github/actions/workflow/status/WiIIiam278/HuskSync/ci_master.yml?branch=master&logo=github"/>
+    <a href="https://github.com/WiIIiam278/HuskSync/actions/workflows/ci.yml">
+        <img src="https://img.shields.io/github/actions/workflow/status/WiIIiam278/HuskSync/ci.yml?branch=master&logo=github"/>
     </a>
     <a href="https://repo.william278.net/#/releases/net/william278/husksync/">
         <img src="https://repo.william278.net/api/badge/latest/releases/net/william278/husksync/husksync-common?color=00fb9a&name=Maven&prefix=v" />
@@ -79,6 +79,8 @@ To build HuskSync, simply run the following in the root of the repository (build
 ./gradlew clean build
 ```
 
+HuskSync uses `essential-multi-version` (Fabric) and `preprocessor` (Bukkit) to target multiple versions of Minecraft in one codebase - [check here](https://github.com/WiIIiam278/PreProcessor?tab=readme-ov-file#code-example) for a preprocessor comment logic reference.
+
 ### License
 HuskSync is licensed under the Apache 2.0 license.
 
@@ -103,4 +105,4 @@ Translations of the plugin locales are welcome to help make the plugin more acce
 - [bStats](https://bstats.org/plugin/bukkit/HuskSync%20-%20Bukkit/13140) &mdash; View plugin metrics
 
 ---
-&copy; [William278](https://william278.net/), 2023. Licensed under the Apache-2.0 License.
+&copy; [William278](https://william278.net/), 2025. Licensed under the Apache-2.0 License.

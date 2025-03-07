@@ -1,0 +1,13 @@
+plugins {
+    id("gg.essential.multi-version.root")
+}
+
+preprocess {
+    def fabric12104 = createNode("1.21.4", 12104, "yarn")
+    def fabric12101 = createNode("1.21.1", 12101, "yarn")
+    def fabric12001 = createNode("1.20.1", 12001, "yarn")
+
+    strictExtraMappings.set(true)
+    fabric12101.link(fabric12104, null)
+    fabric12001.link(fabric12104, null)
+}
