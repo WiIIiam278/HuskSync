@@ -213,8 +213,6 @@ public class RedisManager extends JedisPubSub {
 
     public void sendUserDataUpdate(@NotNull User user, @NotNull DataSnapshot.Packed data) {
         plugin.runAsync(() -> {
-            this.setUserData(user, data);
-
             final RedisMessage redisMessage = RedisMessage.create(user.getUuid(), data.asBytes(plugin));
             redisMessage.dispatch(plugin, RedisMessage.Type.UPDATE_USER_DATA);
         });

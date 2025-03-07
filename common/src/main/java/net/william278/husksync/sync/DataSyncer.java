@@ -101,10 +101,7 @@ public abstract class DataSyncer {
      * @param cause      the save cause
      */
     public void saveCurrentUserData(@NotNull OnlineUser onlineUser, @NotNull DataSnapshot.SaveCause cause) {
-        this.saveData(
-                onlineUser, onlineUser.createSnapshot(cause),
-                (user, data) -> getRedis().setUserData(user, data)
-        );
+        this.saveData(onlineUser, onlineUser.createSnapshot(cause), getRedis()::setUserData);
     }
 
     /**
