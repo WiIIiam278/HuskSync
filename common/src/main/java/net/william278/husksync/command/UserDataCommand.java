@@ -22,7 +22,6 @@ package net.william278.husksync.command;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.data.DataSnapshot;
-import net.william278.husksync.redis.RedisKeyType;
 import net.william278.husksync.redis.RedisManager;
 import net.william278.husksync.user.CommandUser;
 import net.william278.husksync.user.OnlineUser;
@@ -154,7 +153,7 @@ public class UserDataCommand extends PluginCommand {
         // Save data
         final RedisManager redis = plugin.getRedisManager();
         plugin.getDataSyncer().saveData(user, data, (u, s) -> {
-            redis.getUserData(u).ifPresent(d -> redis.setUserData(u, s, RedisKeyType.TTL_1_YEAR));
+            redis.getUserData(u).ifPresent(d -> redis.setUserData(u, s));
             redis.sendUserDataUpdate(u, s);
             plugin.getLocales().getLocale("data_restored", u.getName(), u.getUuid().toString(),
                     s.getShortId(), s.getId().toString()).ifPresent(executor::sendMessage);

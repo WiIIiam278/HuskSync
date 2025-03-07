@@ -93,7 +93,7 @@ public class RedisManager extends JedisPubSub {
             jedisPool.getResource().ping();
         } catch (JedisException e) {
             throw new IllegalStateException("Failed to establish connection with Redis. "
-                                            + "Please check the supplied credentials in the config file", e);
+                    + "Please check the supplied credentials in the config file", e);
         }
 
         // Subscribe using a thread (rather than a task)
@@ -213,6 +213,8 @@ public class RedisManager extends JedisPubSub {
 
     public void sendUserDataUpdate(@NotNull User user, @NotNull DataSnapshot.Packed data) {
         plugin.runAsync(() -> {
+            this.setUserData(user, data);
+
             final RedisMessage redisMessage = RedisMessage.create(user.getUuid(), data.asBytes(plugin));
             redisMessage.dispatch(plugin, RedisMessage.Type.UPDATE_USER_DATA);
         });
@@ -226,6 +228,7 @@ public class RedisManager extends JedisPubSub {
                 .orElse(this.requestData(requestId, user));
     }
 
+    // Request a user's dat x-server
     private CompletableFuture<Optional<DataSnapshot.Packed>> requestData(@NotNull UUID requestId, @NotNull User user) {
         final CompletableFuture<Optional<DataSnapshot.Packed>> future = new CompletableFuture<>();
         pendingRequests.put(requestId, future);
@@ -247,19 +250,13 @@ public class RedisManager extends JedisPubSub {
                 });
     }
 
-    /**
-     * Set a user's data to Redis
-     *
-     * @param user       the user to set data for
-     * @param data       the user's data to set
-     * @param timeToLive The time to cache the data for
-     */
+    // Set a user's data to Redis
     @Blocking
-    public void setUserData(@NotNull User user, @NotNull DataSnapshot.Packed data, int timeToLive) {
+    public void setUserData(@NotNull User user, @NotNull DataSnapshot.Packed data) {
         try (Jedis jedis = jedisPool.getResource()) {
             jedis.setex(
                     getKey(RedisKeyType.LATEST_SNAPSHOT, user.getUuid(), clusterId),
-                    timeToLive,
+                    RedisKeyType.TTL_1_YEAR,
                     data.asBytes(plugin)
             );
             plugin.debug(String.format("[%s] Set %s key on Redis", user.getName(), RedisKeyType.LATEST_SNAPSHOT));

@@ -77,6 +77,7 @@ public abstract class PluginCommand extends Command {
     }
 
     @NotNull
+    @SuppressWarnings("SameParameterValue")
     protected <S> ArgumentElement<S, OnlineUser> onlineUser(@NotNull String name) {
         return new ArgumentElement<>(name, reader -> {
             final String username = reader.readString();

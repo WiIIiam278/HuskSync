@@ -23,7 +23,6 @@ import net.william278.husksync.HuskSync;
 import net.william278.husksync.api.HuskSyncAPI;
 import net.william278.husksync.data.DataSnapshot;
 import net.william278.husksync.database.Database;
-import net.william278.husksync.redis.RedisKeyType;
 import net.william278.husksync.redis.RedisManager;
 import net.william278.husksync.user.OnlineUser;
 import net.william278.husksync.user.User;
@@ -104,7 +103,7 @@ public abstract class DataSyncer {
     public void saveCurrentUserData(@NotNull OnlineUser onlineUser, @NotNull DataSnapshot.SaveCause cause) {
         this.saveData(
                 onlineUser, onlineUser.createSnapshot(cause),
-                (user, data) -> getRedis().setUserData(user, data, RedisKeyType.TTL_10_SECONDS)
+                (user, data) -> getRedis().setUserData(user, data)
         );
     }
 

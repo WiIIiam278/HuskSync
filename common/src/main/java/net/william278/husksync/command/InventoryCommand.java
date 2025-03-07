@@ -23,7 +23,6 @@ import de.themoep.minedown.adventure.MineDown;
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.data.Data;
 import net.william278.husksync.data.DataSnapshot;
-import net.william278.husksync.redis.RedisKeyType;
 import net.william278.husksync.redis.RedisManager;
 import net.william278.husksync.user.OnlineUser;
 import net.william278.husksync.user.User;
@@ -85,18 +84,17 @@ public class InventoryCommand extends ItemsCommand {
 
         // Create and pack the snapshot with the updated inventory
         final DataSnapshot.Packed snapshot = latestData.get().copy();
+        boolean pin = plugin.getSettings().getSynchronization().doAutoPin(DataSnapshot.SaveCause.INVENTORY_COMMAND);
         snapshot.edit(plugin, (data) -> {
             data.getInventory().ifPresent(inventory -> inventory.setContents(items));
             data.setSaveCause(DataSnapshot.SaveCause.INVENTORY_COMMAND);
-            data.setPinned(
-                    plugin.getSettings().getSynchronization().doAutoPin(DataSnapshot.SaveCause.INVENTORY_COMMAND)
-            );
+            data.setPinned(pin);
         });
 
         // Save data
         final RedisManager redis = plugin.getRedisManager();
         plugin.getDataSyncer().saveData(holder, snapshot, (user, data) -> {
-            redis.getUserData(user).ifPresent(d -> redis.setUserData(user, snapshot, RedisKeyType.TTL_1_YEAR));
+            redis.getUserData(user).ifPresent(d -> redis.setUserData(user, snapshot));
             redis.sendUserDataUpdate(user, data);
         });
     }
