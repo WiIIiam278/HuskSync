@@ -41,6 +41,7 @@ locales:
   save_cause_world_save: 'sauvegarde du monde'
   save_cause_death: 'mort'
   save_cause_server_shutdown: 'arrêt du serveur'
+  save_cause_save_command: 'save command'
   save_cause_inventory_command: 'commande d''inventaire'
   save_cause_enderchest_command: 'commande du coffre de l''Ender'
   save_cause_backup_restore: 'restauration de sauvegarde'

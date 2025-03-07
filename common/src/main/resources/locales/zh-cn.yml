@@ -41,6 +41,7 @@ locales:
   save_cause_world_save: '保存世界'
   save_cause_death: '死亡'
   save_cause_server_shutdown: '服务器关闭'
+  save_cause_save_command: 'save command'
   save_cause_inventory_command: '背包命令'
   save_cause_enderchest_command: '末影箱命令'
   save_cause_backup_restore: '备份还原'

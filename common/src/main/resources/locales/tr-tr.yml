@@ -41,6 +41,7 @@ locales:
   save_cause_world_save: 'dünya kaydı'
   save_cause_death: 'ölüm'
   save_cause_server_shutdown: 'sunucu kapatma'
+  save_cause_save_command: 'save command'
   save_cause_inventory_command: 'envanter komutu'
   save_cause_enderchest_command: 'ender sandığı komutu'
   save_cause_backup_restore: 'yedek geri yükleme'

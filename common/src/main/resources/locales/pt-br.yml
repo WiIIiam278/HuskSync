@@ -41,6 +41,7 @@ locales:
   save_cause_world_save: 'world save'
   save_cause_death: 'death'
   save_cause_server_shutdown: 'server shutdown'
+  save_cause_save_command: 'save command'
   save_cause_inventory_command: 'inventory command'
   save_cause_enderchest_command: 'enderchest command'
   save_cause_backup_restore: 'backup restore'

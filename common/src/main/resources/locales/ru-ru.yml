@@ -41,6 +41,7 @@ locales:
   save_cause_world_save: 'сохранение мира'
   save_cause_death: 'смерть'
   save_cause_server_shutdown: 'отключение сервера'
+  save_cause_save_command: 'save command'
   save_cause_inventory_command: 'команда inventory'
   save_cause_enderchest_command: 'команда enderchest'
   save_cause_backup_restore: 'восстановление из снимка'
