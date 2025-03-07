@@ -44,6 +44,8 @@ import static net.william278.husksync.util.DumpProvider.BYTEBIN_URL;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class UserDataDumper implements Flusher {
 
+    private static final String PASTE_VIEWER_URL = "https://pastes.dev";
+
     private final DataSnapshot.Packed snapshot;
     private final User user;
     private final HuskSync plugin;
@@ -65,7 +67,7 @@ public class UserDataDumper implements Flusher {
     @NotNull
     public String toWeb() {
         try {
-            return "%s/%s".formatted(BYTEBIN_URL, uploadDump(toString(), BYTEBIN_URL, "husksync"));
+            return "%s/%s".formatted(PASTE_VIEWER_URL, uploadDump(toString(), BYTEBIN_URL, "husksync"));
         } catch (Throwable e) {
             plugin.log(Level.SEVERE, "Failed to upload data.", e);
         }
