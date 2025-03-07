@@ -9,7 +9,7 @@ check_for_updates: false
 cluster_id: ''
 
 # Enable development debug logging
-debug_logging: false
+debug_logging: true
 
 # Whether to enable the Player Analytics hook.
 # Docs: https://william278.net/docs/husksync/plan-hook
