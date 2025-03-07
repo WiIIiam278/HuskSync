@@ -12,7 +12,7 @@ from tqdm import tqdm
 # Parameters for starting a network of Minecraft servers
 class Parameters:
     root_dir = './servers/'
-    proxy_version = "1.21"
+    proxy_version = "3.4.0-SNAPSHOT"
     minecraft_version = '1.21.4'
     eula_agreement = 'true'
 
@@ -20,7 +20,7 @@ class Parameters:
     backend_ports = [25567, 25568]
     backend_type = 'paper'
     backend_ram = 2048
-    backend_plugins = ['../target/HuskSync-Paper-*.jar']
+    backend_plugins = ['../target/HuskSync-Bukkit-*.jar']
     backend_plugin_folders = ['./HuskSync']
     operator_names = ['William278']
     operator_uuids = ['5dfb0558-e306-44f4-bb9a-f9218d4eb787']
@@ -28,10 +28,12 @@ class Parameters:
     proxy_name = "proxy"
     proxy_host = "0.0.0.0"
     proxy_port = 25565
-    proxy_type = "waterfall"
+    proxy_type = "velocity"
     proxy_ram = 512
     proxy_plugins = []
     proxy_plugin_folders = []
+
+    velocity_secret = "qUTwFSVeQqhH" # Doesn't matter that this is committed or anything, it's just for testing
 
     just_update_plugins = False
 
@@ -59,7 +61,7 @@ def main(update=False):
                 os.makedirs(plugin_dir)
 
             # Copy plugins in
-            copy_plugins(parameters.backend_plugins, parameters.backend_plugin_folders, plugin_dir)
+            copy_plugins(parameters.backend_plugins, parameters.backend_plugin_folders, plugin_dir, parameters)
 
         # Start servers
         start_servers(parameters)
@@ -114,14 +116,16 @@ def create_backend_server(name, port, parameters):
         with open(server_dir + "/spigot.yml", "w") as file:
             file.write(f"# Auto-generated spigot.yml for server {name}\n")
             file.write(f"settings:\n")
-            file.write(f"  bungeecord: true\n")
+            file.write(f"  bungeecord: false\n")
 
         # Create the paper-global.yml and enable BungeeCord
         with open(server_dir + "/config/paper-global.yml", "w") as file:
             file.write(f"# Auto-generated paper-global.yml for server {name}\n")
             file.write(f"proxies:\n")
-            file.write(f"  bungee-cord:\n")
+            file.write(f"  velocity:\n")
+            file.write(f"    enabled: true\n")
             file.write(f"    online-mode: true\n")
+            file.write(f"    secret: {parameters.velocity_secret}\n")
 
         # Create the server.properties file
         server_properties = server_dir + "/server.properties"
@@ -153,7 +157,7 @@ def create_backend_server(name, port, parameters):
                 file.write("]")
 
         # Copy plugins
-        copy_plugins(parameters.backend_plugins, parameters.backend_plugin_folders, f"{server_dir}/plugins")
+        copy_plugins(parameters.backend_plugins, parameters.backend_plugin_folders, f"{server_dir}/plugins", parameters)
 
         # Create start scripts
         create_start_scripts(server_dir,
@@ -169,44 +173,74 @@ def create_proxy_server(parameters):
     if not os.path.exists(server_dir):
         os.makedirs(server_dir)
 
-    if parameters.proxy_type == "waterfall":
+    if parameters.proxy_type == "velocity":
         # Create necessary subdirectories
         create_subdirectories(["plugins"], server_dir)
 
         # Download the latest paper for the version and place it in the server folder
-        proxy_jar = "waterfall.jar"
-        download_paper_build("waterfall", parameters.proxy_version,
-                            get_latest_paper_build_number("waterfall", parameters.proxy_version),
+        proxy_jar = "velocity.jar"
+        download_paper_build("velocity", parameters.proxy_version,
+                            get_latest_paper_build_number("velocity", parameters.proxy_version),
                             f"{server_dir}/{proxy_jar}")
 
-        # Create the config.yml
-        with open(server_dir + "/config.yml", "w") as file:
-            file.write(f"# Auto-generated config.yml for proxy server {parameters.proxy_name}\n")
+        # Create the forwarding.secret
+        with open(server_dir + "/forwarding.secret", "w") as file:
+            file.write(f"{parameters.velocity_secret}\n")
+
+        # Create the velocity.toml
+        with open(server_dir + "/velocity.toml", "w") as file:
+            file.write(f"# Auto-generated velocity.toml for proxy server {parameters.proxy_name}\n")
 
             # Write proxy settings
-            file.write(f"listeners:\n")
-            file.write(f"- query_port: {parameters.proxy_port}\n")
-            file.write(f"  motd: '{parameters.proxy_version} Proxy Server'\n")
-            file.write(f"  query_enabled: false\n")
-            file.write(f"  proxy_protocol: false\n")
-            file.write(f"  priorities:\n")
-            file.write(f"  - {parameters.backend_names[0]}\n")
-            file.write(f"  bind_local_address: true\n")
-            file.write(f"  host: {parameters.proxy_host}:{parameters.proxy_port}\n")
-            file.write(f"ip_forward: true\n")
-            file.write(f"online_mode: true\n")
+            file.write(f"config-version = '2.6'\n")
+            file.write(f"bind = '0.0.0.0:{parameters.proxy_port}'\n")
+            file.write(f"motd = \"Velocity Proxy Server\"\n")
+            file.write(f"show-max-players = 10\n")
+            file.write(f"force-key-authentication = true\n")
+            file.write(f"player-info-forwarding-mode = 'modern'\n")
+            file.write(f"prevent-client-proxy-connections = false\n")
+            file.write(f"announce-forge = false\n")
+            file.write(f"kick-existing-players = false\n")
+            file.write(f"enable-player-address-logging = true\n")
+            file.write(f"ping-passthrough = 'DISABLED'\n")
+            file.write(f"online-mode = true\n")
 
             # Write servers
-            file.write(f"servers:\n")
+            file.write(f"\n\n[servers]\n\n")
             for i in range(len(parameters.backend_names)):
-                file.write(f"  {parameters.backend_names[i]}:\n")
-                file.write(
-                    f"    motd: '&eBackend {parameters.backend_type} {parameters.backend_names[i]} (port {parameters.backend_ports[i]})'\n")
-                file.write(f"    address: localhost:{parameters.backend_ports[i]}\n")
-                file.write(f"    restricted: false\n")
+                file.write(f"{parameters.backend_names[i]} = \"127.0.0.1:{parameters.backend_ports[i]}\"\n")
+
+            file.write(f"\n\ntry = [\n")
+            for i in range(len(parameters.backend_names)):
+                file.write(f"  '{parameters.backend_names[i]}',\n")
+            file.write(f"]\n")
+
+            file.write(f"\n\n[advanced]\n\n")
+            file.write(f"compression-threshold = 256\n")
+            file.write(f"compression-level = -1\n")
+            file.write(f"login-ratelimit = 0\n")
+            file.write(f"connection-timeout = 5000\n")
+            file.write(f"read-timeout = 30000\n")
+            file.write(f"haproxy-protocol = false\n")
+            file.write(f"tcp-fast-open = false\n")
+            file.write(f"bungee-plugin-message-channel = true\n")
+            file.write(f"show-ping-requests = true\n")
+            file.write(f"announce-proxy-commands = true\n")
+            file.write(f"failover-on-unexpected-server-disconnect = true\n")
+            file.write(f"log-command-executions = true\n")
+            file.write(f"log-player-connections = true\n")
+            file.write(f"accepts-transfers = false\n")
+
+            file.write(f"\n\n[forced-hosts]\n\n")
+
+            file.write(f"\n\n[query]\n\n")
+            file.write(f"enabled = false\n")
+            file.write(f"port = {parameters.proxy_port}\n")
+            file.write(f"show-plugins = false\n")
+            file.write(f"map = 'Test'\n")
 
         # Copy plugins
-        copy_plugins(parameters.proxy_plugins, parameters.proxy_plugin_folders, f"{server_dir}/plugins")
+        copy_plugins(parameters.proxy_plugins, parameters.proxy_plugin_folders, f"{server_dir}/plugins", parameters)
 
         # Create startup scripts
         create_start_scripts(server_dir,
@@ -252,7 +286,7 @@ def create_start_scripts(server_directory, start_arguments):
 
 
 # Copies plugins and plugin folders from the source to the target
-def copy_plugins(plugins, plugin_folders, plugins_folder):
+def copy_plugins(plugins, plugin_folders, plugins_folder, parameters):
     # Copy each file from the plugin list to the server/plugins folder
     for plugin in plugins:
         # Skip if the plugin does not exist
@@ -265,7 +299,8 @@ def copy_plugins(plugins, plugin_folders, plugins_folder):
                 if os.path.exists(parent_directory):
                     hit = False
                     for file in os.listdir(parent_directory):
-                        if file.startswith(plugin_name):
+                        if (file.startswith(plugin_name) and file.endswith('mc.' + parameters.minecraft_version + '.jar')
+                                and not file.endswith('-javadoc.jar') and not file.endswith('-sources.jar')):
                             shutil.copy(parent_directory + "/" + file, plugins_folder + "/" + file)
                             print(f"Copied plugin {file} to {plugins_folder}")
                             hit = True
