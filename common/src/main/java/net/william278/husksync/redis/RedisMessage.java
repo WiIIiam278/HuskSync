@@ -26,11 +26,9 @@ import lombok.Setter;
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.adapter.Adaptable;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.Arrays;
-import java.util.Locale;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 public class RedisMessage implements Adaptable {
 
@@ -82,7 +80,6 @@ public class RedisMessage implements Adaptable {
         REQUEST_USER_DATA,
         RETURN_USER_DATA;
 
-        @NotNull
         public String getMessageChannel(@NotNull String clusterId) {
             return String.format(
                     "%s:%s:%s",
@@ -92,10 +89,10 @@ public class RedisMessage implements Adaptable {
             );
         }
 
-        public static Optional<Type> getTypeFromChannel(@NotNull String channel, @NotNull String clusterId) {
+        public static @Nullable Type getType(@NotNull String channel, @NotNull String clusterId) {
             return Arrays.stream(values())
                     .filter(messageType -> messageType.getMessageChannel(clusterId).equalsIgnoreCase(channel))
-                    .findFirst();
+                    .findAny().orElse(null);
         }
 
     }

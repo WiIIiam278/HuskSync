@@ -19,7 +19,7 @@ ext {
     set 'version', version.toString()
     set 'description', description.toString()
 
-    set 'jedis_version', jedis_version.toString()
+    set 'lettuce_version', lettuce_version.toString()
     set 'mysql_driver_version', mysql_driver_version.toString()
     set 'mariadb_driver_version', mariadb_driver_version.toString()
     set 'postgres_driver_version', postgres_driver_version.toString()
