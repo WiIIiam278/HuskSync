@@ -149,7 +149,7 @@ public class HuskSyncAPI {
      */
     public CompletableFuture<Optional<DataSnapshot.Unpacked>> getCurrentData(@NotNull User user) {
         return plugin.getRedisManager()
-                .getUserData(UUID.randomUUID(), user)
+                .getOnlineUserData(UUID.randomUUID(), user, DataSnapshot.SaveCause.API)
                 .thenApply(data -> data.or(() -> plugin.getDatabase().getLatestSnapshot(user)))
                 .thenApply(data -> data.map(snapshot -> snapshot.unpack(plugin)));
     }

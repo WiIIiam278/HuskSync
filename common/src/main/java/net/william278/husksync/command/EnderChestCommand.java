@@ -36,7 +36,7 @@ import java.util.Optional;
 public class EnderChestCommand extends ItemsCommand {
 
     public EnderChestCommand(@NotNull HuskSync plugin) {
-        super("enderchest", List.of("echest", "openechest"), plugin);
+        super("enderchest", List.of("echest", "openechest"), DataSnapshot.SaveCause.ENDERCHEST_COMMAND, plugin);
     }
 
     @Override
@@ -83,10 +83,10 @@ public class EnderChestCommand extends ItemsCommand {
 
         // Create and pack the snapshot with the updated enderChest
         final DataSnapshot.Packed snapshot = latestData.get().copy();
-        boolean pin = plugin.getSettings().getSynchronization().doAutoPin(DataSnapshot.SaveCause.ENDERCHEST_COMMAND);
+        boolean pin = plugin.getSettings().getSynchronization().doAutoPin(saveCause);
         snapshot.edit(plugin, (data) -> {
             data.getEnderChest().ifPresent(enderChest -> enderChest.setContents(items));
-            data.setSaveCause(DataSnapshot.SaveCause.ENDERCHEST_COMMAND);
+            data.setSaveCause(saveCause);
             data.setPinned(pin);
         });
 

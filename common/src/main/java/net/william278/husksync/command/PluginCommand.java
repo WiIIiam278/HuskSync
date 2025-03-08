@@ -32,6 +32,7 @@ import net.william278.uniform.element.ArgumentElement;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Function;
@@ -104,14 +105,23 @@ public abstract class PluginCommand extends Command {
     }
 
     @NotNull
-    protected <S> ArgumentElement<S, UUID> uuid(@NotNull String name) {
-        return new ArgumentElement<>(name, reader -> {
+    protected  <S> ArgumentElement<S, UUID> versionUuid() {
+        return new ArgumentElement<>("version", reader -> {
             try {
                 return UUID.fromString(reader.readString());
             } catch (IllegalArgumentException e) {
                 throw CommandSyntaxException.BUILT_IN_EXCEPTIONS.dispatcherUnknownArgument().createWithContext(reader);
             }
-        }, (context, builder) -> builder.buildFuture());
+        }, (context, builder) -> {
+            try {
+                plugin.getDatabase().getAllSnapshots(context.getArgument("username", User.class))
+                        .stream().sorted(Comparator.comparing(d -> d.getTimestamp().toEpochSecond()))
+                        .forEach(id -> builder.suggest(id.getId().toString()));
+                return builder.buildFuture();
+            } catch (IllegalArgumentException e) {
+                return builder.buildFuture();
+            }
+        });
     }
 
     public enum Type {

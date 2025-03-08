@@ -42,6 +42,7 @@ locales:
   save_cause_death: 'kematian'
   save_cause_server_shutdown: 'pematian server'
   save_cause_save_command: 'save command'
+  save_cause_dump_command: 'dump command'
   save_cause_inventory_command: 'perintah inventaris'
   save_cause_enderchest_command: 'perintah enderchest'
   save_cause_backup_restore: 'pemulihan cadangan'

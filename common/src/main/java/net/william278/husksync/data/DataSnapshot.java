@@ -888,6 +888,13 @@ public class DataSnapshot {
         public static final SaveCause SAVE_COMMAND = of("SAVE_COMMAND", true);
 
         /**
+         * Indicates data was saved from executing the {@code /userdata dump} command
+         *
+         * @since 3.8
+         */
+        public static final SaveCause DUMP_COMMAND = of("DUMP_COMMAND", true);
+
+        /**
          * Indicates data was saved by an API call
          *
          * @since 2.0

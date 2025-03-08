@@ -36,7 +36,7 @@ import java.util.Optional;
 public class InventoryCommand extends ItemsCommand {
 
     public InventoryCommand(@NotNull HuskSync plugin) {
-        super("inventory", List.of("invsee", "openinv"), plugin);
+        super("inventory", List.of("invsee", "openinv"), DataSnapshot.SaveCause.INVENTORY_COMMAND, plugin);
     }
 
     @Override
@@ -84,10 +84,10 @@ public class InventoryCommand extends ItemsCommand {
 
         // Create and pack the snapshot with the updated inventory
         final DataSnapshot.Packed snapshot = latestData.get().copy();
-        boolean pin = plugin.getSettings().getSynchronization().doAutoPin(DataSnapshot.SaveCause.INVENTORY_COMMAND);
+        boolean pin = plugin.getSettings().getSynchronization().doAutoPin(saveCause);
         snapshot.edit(plugin, (data) -> {
             data.getInventory().ifPresent(inventory -> inventory.setContents(items));
-            data.setSaveCause(DataSnapshot.SaveCause.INVENTORY_COMMAND);
+            data.setSaveCause(saveCause);
             data.setPinned(pin);
         });
 

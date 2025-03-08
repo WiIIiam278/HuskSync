@@ -218,16 +218,17 @@ public class RedisManager extends JedisPubSub {
         });
     }
 
-    public CompletableFuture<Optional<DataSnapshot.Packed>> getUserData(@NotNull UUID requestId, @NotNull User user) {
+    public CompletableFuture<Optional<DataSnapshot.Packed>> getOnlineUserData(@NotNull UUID requestId, @NotNull User user,
+                                                                              @NotNull DataSnapshot.SaveCause saveCause) {
         return plugin.getOnlineUser(user.getUuid())
                 .map(online -> CompletableFuture.completedFuture(
-                        Optional.of(online.createSnapshot(DataSnapshot.SaveCause.API)))
+                        Optional.of(online.createSnapshot(saveCause)))
                 )
-                .orElse(this.requestData(requestId, user));
+                .orElse(this.getNetworkedUserData(requestId, user));
     }
 
     // Request a user's dat x-server
-    private CompletableFuture<Optional<DataSnapshot.Packed>> requestData(@NotNull UUID requestId, @NotNull User user) {
+    private CompletableFuture<Optional<DataSnapshot.Packed>> getNetworkedUserData(@NotNull UUID requestId, @NotNull User user) {
         final CompletableFuture<Optional<DataSnapshot.Packed>> future = new CompletableFuture<>();
         pendingRequests.put(requestId, future);
         plugin.runAsync(() -> {
