@@ -17,15 +17,14 @@
  *  limitations under the License.
  */
 
-package net.william278.husksync.util;
+package net.william278.husksync.maps;
 
 import com.google.common.collect.Lists;
 import de.tr7zw.changeme.nbtapi.NBT;
 import de.tr7zw.changeme.nbtapi.iface.ReadWriteNBT;
 import de.tr7zw.changeme.nbtapi.iface.ReadableNBT;
-import net.querz.nbt.io.NBTUtil;
-import net.querz.nbt.tag.CompoundTag;
 import net.william278.husksync.BukkitHuskSync;
+import net.william278.husksync.redis.RedisManager;
 import net.william278.mapdataapi.MapBanner;
 import net.william278.mapdataapi.MapData;
 import org.bukkit.Bukkit;
@@ -35,27 +34,29 @@ import org.bukkit.block.Container;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BlockStateMeta;
+import org.bukkit.inventory.meta.BundleMeta;
 import org.bukkit.inventory.meta.MapMeta;
 import org.bukkit.map.*;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.Blocking;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
-import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.*;
 import java.util.function.Function;
 import java.util.logging.Level;
 
-public interface BukkitMapPersister {
+public interface BukkitMapHandler {
 
     // The map used to store HuskSync data in ItemStack NBT
     String MAP_DATA_KEY = "husksync:persisted_locked_map";
-    // The key used to store the serialized map data in NBT
-    String MAP_PIXEL_DATA_KEY = "canvas_data";
-    // The key used to store the map of World UIDs to MapView IDs in NBT
-    String MAP_VIEW_ID_MAPPINGS_KEY = "id_mappings";
+    // Name of server the map originates from
+    String MAP_ORIGIN_KEY = "origin";
+    // Original map id
+    String MAP_ID_KEY = "id";
 
     /**
      * Persist locked maps in an array of {@link ItemStack}s
@@ -99,9 +100,106 @@ public interface BukkitMapPersister {
             } else if (item.getItemMeta() instanceof BlockStateMeta b && b.getBlockState() instanceof Container box) {
                 forEachMap(box.getInventory().getContents(), function);
                 b.setBlockState(box);
+                item.setItemMeta(b);
+            } else if (item.getItemMeta() instanceof BundleMeta bundle) {
+                bundle.setItems(List.of(forEachMap(bundle.getItems().toArray(ItemStack[]::new), function)));
+                item.setItemMeta(bundle);
             }
         }
         return items;
+    }
+
+    @Blocking
+    private void writeMapData(@NotNull String serverName, int mapId, MapData data) {
+        final byte[] dataBytes = getPlugin().getDataAdapter().toBytes(new AdaptableMapData(data));
+        getRedisManager().setMapData(serverName, mapId, dataBytes);
+        getPlugin().getDatabase().saveMapData(serverName, mapId, dataBytes);
+    }
+
+    @Nullable
+    @Blocking
+    private Map.Entry<MapData, Boolean> readMapData(@NotNull String serverName, int mapId) {
+        final Map.Entry<byte[], Boolean> readData = fetchMapData(serverName, mapId);
+        if (readData == null) {
+            return null;
+        }
+        return deserializeMapData(readData);
+    }
+
+    @Nullable
+    @Blocking
+    private Map.Entry<byte[], Boolean> fetchMapData(@NotNull String serverName, int mapId) {
+        return fetchMapData(serverName, mapId, true);
+    }
+
+    @Nullable
+    @Blocking
+    private Map.Entry<byte[], Boolean> fetchMapData(@NotNull String serverName, int mapId, boolean doReverseLookup) {
+        // Read from Redis cache
+        final byte[] redisData = getRedisManager().getMapData(serverName, mapId);
+        if (redisData != null) {
+            return new AbstractMap.SimpleImmutableEntry<>(redisData, true);
+        }
+
+        // Read from database and set to Redis
+        @Nullable Map.Entry<byte[], Boolean> databaseData = getPlugin().getDatabase().getMapData(serverName, mapId);
+        if (databaseData != null) {
+            getRedisManager().setMapData(serverName, mapId, databaseData.getKey());
+            return databaseData;
+        }
+
+        // Otherwise, lookup a reverse map binding
+        if (doReverseLookup) {
+            return fetchReversedMapData(serverName, mapId);
+        }
+        return null;
+    }
+
+    @Nullable
+    private Map.Entry<byte[], Boolean> fetchReversedMapData(@NotNull String serverName, int mapId) {
+        // Lookup binding from Redis cache, then fetch data if found
+        Map.Entry<String, Integer> binding = getRedisManager().getReversedMapBound(serverName, mapId);
+        if (binding != null) {
+            return fetchMapData(binding.getKey(), binding.getValue(), false);
+        }
+
+        // Lookup binding from database, then set to Redis & fetch data if found
+        binding = getPlugin().getDatabase().getMapBinding(serverName, mapId);
+        if (binding != null) {
+            getRedisManager().bindMapIds(binding.getKey(), binding.getValue(), serverName, mapId);
+            return fetchMapData(binding.getKey(), binding.getValue(), false);
+        }
+        return null;
+    }
+
+    @Nullable
+    private Map.Entry<MapData, Boolean> deserializeMapData(@NotNull Map.Entry<byte[], Boolean> data) {
+        try {
+            return new AbstractMap.SimpleImmutableEntry<>(
+                    getPlugin().getDataAdapter().fromBytes(data.getKey(), AdaptableMapData.class)
+                            .getData(getPlugin().getDataVersion(getPlugin().getMinecraftVersion())),
+                    data.getValue()
+            );
+        } catch (IOException e) {
+            getPlugin().log(Level.WARNING, "Failed to deserialize map data", e);
+            return null;
+        }
+    }
+
+    // Get the bound map ID
+    private int getBoundMapId(@NotNull String fromServerName, int fromMapId, @NotNull String toServerName) {
+        // Get the map ID from Redis, if set
+        final Optional<Integer> redisId = getRedisManager().getBoundMapId(fromServerName, fromMapId, toServerName);
+        if (redisId.isPresent()) {
+            return redisId.get();
+        }
+
+        // Get from the database; if found, set to Redis
+        final int result = getPlugin().getDatabase().getBoundMapId(fromServerName, fromMapId, toServerName);
+        if (result != -1) {
+            getPlugin().getRedisManager().bindMapIds(fromServerName, fromMapId, toServerName, result);
+        }
+        return result;
     }
 
     @NotNull
@@ -131,94 +229,81 @@ public interface BukkitMapPersister {
 
             // Persist map data
             final ReadWriteNBT mapData = nbt.getOrCreateCompound(MAP_DATA_KEY);
-            final String worldUid = view.getWorld().getUID().toString();
-            mapData.setByteArray(MAP_PIXEL_DATA_KEY, canvas.extractMapData().toBytes());
-            nbt.getOrCreateCompound(MAP_VIEW_ID_MAPPINGS_KEY).setInteger(worldUid, view.getId());
-            getPlugin().debug(String.format("Saved data for locked map (#%s, UID: %s)", view.getId(), worldUid));
+            final String serverName = getPlugin().getServerName();
+            mapData.setString(MAP_ORIGIN_KEY, serverName);
+            mapData.setInteger(MAP_ID_KEY, meta.getMapId());
+            if (readMapData(serverName, meta.getMapId()) == null) {
+                writeMapData(serverName, meta.getMapId(), canvas.extractMapData());
+            }
+            getPlugin().debug(String.format("Saved data for locked map (#%s, server: %s)", view.getId(), serverName));
         });
         return map;
     }
 
+    @SuppressWarnings("deprecation")
     @NotNull
     private ItemStack applyMapView(@NotNull ItemStack map) {
-        final int dataVersion = getPlugin().getDataVersion(getPlugin().getMinecraftVersion());
         final MapMeta meta = Objects.requireNonNull((MapMeta) map.getItemMeta());
         NBT.get(map, nbt -> {
             if (!nbt.hasTag(MAP_DATA_KEY)) {
                 return;
             }
             final ReadableNBT mapData = nbt.getCompound(MAP_DATA_KEY);
-            final ReadableNBT mapIds = nbt.getCompound(MAP_VIEW_ID_MAPPINGS_KEY);
-            if (mapData == null || mapIds == null) {
+            if (mapData == null) {
                 return;
             }
 
-            // Search for an existing map view
-            Optional<String> world = Optional.empty();
-            for (String worldUid : mapIds.getKeys()) {
-                world = getPlugin().getServer().getWorlds().stream()
-                        .map(w -> w.getUID().toString()).filter(u -> u.equals(worldUid))
-                        .findFirst();
-                if (world.isPresent()) {
-                    break;
-                }
-            }
-            if (world.isPresent()) {
-                final String uid = world.get();
-                final Optional<MapView> existingView = this.getMapView(mapIds.getInteger(uid));
-                if (existingView.isPresent()) {
-                    final MapView view = existingView.get();
-                    view.setLocked(true);
-                    meta.setMapView(view);
-                    map.setItemMeta(meta);
-                    getPlugin().debug(String.format("View exists (#%s); updated map (UID: %s)", view.getId(), uid));
-                    return;
-                }
+            // Determine map ID
+            final String originServerName = mapData.getString(MAP_ORIGIN_KEY);
+            final String currentServerName = getPlugin().getServerName();
+            final int originalMapId = mapData.getInteger(MAP_ID_KEY);
+            int newId = currentServerName.equals(originServerName)
+                    ? originalMapId : getBoundMapId(originServerName, originalMapId, currentServerName);
+            if (newId != -1) {
+                meta.setMapId(newId);
+                map.setItemMeta(meta);
+                getPlugin().debug(String.format("Map ID set to %s", newId));
+                return;
             }
 
             // Read the pixel data and generate a map view otherwise
-            final MapData canvasData;
-            try {
-                getPlugin().debug("Deserializing map data from NBT and generating view...");
-                canvasData = MapData.fromByteArray(
-                        dataVersion,
-                        Objects.requireNonNull(mapData.getByteArray(MAP_PIXEL_DATA_KEY), "Pixel data null!"));
-            } catch (Throwable e) {
-                getPlugin().log(Level.WARNING, "Failed to deserialize map data from NBT", e);
-                return;
-            }
+            getPlugin().debug("Deserializing map data from NBT and generating view...");
+            final MapData canvasData = Objects.requireNonNull(readMapData(originServerName, originalMapId), "Pixel data null!").getKey();
 
             // Add a renderer to the map with the data and save to file
             final MapView view = generateRenderedMap(canvasData);
-            final String worldUid = getDefaultMapWorld().getUID().toString();
             meta.setMapView(view);
             map.setItemMeta(meta);
-            saveMapToFile(canvasData, view.getId());
 
-            // Set the map view ID in NBT
-            NBT.modify(map, editable -> {
-                Objects.requireNonNull(editable.getCompound(MAP_VIEW_ID_MAPPINGS_KEY),
-                                "Map view ID mappings compound is null")
-                        .setInteger(worldUid, view.getId());
-            });
-            getPlugin().debug(String.format("Generated view (#%s) and updated map (UID: %s)", view.getId(), worldUid));
+            // Bind in the database & Redis
+            final int id = view.getId();
+            getRedisManager().bindMapIds(originServerName, originalMapId, currentServerName, id);
+            getPlugin().getDatabase().setMapBinding(originServerName, originalMapId, currentServerName, id);
+
+            getPlugin().debug(String.format("Bound map to view (#%s) on server %s", id, currentServerName));
         });
         return map;
     }
 
-    default void renderMapFromFile(@NotNull MapView view) {
-        final File mapFile = new File(getMapCacheFolder(), view.getId() + ".dat");
-        if (!mapFile.exists()) {
+    default void renderPersistedMap(@NotNull MapView view) {
+        if (getMapView(view.getId()).isPresent()) {
             return;
         }
 
-        final MapData canvasData;
-        try {
-            canvasData = MapData.fromNbt(mapFile);
-        } catch (Throwable e) {
-            getPlugin().log(Level.WARNING, "Failed to deserialize map data from file", e);
+        @Nullable final Map.Entry<MapData, Boolean> data = readMapData(getPlugin().getServerName(), view.getId());
+        if (data == null) {
+            final World world = view.getWorld() == null ? getDefaultMapWorld() : view.getWorld();
+            getPlugin().debug("Not rendering map: no data in DB for world %s, map #%s."
+                    .formatted(world.getName(), view.getId()));
             return;
         }
+
+        if (data.getValue()) {
+            // from this server, doesn't need tweaking
+            return;
+        }
+
+        final MapData canvasData = data.getKey();
 
         // Create a new map view renderer with the map data color at each pixel
         // use view.removeRenderer() to remove all this maps renderers
@@ -231,32 +316,6 @@ public interface BukkitMapPersister {
 
         // Set the view to the map
         setMapView(view);
-    }
-
-    default void saveMapToFile(@NotNull MapData data, int id) {
-        getPlugin().runAsync(() -> {
-            final File mapFile = new File(getMapCacheFolder(), id + ".dat");
-            if (mapFile.exists()) {
-                return;
-            }
-
-            try {
-                final CompoundTag rootTag = new CompoundTag();
-                rootTag.put("data", data.toNBT().getTag());
-                NBTUtil.write(rootTag, mapFile);
-            } catch (Throwable e) {
-                getPlugin().log(Level.WARNING, "Failed to serialize map data to file", e);
-            }
-        });
-    }
-
-    @NotNull
-    private File getMapCacheFolder() {
-        final File mapCache = new File(getPlugin().getDataFolder(), "maps");
-        if (!mapCache.exists() && !mapCache.mkdirs()) {
-            getPlugin().log(Level.WARNING, "Failed to create maps folder");
-        }
-        return mapCache;
     }
 
     // Sets the renderer of a map, and returns the generated MapView
@@ -362,6 +421,8 @@ public interface BukkitMapPersister {
     @SuppressWarnings({"deprecation", "removal"})
     class PersistentMapCanvas implements MapCanvas {
 
+        private static final String BANNER_PREFIX = "banner_";
+
         private final int mapDataVersion;
         private final MapView mapView;
         private final int[][] pixels = new int[128][128];
@@ -451,7 +512,6 @@ public interface BukkitMapPersister {
         @NotNull
         private MapData extractMapData() {
             final List<MapBanner> banners = Lists.newArrayList();
-            final String BANNER_PREFIX = "banner_";
             for (int i = 0; i < getCursors().size(); i++) {
                 final MapCursor cursor = getCursors().getCursor(i);
                 //#if MC==12001
@@ -476,6 +536,9 @@ public interface BukkitMapPersister {
 
     @NotNull
     Map<Integer, MapView> getMapViews();
+
+    @ApiStatus.Internal
+    RedisManager getRedisManager();
 
     @ApiStatus.Internal
     @NotNull

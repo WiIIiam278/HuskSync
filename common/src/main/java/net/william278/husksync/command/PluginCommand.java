@@ -23,6 +23,7 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.user.CommandUser;
+import net.william278.husksync.user.OnlineUser;
 import net.william278.husksync.user.User;
 import net.william278.uniform.BaseCommand;
 import net.william278.uniform.Command;
@@ -31,6 +32,7 @@ import net.william278.uniform.element.ArgumentElement;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Function;
@@ -76,6 +78,20 @@ public abstract class PluginCommand extends Command {
     }
 
     @NotNull
+    @SuppressWarnings("SameParameterValue")
+    protected <S> ArgumentElement<S, OnlineUser> onlineUser(@NotNull String name) {
+        return new ArgumentElement<>(name, reader -> {
+            final String username = reader.readString();
+            return plugin.getOnlineUsers().stream()
+                    .filter(user -> username.equals(user.getName()))
+                    .findFirst().orElse(null);
+        }, (context, builder) -> {
+            plugin.getOnlineUsers().forEach(u -> builder.suggest(u.getName()));
+            return builder.buildFuture();
+        });
+    }
+
+    @NotNull
     protected <S> ArgumentElement<S, User> user(@NotNull String name) {
         return new ArgumentElement<>(name, reader -> {
             final String username = reader.readString();
@@ -83,20 +99,29 @@ public abstract class PluginCommand extends Command {
                     () -> CommandSyntaxException.BUILT_IN_EXCEPTIONS.dispatcherUnknownArgument().createWithContext(reader)
             );
         }, (context, builder) -> {
-            plugin.getOnlineUsers().forEach(u -> builder.suggest(u.getUsername()));
+            plugin.getOnlineUsers().forEach(u -> builder.suggest(u.getName()));
             return builder.buildFuture();
         });
     }
 
     @NotNull
-    protected <S> ArgumentElement<S, UUID> uuid(@NotNull String name) {
-        return new ArgumentElement<>(name, reader -> {
+    protected  <S> ArgumentElement<S, UUID> versionUuid() {
+        return new ArgumentElement<>("version", reader -> {
             try {
                 return UUID.fromString(reader.readString());
             } catch (IllegalArgumentException e) {
                 throw CommandSyntaxException.BUILT_IN_EXCEPTIONS.dispatcherUnknownArgument().createWithContext(reader);
             }
-        }, (context, builder) -> builder.buildFuture());
+        }, (context, builder) -> {
+            try {
+                plugin.getDatabase().getAllSnapshots(context.getArgument("username", User.class))
+                        .stream().sorted(Comparator.comparing(d -> d.getTimestamp().toEpochSecond()))
+                        .forEach(id -> builder.suggest(id.getId().toString()));
+                return builder.buildFuture();
+            } catch (IllegalArgumentException e) {
+                return builder.buildFuture();
+            }
+        });
     }
 
     public enum Type {

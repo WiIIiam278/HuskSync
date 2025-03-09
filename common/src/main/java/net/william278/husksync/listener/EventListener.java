@@ -80,8 +80,8 @@ public abstract class EventListener {
         }
         usersInWorld.stream()
                 .filter(user -> !plugin.isLocked(user.getUuid()) && !user.isNpc())
-                .forEach(user -> plugin.getDataSyncer().saveData(
-                        user, user.createSnapshot(DataSnapshot.SaveCause.WORLD_SAVE)
+                .forEach(user -> plugin.getDataSyncer().saveCurrentUserData(
+                        user, DataSnapshot.SaveCause.WORLD_SAVE
                 ));
     }
 
@@ -94,12 +94,13 @@ public abstract class EventListener {
     protected void saveOnPlayerDeath(@NotNull OnlineUser user, @NotNull Data.Items items) {
         final SaveOnDeathSettings settings = plugin.getSettings().getSynchronization().getSaveOnDeath();
         if (plugin.isDisabling() || !settings.isEnabled() || plugin.isLocked(user.getUuid())
-            || user.isNpc() || (!settings.isSaveEmptyItems() && items.isEmpty())) {
+                || user.isNpc() || (!settings.isSaveEmptyItems() && items.isEmpty())) {
             return;
         }
 
+        // We don't persist this to Redis for syncing, as this snapshot is from a state they won't be in post-respawn
         final DataSnapshot.Packed snapshot = user.createSnapshot(DataSnapshot.SaveCause.DEATH);
-        snapshot.edit(plugin, (data -> data.getInventory().ifPresent(inventory -> inventory.setContents(items))));
+        snapshot.edit(plugin, (data -> data.getInventory().ifPresent(inv -> inv.setContents(items))));
         plugin.getDataSyncer().saveData(user, snapshot);
     }
 
@@ -108,16 +109,12 @@ public abstract class EventListener {
      * Handle the plugin disabling
      */
     public void handlePluginDisable() {
-        // Save for all online players
+        // Save for all online players.
         plugin.getOnlineUsers().stream()
                 .filter(user -> !plugin.isLocked(user.getUuid()) && !user.isNpc())
                 .forEach(user -> {
                     plugin.lockPlayer(user.getUuid());
-                    plugin.getDataSyncer().saveData(
-                            user,
-                            user.createSnapshot(DataSnapshot.SaveCause.SERVER_SHUTDOWN),
-                            (saved, data) -> plugin.getRedisManager().clearUserData(saved)
-                    );
+                    plugin.getDataSyncer().saveCurrentUserData(user, DataSnapshot.SaveCause.SERVER_SHUTDOWN);
                 });
 
         // Close outstanding connections

@@ -26,6 +26,7 @@ import net.william278.husksync.data.DataSnapshot;
 import net.william278.husksync.user.User;
 import org.jetbrains.annotations.Blocking;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -56,8 +57,8 @@ public abstract class Database {
     @SuppressWarnings("SameParameterValue")
     @NotNull
     protected final String[] getSchemaStatements(@NotNull String schemaFileName) throws IOException {
-        return formatStatementTables(new String(Objects.requireNonNull(plugin.getResource(schemaFileName))
-                .readAllBytes(), StandardCharsets.UTF_8)).split(";");
+        return Arrays.stream(formatStatementTables(new String(Objects.requireNonNull(plugin.getResource(schemaFileName))
+                .readAllBytes(), StandardCharsets.UTF_8)).split(";")).filter(s -> !s.isBlank()).toArray(String[]::new);
     }
 
     /**
@@ -70,7 +71,9 @@ public abstract class Database {
     protected final String formatStatementTables(@NotNull String sql) {
         final Settings.DatabaseSettings settings = plugin.getSettings().getDatabase();
         return sql.replaceAll("%users_table%", settings.getTableName(TableName.USERS))
-                .replaceAll("%user_data_table%", settings.getTableName(TableName.USER_DATA));
+                .replaceAll("%user_data_table%", settings.getTableName(TableName.USER_DATA))
+                .replaceAll("%map_data_table%", settings.getTableName(TableName.MAP_DATA))
+                .replaceAll("%map_ids_table%", settings.getTableName(TableName.MAP_IDS));
     }
 
     /**
@@ -247,6 +250,58 @@ public abstract class Database {
     }
 
     /**
+     * Write map data to a database
+     *
+     * @param serverName Name of the server the map originates from
+     * @param mapId      Original map ID
+     * @param data       Map data
+     */
+    @Blocking
+    public abstract void saveMapData(@NotNull String serverName, int mapId, byte @NotNull [] data);
+
+    /**
+     * Read map data from a database
+     *
+     * @param serverName Name of the server the map originates from
+     * @param mapId      Original map ID
+     * @return           Map.Entry (key: map data, value: is from current world)
+     */
+    @Blocking
+    public abstract @Nullable Map.Entry<byte[], Boolean> getMapData(@NotNull String serverName, int mapId);
+
+    /**
+     * Get a map server -> ID binding in the database
+     *
+     * @param serverName Name of the server the map originates from
+     * @param mapId      Original map ID
+     * @return           Map.Entry (key: server name, value: map ID)
+     */
+    @Blocking
+    public abstract @Nullable Map.Entry<String, Integer> getMapBinding(@NotNull String serverName, int mapId);
+
+    /**
+     * Bind map IDs across different servers
+     *
+     * @param fromServerName Name of the server the map originates from
+     * @param fromMapId      Original map ID
+     * @param toServerName   Name of the new server
+     * @param toMapId        New map ID
+     */
+    @Blocking
+    public abstract void setMapBinding(@NotNull String fromServerName, int fromMapId, @NotNull String toServerName, int toMapId);
+
+    /**
+     * Get map ID for the new server
+     *
+     * @param fromServerName Name of the server the map originates from
+     * @param fromMapId      Original map ID
+     * @param toServerName   Name of the new server
+     * @return               New map ID or -1 if not found
+     */
+    @Blocking
+    public abstract int getBoundMapId(@NotNull String fromServerName, int fromMapId, @NotNull String toServerName);
+
+    /**
      * Wipes <b>all</b> {@link User} entries from the database.
      * <b>This should only be used when preparing tables for a data migration.</b>
      */
@@ -283,7 +338,9 @@ public abstract class Database {
     @Getter
     public enum TableName {
         USERS("husksync_users"),
-        USER_DATA("husksync_user_data");
+        USER_DATA("husksync_user_data"),
+        MAP_DATA("husksync_map_data"),
+        MAP_IDS("husksync_map_ids");
 
         private final String defaultName;
 

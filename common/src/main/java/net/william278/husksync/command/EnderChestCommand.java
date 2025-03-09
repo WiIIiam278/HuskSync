@@ -23,7 +23,6 @@ import de.themoep.minedown.adventure.MineDown;
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.data.Data;
 import net.william278.husksync.data.DataSnapshot;
-import net.william278.husksync.redis.RedisKeyType;
 import net.william278.husksync.redis.RedisManager;
 import net.william278.husksync.user.OnlineUser;
 import net.william278.husksync.user.User;
@@ -37,7 +36,7 @@ import java.util.Optional;
 public class EnderChestCommand extends ItemsCommand {
 
     public EnderChestCommand(@NotNull HuskSync plugin) {
-        super("enderchest", List.of("echest", "openechest"), plugin);
+        super("enderchest", List.of("echest", "openechest"), DataSnapshot.SaveCause.ENDERCHEST_COMMAND, plugin);
     }
 
     @Override
@@ -51,7 +50,7 @@ public class EnderChestCommand extends ItemsCommand {
         }
 
         // Display opening message
-        plugin.getLocales().getLocale("ender_chest_viewer_opened", user.getUsername(),
+        plugin.getLocales().getLocale("ender_chest_viewer_opened", user.getName(),
                         snapshot.getTimestamp().format(DateTimeFormatter
                                 .ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.SHORT)))
                 .ifPresent(viewer::sendMessage);
@@ -60,8 +59,8 @@ public class EnderChestCommand extends ItemsCommand {
         final Data.Items.EnderChest enderChest = optionalEnderChest.get();
         viewer.showGui(
                 enderChest,
-                plugin.getLocales().getLocale("ender_chest_viewer_menu_title", user.getUsername())
-                        .orElse(new MineDown(String.format("%s's Ender Chest", user.getUsername()))),
+                plugin.getLocales().getLocale("ender_chest_viewer_menu_title", user.getName())
+                        .orElse(new MineDown(String.format("%s's Ender Chest", user.getName()))),
                 allowEdit,
                 enderChest.getSlotCount(),
                 (itemsOnClose) -> {
@@ -84,18 +83,17 @@ public class EnderChestCommand extends ItemsCommand {
 
         // Create and pack the snapshot with the updated enderChest
         final DataSnapshot.Packed snapshot = latestData.get().copy();
+        boolean pin = plugin.getSettings().getSynchronization().doAutoPin(saveCause);
         snapshot.edit(plugin, (data) -> {
             data.getEnderChest().ifPresent(enderChest -> enderChest.setContents(items));
-            data.setSaveCause(DataSnapshot.SaveCause.ENDERCHEST_COMMAND);
-            data.setPinned(
-                    plugin.getSettings().getSynchronization().doAutoPin(DataSnapshot.SaveCause.ENDERCHEST_COMMAND)
-            );
+            data.setSaveCause(saveCause);
+            data.setPinned(pin);
         });
 
         // Save data
         final RedisManager redis = plugin.getRedisManager();
         plugin.getDataSyncer().saveData(holder, snapshot, (user, data) -> {
-            redis.getUserData(user).ifPresent(d -> redis.setUserData(user, snapshot, RedisKeyType.TTL_1_YEAR));
+            redis.getUserData(user).ifPresent(d -> redis.setUserData(user, snapshot));
             redis.sendUserDataUpdate(user, data);
         });
     }

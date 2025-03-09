@@ -69,7 +69,8 @@ public class HuskSyncCommand extends PluginCommand {
                         AboutMenu.Credit.of("HookWoods").description("Code"),
                         AboutMenu.Credit.of("Preva1l").description("Code"),
                         AboutMenu.Credit.of("hanbings").description("Code (Fabric porting)"),
-                        AboutMenu.Credit.of("Stampede2011").description("Code (Fabric mixins)"))
+                        AboutMenu.Credit.of("Stampede2011").description("Code (Fabric mixins)"),
+                        AboutMenu.Credit.of("VinerDream").description("Code"))
                 .credits("Translators",
                         AboutMenu.Credit.of("Namiu").description("Japanese (ja-jp)"),
                         AboutMenu.Credit.of("anchelthe").description("Spanish (es-es)"),

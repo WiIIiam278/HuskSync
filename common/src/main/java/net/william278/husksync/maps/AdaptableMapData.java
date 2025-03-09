@@ -17,32 +17,29 @@
  *  limitations under the License.
  */
 
-package net.william278.husksync.redis;
+package net.william278.husksync.maps;
 
+import com.google.gson.annotations.SerializedName;
+import lombok.AllArgsConstructor;
 import org.jetbrains.annotations.NotNull;
+import net.william278.husksync.adapter.Adaptable;
+import net.william278.mapdataapi.MapData;
 
-import java.util.Locale;
+import java.io.IOException;
 
-public enum RedisKeyType {
+@AllArgsConstructor
+public class AdaptableMapData implements Adaptable {
 
-    LATEST_SNAPSHOT,
-    SERVER_SWITCH,
-    DATA_CHECKOUT,
-    MAP_ID,
-    MAP_ID_REVERSED,
-    MAP_DATA;
+    @SerializedName("data")
+    private final byte[] data;
 
-    public static final int TTL_1_YEAR = 60 * 60 * 24 * 7 * 52; // 1 year
-    public static final int TTL_10_SECONDS = 10; // 10 seconds
+    public AdaptableMapData(@NotNull MapData data) {
+        this(data.toBytes());
+    }
 
     @NotNull
-    public String getKeyPrefix(@NotNull String clusterId) {
-        return String.format(
-                "%s:%s:%s",
-                RedisManager.KEY_NAMESPACE.toLowerCase(Locale.ENGLISH),
-                clusterId.toLowerCase(Locale.ENGLISH),
-                name().toLowerCase(Locale.ENGLISH)
-        );
+    public MapData getData(int dataVersion) throws IOException {
+        return MapData.fromByteArray(dataVersion, data);
     }
 
 }

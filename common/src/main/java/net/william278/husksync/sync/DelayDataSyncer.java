@@ -21,7 +21,6 @@ package net.william278.husksync.sync;
 
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.data.DataSnapshot;
-import net.william278.husksync.redis.RedisKeyType;
 import net.william278.husksync.user.OnlineUser;
 import org.jetbrains.annotations.NotNull;
 
@@ -63,7 +62,7 @@ public class DelayDataSyncer extends DataSyncer {
             getRedis().setUserServerSwitch(onlineUser);
             saveData(
                     onlineUser, onlineUser.createSnapshot(DataSnapshot.SaveCause.DISCONNECT),
-                    (user, data) -> getRedis().setUserData(user, data, RedisKeyType.TTL_10_SECONDS)
+                    (user, data) -> getRedis().setUserData(user, data)
             );
         });
     }

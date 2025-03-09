@@ -95,6 +95,16 @@ public abstract class DataSyncer {
     public abstract void syncSaveUserData(@NotNull OnlineUser user);
 
     /**
+     * Save a user's current data
+     *
+     * @param onlineUser the user to save data of
+     * @param cause      the save cause
+     */
+    public void saveCurrentUserData(@NotNull OnlineUser onlineUser, @NotNull DataSnapshot.SaveCause cause) {
+        this.saveData(onlineUser, onlineUser.createSnapshot(cause), getRedis()::setUserData);
+    }
+
+    /**
      * Save a {@link DataSnapshot.Packed user's data snapshot} to the database,
      * first firing the {@link net.william278.husksync.event.DataSaveEvent}. This will not update data on Redis.
      *
@@ -150,7 +160,7 @@ public abstract class DataSyncer {
     private long getMaxListenAttempts() {
         return BASE_LISTEN_ATTEMPTS + (
                 (Math.max(100, plugin.getSettings().getSynchronization().getNetworkLatencyMilliseconds()) / 1000)
-                * 20 / LISTEN_DELAY
+                        * 20 / LISTEN_DELAY
         );
     }
 
@@ -163,7 +173,7 @@ public abstract class DataSyncer {
                     () -> user.completeSync(true, DataSnapshot.UpdateCause.NEW_USER, plugin)
             );
         } catch (Throwable e) {
-            plugin.log(Level.WARNING, "Failed to set %s's data from the database".formatted(user.getUsername()), e);
+            plugin.log(Level.WARNING, "Failed to set %s's data from the database".formatted(user.getName()), e);
             user.completeSync(false, DataSnapshot.UpdateCause.SYNCHRONIZED, plugin);
         }
     }
@@ -188,7 +198,7 @@ public abstract class DataSyncer {
             if (plugin.isDisabling() || timesRun.getAndIncrement() > maxListenAttempts) {
                 task.get().cancel();
                 plugin.debug(String.format("[%s] Redis timed out after %s attempts; setting from database",
-                        user.getUsername(), timesRun.get()));
+                        user.getName(), timesRun.get()));
                 setUserFromDatabase(user);
                 return;
             }

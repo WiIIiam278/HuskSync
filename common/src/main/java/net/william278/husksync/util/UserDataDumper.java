@@ -19,18 +19,15 @@
 
 package net.william278.husksync.util;
 
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.data.DataSnapshot;
 import net.william278.husksync.user.User;
+import net.william278.toilet.web.Flusher;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
-import java.net.HttpURLConnection;
-import java.net.URI;
-import java.net.URL;
-import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -39,94 +36,42 @@ import java.util.Locale;
 import java.util.StringJoiner;
 import java.util.logging.Level;
 
+import static net.william278.husksync.util.DumpProvider.BYTEBIN_URL;
+
 /**
  * Utility class for dumping {@link DataSnapshot}s to a file or as a paste on the web
  */
-public class UserDataDumper {
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+public class UserDataDumper implements Flusher {
 
-    private static final String LOGS_SITE_ENDPOINT = "https://api.mclo.gs/1/log";
+    private static final String PASTE_VIEWER_URL = "https://pastes.dev";
 
-    private final HuskSync plugin;
     private final DataSnapshot.Packed snapshot;
     private final User user;
-
-    private UserDataDumper(@NotNull DataSnapshot.Packed snapshot, @NotNull User user, @NotNull HuskSync implementor) {
-        this.snapshot = snapshot;
-        this.user = user;
-        this.plugin = implementor;
-    }
+    private final HuskSync plugin;
 
     /**
      * Create a {@link UserDataDumper} of the given {@link DataSnapshot}
      *
-     * @param dataSnapshot The {@link DataSnapshot} to dump
-     * @param user         The {@link User} whose data is being dumped
-     * @param plugin       The implementing {@link HuskSync} plugin
+     * @param snapshot The {@link DataSnapshot} to dump
+     * @param user     The {@link User} whose data is being dumped
+     * @param plugin   The implementing {@link HuskSync} plugin
      * @return A {@link UserDataDumper} for the given {@link DataSnapshot}
      */
-    public static UserDataDumper create(@NotNull DataSnapshot.Packed dataSnapshot,
-                                        @NotNull User user, @NotNull HuskSync plugin) {
-        return new UserDataDumper(dataSnapshot, user, plugin);
-    }
-
-    /**
-     * Dumps the data snapshot to a string
-     *
-     * @return the data snapshot as a string
-     */
-    @Override
     @NotNull
-    public String toString() {
-        return snapshot.asJson(plugin);
+    public static UserDataDumper create(@NotNull DataSnapshot.Packed snapshot, @NotNull User user,
+                                        @NotNull HuskSync plugin) {
+        return new UserDataDumper(snapshot, user, plugin);
     }
 
     @NotNull
     public String toWeb() {
         try {
-            final URL url = URI.create(LOGS_SITE_ENDPOINT).toURL();
-            final HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestMethod("POST");
-            connection.setDoOutput(true);
-
-            // Dispatch the request
-            final byte[] messageBody = getWebContentField().getBytes(StandardCharsets.UTF_8);
-            final int messageLength = messageBody.length;
-            connection.setFixedLengthStreamingMode(messageLength);
-            connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8");
-            connection.connect();
-            try (OutputStream messageOutputStream = connection.getOutputStream()) {
-                messageOutputStream.write(messageBody);
-            }
-
-            // Get the response
-            if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
-                // Get the body as a json
-                try (BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
-                    final StringBuilder response = new StringBuilder();
-                    String line;
-                    while ((line = reader.readLine()) != null) {
-                        response.append(line);
-                    }
-
-                    // Parse the response as json
-                    final JsonObject responseJson = JsonParser.parseString(response.toString()).getAsJsonObject();
-                    if (responseJson.has("url")) {
-                        return responseJson.get("url").getAsString();
-                    }
-                    return "(Failed to get URL from response)";
-                }
-            } else {
-                return "(Failed to upload to logs site, got: " + connection.getResponseCode() + ")";
-            }
+            return "%s/%s".formatted(PASTE_VIEWER_URL, uploadDump(toString(), BYTEBIN_URL, "husksync"));
         } catch (Throwable e) {
-            plugin.log(Level.SEVERE, "Failed to upload data to logs site", e);
+            plugin.log(Level.SEVERE, "Failed to upload data.", e);
         }
-        return "(Failed to upload to logs site)";
-    }
-
-    @NotNull
-    private String getWebContentField() {
-        return "content=" + URLEncoder.encode(toString(), StandardCharsets.UTF_8);
+        return "(Failed to upload. Try dumping to a file instead.)";
     }
 
     /**
@@ -141,7 +86,7 @@ public class UserDataDumper {
             writer.write(toString()); // Write the data from #getString to the file using a writer
             return filePath.toString();
         } catch (IOException e) {
-            throw new IOException("Failed to write data to file", e);
+            throw new IOException("Failed to write dump to file", e);
         }
     }
 
@@ -179,11 +124,22 @@ public class UserDataDumper {
     @NotNull
     private String getFileName() {
         return new StringJoiner("_")
-                .add(user.getUsername())
+                .add(user.getName())
                 .add(snapshot.getTimestamp().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss")))
                 .add(snapshot.getSaveCause().name().toLowerCase(Locale.ENGLISH))
                 .add(snapshot.getShortId())
                 + ".json";
+    }
+
+    /**
+     * Dumps the data snapshot to a string
+     *
+     * @return the data snapshot as a string
+     */
+    @Override
+    @NotNull
+    public String toString() {
+        return snapshot.asJson(plugin);
     }
 
 }

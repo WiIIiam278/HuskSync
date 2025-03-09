@@ -59,7 +59,7 @@ public class DataSnapshotOverview {
         // Title message, timestamp, owner and cause.
         final Locales locales = plugin.getLocales();
         locales.getLocale("data_manager_title", snapshot.getShortId(), snapshot.getId().toString(),
-                        dataOwner.getUsername(), dataOwner.getUuid().toString())
+                        dataOwner.getName(), dataOwner.getUuid().toString())
                 .ifPresent(user::sendMessage);
         locales.getLocale("data_manager_timestamp",
                         snapshot.getTimestamp().format(DateTimeFormatter
@@ -107,13 +107,13 @@ public class DataSnapshotOverview {
 
         if (user.hasPermission("husksync.command.inventory.edit")
             && user.hasPermission("husksync.command.enderchest.edit")) {
-            locales.getLocale("data_manager_item_buttons", dataOwner.getUsername(), snapshot.getId().toString())
+            locales.getLocale("data_manager_item_buttons", dataOwner.getName(), snapshot.getId().toString())
                     .ifPresent(user::sendMessage);
         }
-        locales.getLocale("data_manager_management_buttons", dataOwner.getUsername(), snapshot.getId().toString())
+        locales.getLocale("data_manager_management_buttons", dataOwner.getName(), snapshot.getId().toString())
                 .ifPresent(user::sendMessage);
         if (user.hasPermission("husksync.command.userdata.dump")) {
-            locales.getLocale("data_manager_system_buttons", dataOwner.getUsername(), snapshot.getId().toString())
+            locales.getLocale("data_manager_system_buttons", dataOwner.getName(), snapshot.getId().toString())
                     .ifPresent(user::sendMessage);
         }
     }

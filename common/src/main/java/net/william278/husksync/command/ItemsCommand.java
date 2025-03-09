@@ -34,8 +34,12 @@ import java.util.UUID;
 
 public abstract class ItemsCommand extends PluginCommand {
 
-    protected ItemsCommand(@NotNull String name, @NotNull List<String> aliases, @NotNull HuskSync plugin) {
+    protected final DataSnapshot.SaveCause saveCause;
+
+    protected ItemsCommand(@NotNull String name, @NotNull List<String> aliases,
+                           @NotNull DataSnapshot.SaveCause saveCause, @NotNull HuskSync plugin) {
         super(name, aliases, Permission.Default.IF_OP, ExecutionScope.IN_GAME, plugin);
+        this.saveCause = saveCause;
     }
 
     @Override
@@ -50,7 +54,7 @@ public abstract class ItemsCommand extends PluginCommand {
                 return;
             }
             this.showSnapshotItems(online, user, version);
-        }, user("username"), uuid("version"));
+        }, user("username"), versionUuid());
         command.addSyntax((ctx) -> {
             final User user = ctx.getArgument("username", User.class);
             final CommandUser executor = user(command, ctx);
@@ -65,7 +69,7 @@ public abstract class ItemsCommand extends PluginCommand {
 
     // View (and edit) the latest user data
     private void showLatestItems(@NotNull OnlineUser viewer, @NotNull User user) {
-        plugin.getRedisManager().getUserData(user.getUuid(), user).thenAccept(data -> data
+        plugin.getRedisManager().getOnlineUserData(user.getUuid(), user, saveCause).thenAccept(d -> d
                 .or(() -> plugin.getDatabase().getLatestSnapshot(user))
                 .or(() -> {
                     plugin.getLocales().getLocale("error_no_data_to_display")

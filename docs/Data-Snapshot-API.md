@@ -37,7 +37,7 @@ huskSyncAPI.getUser(uuid).thenAccept(optionalUser -> {
     }
     
     // The User object provides methods for getting a user's UUID and username
-    System.out.println("Found %s", optionalUser.get().getUsername());
+    System.out.println("Found %s", optionalUser.get().getName());
 });
 ```
 </details>
@@ -51,7 +51,7 @@ huskSyncAPI.getUser(uuid).thenAccept(optionalUser -> {
 ```java
 // Get an online user
 OnlineUser user = huskSyncAPI.getUser(player);
-System.out.println("Hello, %s!", user.getUsername());
+System.out.println("Hello, %s!", user.getName());
 ```
 </details>
 
@@ -67,7 +67,7 @@ System.out.println("Hello, %s!", user.getUsername());
 // Get a user's current data
 huskSyncAPI.getCurrentData(user).thenAccept(optionalSnapshot -> {
     if (optionalSnapshot.isEmpty()) {
-        System.out.println("Couldn't get data for %s", user.getUsername());
+        System.out.println("Couldn't get data for %s", user.getName());
         return;
     }
     
@@ -88,7 +88,7 @@ huskSyncAPI.getCurrentData(user).thenAccept(optionalSnapshot -> {
 // Get a user's latest saved snapshot
 huskSyncAPI.getLatestSnapshot(user).thenAccept(optionalSnapshot -> {
     if (optionalSnapshot.isEmpty()) {
-        System.out.println("%s has no saved snapshots!", user.getUsername());
+        System.out.println("%s has no saved snapshots!", user.getName());
         return;
     }
     
@@ -108,7 +108,7 @@ huskSyncAPI.getLatestSnapshot(user).thenAccept(optionalSnapshot -> {
 // Get a user's saved snapshots
 huskSyncAPI.getSnapshots(user).thenAccept(optionalSnapshots -> {
     if (optionalSnapshots.isEmpty()) {
-        System.out.println("%s has no saved snapshots!", user.getUsername());
+        System.out.println("%s has no saved snapshots!", user.getName());
         return;
     }
     

@@ -23,7 +23,6 @@ import de.themoep.minedown.adventure.MineDown;
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.data.Data;
 import net.william278.husksync.data.DataSnapshot;
-import net.william278.husksync.redis.RedisKeyType;
 import net.william278.husksync.redis.RedisManager;
 import net.william278.husksync.user.OnlineUser;
 import net.william278.husksync.user.User;
@@ -37,7 +36,7 @@ import java.util.Optional;
 public class InventoryCommand extends ItemsCommand {
 
     public InventoryCommand(@NotNull HuskSync plugin) {
-        super("inventory", List.of("invsee", "openinv"), plugin);
+        super("inventory", List.of("invsee", "openinv"), DataSnapshot.SaveCause.INVENTORY_COMMAND, plugin);
     }
 
     @Override
@@ -52,7 +51,7 @@ public class InventoryCommand extends ItemsCommand {
         }
 
         // Display opening message
-        plugin.getLocales().getLocale("inventory_viewer_opened", user.getUsername(),
+        plugin.getLocales().getLocale("inventory_viewer_opened", user.getName(),
                         snapshot.getTimestamp().format(DateTimeFormatter
                                 .ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.SHORT)))
                 .ifPresent(viewer::sendMessage);
@@ -61,8 +60,8 @@ public class InventoryCommand extends ItemsCommand {
         final Data.Items.Inventory inventory = optionalInventory.get();
         viewer.showGui(
                 inventory,
-                plugin.getLocales().getLocale("inventory_viewer_menu_title", user.getUsername())
-                        .orElse(new MineDown(String.format("%s's Inventory", user.getUsername()))),
+                plugin.getLocales().getLocale("inventory_viewer_menu_title", user.getName())
+                        .orElse(new MineDown(String.format("%s's Inventory", user.getName()))),
                 allowEdit,
                 inventory.getSlotCount(),
                 (itemsOnClose) -> {
@@ -85,18 +84,17 @@ public class InventoryCommand extends ItemsCommand {
 
         // Create and pack the snapshot with the updated inventory
         final DataSnapshot.Packed snapshot = latestData.get().copy();
+        boolean pin = plugin.getSettings().getSynchronization().doAutoPin(saveCause);
         snapshot.edit(plugin, (data) -> {
             data.getInventory().ifPresent(inventory -> inventory.setContents(items));
-            data.setSaveCause(DataSnapshot.SaveCause.INVENTORY_COMMAND);
-            data.setPinned(
-                    plugin.getSettings().getSynchronization().doAutoPin(DataSnapshot.SaveCause.INVENTORY_COMMAND)
-            );
+            data.setSaveCause(saveCause);
+            data.setPinned(pin);
         });
 
         // Save data
         final RedisManager redis = plugin.getRedisManager();
         plugin.getDataSyncer().saveData(holder, snapshot, (user, data) -> {
-            redis.getUserData(user).ifPresent(d -> redis.setUserData(user, snapshot, RedisKeyType.TTL_1_YEAR));
+            redis.getUserData(user).ifPresent(d -> redis.setUserData(user, snapshot));
             redis.sendUserDataUpdate(user, data);
         });
     }

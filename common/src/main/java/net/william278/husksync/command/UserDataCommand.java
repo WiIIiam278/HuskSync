@@ -20,15 +20,19 @@
 package net.william278.husksync.command;
 
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.event.ClickEvent;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.data.DataSnapshot;
-import net.william278.husksync.redis.RedisKeyType;
 import net.william278.husksync.redis.RedisManager;
 import net.william278.husksync.user.CommandUser;
+import net.william278.husksync.user.OnlineUser;
 import net.william278.husksync.user.User;
-import net.william278.husksync.util.UserDataDumper;
 import net.william278.husksync.util.DataSnapshotList;
 import net.william278.husksync.util.DataSnapshotOverview;
+import net.william278.husksync.util.UserDataDumper;
 import net.william278.uniform.BaseCommand;
 import net.william278.uniform.CommandProvider;
 import net.william278.uniform.Permission;
@@ -52,6 +56,7 @@ public class UserDataCommand extends PluginCommand {
         command.addSubCommand("view", needsOp("view"), view());
         command.addSubCommand("list", needsOp("list"), list());
         command.addSubCommand("delete", needsOp("delete"), delete());
+        command.addSubCommand("save", needsOp("save"), save());
         command.addSubCommand("restore", needsOp("restore"), restore());
         command.addSubCommand("pin", needsOp("pin"), pin());
         command.addSubCommand("dump", needsOp("dump"), dump());
@@ -102,6 +107,13 @@ public class UserDataCommand extends PluginCommand {
         DataSnapshotList.create(dataList, user, plugin).displayPage(executor, page);
     }
 
+    // Create and save a snapshot of a user's current data
+    private void createAndSaveSnapshot(@NotNull CommandUser executor, @NotNull OnlineUser onlineUser) {
+        plugin.getDataSyncer().saveCurrentUserData(onlineUser, DataSnapshot.SaveCause.SAVE_COMMAND);
+        plugin.getLocales().getLocale("data_saved", onlineUser.getName())
+                .ifPresent(executor::sendMessage);
+    }
+
     // Delete a snapshot
     private void deleteSnapshot(@NotNull CommandUser executor, @NotNull User user, @NotNull UUID version) {
         if (!plugin.getDatabase().deleteSnapshot(user, version)) {
@@ -113,7 +125,7 @@ public class UserDataCommand extends PluginCommand {
         plugin.getLocales().getLocale("data_deleted",
                         version.toString().split("-")[0],
                         version.toString(),
-                        user.getUsername(),
+                        user.getName(),
                         user.getUuid().toString())
                 .ifPresent(executor::sendMessage);
     }
@@ -145,9 +157,9 @@ public class UserDataCommand extends PluginCommand {
         // Save data
         final RedisManager redis = plugin.getRedisManager();
         plugin.getDataSyncer().saveData(user, data, (u, s) -> {
-            redis.getUserData(u).ifPresent(d -> redis.setUserData(u, s, RedisKeyType.TTL_1_YEAR));
+            redis.getUserData(u).ifPresent(d -> redis.setUserData(u, s));
             redis.sendUserDataUpdate(u, s);
-            plugin.getLocales().getLocale("data_restored", u.getUsername(), u.getUuid().toString(),
+            plugin.getLocales().getLocale("data_restored", u.getName(), u.getUuid().toString(),
                     s.getShortId(), s.getId().toString()).ifPresent(executor::sendMessage);
         });
     }
@@ -169,11 +181,11 @@ public class UserDataCommand extends PluginCommand {
             plugin.getDatabase().pinSnapshot(user, data.getId());
         }
         plugin.getLocales().getLocale(data.isPinned() ? "data_unpinned" : "data_pinned", data.getShortId(),
-                        data.getId().toString(), user.getUsername(), user.getUuid().toString())
+                        data.getId().toString(), user.getName(), user.getUuid().toString())
                 .ifPresent(executor::sendMessage);
     }
 
-    // Dump a snapshot
+    // Lookup a snapshot by UUID and dump
     private void dumpSnapshot(@NotNull CommandUser executor, @NotNull User user, @NotNull UUID version,
                               @NotNull DumpType type) {
         final Optional<DataSnapshot.Packed> data = plugin.getDatabase().getSnapshot(user, version);
@@ -182,14 +194,20 @@ public class UserDataCommand extends PluginCommand {
                     .ifPresent(executor::sendMessage);
             return;
         }
+        this.dumpSnapshot(executor, user, data.get(), type);
+    }
 
-        // Dump the data
-        final DataSnapshot.Packed userData = data.get();
+    // Dump a snapshot
+    private void dumpSnapshot(@NotNull CommandUser executor, @NotNull User user,
+                              @NotNull DataSnapshot.Packed userData, @NotNull DumpType type) {
         final UserDataDumper dumper = UserDataDumper.create(userData, user, plugin);
         try {
-            plugin.getLocales().getLocale("data_dumped", userData.getShortId(), user.getUsername(),
-                            (type == DumpType.WEB ? dumper.toWeb() : dumper.toFile()))
+            final String url = type == DumpType.WEB ? dumper.toWeb() : dumper.toFile();
+            plugin.getLocales().getLocale("data_dumped", userData.getShortId(), user.getName())
                     .ifPresent(executor::sendMessage);
+            executor.sendMessage(Component.text(url)
+                    .clickEvent(type == DumpType.WEB ? ClickEvent.openUrl(url) : ClickEvent.copyToClipboard(url))
+                    .decorate(TextDecoration.UNDERLINED).color(NamedTextColor.GRAY));
         } catch (Throwable e) {
             plugin.log(Level.SEVERE, "Failed to dump user data", e);
         }
@@ -197,17 +215,11 @@ public class UserDataCommand extends PluginCommand {
 
     @NotNull
     private CommandProvider view() {
-        return (sub) -> {
-            sub.addSyntax((ctx) -> {
-                final User user = ctx.getArgument("username", User.class);
-                viewLatestSnapshot(user(sub, ctx), user);
-            }, user("username"));
-            sub.addSyntax((ctx) -> {
-                final User user = ctx.getArgument("username", User.class);
-                final UUID version = ctx.getArgument("version", UUID.class);
-                viewSnapshot(user(sub, ctx), user, version);
-            }, user("username"), uuid("version"));
-        };
+        return (sub) -> sub.addSyntax((ctx) -> {
+            final User user = ctx.getArgument("username", User.class);
+            final UUID version = ctx.getArgument("version", UUID.class);
+            viewSnapshot(user(sub, ctx), user, version);
+        }, user("username"), versionUuid());
     }
 
     @NotNull
@@ -231,7 +243,15 @@ public class UserDataCommand extends PluginCommand {
             final User user = ctx.getArgument("username", User.class);
             final UUID version = ctx.getArgument("version", UUID.class);
             deleteSnapshot(user(sub, ctx), user, version);
-        }, user("username"), uuid("version"));
+        }, user("username"), versionUuid());
+    }
+
+    @NotNull
+    private CommandProvider save() {
+        return (sub) -> sub.addSyntax((ctx) -> {
+            final OnlineUser user = ctx.getArgument("username", OnlineUser.class);
+            createAndSaveSnapshot(user(sub, ctx), user);
+        }, onlineUser("username"));
     }
 
     @NotNull
@@ -240,7 +260,7 @@ public class UserDataCommand extends PluginCommand {
             final User user = ctx.getArgument("username", User.class);
             final UUID version = ctx.getArgument("version", UUID.class);
             restoreSnapshot(user(sub, ctx), user, version);
-        }, user("username"), uuid("version"));
+        }, user("username"), versionUuid());
     }
 
     @NotNull
@@ -249,17 +269,32 @@ public class UserDataCommand extends PluginCommand {
             final User user = ctx.getArgument("username", User.class);
             final UUID version = ctx.getArgument("version", UUID.class);
             pinSnapshot(user(sub, ctx), user, version);
-        }, user("username"), uuid("version"));
+        }, user("username"), versionUuid());
     }
 
     @NotNull
     private CommandProvider dump() {
-        return (sub) -> sub.addSyntax((ctx) -> {
-            final User user = ctx.getArgument("username", User.class);
-            final UUID version = ctx.getArgument("version", UUID.class);
-            final DumpType type = ctx.getArgument("type", DumpType.class);
-            dumpSnapshot(user(sub, ctx), user, version, type);
-        }, user("username"), uuid("version"), dumpType());
+        return (sub) -> {
+            sub.addSyntax((ctx) -> {
+                final User user = ctx.getArgument("username", User.class);
+                final CommandUser executor = user(sub, ctx);
+                plugin.getRedisManager()
+                        .getOnlineUserData(UUID.randomUUID(), user, DataSnapshot.SaveCause.DUMP_COMMAND)
+                        .thenAccept((data) -> data
+                                .or(() -> plugin.getDatabase().getLatestSnapshot(user))
+                                .ifPresentOrElse(
+                                        (s) -> dumpSnapshot(executor, user, s, DumpType.WEB),
+                                        () -> plugin.getLocales().getLocale("error_no_data_to_display")
+                                                .ifPresent(executor::sendMessage)
+                                ));
+            }, user("username"));
+            sub.addSyntax((ctx) -> {
+                final User user = ctx.getArgument("username", User.class);
+                final UUID version = ctx.getArgument("version", UUID.class);
+                final DumpType type = ctx.getArgument("type", DumpType.class);
+                dumpSnapshot(user(sub, ctx), user, version, type);
+            }, user("username"), versionUuid(), dumpType());
+        };
     }
 
     private <S> ArgumentElement<S, DumpType> dumpType() {
