@@ -10,7 +10,7 @@ dependencies {
 
     implementation 'net.william278.uniform:uniform-bukkit:1.3.1'
     implementation 'net.william278.uniform:uniform-paper:1.3.1'
-    implementation 'net.william278.toilet:toilet-bukkit:1.0.12'
+    implementation 'net.william278.toilet:toilet-bukkit:1.0.12-3509d3d'
     implementation 'net.william278:mpdbdataconverter:1.0.1'
     implementation 'net.william278:hsldataconverter:1.0'
     implementation 'net.william278:mapdataapi:2.0'
