@@ -375,6 +375,9 @@ public abstract class BukkitData implements Data {
 
         // Performs a consuming function for every advancement registered on the server
         private static void forEachAdvancement(@NotNull ThrowingConsumer<org.bukkit.advancement.Advancement> consumer) {
+            final StringJoiner joiner = new StringJoiner(", ");
+            Bukkit.getServer().advancementIterator().forEachRemaining(a -> joiner.add(a.toString()));
+            Bukkit.getLogger().log(Level.INFO, "Advancements: %s".formatted(joiner.toString()));
             Bukkit.getServer().advancementIterator().forEachRemaining(consumer);
         }
 
