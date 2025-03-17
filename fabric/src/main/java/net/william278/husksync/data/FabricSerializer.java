@@ -175,7 +175,7 @@ public abstract class FabricSerializer {
             final DynamicRegistryManager registryManager = plugin.getMinecraftServer().getRegistryManager();
             for (int i = 0; i < items.length; i++) {
                 final ItemStack item = items[i];
-                if (item == null || item.isEmpty()) {
+                if (item == null || item.isEmpty() || item.getCount() < 1 || item.getCount() > 99) {
                     continue;
                 }
 
