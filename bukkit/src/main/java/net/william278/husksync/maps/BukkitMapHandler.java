@@ -268,9 +268,14 @@ public interface BukkitMapHandler {
 
             // Read the pixel data and generate a map view otherwise
             getPlugin().debug("Deserializing map data from NBT and generating view...");
-            final MapData canvasData = Objects.requireNonNull(readMapData(originServerName, originalMapId), "Pixel data null!").getKey();
+            final @Nullable Map.Entry<MapData, Boolean> readMapData = readMapData(originServerName, originalMapId);
+            if (readMapData == null) {
+                getPlugin().debug("Read pixel data was not found in database, skipping...");
+                return;
+            }
 
             // Add a renderer to the map with the data and save to file
+            final MapData canvasData = Objects.requireNonNull(readMapData, "Pixel data null!").getKey();
             final MapView view = generateRenderedMap(canvasData);
             meta.setMapView(view);
             map.setItemMeta(meta);
