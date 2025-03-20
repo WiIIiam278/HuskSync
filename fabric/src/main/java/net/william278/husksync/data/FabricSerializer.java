@@ -39,6 +39,7 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -173,6 +174,7 @@ public abstract class FabricSerializer {
             container.putInt("size", items.length);
             final NbtList itemList = new NbtList();
             final DynamicRegistryManager registryManager = plugin.getMinecraftServer().getRegistryManager();
+            final List<ItemStack> skipped = new ArrayList<>();
             for (int i = 0; i < items.length; i++) {
                 final ItemStack item = items[i];
                 if (item == null || item.isEmpty() || item.getCount() < 1 || item.getCount() > 99) {
@@ -180,8 +182,15 @@ public abstract class FabricSerializer {
                 }
 
                 final NbtCompound entry = encodeNbt(item, registryManager);
+                if (entry == null) {
+                    skipped.add(item);
+                    continue;
+                }
                 entry.putInt("Slot", i);
                 itemList.add(entry);
+            }
+            if (!skipped.isEmpty()) {
+                plugin.debug("Skipped serializing items in array: %s".formatted(Arrays.toString(skipped.toArray())));
             }
             container.put(ITEMS_TAG, itemList);
             return container;
@@ -216,17 +225,21 @@ public abstract class FabricSerializer {
             ).getValue();
         }
 
-        @NotNull
+        @Nullable
         private NbtCompound encodeNbt(@NotNull ItemStack item, @NotNull DynamicRegistryManager registryManager) {
-            //#if MC==12104
-            return (NbtCompound) item.toNbt(registryManager);
-            //#elseif MC==12101
-            //$$ return (NbtCompound) item.encode(registryManager);
-            //#elseif MC==12001
-            //$$ final NbtCompound compound = new NbtCompound();
-            //$$ item.writeNbt(compound);
-            //$$ return compound;
-            //#endif
+            try {
+                //#if MC==12104
+                return (NbtCompound) item.toNbt(registryManager);
+                //#elseif MC==12101
+                //$$ return (NbtCompound) item.encode(registryManager);
+                //#elseif MC==12001
+                //$$ final NbtCompound compound = new NbtCompound();
+                //$$ item.writeNbt(compound);
+                //$$ return compound;
+                //#endif
+            } catch (Throwable e) {
+                return null;
+            }
         }
 
         @NotNull
