@@ -44,6 +44,10 @@ public class LockstepDataSyncer extends DataSyncer {
     @Override
     public void syncApplyUserData(@NotNull OnlineUser user) {
         this.listenForRedisData(user, () -> {
+            if (user.isOffline()) {
+                plugin.debug("Not applying data for offline user %s".formatted(user.getName()));
+                return false;
+            }
             if (getRedis().getUserCheckedOut(user).isPresent()) {
                 return false;
             }
