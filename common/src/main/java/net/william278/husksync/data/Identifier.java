@@ -22,6 +22,7 @@ package net.william278.husksync.data;
 import lombok.*;
 import net.kyori.adventure.key.InvalidKeyException;
 import net.kyori.adventure.key.Key;
+import net.kyori.adventure.key.KeyPattern;
 import org.intellij.lang.annotations.Subst;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -38,6 +39,9 @@ import java.util.stream.Stream;
  */
 @Getter
 public class Identifier {
+
+    // Namespace for built-in identifiers
+    private static final @KeyPattern String DEFAULT_NAMESPACE = "husksync";
 
     // Built-in identifiers
     public static final Identifier PERSISTENT_DATA = huskSync("persistent_data", true);
@@ -93,8 +97,8 @@ public class Identifier {
      */
     @NotNull
     public static Identifier from(@NotNull Key key, @NotNull Set<Dependency> dependencies) {
-        if (key.namespace().equals("husksync")) {
-            throw new IllegalArgumentException("You cannot register a key with \"husksync\" as the namespace!");
+        if (key.namespace().equals(DEFAULT_NAMESPACE)) {
+            throw new IllegalArgumentException("Cannot register with %s as key namespace!".formatted(key.namespace()));
         }
         return new Identifier(key, true, dependencies);
     }
@@ -143,7 +147,7 @@ public class Identifier {
     @NotNull
     private static Identifier huskSync(@Subst("null") @NotNull String name,
                                        boolean configDefault) throws InvalidKeyException {
-        return new Identifier(Key.key("husksync", name), configDefault, Collections.emptySet());
+        return new Identifier(Key.key(DEFAULT_NAMESPACE, name), configDefault, Collections.emptySet());
     }
 
     // Return an identifier with a HuskSync namespace
@@ -151,7 +155,7 @@ public class Identifier {
     private static Identifier huskSync(@Subst("null") @NotNull String name,
                                        @SuppressWarnings("SameParameterValue") boolean configDefault,
                                        @NotNull Dependency... dependents) throws InvalidKeyException {
-        return new Identifier(Key.key("husksync", name), configDefault, Set.of(dependents));
+        return new Identifier(Key.key(DEFAULT_NAMESPACE, name), configDefault, Set.of(dependents));
     }
 
     /**
@@ -209,13 +213,30 @@ public class Identifier {
      * @return {@code false} if {@link #getKeyNamespace()} returns "husksync"; {@code true} otherwise
      */
     public boolean isCustom() {
-        return !getKeyNamespace().equals("husksync");
+        return !getKeyNamespace().equals(DEFAULT_NAMESPACE);
+    }
+
+    /**
+     * Get the minimal string representation of this key.
+     * <p>
+     * If the namespace of the key is {@link #DEFAULT_NAMESPACE}, only the key value will be returned.
+     *
+     * @return the minimal string key representation
+     * @since 3.8
+     */
+    @NotNull
+    public String asMinimalString() {
+        if (getKey().namespace().equals(DEFAULT_NAMESPACE)) {
+            return getKey().value();
+        }
+        return getKey().asString();
     }
 
     /**
      * Returns the identifier as a string (the key)
      *
      * @return the identifier as a string
+     * @since 3.0
      */
     @NotNull
     @Override
@@ -224,19 +245,29 @@ public class Identifier {
     }
 
     /**
-     * Returns {@code true} if the given object is an identifier with the same key as this identifier
+     * Return whether this Identifier is equal to another Identifier
      *
-     * @param obj the object to compare
-     * @return {@code true} if the given object is an identifier with the same key as this identifier
+     * @param obj another object
+     * @return {@code true} if this identifier matches the identifier of {@code obj}
+     * @since 3.8
      */
     @Override
     public boolean equals(@Nullable Object obj) {
-        return obj instanceof Identifier other ? toString().equals(other.toString()) : super.equals(obj);
+        if (obj instanceof Identifier other) {
+            return asMinimalString().equals(other.asMinimalString());
+        }
+        return false;
     }
 
+    /**
+     * Get the hash code of the Identifier (equivalent to {@link #asMinimalString()}->{@code #hashCode()}
+     *
+     * @return the hash code
+     * @since 3.8
+     */
     @Override
     public int hashCode() {
-        return key.toString().hashCode();
+        return asMinimalString().hashCode();
     }
 
     // Get the config entry for the identifier

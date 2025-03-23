@@ -99,6 +99,7 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
     private final Map<Integer, MapView> mapViews = Maps.newConcurrentMap();
     private final List<Migrator> availableMigrators = Lists.newArrayList();
     private final Set<UUID> lockedPlayers = Sets.newConcurrentHashSet();
+    private final Set<UUID> disconnectingPlayers = Sets.newConcurrentHashSet();
 
     private boolean disabling;
     private Gson gson;

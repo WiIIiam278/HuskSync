@@ -44,6 +44,7 @@ public class PaperEventListener extends BukkitEventListener {
     }
 
     @Override
+    @SuppressWarnings("RedundantMethodOverride")
     public void onEnable() {
         getPlugin().getServer().getPluginManager().registerEvents(this, getPlugin());
         lockedHandler.onEnable();

@@ -25,25 +25,38 @@ import lombok.Getter;
 import lombok.Setter;
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.adapter.Adaptable;
+import net.william278.husksync.user.OnlineUser;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
 
+@Setter
 public class RedisMessage implements Adaptable {
 
+    private @Nullable String targetServer;
     @SerializedName("target_uuid")
-    private UUID targetUuid;
+    private @Nullable UUID targetUuid;
     @Getter
     @Setter
     @SerializedName("payload")
     private byte[] payload;
 
+    private RedisMessage(byte[] payload) {
+        setPayload(payload);
+    }
+
     private RedisMessage(@NotNull UUID targetUuid, byte[] message) {
+        this(message);
         this.setTargetUuid(targetUuid);
-        this.setPayload(message);
+    }
+
+    private RedisMessage(@NotNull String targetServer, byte[] message) {
+        this(message);
+        this.setTargetServer(targetServer);
     }
 
     @SuppressWarnings("unused")
@@ -53,6 +66,11 @@ public class RedisMessage implements Adaptable {
     @NotNull
     public static RedisMessage create(@NotNull UUID targetUuid, byte[] message) {
         return new RedisMessage(targetUuid, message);
+    }
+
+    @NotNull
+    public static RedisMessage create(@NotNull String targetServer, byte[] message) {
+        return new RedisMessage(targetServer, message);
     }
 
     @NotNull
@@ -67,20 +85,23 @@ public class RedisMessage implements Adaptable {
         ));
     }
 
-    @NotNull
-    public UUID getTargetUuid() {
-        return targetUuid;
+    public Optional<UUID> getTargetUuid() {
+        return Optional.ofNullable(targetUuid);
     }
 
-    public void setTargetUuid(@NotNull UUID targetUuid) {
-        this.targetUuid = targetUuid;
+    public Optional<OnlineUser> getTargetUser(@NotNull HuskSync plugin) {
+        return getTargetUuid().flatMap(plugin::getOnlineUser);
+    }
+
+    public boolean isTargetServer(@NotNull HuskSync plugin) {
+        return targetServer != null && targetServer.equals(plugin.getServerName());
     }
 
     public enum Type {
-
         UPDATE_USER_DATA,
         REQUEST_USER_DATA,
-        RETURN_USER_DATA;
+        RETURN_USER_DATA,
+        CHECK_IN_PETITION;
 
         @NotNull
         public String getMessageChannel(@NotNull String clusterId) {

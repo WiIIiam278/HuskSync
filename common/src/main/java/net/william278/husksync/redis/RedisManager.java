@@ -158,7 +158,7 @@ public class RedisManager extends JedisPubSub {
 
         final RedisMessage redisMessage = RedisMessage.fromJson(plugin, message);
         switch (messageType) {
-            case UPDATE_USER_DATA -> plugin.getOnlineUser(redisMessage.getTargetUuid()).ifPresent(
+            case UPDATE_USER_DATA -> redisMessage.getTargetUser(plugin).ifPresent(
                     user -> {
                         plugin.lockPlayer(user.getUuid());
                         try {
@@ -170,16 +170,30 @@ public class RedisManager extends JedisPubSub {
                         }
                     }
             );
-            case REQUEST_USER_DATA -> plugin.getOnlineUser(redisMessage.getTargetUuid()).ifPresent(
+            case REQUEST_USER_DATA -> redisMessage.getTargetUser(plugin).ifPresent(
                     user -> RedisMessage.create(
                             UUID.fromString(new String(redisMessage.getPayload(), StandardCharsets.UTF_8)),
                             user.createSnapshot(DataSnapshot.SaveCause.INVENTORY_COMMAND).asBytes(plugin)
                     ).dispatch(plugin, RedisMessage.Type.RETURN_USER_DATA)
             );
+            case CHECK_IN_PETITION -> {
+                if (!redisMessage.isTargetServer(plugin)) {
+                    return;
+                }
+                final String payload = new String(redisMessage.getPayload(), StandardCharsets.UTF_8);
+                final User user = new User(UUID.fromString(payload.split("/")[0]), payload.split("/")[1]);
+                boolean online = plugin.getDisconnectingPlayers().contains(user.getUuid())
+                        || plugin.getOnlineUser(user.getUuid()).isEmpty();
+                if (!online && !plugin.isLocked(user.getUuid())) {
+                    plugin.debug("[%s] Received check-in petition for online/unlocked user, ignoring".formatted(user.getName()));
+                    return;
+                }
+                plugin.getRedisManager().setUserCheckedOut(user, false);
+                plugin.debug("[%s] Received petition for offline user, checking them in".formatted(user.getName()));
+            }
             case RETURN_USER_DATA -> {
-                final CompletableFuture<Optional<DataSnapshot.Packed>> future = pendingRequests.get(
-                        redisMessage.getTargetUuid()
-                );
+                final UUID target = redisMessage.getTargetUuid().orElse(null);
+                final CompletableFuture<Optional<DataSnapshot.Packed>> future = pendingRequests.get(target);
                 if (future != null) {
                     try {
                         final DataSnapshot.Packed data = DataSnapshot.deserialize(plugin, redisMessage.getPayload());
@@ -188,7 +202,7 @@ public class RedisManager extends JedisPubSub {
                         plugin.log(Level.SEVERE, "An exception occurred returning user data from Redis", e);
                         future.complete(Optional.empty());
                     }
-                    pendingRequests.remove(redisMessage.getTargetUuid());
+                    pendingRequests.remove(target);
                 }
             }
         }
@@ -211,11 +225,17 @@ public class RedisManager extends JedisPubSub {
         }
     }
 
+    @Blocking
     public void sendUserDataUpdate(@NotNull User user, @NotNull DataSnapshot.Packed data) {
-        plugin.runAsync(() -> {
-            final RedisMessage redisMessage = RedisMessage.create(user.getUuid(), data.asBytes(plugin));
-            redisMessage.dispatch(plugin, RedisMessage.Type.UPDATE_USER_DATA);
-        });
+        final RedisMessage redisMessage = RedisMessage.create(user.getUuid(), data.asBytes(plugin));
+        redisMessage.dispatch(plugin, RedisMessage.Type.UPDATE_USER_DATA);
+    }
+
+    @Blocking
+    public void petitionServerCheckin(@NotNull String server, @NotNull User user) {
+        final RedisMessage redisMessage = RedisMessage.create(
+                server, "%s/%s".formatted(user.getUuid(), user.getName()).getBytes(StandardCharsets.UTF_8));
+        redisMessage.dispatch(plugin, RedisMessage.Type.CHECK_IN_PETITION);
     }
 
     public CompletableFuture<Optional<DataSnapshot.Packed>> getOnlineUserData(@NotNull UUID requestId, @NotNull User user,
@@ -421,7 +441,7 @@ public class RedisManager extends JedisPubSub {
         final long startTime = System.currentTimeMillis();
         try (Jedis jedis = jedisPool.getResource()) {
             jedis.ping();
-            return startTime - System.currentTimeMillis();
+            return System.currentTimeMillis() - startTime;
         }
     }
 

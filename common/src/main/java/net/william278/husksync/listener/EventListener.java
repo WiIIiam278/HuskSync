@@ -25,9 +25,7 @@ import net.william278.husksync.data.DataSnapshot;
 import net.william278.husksync.user.OnlineUser;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static net.william278.husksync.config.Settings.SynchronizationSettings.SaveOnDeathSettings;
 
@@ -49,6 +47,7 @@ public abstract class EventListener {
      * @param user The {@link OnlineUser} to handle
      */
     protected final void handlePlayerJoin(@NotNull OnlineUser user) {
+        plugin.getDisconnectingPlayers().remove(user.getUuid());
         if (user.isNpc()) {
             return;
         }
@@ -62,11 +61,17 @@ public abstract class EventListener {
      * @param user The {@link OnlineUser} to handle
      */
     protected final void handlePlayerQuit(@NotNull OnlineUser user) {
-        if (user.isNpc() || plugin.isDisabling() || plugin.isLocked(user.getUuid())) {
+        // Check the user is a user, the plugin isn't disabling, then mark as disconnecting
+        if (user.isNpc() || plugin.isDisabling()) {
             return;
         }
-        plugin.lockPlayer(user.getUuid());
-        plugin.getDataSyncer().syncSaveUserData(user);
+        plugin.getDisconnectingPlayers().add(user.getUuid());
+
+        // Lock, then save their data if the user is unlocked
+        if (!plugin.isLocked(user.getUuid())) {
+            plugin.lockPlayer(user.getUuid());
+            plugin.getDataSyncer().syncSaveUserData(user);
+        }
     }
 
     /**
@@ -79,7 +84,7 @@ public abstract class EventListener {
             return;
         }
         usersInWorld.stream()
-                .filter(user -> !plugin.isLocked(user.getUuid()) && !user.isNpc())
+                .filter(user -> !user.isNpc() && !user.hasDisconnected() && !plugin.isLocked(user.getUuid()))
                 .forEach(user -> plugin.getDataSyncer().saveCurrentUserData(
                         user, DataSnapshot.SaveCause.WORLD_SAVE
                 ));

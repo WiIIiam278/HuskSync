@@ -54,7 +54,6 @@ import net.william278.husksync.database.PostgresDatabase;
 import net.william278.husksync.event.FabricEventDispatcher;
 import net.william278.husksync.event.ModLoadedCallback;
 import net.william278.husksync.hook.PlanHook;
-import net.william278.husksync.listener.EventListener;
 import net.william278.husksync.listener.FabricEventListener;
 import net.william278.husksync.listener.LockedHandler;
 import net.william278.husksync.migrator.Migrator;
@@ -109,6 +108,7 @@ public class FabricHuskSync implements DedicatedServerModInitializer, HuskSync, 
     private final Map<String, Boolean> permissions = Maps.newHashMap();
     private final List<Migrator> availableMigrators = Lists.newArrayList();
     private final Set<UUID> lockedPlayers = Sets.newConcurrentHashSet();
+    private final Set<UUID> disconnectingPlayers = Sets.newConcurrentHashSet();
     private final Map<UUID, FabricUser> playerMap = Maps.newConcurrentMap();
 
     private Logger logger;

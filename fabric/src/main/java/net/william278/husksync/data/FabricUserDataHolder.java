@@ -34,29 +34,31 @@ public interface FabricUserDataHolder extends UserDataHolder {
 
     @Override
     default Optional<? extends Data> getData(@NotNull Identifier id) {
-        if (!id.isCustom()) {
-            try {
-                return switch (id.getKeyValue()) {
-                    case "inventory" -> getInventory();
-                    case "ender_chest" -> getEnderChest();
-                    case "potion_effects" -> getPotionEffects();
-                    case "advancements" -> getAdvancements();
-                    case "location" -> getLocation();
-                    case "statistics" -> getStatistics();
-                    case "health" -> getHealth();
-                    case "hunger" -> getHunger();
-                    case "attributes" -> getAttributes();
-                    case "experience" -> getExperience();
-                    case "game_mode" -> getGameMode();
-                    case "flight_status" -> getFlightStatus();
-                    case "persistent_data" -> getPersistentData();
-                    default -> throw new IllegalStateException(String.format("Unexpected data type: %s", id));
-                };
-            } catch (Throwable e) {
-                getPlugin().debug("Failed to get data for key: " + id.getKeyValue(), e);
-            }
+        if (id.isCustom()) {
+            return Optional.ofNullable(getCustomDataStore().get(id));
         }
-        return Optional.ofNullable(getCustomDataStore().get(id));
+
+        try {
+            return switch (id.getKeyValue()) {
+                case "inventory" -> getInventory();
+                case "ender_chest" -> getEnderChest();
+                case "potion_effects" -> getPotionEffects();
+                case "advancements" -> getAdvancements();
+                case "location" -> getLocation();
+                case "statistics" -> getStatistics();
+                case "health" -> getHealth();
+                case "hunger" -> getHunger();
+                case "attributes" -> getAttributes();
+                case "experience" -> getExperience();
+                case "game_mode" -> getGameMode();
+                case "flight_status" -> getFlightStatus();
+                case "persistent_data" -> getPersistentData();
+                default -> throw new IllegalStateException(String.format("Unexpected data type: %s", id));
+            };
+        } catch (Throwable e) {
+            getPlugin().debug("Failed to get data for key: " + id.asMinimalString(), e);
+            return Optional.empty();
+        }
     }
 
     @Override

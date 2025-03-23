@@ -24,6 +24,8 @@ import net.william278.husksync.data.DataSnapshot;
 import net.william278.husksync.user.OnlineUser;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Optional;
+
 public class LockstepDataSyncer extends DataSyncer {
 
     public LockstepDataSyncer(@NotNull HuskSync plugin) {
@@ -44,13 +46,19 @@ public class LockstepDataSyncer extends DataSyncer {
     @Override
     public void syncApplyUserData(@NotNull OnlineUser user) {
         this.listenForRedisData(user, () -> {
-            if (user.isOffline()) {
-                plugin.debug("Not applying data for offline user %s".formatted(user.getName()));
+            if (user.cannotApplySnapshot()) {
+                plugin.debug("Not checking data state for user who has gone offline: %s".formatted(user.getName()));
                 return false;
             }
-            if (getRedis().getUserCheckedOut(user).isPresent()) {
+
+            // If they are checked out, ask the server to check them back in and return false
+            final Optional<String> server = getRedis().getUserCheckedOut(user);
+            if (server.isPresent() && !server.get().equals(plugin.getServerName())) {
+//                getRedis().petitionServerCheckin(server.get(), user);
                 return false;
             }
+
+            // If they are checked in - or checked out on *this* server - we can apply their latest data
             getRedis().setUserCheckedOut(user, true);
             getRedis().getUserData(user).ifPresentOrElse(
                     data -> user.applySnapshot(data, DataSnapshot.UpdateCause.SYNCHRONIZED),
@@ -67,6 +75,7 @@ public class LockstepDataSyncer extends DataSyncer {
                 (user, data) -> {
                     getRedis().setUserData(user, data);
                     getRedis().setUserCheckedOut(user, false);
+                    plugin.unlockPlayer(user.getUuid());
                 }
         ));
     }

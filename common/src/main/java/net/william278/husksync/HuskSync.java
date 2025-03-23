@@ -20,6 +20,7 @@
 package net.william278.husksync;
 
 import com.fatboyindustrial.gsonjavatime.Converters;
+import com.google.common.collect.Maps;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import net.kyori.adventure.audience.Audience;
@@ -140,7 +141,7 @@ public interface HuskSync extends Task.Supplier, EventDispatcher, ConfigProvider
         if (getPlayerCustomDataStore().containsKey(user.getUuid())) {
             return getPlayerCustomDataStore().get(user.getUuid());
         }
-        final Map<Identifier, Data> data = new HashMap<>();
+        final Map<Identifier, Data> data = Maps.newHashMap();
         getPlayerCustomDataStore().put(user.getUuid(), data);
         return data;
     }
@@ -314,6 +315,12 @@ public interface HuskSync extends Task.Supplier, EventDispatcher, ConfigProvider
      */
     @NotNull
     Set<UUID> getLockedPlayers();
+
+    /**
+     * Get the set of UUIDs of players who are currently marked as disconnecting or disconnected
+     */
+    @NotNull
+    Set<UUID> getDisconnectingPlayers();
 
     default boolean isLocked(@NotNull UUID uuid) {
         return getLockedPlayers().contains(uuid);

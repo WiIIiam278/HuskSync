@@ -43,11 +43,27 @@ public abstract class OnlineUser extends User implements CommandUser, UserDataHo
     }
 
     /**
-     * Indicates if the player has gone offline
+     * Indicates if the player is offline
      *
      * @return {@code true} if the player has left the server; {@code false} otherwise
+     * @deprecated use {@code hasDisconnected} instead
      */
-    public abstract boolean isOffline();
+    @Deprecated(since = "3.8")
+    public boolean isOffline() {
+        return hasDisconnected();
+    }
+
+    public abstract boolean hasDisconnected();
+
+    // Users cannot have snapshots applied if they have disconnected!
+    @Override
+    public boolean cannotApplySnapshot() {
+        if (hasDisconnected()) {
+            getPlugin().debug("[%s] Cannot apply snapshot as user is offline!".formatted(getName()));
+            return true;
+        }
+        return false;
+    }
 
     @NotNull
     @Override
@@ -117,7 +133,7 @@ public abstract class OnlineUser extends User implements CommandUser, UserDataHo
 
 
     /**
-     * Set a player's status from a {@link DataSnapshot}
+     * Apply a {@link DataSnapshot} to a player, updating their data
      *
      * @param snapshot The {@link DataSnapshot} to set the player's status from
      * @param cause    The {@link DataSnapshot.UpdateCause} of the snapshot
@@ -125,14 +141,12 @@ public abstract class OnlineUser extends User implements CommandUser, UserDataHo
      */
     public void applySnapshot(@NotNull DataSnapshot.Packed snapshot, @NotNull DataSnapshot.UpdateCause cause) {
         getPlugin().fireEvent(getPlugin().getPreSyncEvent(this, snapshot), (event) -> {
-            if (!isOffline()) {
-                getPlugin().debug(String.format("Applying snapshot (%s) to %s (cause: %s)",
-                        snapshot.getShortId(), getName(), cause.getDisplayName()
-                ));
-                UserDataHolder.super.applySnapshot(
-                        event.getData(), (succeeded) -> completeSync(succeeded, cause, getPlugin())
-                );
-            }
+            getPlugin().debug(String.format("Attempting to apply snapshot (%s) to %s (cause: %s)",
+                    snapshot.getShortId(), getName(), cause.getDisplayName()
+            ));
+            UserDataHolder.super.applySnapshot(
+                    event.getData(), (succeeded) -> completeSync(succeeded, cause, getPlugin())
+            );
         });
     }
 

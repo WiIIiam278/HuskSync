@@ -64,8 +64,9 @@ public class FabricUser extends OnlineUser implements FabricUserDataHolder {
     }
 
     @Override
-    public boolean isOffline() {
-        return player == null || player.isDisconnected();
+    public boolean hasDisconnected() {
+        return getPlugin().getDisconnectingPlayers().contains(getUuid())
+                || player == null || player.isDisconnected();
     }
 
     @NotNull
@@ -79,7 +80,7 @@ public class FabricUser extends OnlineUser implements FabricUserDataHolder {
     public void sendToast(@NotNull MineDown title, @NotNull MineDown description, @NotNull String iconMaterial,
                           @NotNull String backgroundType) {
         plugin.log(Level.WARNING, "Toast notifications are deprecated. " +
-                                  "Please change your notification display slot to CHAT, ACTION_BAR or NONE.");
+                "Please change your notification display slot to CHAT, ACTION_BAR or NONE.");
         this.sendActionBar(title);
     }
 

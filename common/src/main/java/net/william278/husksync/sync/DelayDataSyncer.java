@@ -62,7 +62,10 @@ public class DelayDataSyncer extends DataSyncer {
             getRedis().setUserServerSwitch(onlineUser);
             saveData(
                     onlineUser, onlineUser.createSnapshot(DataSnapshot.SaveCause.DISCONNECT),
-                    (user, data) -> getRedis().setUserData(user, data)
+                    (user, data) -> {
+                        getRedis().setUserData(user, data);
+                        plugin.unlockPlayer(user.getUuid());
+                    }
             );
         });
     }

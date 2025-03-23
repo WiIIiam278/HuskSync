@@ -57,8 +57,9 @@ public class BukkitUser extends OnlineUser implements BukkitUserDataHolder {
     }
 
     @Override
-    public boolean isOffline() {
-        return player == null || !player.isOnline();
+    public boolean hasDisconnected() {
+        return getPlugin().getDisconnectingPlayers().contains(getUuid())
+                || player == null || !player.isOnline();
     }
 
     @Override

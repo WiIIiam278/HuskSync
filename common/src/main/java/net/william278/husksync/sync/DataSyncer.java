@@ -185,7 +185,7 @@ public abstract class DataSyncer {
         final AtomicReference<Task.Repeating> task = new AtomicReference<>();
         final AtomicBoolean processing = new AtomicBoolean(false);
         final Runnable runnable = () -> {
-            if (user.isOffline()) {
+            if (user.cannotApplySnapshot()) {
                 task.get().cancel();
                 return;
             }

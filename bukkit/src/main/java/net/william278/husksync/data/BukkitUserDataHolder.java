@@ -31,7 +31,11 @@ public interface BukkitUserDataHolder extends UserDataHolder {
 
     @Override
     default Optional<? extends Data> getData(@NotNull Identifier id) {
-        if (!id.isCustom()) {
+        if (id.isCustom()) {
+            return Optional.ofNullable(getCustomDataStore().get(id));
+        }
+
+        try {
             return switch (id.getKeyValue()) {
                 case "inventory" -> getInventory();
                 case "ender_chest" -> getEnderChest();
@@ -48,8 +52,10 @@ public interface BukkitUserDataHolder extends UserDataHolder {
                 case "persistent_data" -> getPersistentData();
                 default -> throw new IllegalStateException(String.format("Unexpected data type: %s", id));
             };
+        } catch (Throwable e) {
+            getPlugin().debug("Failed to get data for key: " + id.asMinimalString(), e);
+            return Optional.empty();
         }
-        return Optional.ofNullable(getCustomDataStore().get(id));
     }
 
     @Override
