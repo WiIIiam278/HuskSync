@@ -234,6 +234,20 @@ public class MongoDbDatabase extends Database {
         }
     }
 
+    @Override
+    public int getSnapshotCount(@NotNull User user, boolean includePinned) {
+        try {
+            Document filter = new Document("player_uuid", user.getUuid());
+            if (!includePinned) {
+                filter = filter.append("pinned", false);
+            }
+            return (int) mongoCollectionHelper.getCollection(userDataTable).countDocuments(filter);
+        } catch (MongoException e) {
+            plugin.log(Level.SEVERE, "Failed to fetch a user's current snapshot count", e);
+        }
+        return 0;
+    }
+
     @Blocking
     @Override
     public Optional<DataSnapshot.Packed> getSnapshot(@NotNull User user, @NotNull UUID versionUuid) {
@@ -259,17 +273,14 @@ public class MongoDbDatabase extends Database {
     @Override
     protected void rotateSnapshots(@NotNull User user) {
         try {
-            final List<DataSnapshot.Packed> unpinnedUserData = getAllSnapshots(user).stream()
-                    .filter(dataSnapshot -> !dataSnapshot.isPinned()).toList();
+            final int unpinnedSnapshots = getSnapshotCount(user, false);
             final int maxSnapshots = plugin.getSettings().getSynchronization().getMaxUserDataSnapshots();
-            if (unpinnedUserData.size() > maxSnapshots) {
-
+            if (unpinnedSnapshots > maxSnapshots) {
                 Document filter = new Document("player_uuid", user.getUuid()).append("pinned", false);
                 Document sort = new Document("timestamp", 1); // 1 = Ascending
                 FindIterable<Document> iterable = mongoCollectionHelper.getCollection(userDataTable)
-                        .find(filter)
-                        .sort(sort)
-                        .limit(unpinnedUserData.size() - maxSnapshots);
+                        .find(filter).sort(sort)
+                        .limit(unpinnedSnapshots - maxSnapshots);
 
                 for (Document doc : iterable) {
                     mongoCollectionHelper.deleteDocument(userDataTable, doc);

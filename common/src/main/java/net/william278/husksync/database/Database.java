@@ -24,6 +24,7 @@ import net.william278.husksync.HuskSync;
 import net.william278.husksync.config.Settings;
 import net.william278.husksync.data.DataSnapshot;
 import net.william278.husksync.user.User;
+import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.Blocking;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -68,7 +69,7 @@ public abstract class Database {
      * @return the formatted statement, with table placeholders replaced with the correct names
      */
     @NotNull
-    protected final String formatStatementTables(@NotNull String sql) {
+    protected final String formatStatementTables(@NotNull @Language("SQL") String sql) {
         final Settings.DatabaseSettings settings = plugin.getSettings().getDatabase();
         return sql.replaceAll("%users_table%", settings.getTableName(TableName.USERS))
                 .replaceAll("%user_data_table%", settings.getTableName(TableName.USER_DATA))
@@ -137,6 +138,16 @@ public abstract class Database {
     @Blocking
     @NotNull
     public abstract List<DataSnapshot.Packed> getAllSnapshots(@NotNull User user);
+
+    /**
+     * Get the number of {@link DataSnapshot}s a user has
+     *
+     * @param user          the user to count snapshots for
+     * @param includePinned whether to include pinned snapshots in the search
+     * @return the number of snapshots this user has saved
+     */
+    @Blocking
+    public abstract int getSnapshotCount(@NotNull User user, boolean includePinned);
 
     /**
      * Gets a specific {@link DataSnapshot} entry for a user from the database, by its UUID.
@@ -264,7 +275,7 @@ public abstract class Database {
      *
      * @param serverName Name of the server the map originates from
      * @param mapId      Original map ID
-     * @return           Map.Entry (key: map data, value: is from current world)
+     * @return Map.Entry (key: map data, value: is from current world)
      */
     @Blocking
     public abstract @Nullable Map.Entry<byte[], Boolean> getMapData(@NotNull String serverName, int mapId);
@@ -274,7 +285,7 @@ public abstract class Database {
      *
      * @param serverName Name of the server the map originates from
      * @param mapId      Original map ID
-     * @return           Map.Entry (key: server name, value: map ID)
+     * @return Map.Entry (key: server name, value: map ID)
      */
     @Blocking
     public abstract @Nullable Map.Entry<String, Integer> getMapBinding(@NotNull String serverName, int mapId);
@@ -296,7 +307,7 @@ public abstract class Database {
      * @param fromServerName Name of the server the map originates from
      * @param fromMapId      Original map ID
      * @param toServerName   Name of the new server
-     * @return               New map ID or -1 if not found
+     * @return New map ID or -1 if not found
      */
     @Blocking
     public abstract int getBoundMapId(@NotNull String fromServerName, int fromMapId, @NotNull String toServerName);
