@@ -305,14 +305,13 @@ public class MySqlDatabase extends Database {
     }
 
     @Override
-    public int getSnapshotCount(@NotNull User user, boolean includePinned) {
+    public int getUnpinnedSnapshotCount(@NotNull User user) {
         try (Connection connection = getConnection()) {
             try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
             SELECT COUNT(`version_uuid`)
-            FROM `%user_data_table%` AND `pinned`=false OR `pinned`=?
+            FROM `%user_data_table%` AND `pinned`=false
             WHERE `player_uuid`=?;"""))) {
                 statement.setString(1, user.getUuid().toString());
-                statement.setBoolean(2, includePinned);
                 final ResultSet resultSet = statement.executeQuery();
                 if (resultSet.next()) {
                     return resultSet.getInt(1);
@@ -356,7 +355,7 @@ public class MySqlDatabase extends Database {
     @Blocking
     @Override
     protected void rotateSnapshots(@NotNull User user) {
-        final int unpinnedSnapshots = getSnapshotCount(user, false);
+        final int unpinnedSnapshots = getUnpinnedSnapshotCount(user);
         final int maxSnapshots = plugin.getSettings().getSynchronization().getMaxUserDataSnapshots();
         if (unpinnedSnapshots > maxSnapshots) {
             try (Connection connection = getConnection()) {

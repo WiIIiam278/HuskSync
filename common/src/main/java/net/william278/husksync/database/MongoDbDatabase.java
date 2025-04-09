@@ -235,12 +235,9 @@ public class MongoDbDatabase extends Database {
     }
 
     @Override
-    public int getSnapshotCount(@NotNull User user, boolean includePinned) {
+    public int getUnpinnedSnapshotCount(@NotNull User user) {
         try {
-            Document filter = new Document("player_uuid", user.getUuid());
-            if (!includePinned) {
-                filter = filter.append("pinned", false);
-            }
+            Document filter = new Document("player_uuid", user.getUuid()).append("pinned", false);
             return (int) mongoCollectionHelper.getCollection(userDataTable).countDocuments(filter);
         } catch (MongoException e) {
             plugin.log(Level.SEVERE, "Failed to fetch a user's current snapshot count", e);
@@ -273,7 +270,7 @@ public class MongoDbDatabase extends Database {
     @Override
     protected void rotateSnapshots(@NotNull User user) {
         try {
-            final int unpinnedSnapshots = getSnapshotCount(user, false);
+            final int unpinnedSnapshots = getUnpinnedSnapshotCount(user);
             final int maxSnapshots = plugin.getSettings().getSynchronization().getMaxUserDataSnapshots();
             if (unpinnedSnapshots > maxSnapshots) {
                 Document filter = new Document("player_uuid", user.getUuid()).append("pinned", false);

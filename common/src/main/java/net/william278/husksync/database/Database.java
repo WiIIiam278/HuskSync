@@ -140,14 +140,13 @@ public abstract class Database {
     public abstract List<DataSnapshot.Packed> getAllSnapshots(@NotNull User user);
 
     /**
-     * Get the number of {@link DataSnapshot}s a user has
+     * Get the number of unpinned {@link DataSnapshot}s a user has
      *
-     * @param user          the user to count snapshots for
-     * @param includePinned whether to include pinned snapshots in the search
+     * @param user the user to count snapshots for
      * @return the number of snapshots this user has saved
      */
     @Blocking
-    public abstract int getSnapshotCount(@NotNull User user, boolean includePinned);
+    public abstract int getUnpinnedSnapshotCount(@NotNull User user);
 
     /**
      * Gets a specific {@link DataSnapshot} entry for a user from the database, by its UUID.
