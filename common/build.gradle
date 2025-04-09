@@ -25,7 +25,7 @@ dependencies {
     compileOnly 'org.jetbrains:annotations:26.0.2'
     compileOnly 'net.kyori:adventure-api:4.19.0'
     compileOnly 'net.kyori:adventure-platform-api:4.3.4'
-    compileOnly "net.kyori:adventure-text-serializer-plain:4.19.0"
+    compileOnly "net.kyori:adventure-text-serializer-plain:4.20.0"
     compileOnly 'com.google.guava:guava:33.4.6-jre'
     compileOnly 'com.github.plan-player-analytics:Plan:5.5.2272'
     compileOnly "redis.clients:jedis:$jedis_version"
