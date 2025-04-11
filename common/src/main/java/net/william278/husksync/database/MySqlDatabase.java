@@ -309,8 +309,8 @@ public class MySqlDatabase extends Database {
         try (Connection connection = getConnection()) {
             try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
             SELECT COUNT(`version_uuid`)
-            FROM `%user_data_table%` AND `pinned`=false
-            WHERE `player_uuid`=?;"""))) {
+            FROM `%user_data_table%`
+            WHERE `player_uuid`=? AND `pinned`=false;"""))) {
                 statement.setString(1, user.getUuid().toString());
                 final ResultSet resultSet = statement.executeQuery();
                 if (resultSet.next()) {
