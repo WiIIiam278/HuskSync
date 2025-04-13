@@ -40,7 +40,6 @@ import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Objects;
 import java.util.UUID;
 
 @Getter
@@ -124,7 +123,6 @@ public class BukkitLockedEventListener implements LockedHandler, Listener {
     private void cancelPlayerEvent(@NotNull UUID uuid, @NotNull Cancellable event) {
         if (cancelPlayerEvent(uuid)) {
             event.setCancelled(true);
-            plugin.debug("Cancelled event " + event.getClass().getSimpleName() + " from " + Objects.requireNonNull(plugin.getServer().getPlayer(uuid)).getName());
         }
     }
 
