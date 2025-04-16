@@ -31,7 +31,7 @@ import net.fabricmc.api.DedicatedServerModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
-//#if MC==12104
+//#if MC>=12104
 import net.kyori.adventure.platform.modcommon.MinecraftServerAudiences;
 //#else
 //$$ import net.kyori.adventure.platform.fabric.FabricServerAudiences;
@@ -100,6 +100,7 @@ public class FabricHuskSync implements DedicatedServerModInitializer, HuskSync, 
     private static final int VERSION1_21_1 = 3955;
     private static final int VERSION1_21_3 = 4082;
     private static final int VERSION1_21_4 = 4189; // Current
+    private static final int VERSION1_21_5 = 4323;
 
     private final TreeMap<Identifier, Serializer<? extends Data>> serializers = Maps.newTreeMap(
             SerializerRegistry.DEPENDENCY_ORDER_COMPARATOR
@@ -116,7 +117,7 @@ public class FabricHuskSync implements DedicatedServerModInitializer, HuskSync, 
     private MinecraftServer minecraftServer;
     private boolean disabling;
     private Gson gson;
-    //#if MC==12104
+    //#if MC>=12104
     private MinecraftServerAudiences audiences;
     //#else
     //$$ private FabricServerAudiences audiences;
@@ -167,7 +168,7 @@ public class FabricHuskSync implements DedicatedServerModInitializer, HuskSync, 
 
     private void onEnable() {
         // Audiences
-        //#if MC==12104
+        //#if MC>=12104
         this.audiences = MinecraftServerAudiences.of(minecraftServer);
         //#else
         //$$ this.audiences = FabricServerAudiences.of(minecraftServer);
@@ -387,7 +388,10 @@ public class FabricHuskSync implements DedicatedServerModInitializer, HuskSync, 
             case "1.21", "1.21.1" -> VERSION1_21_1;
             case "1.21.2", "1.21.3" -> VERSION1_21_3;
             case "1.21.4" -> VERSION1_21_4;
-            //#if MC==12104
+            case "1.21.5" -> VERSION1_21_5;
+            //#if MC==12105
+            //$$ default -> VERSION1_21_5;
+            //#elseif MC==12104
             default -> VERSION1_21_4;
             //#elseif MC==12101
             //$$ default -> VERSION1_21_1;

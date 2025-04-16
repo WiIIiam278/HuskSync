@@ -36,7 +36,7 @@ public class ServerWorldMixin {
     @Shadow
     private MinecraftServer server;
 
-    //#if MC==12104
+    //#if MC>=12104
     @Inject(method = "savePersistentState", at = @At("HEAD"))
     //#else
     //$$ @Inject(method = "saveLevel", at = @At("HEAD"))

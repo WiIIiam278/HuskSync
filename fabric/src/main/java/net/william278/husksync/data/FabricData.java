@@ -54,7 +54,7 @@ import net.william278.husksync.FabricHuskSync;
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.adapter.Adaptable;
 import net.william278.husksync.config.Settings.SynchronizationSettings.AttributeSettings;
-//#if MC==12104
+//#if MC>=12104
 import net.william278.husksync.mixins.HungerManagerMixin;
 //#endif
 import net.william278.husksync.user.FabricUser;
@@ -178,7 +178,7 @@ public abstract class FabricData implements Data {
             @Override
             public void apply(@NotNull FabricUser user, @NotNull FabricHuskSync plugin) throws IllegalStateException {
                 final ServerPlayerEntity player = user.getPlayer();
-                //#if MC==12104
+                //#if MC>=12104
                 player.playerScreenHandler.getCraftingInput().clear();
                 //#else
                 //$$ player.playerScreenHandler.clearCraftingSlots();
@@ -513,7 +513,7 @@ public abstract class FabricData implements Data {
             // Apply teleport
             try {
                 player.dismountVehicle();
-                //#if MC==12104
+                //#if MC>=12104
                 player.teleport(target, x, y, z, Set.of(), yaw, pitch, true);
                 //#else
                 //$$ player.teleport(target, x, y, z, yaw, pitch);
@@ -804,7 +804,7 @@ public abstract class FabricData implements Data {
         @NotNull
         public static FabricData.Hunger adapt(@NotNull ServerPlayerEntity player) {
             final HungerManager hunger = player.getHungerManager();
-            //#if MC==12104
+            //#if MC>=12104
             float exhaustion = ((HungerManagerMixin) hunger).getExhaustion();
             //#else
             //$$ float exhaustion = hunger.getExhaustion();
@@ -823,7 +823,7 @@ public abstract class FabricData implements Data {
             final HungerManager hunger = player.getHungerManager();
             hunger.setFoodLevel(foodLevel);
             hunger.setSaturationLevel(saturation);
-            //#if MC==12104
+            //#if MC>=12104
             ((HungerManagerMixin) hunger).setExhaustion(exhaustion);
             //#else
             //$$ hunger.setExhaustion(exhaustion);

@@ -126,7 +126,7 @@ public class FabricEventListener extends EventListener implements LockedHandler 
         return (cancelPlayerEvent(player.getUuid())) ? ActionResult.FAIL : ActionResult.PASS;
     }
 
-    //#if MC==12104
+    //#if MC>=12104
     private ActionResult handleItemInteract(PlayerEntity player, World world, Hand hand) {
         return (cancelPlayerEvent(player.getUuid())) ? ActionResult.FAIL : ActionResult.PASS;
     }

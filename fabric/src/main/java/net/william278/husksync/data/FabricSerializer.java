@@ -228,7 +228,7 @@ public abstract class FabricSerializer {
         @Nullable
         private NbtCompound encodeNbt(@NotNull ItemStack item, @NotNull DynamicRegistryManager registryManager) {
             try {
-                //#if MC==12104
+                //#if MC>=12104
                 return (NbtCompound) item.toNbt(registryManager);
                 //#elseif MC==12101
                 //$$ return (NbtCompound) item.encode(registryManager);

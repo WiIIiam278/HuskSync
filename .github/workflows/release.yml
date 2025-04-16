@@ -43,10 +43,12 @@ jobs:
             paper-1.20.1
             paper-1.21.1
             paper-1.21.4
+            paper-1.21.5
             fabric-1.20.1
             fabric-1.21.1
             fabric-1.21.4
           distro-groups: |
+            paper
             paper
             paper
             paper
@@ -57,6 +59,7 @@ jobs:
             Paper 1.20.1
             Paper 1.21.1
             Paper 1.21.4
+            Paper 1.21.5
             Fabric 1.20.1
             Fabric 1.21.1
             Fabric 1.21.4
@@ -64,6 +67,7 @@ jobs:
             target/HuskSync-Bukkit-${{ github.event.release.tag_name }}+mc.1.20.1.jar
             target/HuskSync-Bukkit-${{ github.event.release.tag_name }}+mc.1.21.1.jar
             target/HuskSync-Bukkit-${{ github.event.release.tag_name }}+mc.1.21.4.jar
+            target/HuskSync-Bukkit-${{ github.event.release.tag_name }}+mc.1.21.5.jar
             target/HuskSync-Fabric-${{ github.event.release.tag_name }}+mc.1.20.1.jar
             target/HuskSync-Fabric-${{ github.event.release.tag_name }}+mc.1.21.1.jar
             target/HuskSync-Fabric-${{ github.event.release.tag_name }}+mc.1.21.4.jar
