@@ -13,7 +13,7 @@ from tqdm import tqdm
 class Parameters:
     root_dir = './servers/'
     proxy_version = "3.4.0-SNAPSHOT"
-    minecraft_version = '1.21.4'
+    minecraft_version = '1.21.5'
     eula_agreement = 'true'
 
     backend_names = ['alpha', 'beta']
