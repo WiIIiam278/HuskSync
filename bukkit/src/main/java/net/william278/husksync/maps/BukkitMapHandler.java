@@ -22,6 +22,7 @@ package net.william278.husksync.maps;
 import com.google.common.collect.Lists;
 import de.tr7zw.changeme.nbtapi.NBT;
 import de.tr7zw.changeme.nbtapi.iface.ReadWriteNBT;
+import de.tr7zw.changeme.nbtapi.iface.ReadableItemNBT;
 import de.tr7zw.changeme.nbtapi.iface.ReadableNBT;
 import net.william278.husksync.BukkitHuskSync;
 import net.william278.husksync.redis.RedisManager;
@@ -43,7 +44,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.*;
 import java.util.function.Function;
@@ -53,6 +56,8 @@ public interface BukkitMapHandler {
 
     // The map used to store HuskSync data in ItemStack NBT
     String MAP_DATA_KEY = "husksync:persisted_locked_map";
+    // The legacy map key used to store pixel data (3.7.3 and below)
+    String MAP_LEGACY_PIXEL_DATA_KEY = "husksync:canvas_data";
     // Name of server the map originates from
     String MAP_ORIGIN_KEY = "origin";
     // Original map id
@@ -266,15 +271,18 @@ public interface BukkitMapHandler {
                 return;
             }
 
-            // Read the pixel data and generate a map view otherwise
+            // Read the pixel data from the ItemStack and generate a map view otherwise
             getPlugin().debug("Deserializing map data from NBT and generating view...");
-            final @Nullable Map.Entry<MapData, Boolean> readMapData = readMapData(originServerName, originalMapId);
+            @Nullable Map.Entry<MapData, Boolean> readMapData = readMapData(originServerName, originalMapId);
+            if (readMapData == null && nbt.hasTag(MAP_LEGACY_PIXEL_DATA_KEY)) {
+                readMapData = readLegacyMapItemData(nbt);
+            }
+
+            // If map data was found, add a renderer to the MapView
             if (readMapData == null) {
                 getPlugin().debug("Read pixel data was not found in database, skipping...");
                 return;
             }
-
-            // Add a renderer to the map with the data and save to file
             final MapData canvasData = Objects.requireNonNull(readMapData, "Pixel data null!").getKey();
             final MapView view = generateRenderedMap(canvasData);
             meta.setMapView(view);
@@ -295,16 +303,21 @@ public interface BukkitMapHandler {
             return;
         }
 
-        @Nullable final Map.Entry<MapData, Boolean> data = readMapData(getPlugin().getServerName(), view.getId());
+        // Read map data, or
+        @Nullable Map.Entry<MapData, Boolean> data = readMapData(getPlugin().getServerName(), view.getId());
+        if (data == null) {
+            data = readLegacyMapFileData(view.getId());
+        }
+
+        // Don't render maps with no data
         if (data == null) {
             final World world = view.getWorld() == null ? getDefaultMapWorld() : view.getWorld();
             getPlugin().debug("Not rendering map: no data in DB for world %s, map #%s."
                     .formatted(world.getName(), view.getId()));
             return;
         }
-
+        // Don't render persisted maps on this server
         if (data.getValue()) {
-            // from this server, doesn't need tweaking
             return;
         }
 
@@ -418,6 +431,36 @@ public interface BukkitMapHandler {
                 true,
                 banner.getText().isEmpty() ? null : banner.getText()
         );
+    }
+
+    // Legacy - read maps from item stacks
+    @Nullable
+    @Blocking
+    private Map.Entry<MapData, Boolean> readLegacyMapItemData(@NotNull ReadableItemNBT nbt) {
+        final int dataVer = getPlugin().getDataVersion(getPlugin().getMinecraftVersion());
+        try {
+            return new AbstractMap.SimpleImmutableEntry<>(MapData.fromByteArray(dataVer,
+                    Objects.requireNonNull(nbt.getByteArray(MAP_LEGACY_PIXEL_DATA_KEY))), false);
+        } catch (IOException e) {
+            getPlugin().log(Level.WARNING, "Failed to read legacy map data", e);
+            return null;
+        }
+    }
+
+    // Legacy - read maps from files
+    @Nullable
+    private Map.Entry<MapData, Boolean> readLegacyMapFileData(int mapId) {
+        final Path path = getPlugin().getDataFolder().toPath().resolve("maps").resolve(mapId + ".dat");
+        final File file = path.toFile();
+        if (!file.exists()) {
+            return null;
+        }
+        try {
+            return new AbstractMap.SimpleImmutableEntry<>(MapData.fromNbt(file), false);
+        } catch (IOException e) {
+            getPlugin().log(Level.WARNING, "Failed to read legacy map file", e);
+            return null;
+        }
     }
 
     /**
