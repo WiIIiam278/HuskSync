@@ -23,6 +23,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.gson.Gson;
+import de.tr7zw.changeme.nbtapi.NBT;
 import de.tr7zw.changeme.nbtapi.utils.DataFixerUtil;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -148,6 +149,12 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
 
         // Check compatibility
         checkCompatibility();
+
+        // Preload NBT-API
+        if (!NBT.preloadApi()) {
+            log(Level.SEVERE, "Failed to load NBT API. HuskSync will not be initialized!");
+            return;
+        }
 
         // Register commands
         initialize("commands", (plugin) -> getUniform().register(PluginCommand.Type.create(this)));
