@@ -102,11 +102,12 @@ public interface BukkitMapHandler {
             }
             if (item.getType() == Material.FILLED_MAP && item.hasItemMeta()) {
                 items[i] = function.apply(item);
-            } else if (item.getItemMeta() instanceof BlockStateMeta b && b.getBlockState() instanceof Container box) {
+            } else if (item.getItemMeta() instanceof BlockStateMeta b && b.getBlockState() instanceof Container box
+                    && !box.getInventory().isEmpty()) {
                 forEachMap(box.getInventory().getContents(), function);
                 b.setBlockState(box);
                 item.setItemMeta(b);
-            } else if (item.getItemMeta() instanceof BundleMeta bundle) {
+            } else if (item.getItemMeta() instanceof BundleMeta bundle && bundle.hasItems()) {
                 bundle.setItems(List.of(forEachMap(bundle.getItems().toArray(ItemStack[]::new), function)));
                 item.setItemMeta(bundle);
             }
