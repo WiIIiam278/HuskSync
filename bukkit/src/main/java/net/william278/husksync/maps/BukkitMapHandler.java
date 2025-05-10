@@ -266,10 +266,15 @@ public interface BukkitMapHandler {
             int newId = currentServerName.equals(originServerName)
                     ? originalMapId : getBoundMapId(originServerName, originalMapId, currentServerName);
             if (newId != -1) {
-                meta.setMapId(newId);
-                map.setItemMeta(meta);
-                getPlugin().debug(String.format("Map ID set to %s", newId));
-                return;
+                final MapView view = Bukkit.getMap(newId);
+                if (view != null) {
+                    meta.setMapView(view);
+                    meta.setMapId(newId);
+                    map.setItemMeta(meta);
+                    getPlugin().debug(String.format("Map ID set to #%s", newId));
+                    return;
+                }
+                getPlugin().debug(String.format("Map ID #%s not saved on this server, creating...", newId));
             }
 
             // Read the pixel data from the ItemStack and generate a map view otherwise
@@ -293,6 +298,7 @@ public interface BukkitMapHandler {
             final int id = view.getId();
             getRedisManager().bindMapIds(originServerName, originalMapId, currentServerName, id);
             getPlugin().getDatabase().setMapBinding(originServerName, originalMapId, currentServerName, id);
+            meta.setMapId(id);
 
             getPlugin().debug(String.format("Bound map to view (#%s) on server %s", id, currentServerName));
         });
