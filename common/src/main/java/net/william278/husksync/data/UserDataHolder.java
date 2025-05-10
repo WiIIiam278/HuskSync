@@ -26,7 +26,9 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
 
 /**
  * A holder of data in the form of {@link Data}s, which can be synced
@@ -46,7 +48,11 @@ public interface UserDataHolder extends DataHolder {
                 .filter(Identifier::isEnabled)
                 .map(id -> Map.entry(id, getData(id)))
                 .filter(data -> data.getValue().isPresent())
-                .collect(HashMap::new, (map, data) -> map.put(data.getKey(), data.getValue().get()), HashMap::putAll);
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        entry -> entry.getValue().get(),
+                        (a, b) -> a, HashMap::new
+                ));
     }
 
     /**

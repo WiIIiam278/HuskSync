@@ -38,7 +38,7 @@ import java.util.stream.Stream;
  * Identifiers of different types of {@link Data}s
  */
 @Getter
-public class Identifier {
+public class Identifier implements Comparable<Identifier> {
 
     // Namespace for built-in identifiers
     private static final @KeyPattern String DEFAULT_NAMESPACE = "husksync";
@@ -274,6 +274,14 @@ public class Identifier {
     @NotNull
     private Map.Entry<String, Boolean> getConfigEntry() {
         return Map.entry(getKeyValue(), enabledByDefault);
+    }
+
+    // Comparable; always sort this Identifier after any dependencies
+    @Override
+    public int compareTo(@NotNull Identifier o) {
+        if (this.dependsOn(o)) return 1;
+        if (o.dependsOn(this)) return -1;
+        return this.key.compareTo(o.key);
     }
 
     /**

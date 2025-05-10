@@ -31,7 +31,10 @@ public interface DataHolder {
     Map<Identifier, Data> getData();
 
     default Optional<? extends Data> getData(@NotNull Identifier id) {
-        return getData().entrySet().stream().filter(e -> e.getKey().equals(id)).map(Map.Entry::getValue).findFirst();
+        if (getData().containsKey(id)) {
+            return Optional.of(getData().get(id));
+        }
+        return Optional.empty();
     }
 
     default void setData(@NotNull Identifier identifier, @NotNull Data data) {

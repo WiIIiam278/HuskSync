@@ -406,7 +406,9 @@ public class DataSnapshot {
             return deserialized.entrySet().stream()
                     .collect(Collectors.toMap(
                             entry -> entry.getKey().toString(),
-                            entry -> plugin.serializeData(entry.getKey(), entry.getValue())
+                            entry -> plugin.serializeData(entry.getKey(), entry.getValue()),
+                            (a, b) -> a,
+                            HashMap::new
                     ));
         }
 
