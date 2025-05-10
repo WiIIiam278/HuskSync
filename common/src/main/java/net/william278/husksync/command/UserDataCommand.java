@@ -215,11 +215,17 @@ public class UserDataCommand extends PluginCommand {
 
     @NotNull
     private CommandProvider view() {
-        return (sub) -> sub.addSyntax((ctx) -> {
-            final User user = ctx.getArgument("username", User.class);
-            final UUID version = ctx.getArgument("version", UUID.class);
-            viewSnapshot(user(sub, ctx), user, version);
-        }, user("username"), versionUuid());
+        return (sub) -> {
+            sub.addSyntax((ctx) -> {
+                final User user = ctx.getArgument("username", User.class);
+                final UUID version = ctx.getArgument("version", UUID.class);
+                viewSnapshot(user(sub, ctx), user, version);
+            }, user("username"), versionUuid());
+            sub.addSyntax((ctx) -> {
+                final User user = ctx.getArgument("username", User.class);
+                viewLatestSnapshot(user(sub, ctx), user);
+            }, user("username"));
+        };
     }
 
     @NotNull
