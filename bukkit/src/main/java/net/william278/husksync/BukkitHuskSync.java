@@ -93,9 +93,7 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
     private static final int METRICS_ID = 13140;
     private static final String PLATFORM_TYPE_ID = "bukkit";
 
-    private final TreeMap<Identifier, Serializer<? extends Data>> serializers = Maps.newTreeMap(
-            SerializerRegistry.DEPENDENCY_ORDER_COMPARATOR
-    );
+    private final HashMap<Identifier, Serializer<? extends Data>> serializers = Maps.newHashMap();
     private final Map<UUID, Map<Identifier, Data>> playerCustomDataStore = Maps.newConcurrentMap();
     private final Map<Integer, MapView> mapViews = Maps.newConcurrentMap();
     private final List<Migrator> availableMigrators = Lists.newArrayList();

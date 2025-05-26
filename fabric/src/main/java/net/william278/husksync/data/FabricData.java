@@ -49,7 +49,6 @@ import net.minecraft.stat.StatType;
 import net.minecraft.stat.Stats;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
-import net.minecraft.world.GameMode;
 import net.william278.desertwell.util.ThrowingConsumer;
 import net.william278.husksync.FabricHuskSync;
 import net.william278.husksync.HuskSync;
@@ -557,13 +556,13 @@ public abstract class FabricData implements Data {
                 // This is necessary to prevent weird re-mappings with Registry#getKey()
                 //#if MC>0
                 //$$ final Registry<?> registry = stat.getValue().getRegistry();
-                //$$ final String registryId = registry.getKey().getValue().toString();
+                //$$ final String registryId = registry.getKey().getValue().value();
                 //$$ if (registryId.equals("custom_stat")) {
                 //$$    return;
                 //$$ }
                 //#else
                 final Registry<?> registry = stat.getValue().getRegistry();
-                final String registryId = registry.getKey().getValue().toString();
+                final String registryId = registry.getKey().getValue().value();
                 if (registryId.equals("custom_stat")) {
                     return;
                 }

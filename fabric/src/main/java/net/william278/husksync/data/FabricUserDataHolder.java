@@ -108,8 +108,8 @@ public interface FabricUserDataHolder extends UserDataHolder {
         //#else
         final ItemStack[] combined = new ItemStack[inv.size()];
         int slot = 0;
-        while (inv.iterator().hasNext()) {
-            combined[slot] = inv.iterator().next();
+        for (ItemStack itemStack : inv) {
+            combined[slot] = itemStack;
             slot++;
         }
         return combined;

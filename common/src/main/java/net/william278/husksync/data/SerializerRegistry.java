@@ -26,6 +26,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
 
 public interface SerializerRegistry {
 
@@ -40,7 +41,7 @@ public interface SerializerRegistry {
      * @since 3.0
      */
     @NotNull
-    <T extends Data> TreeMap<Identifier, Serializer<T>> getSerializers();
+    <T extends Data> Map<Identifier, Serializer<T>> getSerializers();
 
     /**
      * Register a data serializer for the given {@link Identifier}
@@ -87,8 +88,7 @@ public interface SerializerRegistry {
      * @since 3.0
      */
     default Optional<Identifier> getIdentifier(@NotNull String key) {
-        return getSerializers().keySet().stream()
-                .filter(id -> id.getKey().asString().equals(key)).findFirst();
+        return getSerializers().keySet().stream().filter(e -> e.toString().equals(key)).findFirst();
     }
 
     /**
@@ -99,9 +99,7 @@ public interface SerializerRegistry {
      * @since 3.5.4
      */
     default Optional<Serializer<Data>> getSerializer(@NotNull Identifier identifier) {
-        return getSerializers().entrySet().stream()
-                .filter(entry -> entry.getKey().getKey().equals(identifier.getKey()))
-                .map(Map.Entry::getValue).findFirst();
+        return Optional.ofNullable(getSerializers().get(identifier));
     }
 
     /**
@@ -153,14 +151,14 @@ public interface SerializerRegistry {
     }
 
     /**
-     * Get the set of registered data types
+     * Get the list of registered data types, in dependency order
      *
-     * @return the set of registered data types
+     * @return the list of registered data types
      * @since 3.0
      */
     @NotNull
-    default Set<Identifier> getRegisteredDataTypes() {
-        return getSerializers().keySet();
+    default List<Identifier> getRegisteredDataTypes() {
+        return getSerializers().keySet().stream().sorted(DEPENDENCY_ORDER_COMPARATOR).toList();
     }
 
     // Returns if a data type is available and enabled in the config

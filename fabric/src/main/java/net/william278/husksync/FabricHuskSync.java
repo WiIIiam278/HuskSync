@@ -102,9 +102,7 @@ public class FabricHuskSync implements DedicatedServerModInitializer, HuskSync, 
     private static final int VERSION1_21_4 = 4189; // Current
     private static final int VERSION1_21_5 = 4323;
 
-    private final TreeMap<Identifier, Serializer<? extends Data>> serializers = Maps.newTreeMap(
-            SerializerRegistry.DEPENDENCY_ORDER_COMPARATOR
-    );
+    private final HashMap<Identifier, Serializer<? extends Data>> serializers = Maps.newHashMap();
     private final Map<UUID, Map<Identifier, Data>> playerCustomDataStore = Maps.newConcurrentMap();
     private final Map<String, Boolean> permissions = Maps.newHashMap();
     private final List<Migrator> availableMigrators = Lists.newArrayList();
