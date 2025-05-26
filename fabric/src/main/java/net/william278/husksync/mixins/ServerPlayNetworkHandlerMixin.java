@@ -71,7 +71,11 @@ public abstract class ServerPlayNetworkHandlerMixin {
 
     @Inject(method = "onClickSlot", at = @At("HEAD"), cancellable = true)
     public void onClickSlot(ClickSlotC2SPacket packet, CallbackInfo ci) {
-        int slot = packet.getSlot();
+        //#if MC<12105
+        //$$ int slot = packet.getSlot();
+        //#else
+        int slot = packet.slot();
+        //#endif
         if (slot < 0) {
             return;
         }

@@ -79,27 +79,41 @@ public interface FabricUserDataHolder extends UserDataHolder {
         final PlayerInventory inventory = getPlayer().getInventory();
         return Optional.of(FabricData.Items.Inventory.from(
                 getCombinedInventory(inventory),
-                inventory.selectedSlot
+                //#if MC<12105
+                //$$ inventory.selectedSlot
+                //#else
+                inventory.getSelectedSlot()
+                //#endif
         ));
     }
 
     // Gets the player's combined inventory; their inventory, plus offhand and armor.
     @Nullable
     private ItemStack @NotNull [] getCombinedInventory(@NotNull PlayerInventory inv) {
-        final ItemStack[] combined = new ItemStack[inv.main.size() + inv.armor.size() + inv.offHand.size()];
-        System.arraycopy(
-                inv.main.toArray(new ItemStack[0]), 0, combined,
-                0, inv.main.size()
-        );
-        System.arraycopy(
-                inv.armor.toArray(new ItemStack[0]), 0, combined,
-                inv.main.size(), inv.armor.size()
-        );
-        System.arraycopy(
-                inv.offHand.toArray(new ItemStack[0]), 0, combined,
-                inv.main.size() + inv.armor.size(), inv.offHand.size()
-        );
+        //#if MC<12105
+        //$$ final ItemStack[] combined = new ItemStack[inv.main.size() + inv.armor.size() + inv.offHand.size()];
+        //$$ System.arraycopy(
+        //$$         inv.main.toArray(new ItemStack[0]), 0, combined,
+        //$$         0, inv.main.size()
+        //$$ );
+        //$$ System.arraycopy(
+        //$$         inv.armor.toArray(new ItemStack[0]), 0, combined,
+        //$$         inv.main.size(), inv.armor.size()
+        //$$ );
+        //$$ System.arraycopy(
+        //$$         inv.offHand.toArray(new ItemStack[0]), 0, combined,
+        //$$         inv.main.size() + inv.armor.size(), inv.offHand.size()
+        //$$ );
+        //$$ return combined;
+        //#else
+        final ItemStack[] combined = new ItemStack[inv.size()];
+        int slot = 0;
+        while (inv.iterator().hasNext()) {
+            combined[slot] = inv.iterator().next();
+            slot++;
+        }
         return combined;
+        //#endif
     }
 
     @NotNull

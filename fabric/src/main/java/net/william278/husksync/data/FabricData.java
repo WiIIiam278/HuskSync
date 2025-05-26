@@ -49,6 +49,7 @@ import net.minecraft.stat.StatType;
 import net.minecraft.stat.Stats;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
+import net.minecraft.world.GameMode;
 import net.william278.desertwell.util.ThrowingConsumer;
 import net.william278.husksync.FabricHuskSync;
 import net.william278.husksync.HuskSync;
@@ -188,7 +189,11 @@ public abstract class FabricData implements Data {
                 for (int slot = 0; slot < player.getInventory().size(); slot++) {
                     player.getInventory().setStack(slot, items[slot] == null ? ItemStack.EMPTY : items[slot]);
                 }
-                player.getInventory().selectedSlot = heldItemSlot;
+                //#if MC<12105
+                //$$ player.getInventory().selectedSlot = heldItemSlot;
+                //#else
+                player.getInventory().setSelectedSlot(heldItemSlot);
+                //#endif
                 player.playerScreenHandler.sendContentUpdates();
                 player.getInventory().updateItems();
             }
@@ -888,7 +893,11 @@ public abstract class FabricData implements Data {
 
         @Override
         public void apply(@NotNull FabricUser user, @NotNull FabricHuskSync plugin) throws IllegalStateException {
-            user.getPlayer().changeGameMode(net.minecraft.world.GameMode.byName(gameMode));
+            //#if MC<12105
+            //$$ user.getPlayer().changeGameMode(net.minecraft.world.GameMode.byName(gameMode));
+            //#else
+            user.getPlayer().changeGameMode(net.minecraft.world.GameMode.byId(gameMode));
+            //#endif
         }
 
     }
