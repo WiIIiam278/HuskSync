@@ -26,7 +26,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
@@ -127,7 +126,7 @@ public interface UserDataHolder extends DataHolder {
             }
 
             try {
-                for (Map.Entry<Identifier, Data> entry : unpacked.getData().entrySet()) {
+                for (Map.Entry<Identifier, Data> entry : unpacked.getSortedIterable()) {
                     final Identifier identifier = entry.getKey();
                     if (!identifier.isEnabled()) {
                         continue;

@@ -93,5 +93,9 @@ shadowJar {
 tasks {
     runServer {
         minecraftVersion(project.name)
+
+        downloadPlugins {
+            github("plan-player-analytics", "Plan", "5.6.2965", "Plan-5.6-build-2965.jar")
+        }
     }
 }
