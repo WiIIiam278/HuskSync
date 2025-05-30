@@ -32,5 +32,5 @@ This plugin does not support the following software-Minecraft version combinatio
 ## Incompatible plugins / mods
 Please note the following plugins / mods can cause issues with HuskSync:
 
-* Restart plugins / mods are not supported. These will cause [player data to not save correctly when your server restarts](troubleshooting#issues-with-player-data-going-out-of-sync-during-a-server-restart) due to the way these plugins utilise bash scripts. It's important to understand that restart plugins don't actually restart yur server, they just trigger some (often unstable) process-killing scripting logic to occur!
+* Restart plugins / mods are not supported. These will cause [player data to not save correctly when your server restarts](troubleshooting#issues-with-player-data-going-out-of-sync-during-a-server-restart) due to the way these plugins utilise bash scripts. It's important to understand that restart plugins don't actually restart your server, they just trigger some (often unstable) process-killing scripting logic to occur!
 * Combat logging plugins / mods are not supported. Some have built-in support for HuskSync and should work as expected, but for others you may wish to modify the [[Event Priorities]]
