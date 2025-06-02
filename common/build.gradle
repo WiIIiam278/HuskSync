@@ -17,7 +17,7 @@ dependencies {
         exclude module: 'slf4j-api'
     }
 
-    compileOnlyApi 'net.william278.toilet:toilet-common:1.0.13'
+    compileOnlyApi 'net.william278.toilet:toilet-common:1.0.13-9605517'
 
     compileOnly 'net.william278.uniform:uniform-common:1.3.3'
     compileOnly 'com.mojang:brigadier:1.1.8'
