@@ -16,10 +16,15 @@ To configure Redis, navigate to your [`config.yml`](Config-File) file and modify
 ```yaml
 # Redis settings
 redis:
-  # Specify the credentials of your Redis server here. Set "password" to '' if you don't have one
+  # Specify the credentials of your Redis server here.
+  # Set "user" to '' if you don't have one or would like to use the default user.
+  # Set "password" to '' if you don't have one.
   credentials:
     host: localhost
     port: 6379
+    # Only change the database if you know what you are doing. The default is 0.
+    database: 0
+    user: ''
     password: ''
     use_ssl: false
   # Options for if you're using Redis sentinel. Don't modify this unless you know what you're doing!
@@ -33,8 +38,9 @@ redis:
 </details>
 
 ### Credentials
-Enter the hostname, port, and default user password of your Redis server.
+Enter the hostname, port, user, and password of your Redis server.
 
+If you don't have a Redis user, just use the default user password and leave the user field empty (`user: ''`).
 If your Redis default user doesn't have a password, leave the password field blank (`password: ''`') and the plugin will attempt to connect without a password.
 
 ### Default user password

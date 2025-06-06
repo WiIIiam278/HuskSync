@@ -65,10 +65,15 @@ database:
     user_data: husksync_user_data
 # Redis settings
 redis:
-  # Specify the credentials of your Redis server here. Set "password" to '' if you don't have one
+  # Specify the credentials of your Redis server here.
+  # Set "user" to '' if you don't have one or would like to use the default user.
+  # Set "password" to '' if you don't have one.
   credentials:
     host: localhost
     port: 6379
+    # Only change the database if you know what you are doing. The default is 0.
+    database: 0
+    user: ''
     password: ''
     use_ssl: false
   # Options for if you're using Redis sentinel. Don't modify this unless you know what you're doing!
