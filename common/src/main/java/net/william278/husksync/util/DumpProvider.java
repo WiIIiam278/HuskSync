@@ -100,6 +100,8 @@ public interface DumpProvider {
                         Map.entry("Redis Version", StatusLine.REDIS_VERSION.getValue(getPlugin())),
                         Map.entry("Redis Latency", StatusLine.REDIS_LATENCY.getValue(getPlugin())),
                         Map.entry("Redis Sentinel", StatusLine.USING_REDIS_SENTINEL.getValue(getPlugin())),
+                        Map.entry("Redis Database", StatusLine.REDIS_DATABASE.getValue(getPlugin())),
+                        Map.entry("Redis User", StatusLine.USING_REDIS_USER.getValue(getPlugin())),
                         Map.entry("Redis Password", StatusLine.USING_REDIS_PASSWORD.getValue(getPlugin())),
                         Map.entry("Redis SSL", StatusLine.REDIS_USING_SSL.getValue(getPlugin())),
                         Map.entry("Redis Local", StatusLine.IS_REDIS_LOCAL.getValue(getPlugin()))

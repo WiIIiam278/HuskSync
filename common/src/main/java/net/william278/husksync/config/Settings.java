@@ -159,7 +159,9 @@ public class Settings {
     @NoArgsConstructor(access = AccessLevel.PRIVATE)
     public static class RedisSettings {
 
-        @Comment("Specify the credentials of your Redis server here. Set \"password\" to '' if you don't have one")
+        @Comment({"Specify the credentials of your Redis server here.",
+                "Set \"user\" to '' if you don't have one or would like to use the default user.",
+                "Set \"password\" to '' if you don't have one."})
         private RedisCredentials credentials = new RedisCredentials();
 
         @Getter
@@ -168,6 +170,9 @@ public class Settings {
         public static class RedisCredentials {
             private String host = "localhost";
             private int port = 6379;
+            @Comment("Only change the database if you know what you are doing. The default is 0.")
+            private int database = 0;
+            private String user = "";
             private String password = "";
             private boolean useSsl = false;
         }
