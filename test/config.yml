@@ -66,6 +66,9 @@ redis:
   credentials:
     host: localhost
     port: 6379
+    # Only change the database if you know what you are doing. The default is 0.
+    database: 0
+    user: ''
     password: ''
     use_ssl: false
 

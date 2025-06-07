@@ -60,6 +60,10 @@ public enum StatusLine {
     USING_REDIS_SENTINEL(plugin -> getBoolean(
             !plugin.getSettings().getRedis().getSentinel().getMaster().isBlank()
     )),
+    REDIS_DATABASE(plugin -> Component.text(plugin.getSettings().getRedis().getCredentials().getDatabase())),
+    USING_REDIS_USER(plugin -> getBoolean(
+            !plugin.getSettings().getRedis().getCredentials().getUser().isBlank()
+    )),
     USING_REDIS_PASSWORD(plugin -> getBoolean(
             !plugin.getSettings().getRedis().getCredentials().getPassword().isBlank()
     )),
