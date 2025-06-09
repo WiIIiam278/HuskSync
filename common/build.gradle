@@ -23,7 +23,7 @@ dependencies {
     compileOnly 'com.mojang:brigadier:1.1.8'
     compileOnly 'org.projectlombok:lombok:1.18.38'
     compileOnly 'org.jetbrains:annotations:26.0.2'
-    compileOnly 'net.kyori:adventure-api:4.20.0'
+    compileOnly 'net.kyori:adventure-api:4.21.0'
     compileOnly 'net.kyori:adventure-platform-api:4.4.0'
     compileOnly "net.kyori:adventure-text-serializer-plain:4.21.0"
     compileOnly 'com.google.guava:guava:33.4.8-jre'
