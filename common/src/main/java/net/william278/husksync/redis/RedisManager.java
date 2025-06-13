@@ -177,7 +177,8 @@ public class RedisManager extends JedisPubSub {
                     ).dispatch(plugin, RedisMessage.Type.RETURN_USER_DATA)
             );
             case CHECK_IN_PETITION -> {
-                if (!redisMessage.isTargetServer(plugin)) {
+                if (!redisMessage.isTargetServer(plugin)
+                        || !plugin.getSettings().getSynchronization().isCheckinPetitions()) {
                     return;
                 }
                 final String payload = new String(redisMessage.getPayload(), StandardCharsets.UTF_8);

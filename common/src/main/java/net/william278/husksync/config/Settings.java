@@ -150,7 +150,7 @@ public class Settings {
         }
     }
 
-    // 𝓡𝓮𝓭𝓲𝓼 settings
+    // Redis settings
     @Comment("Redis settings")
     private RedisSettings redis = new RedisSettings();
 
@@ -320,6 +320,9 @@ public class Settings {
         @Comment("Event priorities for listeners (HIGHEST, NORMAL, LOWEST). Change if you encounter plugin conflicts")
         @Getter(AccessLevel.NONE)
         private Map<String, String> eventPriorities = EventListener.ListenerType.getDefaults();
+
+        @Comment("Enable checkin petitions for data syncing (experimental)")
+        private boolean checkinPetitions = false;
 
         public boolean doAutoPin(@NotNull DataSnapshot.SaveCause cause) {
             return autoPinnedSaveCauses.contains(cause.name());
