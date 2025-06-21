@@ -259,22 +259,25 @@ public interface BukkitMapHandler {
                 return;
             }
 
-            // Determine map ID
+            // Determine map ID and set it
             final String originServerName = mapData.getString(MAP_ORIGIN_KEY);
             final String currentServerName = getPlugin().getServerName();
+            final boolean isOnOrigin = currentServerName.equals(originServerName);
             final int originalMapId = mapData.getInteger(MAP_ID_KEY);
-            int newId = currentServerName.equals(originServerName)
-                    ? originalMapId : getBoundMapId(originServerName, originalMapId, currentServerName);
+            int newId = isOnOrigin ? originalMapId : getBoundMapId(originServerName, originalMapId, currentServerName);
             if (newId != -1) {
-                final MapView view = Bukkit.getMap(newId);
-                if (view != null) {
-                    meta.setMapView(view);
-                    meta.setMapId(newId);
-                    map.setItemMeta(meta);
+                meta.setMapId(newId);
+                if (isOnOrigin) {
+                    meta.setMapView(Bukkit.getMap(newId));
+                    getPlugin().debug(String.format("Map ID set to original ID #%s", newId));
+                    return;
+                }
+                final Optional<MapView> view = getMapView(newId);
+                if (view.isPresent()) {
+                    meta.setMapView(view.get());
                     getPlugin().debug(String.format("Map ID set to #%s", newId));
                     return;
                 }
-                getPlugin().debug(String.format("Map ID #%s not saved on this server, creating...", newId));
             }
 
             // Read the pixel data from the ItemStack and generate a map view otherwise
