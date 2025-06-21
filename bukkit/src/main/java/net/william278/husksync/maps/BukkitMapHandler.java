@@ -254,114 +254,125 @@ public interface BukkitMapHandler {
             if (!nbt.hasTag(MAP_DATA_KEY)) {
                 return;
             }
+
             final ReadableNBT mapData = nbt.getCompound(MAP_DATA_KEY);
             if (mapData == null) {
                 return;
             }
 
-            // Determine map ID and set it
-            final String originServerName = mapData.getString(MAP_ORIGIN_KEY);
-            final String currentServerName = getPlugin().getServerName();
-            final boolean isOnOrigin = currentServerName.equals(originServerName);
-            final int originalMapId = mapData.getInteger(MAP_ID_KEY);
-            int newId = isOnOrigin ? originalMapId : getBoundMapId(originServerName, originalMapId, currentServerName);
+            // Server the map was originally created on, and the current server. If they match, isOrigin is true.
+            final String originServer = mapData.getString(MAP_ORIGIN_KEY);
+            final String currentServer = getPlugin().getServerName();
+            final boolean isOrigin = currentServer.equals(originServer);
+
+            // Determine the map's ID on its origin server, and the new ID it should be bound to here.
+            // Then, update the map item / data accordingly (re-rendering and caching the map if needed)
+            final int originalId = mapData.getInteger(MAP_ID_KEY);
+            int newId = isOrigin ? originalId : getBoundMapId(originServer, originalId, currentServer);
             if (newId != -1) {
-                meta.setMapId(newId);
-                if (isOnOrigin) {
-                    meta.setMapView(Bukkit.getMap(newId));
-                    getPlugin().debug(String.format("Map ID set to original ID #%s", newId));
-                    return;
-                }
-                final Optional<MapView> view = getMapView(newId);
-                if (view.isPresent()) {
-                    meta.setMapView(view.get());
-                    getPlugin().debug(String.format("Map ID set to #%s", newId));
-                    return;
-                }
+                handleBoundMap(meta, nbt, originServer, originalId, newId, isOrigin);
+            } else {
+                handleUnboundMap(meta, nbt, originServer, originalId, currentServer);
             }
 
-            // Read the pixel data from the ItemStack and generate a map view otherwise
-            getPlugin().debug("Deserializing map data from NBT and generating view...");
-            @Nullable Map.Entry<MapData, Boolean> readMapData = readMapData(originServerName, originalMapId);
-            if (readMapData == null && nbt.hasTag(MAP_LEGACY_PIXEL_DATA_KEY)) {
-                readMapData = readLegacyMapItemData(nbt);
-            }
-
-            // If map data was found, add a renderer to the MapView
-            if (readMapData == null) {
-                getPlugin().debug("Read pixel data was not found in database, skipping...");
-                return;
-            }
-            final MapData canvasData = Objects.requireNonNull(readMapData, "Pixel data null!").getKey();
-            final MapView view = generateRenderedMap(canvasData);
-            meta.setMapView(view);
             map.setItemMeta(meta);
-
-            // Bind in the database & Redis
-            final int id = view.getId();
-            getRedisManager().bindMapIds(originServerName, originalMapId, currentServerName, id);
-            getPlugin().getDatabase().setMapBinding(originServerName, originalMapId, currentServerName, id);
-            meta.setMapId(id);
-
-            getPlugin().debug(String.format("Bound map to view (#%s) on server %s", id, currentServerName));
         });
         return map;
     }
 
-    default void renderPersistedMap(@NotNull MapView view) {
-        if (getMapView(view.getId()).isPresent()) {
+    private void handleBoundMap(@NotNull MapMeta meta, @NotNull ReadableItemNBT nbt, @NotNull String originServer,
+                                int originalId, int newId, boolean isOrigin) {
+        MapView view = Bukkit.getMap(newId);
+        if (isOrigin && view != null) {
+            meta.setMapView(view);
+            getPlugin().debug("Map ID set to original ID #%s".formatted(newId));
             return;
         }
 
-        // Read map data, or
-        @Nullable Map.Entry<MapData, Boolean> data = readMapData(getPlugin().getServerName(), view.getId());
+        Optional<MapView> optionalView = getMapView(newId);
+        if (optionalView.isPresent()) {
+            meta.setMapView(optionalView.get());
+            getPlugin().debug("Map ID set to #%s".formatted(newId));
+            return;
+        }
+
+        getPlugin().debug("Deserializing map data from NBT and generating view...");
+        Map.Entry<MapData, Boolean> mapData = readMapData(originServer, originalId);
+        if (mapData == null && nbt.hasTag(MAP_LEGACY_PIXEL_DATA_KEY)) {
+            mapData = readLegacyMapItemData(nbt);
+        }
+
+        if (mapData == null) {
+            getPlugin().debug("Read pixel data was not found in database, skipping...");
+            return;
+        }
+
+        MapView newView = view != null ? view : Bukkit.createMap(getDefaultMapWorld());
+        generateRenderedMap(Objects.requireNonNull(mapData).getKey(), newView);
+        meta.setMapView(newView);
+    }
+
+    private void handleUnboundMap(@NotNull MapMeta meta, @NotNull ReadableItemNBT nbt, @NotNull String originServer,
+                                  int originalId, @NotNull String currentServer) {
+        getPlugin().debug("Deserializing map data from NBT and generating view...");
+        Map.Entry<MapData, Boolean> mapData = readMapData(originServer, originalId);
+        if (mapData == null && nbt.hasTag(MAP_LEGACY_PIXEL_DATA_KEY)) {
+            mapData = readLegacyMapItemData(nbt);
+        }
+
+        if (mapData == null) {
+            getPlugin().debug("Read pixel data was not found in database, skipping...");
+            return;
+        }
+
+        final MapView view = generateRenderedMap(Objects.requireNonNull(mapData, "Pixel data null!").getKey());
+        meta.setMapView(view);
+
+        final int id = view.getId();
+        getRedisManager().bindMapIds(originServer, originalId, currentServer, id);
+        getPlugin().getDatabase().setMapBinding(originServer, originalId, currentServer, id);
+
+        getPlugin().debug("Bound map to view (#%s) on server %s".formatted(id, currentServer));
+    }
+
+    default void renderPersistedMap(@NotNull MapView view) {
+        if (getMapView(view.getId()).isPresent()) return;
+
+        Map.Entry<MapData, Boolean> data = readMapData(getPlugin().getServerName(), view.getId());
         if (data == null) {
             data = readLegacyMapFileData(view.getId());
         }
 
-        // Don't render maps with no data
         if (data == null) {
-            final World world = view.getWorld() == null ? getDefaultMapWorld() : view.getWorld();
-            getPlugin().debug("Not rendering map: no data in DB for world %s, map #%s."
-                    .formatted(world.getName(), view.getId()));
-            return;
-        }
-        // Don't render persisted maps on this server
-        if (data.getValue()) {
+            World world = view.getWorld() == null ? getDefaultMapWorld() : view.getWorld();
+            getPlugin().debug("Not rendering map: no data in DB for world %s, map #%s.".formatted(world.getName(), view.getId()));
             return;
         }
 
-        final MapData canvasData = data.getKey();
+        if (data.getValue()) return;
 
-        // Create a new map view renderer with the map data color at each pixel
-        // use view.removeRenderer() to remove all this maps renderers
-        view.getRenderers().forEach(view::removeRenderer);
-        view.addRenderer(new PersistentMapRenderer(canvasData));
-        view.setLocked(true);
-        view.setScale(MapView.Scale.NORMAL);
-        view.setTrackingPosition(false);
-        view.setUnlimitedTracking(false);
-
-        // Set the view to the map
-        setMapView(view);
+        renderMapView(view, data.getKey());
     }
 
-    // Sets the renderer of a map, and returns the generated MapView
     @NotNull
     private MapView generateRenderedMap(@NotNull MapData canvasData) {
-        final MapView view = Bukkit.createMap(getDefaultMapWorld());
-        view.getRenderers().clear();
+        return generateRenderedMap(canvasData, Bukkit.createMap(getDefaultMapWorld()));
+    }
 
-        // Create a new map view renderer with the map data color at each pixel
+    @NotNull
+    private MapView generateRenderedMap(@NotNull MapData canvasData, @NotNull MapView view) {
+        renderMapView(view, canvasData);
+        return view;
+    }
+
+    private void renderMapView(@NotNull MapView view, @NotNull MapData canvasData) {
+        view.getRenderers().clear();
         view.addRenderer(new PersistentMapRenderer(canvasData));
         view.setLocked(true);
         view.setScale(MapView.Scale.NORMAL);
         view.setTrackingPosition(false);
         view.setUnlimitedTracking(false);
-
-        // Set the view to the map and return it
         setMapView(view);
-        return view;
     }
 
     @NotNull
