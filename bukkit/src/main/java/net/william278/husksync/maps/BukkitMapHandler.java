@@ -335,8 +335,21 @@ public interface BukkitMapHandler {
         getPlugin().debug("Bound map to view (#%s) on server %s".formatted(id, currentServer));
     }
 
-    default void renderPersistedMap(@NotNull MapView view) {
-        if (getMapView(view.getId()).isPresent()) return;
+    // Render a persisted locked map that is initializing (i.e. in an item frame)
+    default void renderInitializingLockedMap(@NotNull MapView view) {
+        if (view.isVirtual()) {
+            return;
+        }
+        final Optional<MapView> optionalView = getMapView(view.getId());
+        if (optionalView.isPresent()) {
+            view.getRenderers().clear();
+            view.getRenderers().addAll(optionalView.get().getRenderers());
+            view.setLocked(true);
+            view.setScale(MapView.Scale.NORMAL);
+            view.setTrackingPosition(false);
+            view.setUnlimitedTracking(false);
+            return;
+        }
 
         Map.Entry<MapData, Boolean> data = readMapData(getPlugin().getServerName(), view.getId());
         if (data == null) {
@@ -345,12 +358,13 @@ public interface BukkitMapHandler {
 
         if (data == null) {
             World world = view.getWorld() == null ? getDefaultMapWorld() : view.getWorld();
-            getPlugin().debug("Not rendering map: no data in DB for world %s, map #%s.".formatted(world.getName(), view.getId()));
+            getPlugin().debug("Not rendering map: no data in DB for world %s, map #%s."
+                    .formatted(world.getName(), view.getId()));
             return;
         }
-
-        if (data.getValue()) return;
-
+        if (data.getValue()) {
+            return;
+        }
         renderMapView(view, data.getKey());
     }
 
