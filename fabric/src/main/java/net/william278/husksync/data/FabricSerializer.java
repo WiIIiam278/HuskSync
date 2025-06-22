@@ -272,12 +272,14 @@ public abstract class FabricSerializer {
         }
 
         @Nullable
-        private NbtCompound encodeNbt(@NotNull ItemStack item, @NotNull DynamicRegistryManager registryManager) {
+        private NbtCompound encodeNbt(@NotNull ItemStack item, @NotNull DynamicRegistryManager reg) {
             try {
-                //#if MC>=12104
-                return (NbtCompound) item.toNbt(registryManager);
+                //#if MC>=12106
+                return (NbtCompound) ItemStack.CODEC.encodeStart(reg.getOps(NbtOps.INSTANCE), item).getOrThrow();
+                //#elseif MC>=12104
+                //$$ return (NbtCompound) item.toNbt(reg);
                 //#elseif MC==12101
-                //$$ return (NbtCompound) item.encode(registryManager);
+                //$$ return (NbtCompound) item.encode(reg);
                 //#elseif MC==12001
                 //$$ final NbtCompound compound = new NbtCompound();
                 //$$ item.writeNbt(compound);
@@ -289,14 +291,16 @@ public abstract class FabricSerializer {
         }
 
         @NotNull
-        private ItemStack decodeNbt(@NotNull NbtElement item, @NotNull DynamicRegistryManager registryManager) {
-            //#if MC==12001
+        private ItemStack decodeNbt(@NotNull NbtElement item, @NotNull DynamicRegistryManager reg) {
+            //#if MC>=12106
+            final @Nullable ItemStack stack = ItemStack.CODEC.decode(reg.getOps(NbtOps.INSTANCE), item).getOrThrow().getFirst();
+            //#elseif MC>12001
+            //$$ final @Nullable ItemStack stack = ItemStack.fromNbt(reg, item).orElse(null);
+            //#elseif MC==12001
             //$$ final @Nullable ItemStack stack = ItemStack.fromNbt((NbtCompound) item);
-            //#else
-            final @Nullable ItemStack stack = ItemStack.fromNbt(registryManager, item).orElse(null);
             //#endif
             if (stack == null) {
-                throw new IllegalStateException("Failed to decode item NBT (got null 'fromNbt'): (%s)".formatted(item));
+                throw new IllegalStateException("Failed to decode item NBT (decode got null): (%s)".formatted(item));
             }
             return stack;
         }

@@ -3,13 +3,15 @@ plugins {
 }
 
 preprocess {
+    def fabric12106 = createNode("1.21.6", 12106, "yarn")
     def fabric12105 = createNode("1.21.5", 12105, "yarn")
     def fabric12104 = createNode("1.21.4", 12104, "yarn")
     def fabric12101 = createNode("1.21.1", 12101, "yarn")
     def fabric12001 = createNode("1.20.1", 12001, "yarn")
 
     strictExtraMappings.set(true)
-    fabric12104.link(fabric12105, null)
-    fabric12101.link(fabric12105, null)
-    fabric12001.link(fabric12105, null)
+    fabric12105.link(fabric12106, null)
+    fabric12104.link(fabric12106, null)
+    fabric12101.link(fabric12106, null)
+    fabric12001.link(fabric12106, null)
 }

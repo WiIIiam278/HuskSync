@@ -99,8 +99,9 @@ public class FabricHuskSync implements DedicatedServerModInitializer, HuskSync, 
     private static final int VERSION1_20_5 = 3837;
     private static final int VERSION1_21_1 = 3955;
     private static final int VERSION1_21_3 = 4082;
-    private static final int VERSION1_21_4 = 4189; // Current
+    private static final int VERSION1_21_4 = 4189;
     private static final int VERSION1_21_5 = 4323;
+    private static final int VERSION1_21_6 = 4435;
 
     private final HashMap<Identifier, Serializer<? extends Data>> serializers = Maps.newHashMap();
     private final Map<UUID, Map<Identifier, Data>> playerCustomDataStore = Maps.newConcurrentMap();
@@ -387,10 +388,13 @@ public class FabricHuskSync implements DedicatedServerModInitializer, HuskSync, 
             case "1.21.2", "1.21.3" -> VERSION1_21_3;
             case "1.21.4" -> VERSION1_21_4;
             case "1.21.5" -> VERSION1_21_5;
-            //#if MC==12105
+            case "1.21.6" -> VERSION1_21_6;
+            //#if MC==12106
+            default -> VERSION1_21_6;
+            //#elseif MC==12105
             //$$ default -> VERSION1_21_5;
             //#elseif MC==12104
-            default -> VERSION1_21_4;
+            //$$ default -> VERSION1_21_4;
             //#elseif MC==12101
             //$$ default -> VERSION1_21_1;
             //#elseif MC==12001
