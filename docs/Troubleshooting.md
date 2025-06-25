@@ -26,6 +26,19 @@ If you are hosting your [[Redis]] server on the same node as your servers, you n
 ### Database connection problems on Pterodactyl / Pelican
 If you have more than one [[Database]] server connected to your panel, you may need to set `useSSL=true` in the parameters.
 
+### Unable to reset my server / wipe all player data
+The following steps are required to completely wipe all HuskSync data and prepare your server for a reset. HuskSync stores data in MySQL and caches it in Redis, so if you are experiencing players getting their items back when they shouldn't be it's because data wasn't cleared in one of the two.
+
+- Turn OFF ALL Minecraft servers and proxy
+- Turn OFF your Redis server completely.
+  - It MUST be completely offline. 
+  - Make sure data persistence is OFF and that it does not restore state following a reboot
+- Access your MySQL Database using MySQL Workbench or similar. DROP your `husksync` database, or at the very least DROP ALL husksync tables. 
+  - Double check you have done this
+- On ALL Minecraft servers, DELETE the `playerdata` and `advancement` data directories WITHIN EVERY WORLD folder
+  - Deleting the world folders themselves works too if you are resetting these as well.
+- ONLY THEN can you finally re-start ALL servers
+
 ### Issues with player data going out of sync during a server restart
 This can happen due to the way in which your server restarts. If your server uses either:
 
