@@ -1,0 +1,50 @@
+name: Build and Release Jar
+
+on:
+  push:
+    paths-ignore:
+      - 'README.md'
+
+jobs:
+  build:
+    name: Build Project
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v3
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Grant execute permission to gradlew
+        run: chmod +x ./gradlew
+
+      - name: Build with Gradle
+        run: ./gradlew clean build
+
+      - name: Find built JAR
+        id: find_jar
+        run: |
+          JAR_PATH=$(find build/libs -name "*.jar" | head -n 1)
+          echo "jar_path=$JAR_PATH" >> "$GITHUB_OUTPUT"
+
+      - name: Upload JAR as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: built-jar
+          path: ${{ steps.find_jar.outputs.jar_path }}
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: build-${{ github.run_number }}
+          name: Automated Build ${{ github.run_number }}
+          body: |
+            Automated release from commit: `${{ github.sha }}`
+          files: ${{ steps.find_jar.outputs.jar_path }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
