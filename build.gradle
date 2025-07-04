@@ -1,7 +1,7 @@
 import org.apache.tools.ant.filters.ReplaceTokens
 
 plugins {
-    id 'com.gradleup.shadow' version '8.3.6'
+    id 'com.gradleup.shadow' version '8.3.7'
     id 'org.cadixdev.licenser' version '0.6.1' apply false
     id 'dev.architectury.loom' version '1.9-SNAPSHOT' apply false
     id 'gg.essential.multi-version.root' apply false
@@ -89,7 +89,7 @@ allprojects {
     }
 
     dependencies {
-        testImplementation(platform("org.junit:junit-bom:5.13.1"))
+        testImplementation(platform("org.junit:junit-bom:5.13.2"))
         testImplementation 'org.junit.jupiter:junit-jupiter'
         testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
         testCompileOnly 'org.jetbrains:annotations:26.0.2'
