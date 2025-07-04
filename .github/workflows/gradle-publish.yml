@@ -3,14 +3,14 @@ name: Release & Publish Artifacts
 on:
   release:
     types: [published]
-  workflow_dispatch: # 👈 Manual trigger support
+  workflow_dispatch:
 
 permissions:
   contents: write
   checks: write
 
 jobs:
-  build:
+  build-and-release:
     runs-on: ubuntu-latest
 
     steps:
@@ -29,18 +29,39 @@ jobs:
       - name: 🏗️ Build with Gradle
         run: ./gradlew clean build
 
+      - name: 🏷️ Auto-generate tag (if manual dispatch)
+        if: github.event_name == 'workflow_dispatch'
+        id: tag
+        run: |
+          LATEST_TAG=$(git tag --sort=-v:refname | head -n 1)
+          echo "Latest tag: $LATEST_TAG"
+          if [[ "$LATEST_TAG" =~ ^v([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
+            MAJOR="${BASH_REMATCH[1]}"
+            MINOR="${BASH_REMATCH[2]}"
+            PATCH="${BASH_REMATCH[3]}"
+            NEXT_TAG="v${MAJOR}.${MINOR}.$((PATCH + 1))"
+          else
+            NEXT_TAG="v1.0.0"
+          fi
+          echo "Creating new tag: $NEXT_TAG"
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git tag "$NEXT_TAG"
+          git push origin "$NEXT_TAG"
+          echo "tag_name=$NEXT_TAG" >> "$GITHUB_OUTPUT"
+
       - name: 📤 Upload all files in target/ to GitHub Actions
         uses: actions/upload-artifact@v4
         with:
           name: build-output
           path: target/**
 
-      - name: 🚀 Upload all target/ files to GitHub Release
+      - name: 🚀 Publish Release (from tag or release event)
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.event.release.tag_name }}
-          name: ${{ github.event.release.name }}
-          body: ${{ github.event.release.body }}
+          tag_name: ${{ github.event.release.tag_name || steps.tag.outputs.tag_name }}
+          name: ${{ github.event.release.name || steps.tag.outputs.tag_name }}
+          body: ${{ github.event.release.body || 'Automated release via workflow_dispatch' }}
           files: target/**
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
