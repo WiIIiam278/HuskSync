@@ -3,6 +3,7 @@ name: Release & Publish Artifacts
 on:
   release:
     types: [published]
+  workflow_dispatch: # 👈 Manual trigger support
 
 permissions:
   contents: write
