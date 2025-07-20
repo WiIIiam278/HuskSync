@@ -42,6 +42,7 @@ processResources {
                 version: version,
                 paper_api_version: paper_api_version,
                 minecraft_version: project.name,
+                minecraft_version_range: minecraft_version_range,
                 minecraft_api_version: minecraft_api_version
         ])
     }

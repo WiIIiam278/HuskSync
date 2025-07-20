@@ -49,7 +49,8 @@ processResources {
         expand([
                 version: version,
                 fabric_loader_version: fabric_loader_version,
-                fabric_minecraft_version: project.name
+                fabric_minecraft_version: project.name,
+                minecraft_version_range: minecraft_version_range
         ])
     }
 }

@@ -327,7 +327,7 @@ public class Settings {
         private Map<String, String> eventPriorities = EventListener.ListenerType.getDefaults();
 
         @Comment("Enable check-in petitions for data syncing (don't change this unless you know what you're doing)")
-        private boolean checkinPetitions = true;
+        private boolean checkinPetitions = false;
 
         public boolean doAutoPin(@NotNull DataSnapshot.SaveCause cause) {
             return autoPinnedSaveCauses.contains(cause.name());
