@@ -344,6 +344,7 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
         return Version.fromString(getServer().getBukkitVersion());
     }
 
+    // Note: The actual mapping version number of NBT-API.DataFixerUtil may not always match the Minecraft version
     public int getDataVersion(@NotNull Version mcVersion) {
         return switch (mcVersion.toStringWithoutMetadata()) {
             case "1.16", "1.16.1", "1.16.2", "1.16.3", "1.16.4", "1.16.5" -> DataFixerUtil.VERSION1_16_5;
@@ -355,9 +356,9 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
             case "1.20.5", "1.20.6" -> DataFixerUtil.VERSION1_20_5;
             case "1.21", "1.21.1" -> DataFixerUtil.VERSION1_21;
             case "1.21.2" -> DataFixerUtil.VERSION1_21_2;
-            case "1.21.3" -> DataFixerUtil.VERSION1_21_3;
-            case "1.21.4" -> DataFixerUtil.VERSION1_21_4;
-            case "1.21.5" -> DataFixerUtil.VERSION1_21_5;
+            case "1.21.3" -> DataFixerUtil.VERSION1_21_2;
+            case "1.21.4" -> DataFixerUtil.VERSION1_21_3;
+            case "1.21.5" -> DataFixerUtil.VERSION1_21_4;
             case "1.21.6" -> 4435;
             default -> DataFixerUtil.getCurrentVersion();
         };
