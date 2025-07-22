@@ -28,7 +28,7 @@ dependencies {
     compileOnly 'org.json:json:20250517'
     compileOnly 'net.william278:minedown:1.8.2'
     compileOnly 'de.exlll:configlib-yaml:4.6.1'
-    compileOnly 'com.zaxxer:HikariCP:6.3.0'
+    compileOnly 'com.zaxxer:HikariCP:6.3.1'
     compileOnly 'net.william278:DesertWell:2.0.4'
     compileOnly 'net.william278:AdvancementAPI:97a9583413'
     compileOnly "redis.clients:jedis:$jedis_version"
