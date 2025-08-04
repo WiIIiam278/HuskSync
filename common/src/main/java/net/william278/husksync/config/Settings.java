@@ -174,7 +174,45 @@ public class Settings {
             private int database = 0;
             private String user = "";
             private String password = "";
+
+            @Comment("Use SSL/TLS for encrypted connections.")
             private boolean useSsl = false;
+
+            @Comment("Connection timeout in milliseconds.")
+            private int connectionTimeout = 2000;
+
+            @Comment("Socket (read/write) timeout in milliseconds.")
+            private int socketTimeout = 2000;
+
+            @Comment("Max number of connections in the pool.")
+            private int maxTotalConnections = 50;
+
+            @Comment("Max number of idle connections in the pool.")
+            private int maxIdleConnections = 8;
+
+            @Comment("Min number of idle connections in the pool.")
+            private int minIdleConnections = 2;
+
+            @Comment("Enable health checks when borrowing connections from the pool.")
+            private boolean testOnBorrow = true;
+
+            @Comment("Enable health checks when returning connections to the pool.")
+            private boolean testOnReturn = true;
+
+            @Comment("Enable periodic idle connection health checks.")
+            private boolean testWhileIdle = true;
+
+            @Comment("Min evictable idle time (ms) before a connection is eligible for eviction.")
+            private long minEvictableIdleTimeMillis = 60000;
+
+            @Comment("Time (ms) between eviction runs.")
+            private long timeBetweenEvictionRunsMillis = 30000;
+
+            @Comment("Number of retries for commands when connection fails.")
+            private int maxRetries = 3;
+
+            @Comment("Base backoff time in ms for retries (exponential backoff multiplier).")
+            private int retryBackoffMillis = 200;
         }
 
         @Comment("Options for if you're using Redis sentinel. Don't modify this unless you know what you're doing!")
