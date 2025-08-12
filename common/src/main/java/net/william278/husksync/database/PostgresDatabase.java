@@ -297,9 +297,9 @@ public class PostgresDatabase extends Database {
     public int getUnpinnedSnapshotCount(@NotNull User user) {
         try (Connection connection = getConnection()) {
             try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
-            SELECT COUNT(`version_uuid`)
-            FROM `%user_data_table%`
-            WHERE `player_uuid`=? AND `pinned`=false;"""))) {
+            SELECT COUNT(version_uuid)
+            FROM %user_data_table%
+            WHERE player_uuid=? AND pinned=false;"""))) {
                 statement.setString(1, user.getUuid().toString());
                 final ResultSet resultSet = statement.executeQuery();
                 if (resultSet.next()) {
