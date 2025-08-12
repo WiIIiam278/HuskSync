@@ -274,7 +274,7 @@ public abstract class FabricSerializer {
         @Nullable
         private NbtCompound encodeNbt(@NotNull ItemStack item, @NotNull DynamicRegistryManager reg) {
             try {
-                //#if MC>=12107
+                //#if MC>=12108
                 return (NbtCompound) ItemStack.CODEC.encodeStart(reg.getOps(NbtOps.INSTANCE), item).getOrThrow();
                 //#elseif MC>=12104
                 //$$ return (NbtCompound) item.toNbt(reg);
@@ -292,7 +292,7 @@ public abstract class FabricSerializer {
 
         @NotNull
         private ItemStack decodeNbt(@NotNull NbtElement item, @NotNull DynamicRegistryManager reg) {
-            //#if MC>=12107
+            //#if MC>=12108
             final @Nullable ItemStack stack = ItemStack.CODEC.decode(reg.getOps(NbtOps.INSTANCE), item).getOrThrow().getFirst();
             //#elseif MC>12001
             //$$ final @Nullable ItemStack stack = ItemStack.fromNbt(reg, item).orElse(null);

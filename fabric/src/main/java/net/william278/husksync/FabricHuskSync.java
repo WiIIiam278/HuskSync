@@ -391,7 +391,7 @@ public class FabricHuskSync implements DedicatedServerModInitializer, HuskSync, 
             case "1.21.5" -> VERSION1_21_5;
             case "1.21.6" -> VERSION1_21_6;
             case "1.21.7" -> VERSION1_21_7;
-            //#if MC==12107
+            //#if MC==12108
             default -> VERSION1_21_7;
             //#elseif MC==12105
             //$$ default -> VERSION1_21_5;
