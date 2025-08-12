@@ -41,10 +41,7 @@ import net.william278.husksync.redis.RedisManager;
 import net.william278.husksync.sync.DataSyncer;
 import net.william278.husksync.user.ConsoleUser;
 import net.william278.husksync.user.OnlineUser;
-import net.william278.husksync.util.CompatibilityChecker;
-import net.william278.husksync.util.DumpProvider;
-import net.william278.husksync.util.LegacyConverter;
-import net.william278.husksync.util.Task;
+import net.william278.husksync.util.*;
 import net.william278.uniform.Uniform;
 import org.jetbrains.annotations.NotNull;
 
@@ -57,7 +54,7 @@ import java.util.logging.Level;
  * Abstract implementation of the HuskSync plugin.
  */
 public interface HuskSync extends Task.Supplier, EventDispatcher, ConfigProvider, SerializerRegistry,
-        CompatibilityChecker, DumpProvider {
+        CompatibilityChecker, DumpProvider, DataVersionSupplier {
 
     int SPIGOT_RESOURCE_ID = 97144;
 
@@ -251,14 +248,6 @@ public interface HuskSync extends Task.Supplier, EventDispatcher, ConfigProvider
      */
     @NotNull
     Version getMinecraftVersion();
-
-    /**
-     * Returns the data version for a Minecraft version
-     *
-     * @param minecraftVersion the Minecraft version
-     * @return the data version int
-     */
-    int getDataVersion(@NotNull Version minecraftVersion);
 
     /**
      * Returns the platform type

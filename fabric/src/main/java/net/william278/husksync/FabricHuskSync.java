@@ -88,22 +88,6 @@ public class FabricHuskSync implements DedicatedServerModInitializer, HuskSync, 
 
     private static final String PLATFORM_TYPE_ID = "fabric";
 
-    private static final int VERSION1_16_5 = 2586;
-    private static final int VERSION1_17_1 = 2730;
-    private static final int VERSION1_18_2 = 2975;
-    private static final int VERSION1_19_2 = 3120;
-    private static final int VERSION1_19_4 = 3337;
-    private static final int VERSION1_20_1 = 3465;
-    private static final int VERSION1_20_2 = 3578;
-    private static final int VERSION1_20_4 = 3700;
-    private static final int VERSION1_20_5 = 3837;
-    private static final int VERSION1_21_1 = 3955;
-    private static final int VERSION1_21_3 = 4082;
-    private static final int VERSION1_21_4 = 4189;
-    private static final int VERSION1_21_5 = 4323;
-    private static final int VERSION1_21_6 = 4435;
-    private static final int VERSION1_21_7 = 4438;
-
     private final HashMap<Identifier, Serializer<? extends Data>> serializers = Maps.newHashMap();
     private final Map<UUID, Map<Identifier, Data>> playerCustomDataStore = Maps.newConcurrentMap();
     private final Map<String, Boolean> permissions = Maps.newHashMap();
@@ -372,37 +356,6 @@ public class FabricHuskSync implements DedicatedServerModInitializer, HuskSync, 
     @NotNull
     public Version getMinecraftVersion() {
         return Version.fromString(minecraftServer.getVersion());
-    }
-
-    public int getDataVersion(@NotNull Version mcVersion) {
-        return switch (mcVersion.toStringWithoutMetadata()) {
-            case "1.16", "1.16.1", "1.16.2", "1.16.3", "1.16.4", "1.16.5" -> VERSION1_16_5;
-            case "1.17", "1.17.1" -> VERSION1_17_1;
-            case "1.18", "1.18.1", "1.18.2" -> VERSION1_18_2;
-            case "1.19", "1.19.1", "1.19.2" -> VERSION1_19_2;
-            case "1.19.4" -> VERSION1_19_4;
-            case "1.20", "1.20.1" -> VERSION1_20_1;
-            case "1.20.2" -> VERSION1_20_2;
-            case "1.20.4" -> VERSION1_20_4;
-            case "1.20.5", "1.20.6" -> VERSION1_20_5;
-            case "1.21", "1.21.1" -> VERSION1_21_1;
-            case "1.21.2", "1.21.3" -> VERSION1_21_3;
-            case "1.21.4" -> VERSION1_21_4;
-            case "1.21.5" -> VERSION1_21_5;
-            case "1.21.6" -> VERSION1_21_6;
-            case "1.21.7" -> VERSION1_21_7;
-            //#if MC==12108
-            default -> VERSION1_21_7;
-            //#elseif MC==12105
-            //$$ default -> VERSION1_21_5;
-            //#elseif MC==12104
-            //$$ default -> VERSION1_21_4;
-            //#elseif MC==12101
-            //$$ default -> VERSION1_21_1;
-            //#elseif MC==12001
-            //$$ default -> VERSION1_20_1;
-            //#endif
-        };
     }
 
     @NotNull

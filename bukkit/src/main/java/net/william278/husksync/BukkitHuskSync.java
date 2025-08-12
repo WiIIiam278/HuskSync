@@ -24,7 +24,6 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.gson.Gson;
 import de.tr7zw.changeme.nbtapi.NBT;
-import de.tr7zw.changeme.nbtapi.utils.DataFixerUtil;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -49,6 +48,7 @@ import net.william278.husksync.event.BukkitEventDispatcher;
 import net.william278.husksync.hook.PlanHook;
 import net.william278.husksync.listener.BukkitEventListener;
 import net.william278.husksync.listener.LockedHandler;
+import net.william278.husksync.maps.BukkitMapHandler;
 import net.william278.husksync.migrator.LegacyMigrator;
 import net.william278.husksync.migrator.Migrator;
 import net.william278.husksync.migrator.MpdbMigrator;
@@ -57,7 +57,6 @@ import net.william278.husksync.sync.DataSyncer;
 import net.william278.husksync.user.BukkitUser;
 import net.william278.husksync.user.OnlineUser;
 import net.william278.husksync.util.BukkitLegacyConverter;
-import net.william278.husksync.maps.BukkitMapHandler;
 import net.william278.husksync.util.BukkitTask;
 import net.william278.husksync.util.LegacyConverter;
 import net.william278.toilet.BukkitToilet;
@@ -342,26 +341,6 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
     @Override
     public Version getMinecraftVersion() {
         return Version.fromString(getServer().getBukkitVersion());
-    }
-
-    // Note: The actual mapping version number of NBT-API.DataFixerUtil may not always match the Minecraft version
-    public int getDataVersion(@NotNull Version mcVersion) {
-        return switch (mcVersion.toStringWithoutMetadata()) {
-            case "1.16", "1.16.1", "1.16.2", "1.16.3", "1.16.4", "1.16.5" -> DataFixerUtil.VERSION1_16_5;
-            case "1.17", "1.17.1" -> DataFixerUtil.VERSION1_17_1;
-            case "1.18", "1.18.1", "1.18.2" -> DataFixerUtil.VERSION1_18_2;
-            case "1.19", "1.19.1", "1.19.2" -> DataFixerUtil.VERSION1_19_2;
-            case "1.20", "1.20.1", "1.20.2" -> DataFixerUtil.VERSION1_20_2;
-            case "1.20.3", "1.20.4" -> DataFixerUtil.VERSION1_20_4;
-            case "1.20.5", "1.20.6" -> DataFixerUtil.VERSION1_20_5;
-            case "1.21", "1.21.1" -> DataFixerUtil.VERSION1_21;
-            case "1.21.2" -> DataFixerUtil.VERSION1_21_2;
-            case "1.21.3" -> DataFixerUtil.VERSION1_21_2;
-            case "1.21.4" -> DataFixerUtil.VERSION1_21_3;
-            case "1.21.5" -> DataFixerUtil.VERSION1_21_4;
-            case "1.21.6" -> 4435;
-            default -> DataFixerUtil.getCurrentVersion();
-        };
     }
 
     @NotNull
