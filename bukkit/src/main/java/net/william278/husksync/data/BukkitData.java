@@ -366,7 +366,7 @@ public abstract class BukkitData implements Data {
 
                 // Set player experience and level (prevent advancement awards applying twice), reset game rule
                 if (!toAward.isEmpty()
-                    && (player.getLevel() != expLevel || player.getExp() != expProgress)) {
+                        && (player.getLevel() != expLevel || player.getExp() != expProgress)) {
                     player.setLevel(expLevel);
                     player.setExp(expProgress);
                 }
@@ -486,8 +486,13 @@ public abstract class BukkitData implements Data {
                                                            @NotNull Map<String, Map<String, Integer>> map) {
             registry.forEach(i -> {
                 try {
-                    final int stat = i instanceof Material m ? p.getStatistic(id, m) :
-                            (i instanceof EntityType e ? p.getStatistic(id, e) : -1);
+                    int stat = 0;
+                    if (i instanceof Material mat && ((id.getType() == Statistic.Type.BLOCK && mat.isBlock())
+                            || (id.getType() == Statistic.Type.ITEM && mat.isItem()))) {
+                        stat = p.getStatistic(id, mat);
+                    } else if (i instanceof EntityType ent && id.getType() == Statistic.Type.ENTITY) {
+                        stat = p.getStatistic(id, ent);
+                    }
                     if (stat != 0) {
                         map.compute(id.getKey().getKey(), (k, v) -> v == null ? Maps.newHashMap() : v)
                                 .put(i.getKey().getKey(), stat);
