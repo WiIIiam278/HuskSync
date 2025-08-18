@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 'Checkout for CI 🛎'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: 'Set up JDK 21 📦'
         uses: actions/setup-java@v4
         with:
