@@ -199,7 +199,9 @@ public abstract class BukkitData implements Data {
 
             @Override
             public void apply(@NotNull BukkitUser user, @NotNull BukkitHuskSync plugin) throws IllegalStateException {
-                user.getPlayer().getEnderChest().setContents(plugin.setMapViews(getContents()));
+                ItemStack[] fullContents = plugin.setMapViews(getContents());
+                ItemStack[] enderChestContents = Arrays.copyOf(fullContents, Math.min(fullContents.length, user.getPlayer().getEnderChest().getSize()));
+                user.getPlayer().getEnderChest().setContents(enderChestContents);
             }
 
         }
