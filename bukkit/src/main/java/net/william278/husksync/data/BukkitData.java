@@ -524,8 +524,18 @@ public abstract class BukkitData implements Data {
             try {
                 switch (type) {
                     case UNTYPED -> player.setStatistic(stat, value);
-                    case BLOCK, ITEM -> player.setStatistic(stat, Objects.requireNonNull(matchMaterial(key[0])), value);
-                    case ENTITY -> player.setStatistic(stat, Objects.requireNonNull(matchEntityType(key[0])), value);
+                    case BLOCK, ITEM -> {
+                        Material material = matchMaterial(key.length > 0 ? key[0] : null);
+                        if (material != null) {
+                            player.setStatistic(stat, material, value);
+                        }
+                    }
+                    case ENTITY -> {
+                        EntityType entity = matchEntityType(key.length > 0 ? key[0] : null);
+                        if (entity != null) {
+                            player.setStatistic(stat, entity, value);
+                        }
+                    }
                 }
             } catch (Throwable a) {
                 plugin.log(Level.WARNING, "Failed to apply statistic " + id, a);
