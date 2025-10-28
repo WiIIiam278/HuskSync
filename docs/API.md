@@ -52,7 +52,7 @@ Add the repository to your `pom.xml` as per below. You can alternatively specify
     </repository>
 </repositories>
 ```
-Add the dependency to your `pom.xml` as per below. Replace `HUSKSYNC_VERSION` with the latest version of HuskSync (without the v): ![Latest version](https://img.shields.io/github/v/tag/WiIIiam278/HuskSync?color=%23282828&label=%20&style=flat-square). and `MINECRAFT_VERSION` with the version of Minecraft you want to target (e.g. `1.20.1`). A correctly formed version target should look like: `3.7+1.20.1`. Omit the plus symbol and Minecraft version if you are targeting the `common` platform.
+Add the dependency to your `pom.xml` as per below. Replace `HUSKSYNC_VERSION` with the latest version of HuskSync (without the v): ![Latest version](https://img.shields.io/github/v/tag/WiIIiam278/HuskSync?color=%23282828&label=%20&style=flat-square). and `MINECRAFT_VERSION` with the version of Minecraft you want to target (e.g. `1.21.10`). A correctly formed version target should look like: `3.7+1.21.10`. Omit the plus symbol and Minecraft version if you are targeting the `common` platform.
 ```xml
 <dependency>
     <groupId>net.william278.husksync</groupId>
@@ -75,7 +75,7 @@ allprojects {
 	}
 }
 ```
-Add the dependency as per below. Replace `HUSKSYNC_VERSION` with the latest version of HuskSync (without the v): ![Latest version](https://img.shields.io/github/v/tag/WiIIiam278/HuskSync?color=%23282828&label=%20&style=flat-square). and `MINECRAFT_VERSION` with the version of Minecraft you want to target (e.g. `1.20.1`). A correctly formed version target should look like: `3.7+1.20.1`. Omit the plus symbol and Minecraft version if you are targeting the `common` platform.
+Add the dependency as per below. Replace `HUSKSYNC_VERSION` with the latest version of HuskSync (without the v): ![Latest version](https://img.shields.io/github/v/tag/WiIIiam278/HuskSync?color=%23282828&label=%20&style=flat-square). and `MINECRAFT_VERSION` with the version of Minecraft you want to target (e.g. `1.21.10`). A correctly formed version target should look like: `3.7+1.21.10`. Omit the plus symbol and Minecraft version if you are targeting the `common` platform.
 
 ```groovy
 dependencies {
