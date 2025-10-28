@@ -73,7 +73,7 @@ public interface FabricUserDataHolder extends UserDataHolder {
     @Override
     default Optional<Data.Items.Inventory> getInventory() {
         final SaveOnDeathSettings death = getPlugin().getSettings().getSynchronization().getSaveOnDeath();
-        if ((isDead() && !death.isSyncDeadPlayersChangingServer())) {
+        if (isDead() && death.isEnabled() && !death.isSyncDeadPlayersChangingServer()) {
             return Optional.of(FabricData.Items.Inventory.empty());
         }
         final PlayerInventory inventory = getPlayer().getInventory();
@@ -90,30 +90,20 @@ public interface FabricUserDataHolder extends UserDataHolder {
     // Gets the player's combined inventory; their inventory, plus offhand and armor.
     @Nullable
     private ItemStack @NotNull [] getCombinedInventory(@NotNull PlayerInventory inv) {
-        //#if MC<12105
-        //$$ final ItemStack[] combined = new ItemStack[inv.main.size() + inv.armor.size() + inv.offHand.size()];
-        //$$ System.arraycopy(
-        //$$         inv.main.toArray(new ItemStack[0]), 0, combined,
-        //$$         0, inv.main.size()
-        //$$ );
-        //$$ System.arraycopy(
-        //$$         inv.armor.toArray(new ItemStack[0]), 0, combined,
-        //$$         inv.main.size(), inv.armor.size()
-        //$$ );
-        //$$ System.arraycopy(
-        //$$         inv.offHand.toArray(new ItemStack[0]), 0, combined,
-        //$$         inv.main.size() + inv.armor.size(), inv.offHand.size()
-        //$$ );
-        //$$ return combined;
-        //#else
-        final ItemStack[] combined = new ItemStack[inv.size()];
-        int slot = 0;
-        for (ItemStack itemStack : inv) {
-            combined[slot] = itemStack;
-            slot++;
-        }
+        final ItemStack[] combined = new ItemStack[inv.main.size() + inv.armor.size() + inv.offHand.size()];
+        System.arraycopy(
+                inv.main.toArray(new ItemStack[0]), 0, combined,
+                0, inv.main.size()
+        );
+        System.arraycopy(
+                inv.armor.toArray(new ItemStack[0]), 0, combined,
+                inv.main.size(), inv.armor.size()
+        );
+        System.arraycopy(
+                inv.offHand.toArray(new ItemStack[0]), 0, combined,
+                inv.main.size() + inv.armor.size(), inv.offHand.size()
+        );
         return combined;
-        //#endif
     }
 
     @NotNull
