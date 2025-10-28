@@ -597,11 +597,7 @@ public interface BukkitMapHandler {
             final List<MapBanner> banners = Lists.newArrayList();
             for (int i = 0; i < getCursors().size(); i++) {
                 final MapCursor cursor = getCursors().getCursor(i);
-                //#if MC==12001
-                //$$ final String type = cursor.getType().name().toLowerCase(Locale.ENGLISH);
-                //#else
                 final String type = cursor.getType().getKey().getKey();
-                //#endif
                 if (type.startsWith(BANNER_PREFIX)) {
                     banners.add(new MapBanner(
                             type.replaceAll(BANNER_PREFIX, ""),

@@ -82,13 +82,9 @@ public class PlayerEntityMixin {
 
     @Unique
     private boolean hasVanishingCurse(@NotNull ItemStack stack) {
-        //#if MC==12001
-        //$$ return EnchantmentHelper.hasVanishingCurse(stack);
-        //#else
         return EnchantmentHelper.hasAnyEnchantmentsIn(
                 stack, TagKey.of(Enchantments.VANISHING_CURSE.getRegistryRef(), Enchantments.VANISHING_CURSE.getValue())
         );
-        //#endif
     }
 
 }
