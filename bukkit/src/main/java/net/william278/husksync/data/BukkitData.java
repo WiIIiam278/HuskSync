@@ -45,6 +45,7 @@ import org.bukkit.inventory.EquipmentSlotGroup;
 //#endif
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.jetbrains.annotations.NotNull;
@@ -198,7 +199,9 @@ public abstract class BukkitData implements Data {
 
             @Override
             public void apply(@NotNull BukkitUser user, @NotNull BukkitHuskSync plugin) throws IllegalStateException {
-                user.getPlayer().getEnderChest().setContents(plugin.setMapViews(getContents()));
+                ItemStack[] fullContents = plugin.setMapViews(getContents());
+                ItemStack[] enderChestContents = Arrays.copyOf(fullContents, Math.min(fullContents.length, user.getPlayer().getEnderChest().getSize()));
+                user.getPlayer().getEnderChest().setContents(enderChestContents);
             }
 
         }
@@ -521,8 +524,18 @@ public abstract class BukkitData implements Data {
             try {
                 switch (type) {
                     case UNTYPED -> player.setStatistic(stat, value);
-                    case BLOCK, ITEM -> player.setStatistic(stat, Objects.requireNonNull(matchMaterial(key[0])), value);
-                    case ENTITY -> player.setStatistic(stat, Objects.requireNonNull(matchEntityType(key[0])), value);
+                    case BLOCK, ITEM -> {
+                        Material material = matchMaterial(key.length > 0 ? key[0] : null);
+                        if (material != null) {
+                            player.setStatistic(stat, material, value);
+                        }
+                    }
+                    case ENTITY -> {
+                        EntityType entity = matchEntityType(key.length > 0 ? key[0] : null);
+                        if (entity != null) {
+                            player.setStatistic(stat, entity, value);
+                        }
+                    }
                 }
             } catch (Throwable a) {
                 plugin.log(Level.WARNING, "Failed to apply statistic " + id, a);
@@ -567,6 +580,14 @@ public abstract class BukkitData implements Data {
 
         @NotNull
         public static BukkitData.Attributes adapt(@NotNull Player player, @NotNull HuskSync plugin) {
+            if (!Bukkit.isPrimaryThread()) {
+                try {
+                    return Bukkit.getScheduler().callSyncMethod((Plugin) plugin, () -> adapt(player, plugin)).get();
+                } catch (Exception e) {
+                    throw new IllegalStateException("Failed to adapt attributes on main thread", e);
+                }
+            }
+
             final List<Attribute> attributes = Lists.newArrayList();
             final AttributeSettings settings = plugin.getSettings().getSynchronization().getAttributes();
             Registry.ATTRIBUTE.forEach(id -> {
@@ -665,6 +686,15 @@ public abstract class BukkitData implements Data {
 
         @Override
         public void apply(@NotNull BukkitUser user, @NotNull BukkitHuskSync plugin) throws IllegalStateException {
+            if (!Bukkit.isPrimaryThread()) {
+                try {
+                    Bukkit.getScheduler().callSyncMethod(plugin, () -> { this.apply(user, plugin); return null; }).get();
+                    return;
+                } catch (Exception e) {
+                    throw new IllegalStateException("Failed to apply attributes on main thread", e);
+                }
+            }
+
             final AttributeSettings settings = plugin.getSettings().getSynchronization().getAttributes();
             Registry.ATTRIBUTE.forEach(id -> {
                 if (settings.isIgnoredAttribute(id.getKey().toString())) {

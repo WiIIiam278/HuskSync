@@ -13,7 +13,7 @@ dependencies {
     api 'de.exlll:configlib-yaml:4.6.1'
     api 'net.william278:paginedown:1.1.2'
     api 'net.william278:DesertWell:2.0.4'
-    api('com.zaxxer:HikariCP:7.0.1') {
+    api('com.zaxxer:HikariCP:7.0.2') {
         exclude module: 'slf4j-api'
     }
 
@@ -23,9 +23,9 @@ dependencies {
     compileOnly 'com.mojang:brigadier:1.1.8'
     compileOnly 'org.projectlombok:lombok:1.18.38'
     compileOnly 'org.jetbrains:annotations:26.0.2'
-    compileOnly 'net.kyori:adventure-api:4.23.0'
+    compileOnly 'net.kyori:adventure-api:4.25.0'
     compileOnly 'net.kyori:adventure-platform-api:4.4.0'
-    compileOnly "net.kyori:adventure-text-serializer-plain:4.23.0"
+    compileOnly "net.kyori:adventure-text-serializer-plain:4.25.0"
     compileOnly 'com.google.guava:guava:33.4.8-jre'
     compileOnly 'com.github.plan-player-analytics:Plan:5.6.2965'
     compileOnly "redis.clients:jedis:$jedis_version"
