@@ -122,3 +122,4 @@ run/
 # Don't include generated test suite files
 /test/servers/
 /test/HuskSync
+/bukkit/1.21.10/gradle.properties
