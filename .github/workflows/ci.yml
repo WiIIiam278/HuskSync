@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 'Checkout for CI 🛎️'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: 'Set up JDK 21 📦'
         uses: actions/setup-java@v5
         with:
@@ -31,7 +31,7 @@ jobs:
           SNAPSHOTS_MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
           SNAPSHOTS_MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
       - name: 'Publish Test Report 📊'
-        uses: mikepenz/action-junit-report@v5
+        uses: mikepenz/action-junit-report@v6
         if: success() || failure() # Continue on failure
         with:
           report_paths: '**/build/test-results/test/TEST-*.xml'
