@@ -60,14 +60,12 @@ jobs:
             fabric-1.21.4
             fabric-1.21.5
             fabric-1.21.8
-            fabric-1.21.10
           distro-groups: |
             paper
             paper
             paper
             paper
             paper
-            fabric
             fabric
             fabric
             fabric
@@ -82,7 +80,6 @@ jobs:
             Fabric 1.21.4
             Fabric 1.21.5
             Fabric 1.21.8
-            Fabric 1.21.10
           files: |
             target/HuskSync-Bukkit-${{ env.version_name }}+mc.1.21.1.jar
             target/HuskSync-Bukkit-${{ env.version_name }}+mc.1.21.4.jar
@@ -93,4 +90,3 @@ jobs:
             target/HuskSync-Fabric-${{ env.version_name }}+mc.1.21.4.jar
             target/HuskSync-Fabric-${{ env.version_name }}+mc.1.21.5.jar
             target/HuskSync-Fabric-${{ env.version_name }}+mc.1.21.8.jar
-            target/HuskSync-Fabric-${{ env.version_name }}+mc.1.21.10.jar

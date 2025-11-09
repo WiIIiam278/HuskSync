@@ -100,14 +100,14 @@ allprojects {
         include '**/*.java'
         newLine = true
     }
-    
+
     test {
         useJUnitPlatform()
     }
 
     processResources {
         def tokenMap = rootProject.ext.properties
-        tokenMap.merge("grgit",'',(s, s2) -> s)
+        tokenMap.merge("grgit", '', (s, s2) -> s)
         filesMatching(['**/*.json', '**/*.yml']) {
             filter ReplaceTokens as Class, beginToken: '${', endToken: '}',
                     tokens: tokenMap
