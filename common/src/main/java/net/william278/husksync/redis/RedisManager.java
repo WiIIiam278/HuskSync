@@ -202,15 +202,19 @@ public class RedisManager extends JedisPubSub {
                 }
                 final String payload = new String(redisMessage.getPayload(), StandardCharsets.UTF_8);
                 final User user = new User(UUID.fromString(payload.split("/")[0]), payload.split("/")[1]);
-                boolean online = plugin.getDisconnectingPlayers().contains(user.getUuid())
-                        || plugin.getOnlineUser(user.getUuid()).isEmpty();
-                if (!online && !plugin.isLocked(user.getUuid())) {
-                    plugin.debug("[%s] Received check-in petition for online/unlocked user, ignoring"
-                            .formatted(user.getName()));
+
+                // Only release checkout if user is truly offline AND not being processed
+                final boolean isOnline = plugin.getOnlineUser(user.getUuid()).isPresent();
+                final boolean isLocked = plugin.isLocked(user.getUuid());
+
+                if (isOnline || isLocked) {
+                    plugin.debug("[%s] Petition ignored - user still being processed (online=%s, locked=%s)"
+                            .formatted(user.getName(), isOnline, isLocked));
                     return;
                 }
+
                 plugin.getRedisManager().setUserCheckedOut(user, false);
-                plugin.debug("[%s] Received petition for offline user, checking them in".formatted(user.getName()));
+                plugin.debug("[%s] Petition accepted - user checked in".formatted(user.getName()));
             }
             case RETURN_USER_DATA -> {
                 final UUID target = redisMessage.getTargetUuid().orElse(null);
