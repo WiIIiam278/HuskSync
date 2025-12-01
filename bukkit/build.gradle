@@ -23,7 +23,7 @@ dependencies {
     compileOnly "io.papermc.paper:paper-api:${paper_api_version}"
     compileOnly 'com.github.retrooper:packetevents-spigot:2.10.1'
     compileOnly 'com.github.dmulloy2:ProtocolLib:5.3.0'
-    compileOnly 'org.projectlombok:lombok:1.18.38'
+    compileOnly 'org.projectlombok:lombok:1.18.42'
     compileOnly 'commons-io:commons-io:2.21.0'
     compileOnly 'org.json:json:20250517'
     compileOnly 'net.william278:minedown:1.8.2'
@@ -33,7 +33,7 @@ dependencies {
     compileOnly 'net.william278:AdvancementAPI:97a9583413'
     compileOnly "redis.clients:jedis:$jedis_version"
 
-    annotationProcessor 'org.projectlombok:lombok:1.18.38'
+    annotationProcessor 'org.projectlombok:lombok:1.18.42'
 }
 
 processResources {
