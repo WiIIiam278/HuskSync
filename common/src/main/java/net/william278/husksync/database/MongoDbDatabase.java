@@ -376,14 +376,14 @@ public class MongoDbDatabase extends Database {
 
     @Blocking
     @Override
-    public @Nullable Map.Entry<byte[], Boolean> getMapData(@NotNull String serverName, int mapId) {
+    public byte @Nullable [] getMapData(@NotNull String serverName, int mapId) {
         try {
             Document filter = new Document("server_name", serverName).append("map_id", mapId);
             FindIterable<Document> iterable = mongoCollectionHelper.getCollection(mapDataTable).find(filter);
             Document doc = iterable.first();
             if (doc != null) {
                 final Binary bin = doc.get("data", Binary.class);
-                return Map.entry(bin.getData(), true);
+                return bin.getData();
             }
         } catch (MongoException e) {
             plugin.log(Level.SEVERE, "Failed to get map data from the database", e);

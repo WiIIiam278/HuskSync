@@ -124,8 +124,8 @@ public interface BukkitMapHandler {
 
     @Nullable
     @Blocking
-    private Map.Entry<MapData, Boolean> readMapData(@NotNull String serverName, int mapId) {
-        final Map.Entry<byte[], Boolean> readData = fetchMapData(serverName, mapId);
+    private MapData readMapData(@NotNull String serverName, int mapId) {
+        final byte[] readData = fetchMapData(serverName, mapId);
         if (readData == null) {
             return null;
         }
@@ -134,23 +134,23 @@ public interface BukkitMapHandler {
 
     @Nullable
     @Blocking
-    private Map.Entry<byte[], Boolean> fetchMapData(@NotNull String serverName, int mapId) {
+    private byte[] fetchMapData(@NotNull String serverName, int mapId) {
         return fetchMapData(serverName, mapId, true);
     }
 
     @Nullable
     @Blocking
-    private Map.Entry<byte[], Boolean> fetchMapData(@NotNull String serverName, int mapId, boolean doReverseLookup) {
+    private byte[] fetchMapData(@NotNull String serverName, int mapId, boolean doReverseLookup) {
         // Read from Redis cache
         final byte[] redisData = getRedisManager().getMapData(serverName, mapId);
         if (redisData != null) {
-            return new AbstractMap.SimpleImmutableEntry<>(redisData, true);
+            return redisData;
         }
 
         // Read from database and set to Redis
-        @Nullable Map.Entry<byte[], Boolean> databaseData = getPlugin().getDatabase().getMapData(serverName, mapId);
+        final byte[] databaseData = getPlugin().getDatabase().getMapData(serverName, mapId);
         if (databaseData != null) {
-            getRedisManager().setMapData(serverName, mapId, databaseData.getKey());
+            getRedisManager().setMapData(serverName, mapId, databaseData);
             return databaseData;
         }
 
@@ -162,7 +162,7 @@ public interface BukkitMapHandler {
     }
 
     @Nullable
-    private Map.Entry<byte[], Boolean> fetchReversedMapData(@NotNull String serverName, int mapId) {
+    private byte[] fetchReversedMapData(@NotNull String serverName, int mapId) {
         // Lookup binding from Redis cache, then fetch data if found
         Map.Entry<String, Integer> binding = getRedisManager().getReversedMapBound(serverName, mapId);
         if (binding != null) {
@@ -179,13 +179,10 @@ public interface BukkitMapHandler {
     }
 
     @Nullable
-    private Map.Entry<MapData, Boolean> deserializeMapData(@NotNull Map.Entry<byte[], Boolean> data) {
+    private MapData deserializeMapData(byte @NotNull [] data) {
         try {
-            return new AbstractMap.SimpleImmutableEntry<>(
-                    getPlugin().getDataAdapter().fromBytes(data.getKey(), AdaptableMapData.class)
-                            .getData(getPlugin().getDataVersion(getPlugin().getMinecraftVersion())),
-                    data.getValue()
-            );
+            return getPlugin().getDataAdapter().fromBytes(data, AdaptableMapData.class)
+                    .getData(getPlugin().getDataVersion(getPlugin().getMinecraftVersion()));
         } catch (IOException e) {
             getPlugin().log(Level.WARNING, "Failed to deserialize map data", e);
             return null;
@@ -297,7 +294,7 @@ public interface BukkitMapHandler {
         }
 
         getPlugin().debug("Deserializing map data from NBT and generating view...");
-        Map.Entry<MapData, Boolean> mapData = readMapData(originServer, originalId);
+        MapData mapData = readMapData(originServer, originalId);
         if (mapData == null && nbt.hasTag(MAP_LEGACY_PIXEL_DATA_KEY)) {
             mapData = readLegacyMapItemData(nbt);
         }
@@ -308,14 +305,14 @@ public interface BukkitMapHandler {
         }
 
         MapView newView = view != null ? view : Bukkit.createMap(getDefaultMapWorld());
-        generateRenderedMap(Objects.requireNonNull(mapData).getKey(), newView);
+        generateRenderedMap(mapData, newView);
         meta.setMapView(newView);
     }
 
     private void handleUnboundMap(@NotNull MapMeta meta, @NotNull ReadableItemNBT nbt, @NotNull String originServer,
                                   int originalId, @NotNull String currentServer) {
         getPlugin().debug("Deserializing map data from NBT and generating view...");
-        Map.Entry<MapData, Boolean> mapData = readMapData(originServer, originalId);
+        MapData mapData = readMapData(originServer, originalId);
         if (mapData == null && nbt.hasTag(MAP_LEGACY_PIXEL_DATA_KEY)) {
             mapData = readLegacyMapItemData(nbt);
         }
@@ -325,7 +322,7 @@ public interface BukkitMapHandler {
             return;
         }
 
-        final MapView view = generateRenderedMap(Objects.requireNonNull(mapData, "Pixel data null!").getKey());
+        final MapView view = generateRenderedMap(Objects.requireNonNull(mapData, "Pixel data null!"));
         meta.setMapView(view);
 
         final int id = view.getId();
@@ -351,7 +348,7 @@ public interface BukkitMapHandler {
             return;
         }
 
-        Map.Entry<MapData, Boolean> data = readMapData(getPlugin().getServerName(), view.getId());
+        MapData data = readMapData(getPlugin().getServerName(), view.getId());
         if (data == null) {
             data = readLegacyMapFileData(view.getId());
         }
@@ -362,10 +359,7 @@ public interface BukkitMapHandler {
                     .formatted(world.getName(), view.getId()));
             return;
         }
-        if (data.getValue()) {
-            return;
-        }
-        renderMapView(view, data.getKey());
+        renderMapView(view, data);
     }
 
     @NotNull
@@ -471,11 +465,11 @@ public interface BukkitMapHandler {
     // Legacy - read maps from item stacks
     @Nullable
     @Blocking
-    private Map.Entry<MapData, Boolean> readLegacyMapItemData(@NotNull ReadableItemNBT nbt) {
+    private MapData readLegacyMapItemData(@NotNull ReadableItemNBT nbt) {
         final int dataVer = getPlugin().getDataVersion(getPlugin().getMinecraftVersion());
         try {
-            return new AbstractMap.SimpleImmutableEntry<>(MapData.fromByteArray(dataVer,
-                    Objects.requireNonNull(nbt.getByteArray(MAP_LEGACY_PIXEL_DATA_KEY))), false);
+            return MapData.fromByteArray(dataVer,
+                    Objects.requireNonNull(nbt.getByteArray(MAP_LEGACY_PIXEL_DATA_KEY)));
         } catch (IOException e) {
             getPlugin().log(Level.WARNING, "Failed to read legacy map data", e);
             return null;
@@ -484,14 +478,14 @@ public interface BukkitMapHandler {
 
     // Legacy - read maps from files
     @Nullable
-    private Map.Entry<MapData, Boolean> readLegacyMapFileData(int mapId) {
+    private MapData readLegacyMapFileData(int mapId) {
         final Path path = getPlugin().getDataFolder().toPath().resolve("maps").resolve(mapId + ".dat");
         final File file = path.toFile();
         if (!file.exists()) {
             return null;
         }
         try {
-            return new AbstractMap.SimpleImmutableEntry<>(MapData.fromNbt(file), false);
+            return MapData.fromNbt(file);
         } catch (IOException e) {
             getPlugin().log(Level.WARNING, "Failed to read legacy map file", e);
             return null;
