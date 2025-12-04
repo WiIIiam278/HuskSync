@@ -280,11 +280,11 @@ public abstract class Database {
     public abstract byte @Nullable [] getMapData(@NotNull String serverName, int mapId);
 
     /**
-     * Get a map server -> ID binding in the database
+     * Reverse lookup: given a local map binding, find the origin server and map ID.
      *
-     * @param serverName Name of the server the map originates from
-     * @param mapId      Original map ID
-     * @return Map.Entry (key: server name, value: map ID)
+     * @param serverName Name of the local server (to_server_name in the binding)
+     * @param mapId      Local map ID on this server (to_id in the binding)
+     * @return Map.Entry with origin server name (key) and origin map ID (value), or null if not found
      */
     @Blocking
     public abstract @Nullable Map.Entry<String, Integer> getMapBinding(@NotNull String serverName, int mapId);

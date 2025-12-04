@@ -399,8 +399,8 @@ public class MongoDbDatabase extends Database {
         final Document doc = iterable.first();
         if (doc != null) {
             return new AbstractMap.SimpleImmutableEntry<>(
-                    doc.getString("server_name"),
-                    doc.getInteger("to_id")
+                    doc.getString("from_server_name"),
+                    doc.getInteger("from_id")
             );
         }
         return null;
