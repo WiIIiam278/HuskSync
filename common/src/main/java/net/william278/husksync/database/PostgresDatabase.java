@@ -300,7 +300,7 @@ public class PostgresDatabase extends Database {
             SELECT COUNT(version_uuid)
             FROM %user_data_table%
             WHERE player_uuid=? AND pinned=false;"""))) {
-                statement.setString(1, user.getUuid().toString());
+                statement.setObject(1, user.getUuid());
                 final ResultSet resultSet = statement.executeQuery();
                 if (resultSet.next()) {
                     return resultSet.getInt(1);
