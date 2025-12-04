@@ -274,10 +274,10 @@ public abstract class Database {
      *
      * @param serverName Name of the server the map originates from
      * @param mapId      Original map ID
-     * @return Map.Entry (key: map data, value: is from current world)
+     * @return the map data bytes, or null if not found
      */
     @Blocking
-    public abstract @Nullable Map.Entry<byte[], Boolean> getMapData(@NotNull String serverName, int mapId);
+    public abstract byte @Nullable [] getMapData(@NotNull String serverName, int mapId);
 
     /**
      * Get a map server -> ID binding in the database
