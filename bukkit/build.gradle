@@ -27,7 +27,7 @@ dependencies {
     compileOnly 'commons-io:commons-io:2.21.0'
     compileOnly 'org.json:json:20250517'
     compileOnly 'net.william278:minedown:1.8.2'
-    compileOnly 'de.exlll:configlib-yaml:4.6.3'
+    compileOnly 'de.exlll:configlib-yaml:4.6.4'
     compileOnly 'com.zaxxer:HikariCP:7.0.2'
     compileOnly 'net.william278:DesertWell:2.0.4'
     compileOnly 'net.william278:AdvancementAPI:97a9583413'
