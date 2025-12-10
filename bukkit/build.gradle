@@ -18,7 +18,7 @@ dependencies {
     implementation 'net.kyori:adventure-platform-bukkit:4.4.1'
     implementation 'dev.triumphteam:triumph-gui:3.1.12'
     implementation 'space.arim.morepaperlib:morepaperlib:0.4.4'
-    implementation 'de.tr7zw:item-nbt-api:2.15.3'
+    implementation 'de.tr7zw:item-nbt-api:2.15.5'
 
     compileOnly "io.papermc.paper:paper-api:${paper_api_version}"
     compileOnly 'com.github.retrooper:packetevents-spigot:2.10.1'
