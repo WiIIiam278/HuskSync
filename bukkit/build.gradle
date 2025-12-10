@@ -15,16 +15,16 @@ dependencies {
     implementation 'net.william278:hsldataconverter:1.0'
     implementation 'net.william278:mapdataapi:2.0'
     implementation 'org.bstats:bstats-bukkit:3.1.0'
-    implementation 'net.kyori:adventure-platform-bukkit:4.4.0'
+    implementation 'net.kyori:adventure-platform-bukkit:4.4.1'
     implementation 'dev.triumphteam:triumph-gui:3.1.12'
     implementation 'space.arim.morepaperlib:morepaperlib:0.4.4'
     implementation 'de.tr7zw:item-nbt-api:2.15.3'
 
     compileOnly "io.papermc.paper:paper-api:${paper_api_version}"
-    compileOnly 'com.github.retrooper:packetevents-spigot:2.9.4'
+    compileOnly 'com.github.retrooper:packetevents-spigot:2.10.1'
     compileOnly 'com.github.dmulloy2:ProtocolLib:5.3.0'
-    compileOnly 'org.projectlombok:lombok:1.18.38'
-    compileOnly 'commons-io:commons-io:2.20.0'
+    compileOnly 'org.projectlombok:lombok:1.18.42'
+    compileOnly 'commons-io:commons-io:2.21.0'
     compileOnly 'org.json:json:20250517'
     compileOnly 'net.william278:minedown:1.8.2'
     compileOnly 'de.exlll:configlib-yaml:4.6.3'
@@ -33,7 +33,7 @@ dependencies {
     compileOnly 'net.william278:AdvancementAPI:97a9583413'
     compileOnly "redis.clients:jedis:$jedis_version"
 
-    annotationProcessor 'org.projectlombok:lombok:1.18.38'
+    annotationProcessor 'org.projectlombok:lombok:1.18.42'
 }
 
 processResources {
