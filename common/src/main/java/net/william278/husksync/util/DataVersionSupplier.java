@@ -43,6 +43,7 @@ public interface DataVersionSupplier {
     int VERSION1_21_8 = 4438;
     int VERSION1_21_9 = 4554;
     int VERSION1_21_10 = 4556;
+    int VERSION1_21_11 = 4671;
 
     /**
      * Returns the data version for a Minecraft version
@@ -70,7 +71,8 @@ public interface DataVersionSupplier {
             case "1.21.8" -> VERSION1_21_8;
             case "1.21.9" -> VERSION1_21_9;
             case "1.21.10" -> VERSION1_21_10;
-            default -> VERSION1_21_10; // Latest supported version
+            case "1.21.11" -> VERSION1_21_11;
+            default -> VERSION1_21_11; // Latest supported version
         };
     }
 
