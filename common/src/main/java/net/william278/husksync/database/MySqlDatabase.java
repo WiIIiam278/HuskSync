@@ -473,7 +473,7 @@ public class MySqlDatabase extends Database {
 
     @Blocking
     @Override
-    public @Nullable Map.Entry<byte[], Boolean> getMapData(@NotNull String serverName, int mapId) {
+    public byte @Nullable [] getMapData(@NotNull String serverName, int mapId) {
         try (Connection connection = getConnection()) {
             try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
                     SELECT `data`
@@ -488,7 +488,7 @@ public class MySqlDatabase extends Database {
                     final Blob blob = resultSet.getBlob("data");
                     final byte[] dataByteArray = blob.getBytes(1, (int) blob.length());
                     blob.free();
-                    return Map.entry(dataByteArray, true);
+                    return dataByteArray;
                 }
             }
         } catch (SQLException | DataAdapter.AdaptionException e) {

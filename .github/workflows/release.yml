@@ -13,9 +13,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 'Checkout for CI 🛎️'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: 'Set up JDK 21 📦'
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           java-version: '21'
           distribution: 'temurin'
@@ -27,7 +27,7 @@ jobs:
           RELEASES_MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
           RELEASES_MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
       - name: 'Publish Test Report 📊'
-        uses: mikepenz/action-junit-report@v5
+        uses: mikepenz/action-junit-report@v6
         if: success() || failure() # Continue on failure
         with:
           report_paths: '**/build/test-results/test/TEST-*.xml'
@@ -40,12 +40,11 @@ jobs:
           version: ${{ github.event.release.tag_name }}
           changelog: ${{ github.event.release.body }}
           distro-names: |
-            paper-1.20.1
             paper-1.21.1
             paper-1.21.4
             paper-1.21.5
             paper-1.21.8
-            fabric-1.20.1
+            paper-1.21.10
             fabric-1.21.1
             fabric-1.21.4
             fabric-1.21.5
@@ -60,25 +59,22 @@ jobs:
             fabric
             fabric
             fabric
-            fabric
           distro-descriptions: |
-            Paper 1.20.1
             Paper 1.21.1
             Paper 1.21.4
             Paper 1.21.5
             Paper 1.21.8
-            Fabric 1.20.1
+            Paper 1.21.10
             Fabric 1.21.1
             Fabric 1.21.4
             Fabric 1.21.5
             Fabric 1.21.8
           files: |
-            target/HuskSync-Bukkit-${{ github.event.release.tag_name }}+mc.1.20.1.jar
             target/HuskSync-Bukkit-${{ github.event.release.tag_name }}+mc.1.21.1.jar
             target/HuskSync-Bukkit-${{ github.event.release.tag_name }}+mc.1.21.4.jar
             target/HuskSync-Bukkit-${{ github.event.release.tag_name }}+mc.1.21.5.jar
             target/HuskSync-Bukkit-${{ github.event.release.tag_name }}+mc.1.21.8.jar
-            target/HuskSync-Fabric-${{ github.event.release.tag_name }}+mc.1.20.1.jar
+            target/HuskSync-Bukkit-${{ github.event.release.tag_name }}+mc.1.21.10.jar
             target/HuskSync-Fabric-${{ github.event.release.tag_name }}+mc.1.21.1.jar
             target/HuskSync-Fabric-${{ github.event.release.tag_name }}+mc.1.21.4.jar
             target/HuskSync-Fabric-${{ github.event.release.tag_name }}+mc.1.21.5.jar

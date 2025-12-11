@@ -300,7 +300,7 @@ public class PostgresDatabase extends Database {
             SELECT COUNT(version_uuid)
             FROM %user_data_table%
             WHERE player_uuid=? AND pinned=false;"""))) {
-                statement.setString(1, user.getUuid().toString());
+                statement.setObject(1, user.getUuid());
                 final ResultSet resultSet = statement.executeQuery();
                 if (resultSet.next()) {
                     return resultSet.getInt(1);
@@ -469,7 +469,7 @@ public class PostgresDatabase extends Database {
 
     @Blocking
     @Override
-    public @Nullable Map.Entry<byte[], Boolean> getMapData(@NotNull String serverName, int mapId) {
+    public byte @Nullable [] getMapData(@NotNull String serverName, int mapId) {
         try (Connection connection = getConnection()) {
             try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
                     SELECT data
@@ -480,8 +480,7 @@ public class PostgresDatabase extends Database {
                 statement.setInt(2, mapId);
                 final ResultSet resultSet = statement.executeQuery();
                 if (resultSet.next()) {
-                    final byte[] data = resultSet.getBytes("data");
-                    return new AbstractMap.SimpleImmutableEntry<>(data, true);
+                    return resultSet.getBytes("data");
                 }
                 return null;
             }

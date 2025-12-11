@@ -89,7 +89,7 @@ allprojects {
     }
 
     dependencies {
-        testImplementation(platform("org.junit:junit-bom:5.13.3"))
+        testImplementation(platform("org.junit:junit-bom:6.0.1"))
         testImplementation 'org.junit.jupiter:junit-jupiter'
         testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
         testCompileOnly 'org.jetbrains:annotations:26.0.2'
@@ -100,14 +100,14 @@ allprojects {
         include '**/*.java'
         newLine = true
     }
-    
+
     test {
         useJUnitPlatform()
     }
 
     processResources {
         def tokenMap = rootProject.ext.properties
-        tokenMap.merge("grgit",'',(s, s2) -> s)
+        tokenMap.merge("grgit", '', (s, s2) -> s)
         filesMatching(['**/*.json', '**/*.yml']) {
             filter ReplaceTokens as Class, beginToken: '${', endToken: '}',
                     tokens: tokenMap
@@ -133,7 +133,7 @@ subprojects {
 
     // Version-specific configuration
     if (['fabric', 'bukkit'].contains(project.parent?.name)) {
-        compileJava.options.release.set (project.name == '1.20.1' ? 17 : 21) // 1.20.1 requires Java 17
+        compileJava.options.release.set 21
         version += "+mc.${project.name}"
 
         if (project.parent?.name?.equals('fabric')) {

@@ -5,11 +5,11 @@ pluginManagement {
         maven { url 'https://maven.fabricmc.net/' }
         maven { url 'https://maven.architectury.dev/' }
         maven { url 'https://maven.minecraftforge.net' }
-        maven { url 'https://repo.essential.gg/repository/maven-public' }
+        maven { url 'https://repo.essential.gg/public' }
     }
 
     plugins {
-        def egtVersion = "0.6.5"
+        def egtVersion = "0.6.10"
         id("gg.essential.defaults") version egtVersion
         id("gg.essential.multi-version.root") version egtVersion
     }

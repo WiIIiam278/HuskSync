@@ -26,9 +26,6 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import net.minecraft.datafixer.TypeReferences;
 import net.minecraft.item.ItemStack;
-//#if MC==12001
-//$$ import net.minecraft.nbt.NbtCompound;
-//#endif
 import net.minecraft.nbt.*;
 import net.minecraft.registry.DynamicRegistryManager;
 import net.william278.desertwell.util.Version;
@@ -280,10 +277,6 @@ public abstract class FabricSerializer {
                 //$$ return (NbtCompound) item.toNbt(reg);
                 //#elseif MC==12101
                 //$$ return (NbtCompound) item.encode(reg);
-                //#elseif MC==12001
-                //$$ final NbtCompound compound = new NbtCompound();
-                //$$ item.writeNbt(compound);
-                //$$ return compound;
                 //#endif
             } catch (Throwable e) {
                 return null;
@@ -294,10 +287,8 @@ public abstract class FabricSerializer {
         private ItemStack decodeNbt(@NotNull NbtElement item, @NotNull DynamicRegistryManager reg) {
             //#if MC>=12108
             final @Nullable ItemStack stack = ItemStack.CODEC.decode(reg.getOps(NbtOps.INSTANCE), item).getOrThrow().getFirst();
-            //#elseif MC>12001
+            //#else
             //$$ final @Nullable ItemStack stack = ItemStack.fromNbt(reg, item).orElse(null);
-            //#elseif MC==12001
-            //$$ final @Nullable ItemStack stack = ItemStack.fromNbt((NbtCompound) item);
             //#endif
             if (stack == null) {
                 throw new IllegalStateException("Failed to decode item NBT (decode got null): (%s)".formatted(item));
