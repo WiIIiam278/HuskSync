@@ -34,15 +34,12 @@ public interface DataVersionSupplier {
     int VERSION1_20_2 = 3578;
     int VERSION1_20_4 = 3700;
     int VERSION1_20_5 = 3837;
-    int VERSION1_21_1 = 3955;
-    int VERSION1_21_3 = 4082;
+    int VERSION1_21_1 = 3953;
+    int VERSION1_21_3 = 4080;
     int VERSION1_21_4 = 4189;
     int VERSION1_21_5 = 4323;
-    int VERSION1_21_6 = 4435;
-    int VERSION1_21_7 = 4438;
-    int VERSION1_21_8 = 4438;
-    int VERSION1_21_9 = 4554;
-    int VERSION1_21_10 = 4556;
+    int VERSION1_21_8 = 4435;
+    int VERSION1_21_10 = 4554;
     int VERSION1_21_11 = 4671;
 
     /**
@@ -66,11 +63,8 @@ public interface DataVersionSupplier {
             case "1.21.2", "1.21.3" -> VERSION1_21_3;
             case "1.21.4" -> VERSION1_21_4;
             case "1.21.5" -> VERSION1_21_5;
-            case "1.21.6" -> VERSION1_21_6;
-            case "1.21.7" -> VERSION1_21_7;
-            case "1.21.8" -> VERSION1_21_8;
-            case "1.21.9" -> VERSION1_21_9;
-            case "1.21.10" -> VERSION1_21_10;
+            case "1.21.6", "1.21.7", "1.21.8" -> VERSION1_21_8;
+            case "1.21.9", "1.21.10" -> VERSION1_21_10;
             case "1.21.11" -> VERSION1_21_11;
             default -> VERSION1_21_11; // Latest supported version
         };
