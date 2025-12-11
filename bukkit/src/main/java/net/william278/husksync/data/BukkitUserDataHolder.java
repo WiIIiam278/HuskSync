@@ -69,8 +69,8 @@ public interface BukkitUserDataHolder extends UserDataHolder {
     @NotNull
     @Override
     default Optional<Data.Items.Inventory> getInventory() {
-        if ((isDead() && !getPlugin().getSettings().getSynchronization().getSaveOnDeath()
-                .isSyncDeadPlayersChangingServer())) {
+        if (isDead() && getPlugin().getSettings().getSynchronization().getSaveOnDeath().isEnabled()
+            && !getPlugin().getSettings().getSynchronization().getSaveOnDeath().isSyncDeadPlayersChangingServer()) {
             return Optional.of(BukkitData.Items.Inventory.empty());
         }
         final PlayerInventory inventory = getPlayer().getInventory();
