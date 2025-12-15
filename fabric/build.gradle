@@ -19,7 +19,7 @@ dependencies {
     modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_api_version}"
 
     // Manually include config deps due to the way including api deps works
-    implementation include("de.exlll:configlib-core:4.6.3")
+    implementation include("de.exlll:configlib-core:4.6.4")
     implementation include("org.snakeyaml:snakeyaml-engine:2.10")
     implementation include('org.apache.commons:commons-pool2:2.12.1')
 
