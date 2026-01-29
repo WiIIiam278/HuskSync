@@ -126,38 +126,7 @@ public class BukkitSerializer {
 
         @Nullable
         default ItemStack[] getItems(@NotNull ReadWriteNBT tag, @NotNull Version mcVersion) {
-            if (mcVersion.compareTo(getPlugin().getMinecraftVersion()) < 0) {
-                return upgradeItemStacks((NBTCompound) tag, mcVersion);
-            }
             return NBT.itemStackArrayFromNBT(tag);
-        }
-
-        @NotNull
-        private ItemStack @NotNull [] upgradeItemStacks(@NotNull NBTCompound itemsNbt, @NotNull Version mcVersion) {
-            final ReadWriteNBTCompoundList items = itemsNbt.getCompoundList("items");
-            final ItemStack[] itemStacks = new ItemStack[itemsNbt.getInteger("size")];
-            for (int i = 0; i < items.size(); i++) {
-                if (items.get(i) == null) {
-                    itemStacks[i] = new ItemStack(Material.AIR);
-                    continue;
-                }
-                try {
-                    itemStacks[i] = NBT.itemStackFromNBT(upgradeItemData(items.get(i), mcVersion));
-                } catch (Throwable e) {
-                    itemStacks[i] = new ItemStack(Material.AIR);
-                }
-            }
-            return itemStacks;
-        }
-
-        @NotNull
-        private ReadWriteNBT upgradeItemData(@NotNull ReadWriteNBT tag, @NotNull Version mcVersion)
-                throws NoSuchFieldException, IllegalAccessException {
-            return DataFixerUtil.fixUpItemData(
-                    tag,
-                    getPlugin().getDataVersion(mcVersion),
-                    DataFixerUtil.getCurrentVersion()
-            );
         }
 
         @NotNull
