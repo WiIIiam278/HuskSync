@@ -660,7 +660,10 @@ public abstract class BukkitData implements Data {
         public void apply(@NotNull BukkitUser user, @NotNull BukkitHuskSync plugin) throws IllegalStateException {
             if (!Bukkit.isPrimaryThread()) {
                 try {
-                    Bukkit.getScheduler().callSyncMethod(plugin, () -> { this.apply(user, plugin); return null; }).get();
+                    Bukkit.getScheduler().callSyncMethod(plugin, () -> {
+                        this.apply(user, plugin);
+                        return null;
+                    }).get();
                     return;
                 } catch (Exception e) {
                     throw new IllegalStateException("Failed to apply attributes on main thread", e);
@@ -809,6 +812,10 @@ public abstract class BukkitData implements Data {
             final Player player = user.getPlayer();
             player.setTotalExperience(totalExperience);
             player.setLevel(expLevel);
+            if (expProgress < 0f || expProgress > 1f) {
+                plugin.log(Level.WARNING, "Invalid experience progress value: " + expProgress + ". Must be between 0 and 1.");
+                return;
+            }
             player.setExp(expProgress);
         }
 
