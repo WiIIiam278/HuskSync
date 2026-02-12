@@ -17,7 +17,6 @@ dependencies {
     implementation 'org.bstats:bstats-bukkit:3.1.0'
     implementation 'net.kyori:adventure-platform-bukkit:4.4.1'
     implementation 'dev.triumphteam:triumph-gui:3.1.12'
-    implementation 'space.arim.morepaperlib:morepaperlib:0.4.4'
     implementation 'de.tr7zw:item-nbt-api:2.15.5'
 
     compileOnly "io.papermc.paper:paper-api:${paper_api_version}"
@@ -85,7 +84,6 @@ shadowJar {
     relocate 'net.roxeez', 'net.william278.husksync.libraries'
     relocate 'org.bstats', 'net.william278.husksync.libraries.bstats'
     relocate 'dev.triumphteam.gui', 'net.william278.husksync.libraries.triumphgui'
-    relocate 'space.arim.morepaperlib', 'net.william278.husksync.libraries.paperlib'
     relocate 'de.tr7zw.changeme.nbtapi', 'net.william278.husksync.libraries.nbtapi'
 
     minimize()

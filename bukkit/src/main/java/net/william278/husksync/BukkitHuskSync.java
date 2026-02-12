@@ -69,11 +69,6 @@ import org.bukkit.map.MapView;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
-import space.arim.morepaperlib.MorePaperLib;
-import space.arim.morepaperlib.scheduling.AsynchronousScheduler;
-import space.arim.morepaperlib.scheduling.AttachedScheduler;
-import space.arim.morepaperlib.scheduling.GracefulScheduling;
-import space.arim.morepaperlib.scheduling.RegionalScheduler;
 
 import java.nio.file.Path;
 import java.util.*;
@@ -103,15 +98,12 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
     private Gson gson;
     private AudienceProvider audiences;
     private Toilet toilet;
-    private MorePaperLib paperLib;
     private Database database;
     private RedisManager redisManager;
     private BukkitEventListener eventListener;
     private DataAdapter dataAdapter;
     private DataSyncer dataSyncer;
     private LegacyConverter legacyConverter;
-    private AsynchronousScheduler asyncScheduler;
-    private RegionalScheduler regionalScheduler;
     @Setter
     private Settings settings;
     @Setter
@@ -125,7 +117,6 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
         // Initial plugin setup
         this.disabling = false;
         this.gson = createGson();
-        this.paperLib = new MorePaperLib(this);
 
         // Load settings and locales
         initialize("plugin config & locale files", (plugin) -> {
@@ -366,27 +357,7 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
         return eventListener.getLockedHandler();
     }
 
-    @NotNull
-    public GracefulScheduling getScheduler() {
-        return paperLib.scheduling();
-    }
 
-    @NotNull
-    public AsynchronousScheduler getAsyncScheduler() {
-        return asyncScheduler == null
-                ? asyncScheduler = getScheduler().asyncScheduler() : asyncScheduler;
-    }
-
-    @NotNull
-    public RegionalScheduler getSyncScheduler() {
-        return regionalScheduler == null
-                ? regionalScheduler = getScheduler().globalRegionalScheduler() : regionalScheduler;
-    }
-
-    @NotNull
-    public AttachedScheduler getUserSyncScheduler(@NotNull UserDataHolder user) {
-        return getScheduler().entitySpecificScheduler(((BukkitUser) user).getPlayer());
-    }
 
     @Override
     @NotNull

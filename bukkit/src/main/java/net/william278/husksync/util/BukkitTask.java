@@ -19,18 +19,17 @@
 
 package net.william278.husksync.util;
 
+import io.papermc.paper.threadedregions.scheduler.AsyncScheduler;
+import io.papermc.paper.threadedregions.scheduler.GlobalRegionScheduler;
+import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import net.william278.husksync.BukkitHuskSync;
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.data.UserDataHolder;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import space.arim.morepaperlib.scheduling.AsynchronousScheduler;
-import space.arim.morepaperlib.scheduling.AttachedScheduler;
-import space.arim.morepaperlib.scheduling.RegionalScheduler;
-import space.arim.morepaperlib.scheduling.ScheduledTask;
 
-import java.time.Duration;
-import java.time.temporal.ChronoUnit;
+import java.util.concurrent.TimeUnit;
 
 public interface BukkitTask extends Task {
 
@@ -65,21 +64,40 @@ public interface BukkitTask extends Task {
 
             // Use entity-specific scheduler if user is not null
             if (user != null) {
-                final AttachedScheduler scheduler = ((BukkitHuskSync) getPlugin()).getUserSyncScheduler(user);
+                final Player player = ((BukkitHuskSync) getPlugin()).getServer().getOnlinePlayers().stream()
+                  .filter(ip -> ip.getName().equals(user.getUsername()))
+                  .findFirst().orElseThrow();
                 if (delayTicks > 0) {
-                    this.task = scheduler.runDelayed(runnable, null, delayTicks);
+                    this.task = player.getScheduler().runDelayed(
+                      (BukkitHuskSync) getPlugin(),
+                      (task) -> runnable.run(),
+                      this::runGlobal, //IF player logged out before task runs, run on global scheduler instead
+                      delayTicks
+                    );
                 } else {
-                    this.task = scheduler.run(runnable, null);
+                    this.task = player.getScheduler().run(
+                      (BukkitHuskSync) getPlugin(),
+                      (task) -> runnable.run(),
+                      this::runGlobal
+                    );
                 }
                 return;
             }
 
             // Or default to the global scheduler
-            final RegionalScheduler scheduler = ((BukkitHuskSync) getPlugin()).getSyncScheduler();
+            runGlobal();
+        }
+
+        private void runGlobal(){
+            final GlobalRegionScheduler scheduler = ((BukkitHuskSync) getPlugin()).getServer().getGlobalRegionScheduler();
             if (delayTicks > 0) {
-                this.task = scheduler.runDelayed(runnable, delayTicks);
+                this.task = scheduler.runDelayed(
+                  (BukkitHuskSync) getPlugin(),
+                  (task) -> runnable.run(),
+                  delayTicks
+                );
             } else {
-                this.task = scheduler.run(runnable);
+                this.task = scheduler.run((BukkitHuskSync) getPlugin(), (task) -> runnable.run());
             }
         }
     }
@@ -110,15 +128,17 @@ public interface BukkitTask extends Task {
                 return;
             }
 
-            final AsynchronousScheduler scheduler = ((BukkitHuskSync) getPlugin()).getAsyncScheduler();
+            final AsyncScheduler scheduler = ((BukkitHuskSync) getPlugin()).getServer().getAsyncScheduler();
             if (delayTicks > 0) {
                 plugin.debug("Running async task with delay of " + delayTicks + " ticks");
                 this.task = scheduler.runDelayed(
-                        runnable,
-                        Duration.of(delayTicks * 50L, ChronoUnit.MILLIS)
+                  (BukkitHuskSync) getPlugin(),
+                  (task) -> runnable.run(),
+                  delayTicks * 50L,
+                  TimeUnit.MILLISECONDS
                 );
             } else {
-                this.task = scheduler.run(runnable);
+                this.task = scheduler.runNow((BukkitHuskSync) getPlugin(), (task) -> runnable.run());
             }
         }
     }
@@ -146,10 +166,9 @@ public interface BukkitTask extends Task {
             }
 
             if (!cancelled) {
-                final AsynchronousScheduler scheduler = ((BukkitHuskSync) getPlugin()).getAsyncScheduler();
-                this.task = scheduler.runAtFixedRate(
-                        runnable, Duration.ZERO,
-                        Duration.of(repeatingTicks * 50L, ChronoUnit.MILLIS)
+                final AsyncScheduler scheduler = ((BukkitHuskSync) getPlugin()).getServer().getAsyncScheduler();
+                this.task = scheduler.runAtFixedRate((BukkitHuskSync) getPlugin(), (task) -> runnable.run(),
+                  0, repeatingTicks * 50L, TimeUnit.MILLISECONDS
                 );
             }
         }
@@ -182,7 +201,9 @@ public interface BukkitTask extends Task {
 
         @Override
         default void cancelTasks() {
-            ((BukkitHuskSync) getPlugin()).getScheduler().cancelGlobalTasks();
+            ((BukkitHuskSync) getPlugin()).getServer().getScheduler().cancelTasks((BukkitHuskSync) getPlugin());
+            ((BukkitHuskSync) getPlugin()).getServer().getAsyncScheduler().cancelTasks((BukkitHuskSync) getPlugin());
+            ((BukkitHuskSync) getPlugin()).getServer().getGlobalRegionScheduler().cancelTasks((BukkitHuskSync) getPlugin());
         }
 
     }
