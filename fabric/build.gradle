@@ -21,7 +21,7 @@ dependencies {
     // Manually include config deps due to the way including api deps works
     implementation include("de.exlll:configlib-core:4.6.3")
     implementation include("org.snakeyaml:snakeyaml-engine:2.10")
-    implementation include('org.apache.commons:commons-pool2:2.12.1')
+    implementation include('org.apache.commons:commons-pool2:2.13.0')
 
     // Include driver deps due to no runtime dep loading support
     implementation include("com.mysql:mysql-connector-j:$mysql_driver_version")
@@ -30,7 +30,7 @@ dependencies {
     implementation include("org.xerial.snappy:snappy-java:$snappy_version")
     implementation include("redis.clients:jedis:$jedis_version")
     implementation include("redis.clients.authentication:redis-authx-core:0.1.1-beta2") // Redis dep
-    implementation include('org.apache.commons:commons-pool2:2.12.1') // Redis dep
+    implementation include('org.apache.commons:commons-pool2:2.13.0') // Redis dep
 
     compileOnly 'net.william278:DesertWell:2.0.4'
     compileOnly 'org.jetbrains:annotations:26.0.2-1'
