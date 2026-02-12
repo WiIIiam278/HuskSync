@@ -109,9 +109,9 @@ public class UserDataCommand extends PluginCommand {
 
     // Create and save a snapshot of a user's current data
     private void createAndSaveSnapshot(@NotNull CommandUser executor, @NotNull OnlineUser onlineUser) {
-        plugin.getDataSyncer().saveCurrentUserData(onlineUser, DataSnapshot.SaveCause.SAVE_COMMAND);
-        plugin.getLocales().getLocale("data_saved", onlineUser.getName())
-                .ifPresent(executor::sendMessage);
+        plugin.getDataSyncer().saveCurrentUserData(onlineUser, DataSnapshot.SaveCause.SAVE_COMMAND)
+            .thenRun(() -> plugin.getLocales().getLocale("data_saved", onlineUser.getName())
+                .ifPresent(executor::sendMessage));
     }
 
     // Delete a snapshot

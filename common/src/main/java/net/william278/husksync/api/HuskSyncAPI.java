@@ -279,7 +279,7 @@ public class HuskSyncAPI {
      * @param snapshot The snapshot to save
      * @param callback A callback to run after the data has been saved (if the DataSaveEvent was not canceled)
      * @implNote Note that the {@link net.william278.husksync.event.DataSaveEvent} will be fired unless the
-     * {@link DataSnapshot.SaveCause#fireDataSaveEvent()} is {@code false}
+     * {@code fireDataSaveEvent()} is {@code false}
      * @since 3.3.2
      */
     public void addSnapshot(@NotNull User user, @NotNull DataSnapshot snapshot,
@@ -298,7 +298,7 @@ public class HuskSyncAPI {
      * @param user     The user to save the data for
      * @param snapshot The snapshot to save
      * @implNote Note that the {@link net.william278.husksync.event.DataSaveEvent} will be fired unless the
-     * {@link DataSnapshot.SaveCause#fireDataSaveEvent()} is {@code false}
+     * {@code fireDataSaveEvent()} is {@code false}
      * @since 3.0
      */
     public void addSnapshot(@NotNull User user, @NotNull DataSnapshot snapshot) {

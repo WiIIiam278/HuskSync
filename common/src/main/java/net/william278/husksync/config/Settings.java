@@ -306,6 +306,10 @@ public class Settings {
                  + "pulling data from the database instead (i.e., if the user did not change servers).")
         private int networkLatencyMilliseconds = 500;
 
+        @Comment({"How long to wait for player saves to finish during server shutdown before closing the database connections",
+                "Keep this well below your watchdog timeout, or the server may kill the process mid-shutdown before this finishes."})
+        private int shutdownSaveTimeoutMilliseconds = 5000;
+
         @Comment({"Which data types to synchronize.", "Docs: https://william278.net/docs/husksync/sync-features"})
         @Getter(AccessLevel.NONE)
         private Map<String, Boolean> features = Identifier.getConfigMap();

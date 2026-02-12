@@ -19,39 +19,51 @@
 
 package net.william278.husksync.redis;
 
+import io.lettuce.core.*;
+import io.lettuce.core.api.StatefulRedisConnection;
+import io.lettuce.core.codec.ByteArrayCodec;
+import io.lettuce.core.pubsub.RedisPubSubListener;
+import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
+import io.lettuce.core.support.ConnectionPoolSupport;
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.config.Settings;
 import net.william278.husksync.data.DataSnapshot;
 import net.william278.husksync.user.User;
+import org.apache.commons.pool2.impl.GenericObjectPool;
+import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.jetbrains.annotations.Blocking;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import redis.clients.jedis.*;
-import redis.clients.jedis.exceptions.JedisException;
-import redis.clients.jedis.util.Pool;
 
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import java.util.logging.Level;
 
 /**
  * Manages the connection to Redis, handling the caching of user data
  */
-public class RedisManager extends JedisPubSub {
+public class RedisManager implements RedisPubSubListener<byte[], byte[]> {
 
     protected static final String KEY_NAMESPACE = "husksync:";
-    private static final int RECONNECTION_TIME = 8000;
+
+    static {
+        // Force Lettuce to use NIO transport
+        System.setProperty("io.lettuce.core.epoll", "false");
+        System.setProperty("io.lettuce.core.kqueue", "false");
+        System.setProperty("io.lettuce.core.iouring", "false");
+    }
 
     private final HuskSync plugin;
     private final String clusterId;
-    private Pool<Jedis> jedisPool;
+    private RedisClient lettuceClient;
+    private StatefulRedisPubSubConnection<byte[], byte[]> pubSubConnection;
+    private GenericObjectPool<StatefulRedisConnection<byte[], byte[]>> lettucePool;
     private final Map<UUID, CompletableFuture<Optional<DataSnapshot.Packed>>> pendingRequests;
-
-    private boolean enabled;
-    private boolean reconnected;
 
     public RedisManager(@NotNull HuskSync plugin) {
         this.plugin = plugin;
@@ -74,103 +86,108 @@ public class RedisManager extends JedisPubSub {
         final int database = credentials.getDatabase();
         final boolean useSSL = credentials.isUseSsl();
 
-        // Configure JedisPoolConfig
-        final JedisPoolConfig config = new JedisPoolConfig();
-        config.setMaxTotal(credentials.getMaxTotalConnections());
-        config.setMaxIdle(credentials.getMaxIdleConnections());
-        config.setMinIdle(credentials.getMinIdleConnections());
-        config.setTestOnBorrow(credentials.isTestOnBorrow());
-        config.setTestOnReturn(credentials.isTestOnReturn());
-        config.setTestWhileIdle(credentials.isTestWhileIdle());
-        config.setMinEvictableIdleTimeMillis(credentials.getMinEvictableIdleTimeMillis());
-        config.setTimeBetweenEvictionRunsMillis(credentials.getTimeBetweenEvictionRunsMillis());
+        // 1. BUILD REDIS URI WITH AUTHENTICATION
+        RedisURI.Builder redisUriBuilder = RedisURI.Builder.redis(host, port)
+                .withAuthentication(RedisCredentialsProvider.from(() -> RedisCredentials.just(user, password)))
+                .withDatabase(database)
+                .withSsl(useSSL);
 
+        // 2. CONFIGURE REDIS SENTINEL (if applicable)
         final Settings.RedisSettings.RedisSentinel sentinel = plugin.getSettings().getRedis().getSentinel();
-        Set<String> redisSentinelNodes = new HashSet<>(sentinel.getNodes());
 
-        if (redisSentinelNodes.isEmpty()) {
-            // Standalone Redis setup
-            DefaultJedisClientConfig.Builder clientConfigBuilder = DefaultJedisClientConfig.builder()
-                    .ssl(useSSL)
-                    .database(database)
-                    .timeoutMillis(credentials.getConnectionTimeout()) // connection and socket timeout combined
-                    .user(user.isEmpty() ? null : user)
-                    .password(password.isEmpty() ? null : password);
-
-            this.jedisPool = new JedisPool(config, new HostAndPort(host, port), clientConfigBuilder.build());
-        } else {
-            final String sentinelPassword = sentinel.getPassword();
-            this.jedisPool = new JedisSentinelPool(
-                    sentinel.getMaster(),
-                    redisSentinelNodes,
-                    config,
-                    credentials.getConnectionTimeout(),
-                    credentials.getSocketTimeout(),
-                    password.isEmpty() ? null : password,
-                    sentinelPassword.isEmpty() ? null : sentinelPassword,
-                    database);
+        // Set the master ID if Sentinel is configured
+        if (!sentinel.getMaster().isEmpty()) {
+            redisUriBuilder.withSentinelMasterId(sentinel.getMaster());
         }
 
-        try (var jedis = jedisPool.getResource()) {
-            jedis.ping();
-        } catch (JedisException e) {
-            throw new IllegalStateException("Failed to establish connection with Redis. " +
-                    "Please check the supplied credentials in the config file", e);
-        }
+        // Add each Sentinel node with optional password authentication
+        for (String node : sentinel.getNodes()) {
+            final String[] parts = node.split(":");
 
-        enabled = true;
-        new Thread(this::subscribe, "husksync:redis_subscriber").start();
-    }
-
-    @Blocking
-    private void subscribe() {
-        while (enabled && !Thread.interrupted() && jedisPool != null && !jedisPool.isClosed()) {
-            try (Jedis jedis = jedisPool.getResource()) {
-                if (reconnected) {
-                    plugin.log(Level.INFO, "Redis connection is alive again");
-                }
-                // Subscribe channels and lock the thread
-                jedis.subscribe(
-                        this,
-                        Arrays.stream(RedisMessage.Type.values())
-                                .map(type -> type.getMessageChannel(clusterId))
-                                .toArray(String[]::new));
-            } catch (Throwable t) {
-                // Thread was unlocked due error
-                onThreadUnlock(t);
+            if (sentinel.getPassword().isEmpty()) {
+                // Add Sentinel node without password
+                redisUriBuilder.withSentinel(parts[0], Integer.parseInt(parts[1]));
+            } else {
+                // Add Sentinel node with password
+                redisUriBuilder.withSentinel(parts[0], Integer.parseInt(parts[1]), sentinel.getPassword());
             }
         }
+
+        // Build the final Redis URI
+        RedisURI redisUri = redisUriBuilder.build();
+
+        // 3. CREATE AND CONFIGURE REDIS CLIENT
+        this.lettuceClient = RedisClient.create();
+
+        // Configure client options with connection and socket timeouts
+        this.lettuceClient.setOptions(ClientOptions.builder()
+                .timeoutOptions(TimeoutOptions
+                        .enabled(Duration.ofMillis(credentials.getConnectionTimeout())))
+                .socketOptions(SocketOptions.builder()
+                        .connectTimeout(Duration.ofMillis(credentials.getSocketTimeout()))
+                        .build())
+                .build());
+
+        // 4. CREATE CONNECTION POOL
+        this.lettucePool = ConnectionPoolSupport.createGenericObjectPool(
+                () -> this.lettuceClient.connect(ByteArrayCodec.INSTANCE, redisUri),
+                buildPoolConfig(credentials));
+
+        // 5. VERIFY CONNECTION
+        try (var lettuceConnection = this.lettucePool.borrowObject()) {
+            lettuceConnection.sync().ping();
+        } catch (LinkageError e) {
+            // N.B. an error here would mean that the server's bundled Netty version does
+            // not match what our lettuce_version in gradle.properties expects at runtime.
+            // TODO - consider shading/relocating io.netty + io.lettuce to remove this coupling.
+            throw new IllegalStateException(
+                    "Failed to initialize the Redis client due to a Netty/Lettuce version mismatch with " +
+                            "this server. Please check for a HuskSync update before reporting this as a " +
+                            "configuration issue.", e);
+        } catch (Exception e) {
+            throw new IllegalStateException(
+                    "Failed to establish connection with Redis. " +
+                            "Please check the supplied credentials in the config file", e);
+        }
+
+        // 6. SETUP PUB/SUB CONNECTION
+        this.pubSubConnection = lettuceClient.connectPubSub(ByteArrayCodec.INSTANCE, redisUri);
+
+        pubSubConnection.addListener(this);
+
+        // Subscribe to all message type channels for this cluster
+        pubSubConnection.async().subscribe(
+                Arrays.stream(RedisMessage.Type.values())
+                        .map(type -> type.getMessageChannel(clusterId).getBytes(StandardCharsets.UTF_8))
+                        .toArray(byte[][]::new));
     }
 
-    private void onThreadUnlock(@NotNull Throwable t) {
-        if (!enabled) {
-            return;
-        }
+    private static GenericObjectPoolConfig<StatefulRedisConnection<byte[], byte[]>> buildPoolConfig(Settings.RedisSettings.RedisCredentials credentials) {
+        GenericObjectPoolConfig<StatefulRedisConnection<byte[], byte[]>> poolConfig = new GenericObjectPoolConfig<>();
+        poolConfig.setMaxIdle(credentials.getMaxIdleConnections());
+        poolConfig.setMinIdle(credentials.getMinIdleConnections());
+        poolConfig.setMaxTotal(credentials.getMaxTotalConnections());
+        poolConfig.setTestOnBorrow(credentials.isTestOnBorrow());
+        poolConfig.setTestOnReturn(credentials.isTestOnReturn());
+        poolConfig.setTestWhileIdle(credentials.isTestWhileIdle());
+        poolConfig.setMinEvictableIdleDuration(Duration.ofMillis(credentials.getMinEvictableIdleTimeMillis()));
+        poolConfig.setTimeBetweenEvictionRuns(Duration.ofMillis(credentials.getTimeBetweenEvictionRunsMillis()));
+        poolConfig.setMaxWait(Duration.ofMillis(Math.max(1000, credentials.getConnectionTimeout())));
+        return poolConfig;
+    }
 
-        if (reconnected) {
-            plugin.log(Level.WARNING, "Redis Server connection lost. Attempting reconnect in %ss..."
-                    .formatted(RECONNECTION_TIME / 1000), t);
-        }
-        try {
-            this.unsubscribe();
-        } catch (Throwable ignored) {
-            // empty catch
-        }
 
-        // Make an instant subscribe if occurs any error on initialization
-        if (!reconnected) {
-            reconnected = true;
-        } else {
-            try {
-                Thread.sleep(RECONNECTION_TIME);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
-        }
+    @Override
+    public void message(byte[] channel, byte[] message) {
+        onMessage(new String(channel, StandardCharsets.UTF_8), new String(message, StandardCharsets.UTF_8));
     }
 
     @Override
-    public void onMessage(@NotNull String channel, @NotNull String message) {
+    public void message(byte[] pattern, byte[] channel, byte[] message) {
+        onMessage(new String(channel, StandardCharsets.UTF_8), new String(message, StandardCharsets.UTF_8));
+    }
+
+    private void onMessage(@NotNull String channel, @NotNull String message) {
         final RedisMessage.Type messageType = RedisMessage.Type.getTypeFromChannel(channel, clusterId).orElse(null);
         if (messageType == null) {
             return;
@@ -179,7 +196,7 @@ public class RedisManager extends JedisPubSub {
         final RedisMessage redisMessage = RedisMessage.fromJson(plugin, message);
         switch (messageType) {
             case UPDATE_USER_DATA -> redisMessage.getTargetUser(plugin).ifPresent(
-                    user -> {
+                    user -> plugin.runAsync(() -> {
                         plugin.lockPlayer(user.getUuid());
                         try {
                             final DataSnapshot.Packed data = DataSnapshot.deserialize(plugin,
@@ -189,12 +206,17 @@ public class RedisManager extends JedisPubSub {
                             plugin.log(Level.SEVERE, "An exception occurred updating user data from Redis", e);
                             user.completeSync(false, DataSnapshot.UpdateCause.UPDATED, plugin);
                         }
-                    });
+                    }));
             case REQUEST_USER_DATA -> redisMessage.getTargetUser(plugin).ifPresent(
-                    user -> RedisMessage.create(
-                            UUID.fromString(new String(redisMessage.getPayload(), StandardCharsets.UTF_8)),
-                            user.createSnapshot(DataSnapshot.SaveCause.INVENTORY_COMMAND).asBytes(plugin))
-                            .dispatch(plugin, RedisMessage.Type.RETURN_USER_DATA));
+                    user -> plugin.runSync(() -> {
+                        final DataSnapshot.Packed snapshot = user.createSnapshot(
+                                DataSnapshot.SaveCause.INVENTORY_COMMAND);
+                        RedisMessage.create(
+                                        UUID.fromString(new String(redisMessage.getPayload(),
+                                                StandardCharsets.UTF_8)),
+                                        snapshot.asBytes(plugin))
+                                .dispatch(plugin, RedisMessage.Type.RETURN_USER_DATA);
+                    }, user));
             case CHECK_IN_PETITION -> {
                 if (!redisMessage.isTargetServer(plugin)
                         || !plugin.getSettings().getSynchronization().isCheckinPetitions()) {
@@ -203,18 +225,20 @@ public class RedisManager extends JedisPubSub {
                 final String payload = new String(redisMessage.getPayload(), StandardCharsets.UTF_8);
                 final User user = new User(UUID.fromString(payload.split("/")[0]), payload.split("/")[1]);
 
-                // Only release checkout if user is truly offline AND not being processed
-                final boolean isOnline = plugin.getOnlineUser(user.getUuid()).isPresent();
-                final boolean isLocked = plugin.isLocked(user.getUuid());
+                plugin.runAsync(() -> {
+                    // Only release checkout if user is truly offline AND not being processed
+                    final boolean isOnline = plugin.getOnlineUser(user.getUuid()).isPresent();
+                    final boolean isLocked = plugin.isLocked(user.getUuid());
 
-                if (isOnline || isLocked) {
-                    plugin.debug("[%s] Petition ignored - user still being processed (online=%s, locked=%s)"
+                    if (isOnline || isLocked) {
+                        plugin.debug("[%s] Petition ignored - user still being processed (online=%s, locked=%s)"
                             .formatted(user.getName(), isOnline, isLocked));
-                    return;
-                }
+                        return;
+                    }
 
-                plugin.getRedisManager().setUserCheckedOut(user, false);
-                plugin.debug("[%s] Petition accepted - user checked in".formatted(user.getName()));
+                    plugin.getRedisManager().setUserCheckedOut(user, false);
+                    plugin.debug("[%s] Petition accepted - user checked in".formatted(user.getName()));
+                });
             }
             case RETURN_USER_DATA -> {
                 final UUID target = redisMessage.getTargetUuid().orElse(null);
@@ -233,21 +257,14 @@ public class RedisManager extends JedisPubSub {
         }
     }
 
-    @Override
-    public void onSubscribe(String channel, int subscribedChannels) {
-        plugin.log(Level.INFO, "Redis subscribed to channel '" + channel + "'");
-    }
-
-    @Override
-    public void onUnsubscribe(String channel, int subscribedChannels) {
-        plugin.log(Level.INFO, "Redis unsubscribed from channel '" + channel + "'");
-    }
-
     @Blocking
     protected void sendMessage(@NotNull String channel, @NotNull String message) {
-        try (Jedis jedis = jedisPool.getResource()) {
-            jedis.publish(channel, message);
-        }
+        tryExecute(connection -> {
+                    connection.sync().publish(channel.getBytes(StandardCharsets.UTF_8), message.getBytes(StandardCharsets.UTF_8));
+                    return null;
+                }, (t) -> null, "An exception occurred publish a message to Redis channel " + channel,
+                plugin.getSettings().getRedis().getCredentials().getMaxRetries());
+
     }
 
     @Blocking
@@ -296,9 +313,9 @@ public class RedisManager extends JedisPubSub {
     // Set a user's data to Redis if the snapshot is newer than what's already cached
     @Blocking
     public void setUserData(@NotNull User user, @NotNull DataSnapshot.Packed data) {
-        try (Jedis jedis = jedisPool.getResource()) {
+        tryExecute(connection -> {
             final byte[] key = getKey(RedisKeyType.LATEST_SNAPSHOT, user.getUuid(), clusterId);
-            final byte[] existingBytes = jedis.get(key);
+            final byte[] existingBytes = connection.sync().get(key);
             if (existingBytes != null) {
                 final DataSnapshot.Packed existing = deserializeExistingSnapshot(user, existingBytes);
                 if (existing != null && existing.getTimestamp().isAfter(data.getTimestamp())) {
@@ -307,15 +324,15 @@ public class RedisManager extends JedisPubSub {
                         + "would overwrite a newer %s snapshot (%s) that is already cached.",
                         user.getName(), RedisKeyType.LATEST_SNAPSHOT, data.getSaveCause(),
                         data.getTimestamp(), existing.getSaveCause(), existing.getTimestamp()));
-                    return;
+                    return null;
                 }
             }
-            jedis.setex(key, RedisKeyType.TTL_1_YEAR, data.asBytes(plugin));
+            connection.sync().setex(key, RedisKeyType.TTL_1_YEAR, data.asBytes(plugin));
             plugin.debug(String.format("[%s] Set %s key on Redis (cause: %s, timestamp: %s)",
                     user.getName(), RedisKeyType.LATEST_SNAPSHOT, data.getSaveCause(), data.getTimestamp()));
-        } catch (Throwable e) {
-            plugin.log(Level.SEVERE, "An exception occurred setting user data on Redis", e);
-        }
+            return null;
+        }, (t) -> null, "An exception occurred setting user data on Redis",
+        plugin.getSettings().getRedis().getCredentials().getMaxRetries());
     }
 
     /**
@@ -338,73 +355,69 @@ public class RedisManager extends JedisPubSub {
 
     @Blocking
     public void clearUserData(@NotNull User user) {
-        try (Jedis jedis = jedisPool.getResource()) {
-            jedis.del(
+        tryExecute(connection -> {
+            connection.sync().del(
                     getKey(RedisKeyType.LATEST_SNAPSHOT, user.getUuid(), clusterId));
             plugin.debug(String.format("[%s] Cleared %s on Redis", user.getName(), RedisKeyType.LATEST_SNAPSHOT));
-        } catch (Throwable e) {
-            plugin.log(Level.SEVERE, "An exception occurred clearing user data on Redis", e);
-        }
+            return null;
+        }, (t) -> null, "An exception occurred clearing user data on Redis",
+        plugin.getSettings().getRedis().getCredentials().getMaxRetries());
     }
 
     @Blocking
     public void setUserCheckedOut(@NotNull User user, boolean checkedOut) {
-        try (Jedis jedis = jedisPool.getResource()) {
+        tryExecute(connection -> {
             final String key = getKeyString(RedisKeyType.DATA_CHECKOUT, user.getUuid(), clusterId);
             if (checkedOut) {
-                jedis.set(
+                connection.sync().set(
                         key.getBytes(StandardCharsets.UTF_8),
                         plugin.getServerName().getBytes(StandardCharsets.UTF_8));
             } else {
-                if (jedis.del(key.getBytes(StandardCharsets.UTF_8)) == 0) {
+                if (connection.sync().del(key.getBytes(StandardCharsets.UTF_8)) == 0) {
                     plugin.debug(String.format("[%s] %s key not set on Redis when attempting removal (%s)",
                             user.getName(), RedisKeyType.DATA_CHECKOUT, key));
-                    return;
+                    return null;
                 }
             }
             plugin.debug(String.format("[%s] %s %s key %s Redis (%s)", user.getName(),
                     checkedOut ? "Set" : "Removed", RedisKeyType.DATA_CHECKOUT, checkedOut ? "to" : "from", key));
-        } catch (Throwable e) {
-            plugin.log(Level.SEVERE, "An exception occurred setting checkout to", e);
-        }
+            return null;
+        }, (t) -> null, "An exception occurred setting checkout to Redis",
+        plugin.getSettings().getRedis().getCredentials().getMaxRetries());
     }
 
     @Blocking
     public Optional<String> getUserCheckedOut(@NotNull User user) {
-        try (Jedis jedis = jedisPool.getResource()) {
-            final byte[] key = getKey(RedisKeyType.DATA_CHECKOUT, user.getUuid(), clusterId);
-            final byte[] readData = jedis.get(key);
-            if (readData != null) {
-                final String checkoutServer = new String(readData, StandardCharsets.UTF_8);
-                plugin.debug(String.format("[%s] Waiting for %s %s key to be unset on Redis",
-                        user.getName(), checkoutServer, RedisKeyType.DATA_CHECKOUT));
-                return Optional.of(checkoutServer);
-            }
-        } catch (Throwable e) {
-            plugin.log(Level.SEVERE, "An exception occurred getting a user's checkout key from Redis", e);
-        }
-        plugin.debug(String.format("[%s] %s key not set on Redis", user.getName(),
-                RedisKeyType.DATA_CHECKOUT));
-        return Optional.empty();
+        return tryExecute(connection -> {
+                    final byte[] key = getKey(RedisKeyType.DATA_CHECKOUT, user.getUuid(), clusterId);
+                    final byte[] readData = connection.sync().get(key);
+                    if (readData != null) {
+                        final String checkoutServer = new String(readData, StandardCharsets.UTF_8);
+                        plugin.debug(String.format("[%s] Waiting for %s %s key to be unset on Redis",
+                                user.getName(), checkoutServer, RedisKeyType.DATA_CHECKOUT));
+                        return Optional.of(checkoutServer);
+                    }
+                    plugin.debug(String.format("[%s] %s key not set on Redis", user.getName(),
+                            RedisKeyType.DATA_CHECKOUT));
+                    return Optional.empty();
+                }, (t) -> Optional.empty(), "An exception occurred getting a user's checkout key from Redis",
+                plugin.getSettings().getRedis().getCredentials().getMaxRetries());
     }
 
     @Blocking
     public void clearUsersCheckedOutOnServer() {
-        final String keyFormat = String.format("%s*", RedisKeyType.DATA_CHECKOUT.getKeyPrefix(clusterId));
-        try (Jedis jedis = jedisPool.getResource()) {
-            final Set<String> keys = jedis.keys(keyFormat);
-            if (keys == null) {
-                plugin.log(Level.WARNING, "Checkout key returned null from Redis during clearing");
-                return;
-            }
-            for (String key : keys) {
-                if (jedis.get(key).equals(plugin.getServerName())) {
-                    jedis.del(key);
-                }
-            }
-        } catch (Throwable e) {
-            plugin.log(Level.SEVERE, "An exception occurred clearing this server's checkout keys on Redis", e);
-        }
+        final byte[] keyFormat = String.format("%s*", RedisKeyType.DATA_CHECKOUT.getKeyPrefix(clusterId))
+                .getBytes(StandardCharsets.UTF_8);
+        tryExecute(connection -> {
+                    final List<byte[]> keys = connection.sync().keys(keyFormat);
+                    for (byte[] key : keys) {
+                        if (Arrays.equals(connection.sync().get(key), plugin.getServerName().getBytes(StandardCharsets.UTF_8))) {
+                            connection.sync().del(key);
+                        }
+                    }
+                    return null;
+                }, (t) -> null, "An exception occurred clearing this server's checkout keys on Redis",
+                plugin.getSettings().getRedis().getCredentials().getMaxRetries());
     }
 
     /**
@@ -414,16 +427,17 @@ public class RedisManager extends JedisPubSub {
      */
     @Blocking
     public void setUserServerSwitch(@NotNull User user) {
-        try (Jedis jedis = jedisPool.getResource()) {
-            jedis.setex(
-                    getKey(RedisKeyType.SERVER_SWITCH, user.getUuid(), clusterId),
-                    RedisKeyType.TTL_10_SECONDS,
-                    new byte[0]);
-            plugin.debug(String.format("[%s] Set %s key to Redis",
-                    user.getName(), RedisKeyType.SERVER_SWITCH));
-        } catch (Throwable e) {
-            plugin.log(Level.SEVERE, "An exception occurred setting a user's server switch key from Redis", e);
-        }
+        tryExecute(connection -> {
+                    connection.sync().setex(
+                            getKey(RedisKeyType.SERVER_SWITCH, user.getUuid(), clusterId),
+                            RedisKeyType.TTL_10_SECONDS,
+                            new byte[0]);
+                    plugin.debug(String.format("[%s] Set %s key to Redis",
+                            user.getName(), RedisKeyType.SERVER_SWITCH));
+                    return null;
+                }, (t) -> null, "An exception occurred setting a user's server switch key on Redis",
+                plugin.getSettings().getRedis().getCredentials().getMaxRetries());
+
     }
 
     /**
@@ -431,13 +445,13 @@ public class RedisManager extends JedisPubSub {
      *
      * @param user The user to fetch data for
      * @return The user's data, if it's present on the database. Otherwise, an empty
-     *         optional.
+     * optional.
      */
     @Blocking
     public Optional<DataSnapshot.Packed> getUserData(@NotNull User user) {
-        try (Jedis jedis = jedisPool.getResource()) {
+        return tryExecute(connection -> {
             final byte[] key = getKey(RedisKeyType.LATEST_SNAPSHOT, user.getUuid(), clusterId);
-            final byte[] dataByteArray = jedis.get(key);
+            final byte[] dataByteArray = connection.sync().get(key);
             if (dataByteArray == null) {
                 plugin.debug(String.format("[%s] Waiting for %s key from Redis",
                         user.getName(), RedisKeyType.LATEST_SNAPSHOT));
@@ -447,21 +461,19 @@ public class RedisManager extends JedisPubSub {
                     user.getName(), RedisKeyType.LATEST_SNAPSHOT));
 
             // Consume the key (delete from redis)
-            jedis.del(key);
+            connection.sync().del(key);
 
             // Use Snappy to decompress the json
             return Optional.of(DataSnapshot.deserialize(plugin, dataByteArray));
-        } catch (Throwable e) {
-            plugin.log(Level.SEVERE, "An exception occurred getting a user's data from Redis", e);
-            return Optional.empty();
-        }
+        }, (t) -> Optional.empty(), "An exception occurred getting a user's data from Redis",
+        plugin.getSettings().getRedis().getCredentials().getMaxRetries());
     }
 
     @Blocking
     public boolean getUserServerSwitch(@NotNull User user) {
-        try (Jedis jedis = jedisPool.getResource()) {
+        return tryExecute(connection -> {
             final byte[] key = getKey(RedisKeyType.SERVER_SWITCH, user.getUuid(), clusterId);
-            final byte[] readData = jedis.get(key);
+            final byte[] readData = connection.sync().get(key);
             if (readData == null) {
                 plugin.debug(String.format("[%s] Waiting for %s key from Redis",
                         user.getName(), RedisKeyType.SERVER_SWITCH));
@@ -471,27 +483,31 @@ public class RedisManager extends JedisPubSub {
                     user.getName(), RedisKeyType.SERVER_SWITCH));
 
             // Consume the key (delete from redis)
-            jedis.del(key);
+            connection.sync().del(key);
             return true;
-        } catch (Throwable e) {
-            plugin.log(Level.SEVERE, "An exception occurred getting a user's server switch from Redis", e);
-            return false;
-        }
+        }, (t) -> false, "An exception occurred getting a user's server switch from Redis",
+        plugin.getSettings().getRedis().getCredentials().getMaxRetries());
     }
 
     @Blocking
     public String getStatusDump() {
-        try (Jedis jedis = jedisPool.getResource()) {
-            return jedis.info();
+        try (var lettuceConnection = lettucePool.borrowObject()) {
+            return lettuceConnection.sync().info();
+        } catch (Exception e) {
+            plugin.log(Level.WARNING, "An exception occurred pinging Redis to get status dump", e);
+            return "";
         }
     }
 
     @Blocking
     public long getLatency() {
         final long startTime = System.currentTimeMillis();
-        try (Jedis jedis = jedisPool.getResource()) {
-            jedis.ping();
+        try (var lettuceConnection = lettucePool.borrowObject()) {
+            lettuceConnection.sync().ping();
             return System.currentTimeMillis() - startTime;
+        } catch (Exception e) {
+            plugin.log(Level.WARNING, "An exception occurred pinging Redis to get latency", e);
+            return -1;
         }
     }
 
@@ -508,25 +524,25 @@ public class RedisManager extends JedisPubSub {
 
     @Blocking
     public void bindMapIds(@NotNull String fromServer, int fromId, @NotNull String toServer, int toId) {
-        try (Jedis jedis = jedisPool.getResource()) {
-            jedis.setex(
+        tryExecute(connection -> {
+            connection.sync().setex(
                     getMapIdKey(fromServer, fromId, toServer, clusterId),
                     RedisKeyType.TTL_1_YEAR,
                     String.valueOf(toId).getBytes(StandardCharsets.UTF_8));
-            jedis.setex(
+            connection.sync().setex(
                     getReversedMapIdKey(toServer, toId, clusterId),
                     RedisKeyType.TTL_1_YEAR,
                     String.format("%s:%s", fromServer, fromId).getBytes(StandardCharsets.UTF_8));
             plugin.debug(String.format("Bound map %s:%s -> %s:%s on Redis", fromServer, fromId, toServer, toId));
-        } catch (Throwable e) {
-            plugin.log(Level.SEVERE, "An exception occurred binding map ids on Redis", e);
-        }
+            return null;
+        }, (t) -> null, "An exception occurred binding map ids on Redis",
+        plugin.getSettings().getRedis().getCredentials().getMaxRetries());
     }
 
     @Blocking
     public Optional<Integer> getBoundMapId(@NotNull String fromServer, int fromId, @NotNull String toServer) {
-        try (Jedis jedis = jedisPool.getResource()) {
-            final byte[] readData = jedis.get(getMapIdKey(fromServer, fromId, toServer, clusterId));
+        return tryExecute(connection -> {
+            final byte[] readData = connection.sync().get(getMapIdKey(fromServer, fromId, toServer, clusterId));
             if (readData == null) {
                 plugin.debug(String.format("[%s:%s] No bound map id for server %s Redis",
                         fromServer, fromId, toServer));
@@ -536,16 +552,14 @@ public class RedisManager extends JedisPubSub {
                     fromServer, fromId, toServer));
 
             return Optional.of(Integer.parseInt(new String(readData, StandardCharsets.UTF_8)));
-        } catch (Throwable e) {
-            plugin.log(Level.SEVERE, "An exception occurred getting bound map id from Redis", e);
-            return Optional.empty();
-        }
+        }, (t) -> Optional.empty(), "An exception occurred getting bound map id from Redis",
+        plugin.getSettings().getRedis().getCredentials().getMaxRetries());
     }
 
     @Blocking
     public @Nullable Map.Entry<String, Integer> getReversedMapBound(@NotNull String toServer, int toId) {
-        try (Jedis jedis = jedisPool.getResource()) {
-            final byte[] readData = jedis.get(getReversedMapIdKey(toServer, toId, clusterId));
+        return tryExecute(connection -> {
+            final byte[] readData = connection.sync().get(getReversedMapIdKey(toServer, toId, clusterId));
             if (readData == null) {
                 plugin.debug(String.format("[%s:%s] No reversed map bound on Redis",
                         toServer, toId));
@@ -556,29 +570,27 @@ public class RedisManager extends JedisPubSub {
 
             String[] parts = new String(readData, StandardCharsets.UTF_8).split(":");
             return Map.entry(parts[0], Integer.parseInt(parts[1]));
-        } catch (Throwable e) {
-            plugin.log(Level.SEVERE, "An exception occurred reading reversed map bound from Redis", e);
-            return null;
-        }
+        }, (t) -> null, "An exception occurred reading reversed map bound from Redis",
+        plugin.getSettings().getRedis().getCredentials().getMaxRetries());
     }
 
     @Blocking
     public void setMapData(@NotNull String serverName, int mapId, byte[] data) {
-        try (Jedis jedis = jedisPool.getResource()) {
-            jedis.setex(
+        tryExecute(connection -> {
+            connection.sync().setex(
                     getMapDataKey(serverName, mapId, clusterId),
                     RedisKeyType.TTL_1_YEAR,
                     data);
             plugin.debug(String.format("Set map data %s:%s on Redis", serverName, mapId));
-        } catch (Throwable e) {
-            plugin.log(Level.SEVERE, "An exception occurred setting map data on Redis", e);
-        }
+            return null;
+        }, (t) -> null, "An exception occurred setting map data on Redis",
+        plugin.getSettings().getRedis().getCredentials().getMaxRetries());
     }
 
     @Blocking
     public byte @Nullable [] getMapData(@NotNull String serverName, int mapId) {
-        try (Jedis jedis = jedisPool.getResource()) {
-            final byte[] readData = jedis.get(getMapDataKey(serverName, mapId, clusterId));
+        return tryExecute(connection -> {
+            final byte[] readData = connection.sync().get(getMapDataKey(serverName, mapId, clusterId));
             if (readData == null) {
                 plugin.debug(String.format("[%s:%s] No map data on Redis",
                         serverName, mapId));
@@ -588,21 +600,49 @@ public class RedisManager extends JedisPubSub {
                     serverName, mapId));
 
             return readData;
+        }, (t) -> null, "An exception occurred reading map data from Redis",
+        plugin.getSettings().getRedis().getCredentials().getMaxRetries());
+    }
+
+    private <T> T tryExecute(Function<StatefulRedisConnection<byte[], byte[]>, T> consumer, Function<Throwable, T> returnOnError, String errorMessage, int tries) {
+        try (var lettuceConnection = lettucePool.borrowObject()) {
+            return consumer.apply(lettuceConnection);
         } catch (Throwable e) {
-            plugin.log(Level.SEVERE, "An exception occurred reading map data from Redis", e);
-            return null;
+            // Avoid retry during shutdown to avoid blocking main thread or eating into the server watchdog timeout
+            // Anything left unresolved (e.g. stale checkout key) should be handled by the check-in petition system
+            if (plugin.isDisabling()) {
+                plugin.log(Level.WARNING, errorMessage + " not retrying during server shutdown", e);
+                return returnOnError.apply(e);
+            }
+            if (tries > 0) {
+                plugin.log(Level.WARNING, errorMessage + " retry remaining: " + tries);
+                try {
+                    Thread.sleep(plugin.getSettings().getRedis().getCredentials().getRetryBackoffMillis()); // Brief pause before retrying
+                } catch (InterruptedException ignored) {}
+                return tryExecute(consumer, returnOnError, errorMessage, tries - 1);
+            } else {
+                plugin.log(Level.SEVERE, errorMessage + " after multiple attempts", e);
+                return returnOnError.apply(e);
+            }
         }
     }
 
     @Blocking
     public void terminate() {
-        enabled = false;
-        if (jedisPool != null) {
-            if (!jedisPool.isClosed()) {
-                jedisPool.close();
+        if (lettucePool != null) {
+            if (!lettucePool.isClosed()) {
+                lettucePool.close();
             }
         }
-        this.unsubscribe();
+        if (pubSubConnection != null) {
+            pubSubConnection.sync().unsubscribe(
+                Arrays.stream(RedisMessage.Type.values())
+                    .map(type -> type.getMessageChannel(clusterId).getBytes(StandardCharsets.UTF_8))
+                    .toArray(byte[][]::new));
+        }
+        if (lettuceClient != null) {
+            lettuceClient.shutdown();
+        }
     }
 
     private static byte[] getKey(@NotNull RedisKeyType keyType, @NotNull UUID uuid, @NotNull String clusterId) {
@@ -614,7 +654,7 @@ public class RedisManager extends JedisPubSub {
         return String.format("%s:%s", keyType.getKeyPrefix(clusterId), uuid);
     }
 
-    private static byte[] getMapIdKey(@NotNull String fromServer, int fromId, @NotNull String toServer,
+private static byte[] getMapIdKey(@NotNull String fromServer, int fromId, @NotNull String toServer,
             @NotNull String clusterId) {
         return String.format("%s:%s:%s:%s", RedisKeyType.MAP_ID.getKeyPrefix(clusterId), fromServer, fromId, toServer)
                 .getBytes(StandardCharsets.UTF_8);
@@ -630,4 +670,23 @@ public class RedisManager extends JedisPubSub {
                 .getBytes(StandardCharsets.UTF_8);
     }
 
+    @Override
+    public void subscribed(byte[] channel, long count) {
+        plugin.log(Level.INFO, "Redis subscribed to channel '" + new String(channel, StandardCharsets.UTF_8) + "'");
+    }
+
+    @Override
+    public void psubscribed(byte[] pattern, long count) {
+        plugin.log(Level.INFO, "Redis subscribed to pattern '" + new String(pattern, StandardCharsets.UTF_8) + "'");
+    }
+
+    @Override
+    public void unsubscribed(byte[] channel, long count) {
+        plugin.log(Level.INFO, "Redis unsubscribed to channel '" + new String(channel, StandardCharsets.UTF_8) + "'");
+    }
+
+    @Override
+    public void punsubscribed(byte[] pattern, long count) {
+        plugin.log(Level.INFO, "Redis unsubscribed to pattern '" + new String(pattern, StandardCharsets.UTF_8) + "'");
+    }
 }

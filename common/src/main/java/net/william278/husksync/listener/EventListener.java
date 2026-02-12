@@ -117,7 +117,7 @@ public abstract class EventListener {
      * Handle the plugin disabling
      */
     public void handlePluginDisable() {
-        // Save for all online players.
+        // Save for all online players that haven't been processed by PlayerQuitEvent yet.
         plugin.getOnlineUsers().stream()
                 .filter(user -> !plugin.isLocked(user.getUuid()) && !user.isNpc())
                 .forEach(user -> {
@@ -125,7 +125,19 @@ public abstract class EventListener {
                     plugin.getDataSyncer().saveCurrentUserData(user, DataSnapshot.SaveCause.SERVER_SHUTDOWN);
                 });
 
-        // Close outstanding connections
+        // Wait for the in-progress async saves queued during shutdown:
+        // - PlayerQuitEvent saves (Paper kicks players before calling onDisable())
+        // - The onDisable() saves (queued above)
+        // - WorldSaveEvent saves still in queue
+        // These saves run asynchronously and must complete before closing DB/Redis connections
+        plugin.getDataSyncer().awaitPendingSaves();
+    }
+
+    /**
+     * Close database and Redis connections. Must run AFTER {@link #handlePluginDisable()}
+     * and AFTER {@code dataSyncer.terminate()}, since the latter clears checkout keys via Redis.
+     */
+    public void closeConnections() {
         plugin.getDatabase().terminate();
         plugin.getRedisManager().terminate();
     }
