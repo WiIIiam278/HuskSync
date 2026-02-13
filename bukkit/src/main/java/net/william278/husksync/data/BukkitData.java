@@ -41,6 +41,7 @@ import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.EquipmentSlotGroup;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.jetbrains.annotations.NotNull;
@@ -49,7 +50,6 @@ import org.jetbrains.annotations.Range;
 import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
@@ -576,27 +576,25 @@ public abstract class BukkitData implements Data {
 
         @NotNull
         public static BukkitData.Attributes adapt(@NotNull Player player, @NotNull HuskSync plugin) {
-            CompletableFuture<BukkitData.Attributes> future = new CompletableFuture<>();
-            plugin.runSync(() -> {
-                final List<Attribute> attributes = Lists.newArrayList();
-                final AttributeSettings settings = plugin.getSettings().getSynchronization().getAttributes();
-                Registry.ATTRIBUTE.forEach(id -> {
-                    final AttributeInstance instance = player.getAttribute(id);
-                    if (settings.isIgnoredAttribute(id.getKey().toString()) || instance == null) {
-                        return; // We don't sync attributes not marked as to be synced
-                    }
-                    attributes.add(adapt(instance, settings));
-                });
-                future.complete(new BukkitData.Attributes(attributes));
-            }, BukkitUser.adapt(player, plugin));//This is necessary to ensure it is run on the player's scheduler
-
-            try {
-                return future.get();
-            } catch (Exception e) {
-                throw new IllegalStateException("Failed to adapt attributes on main thread", e);
+            if (!Bukkit.isPrimaryThread()) {
+                try {
+                    return Bukkit.getScheduler().callSyncMethod((Plugin) plugin, () -> adapt(player, plugin)).get();
+                } catch (Exception e) {
+                    throw new IllegalStateException("Failed to adapt attributes on main thread", e);
+                }
             }
-        }
 
+            final List<Attribute> attributes = Lists.newArrayList();
+            final AttributeSettings settings = plugin.getSettings().getSynchronization().getAttributes();
+            Registry.ATTRIBUTE.forEach(id -> {
+                final AttributeInstance instance = player.getAttribute(id);
+                if (settings.isIgnoredAttribute(id.getKey().toString()) || instance == null) {
+                    return; // We don't sync attributes not marked as to be synced
+                }
+                attributes.add(adapt(instance, settings));
+            });
+            return new BukkitData.Attributes(attributes);
+        }
 
         public Optional<Attribute> getAttribute(@NotNull org.bukkit.attribute.Attribute id) {
             return attributes.stream().filter(attribute -> attribute.name().equals(id.getKey().toString())).findFirst();
@@ -660,16 +658,27 @@ public abstract class BukkitData implements Data {
 
         @Override
         public void apply(@NotNull BukkitUser user, @NotNull BukkitHuskSync plugin) throws IllegalStateException {
-            plugin.runSync(() -> {
-                final AttributeSettings settings = plugin.getSettings().getSynchronization().getAttributes();
-                Registry.ATTRIBUTE.forEach(id -> {
-                    if (settings.isIgnoredAttribute(id.getKey().toString())) {
-                        return;
-                    }
-                    applyAttribute(user.getPlayer().getAttribute(id), getAttribute(id).orElse(null));
-                });
-            }, user);
+            if (!Bukkit.isPrimaryThread()) {
+                try {
+                    Bukkit.getScheduler().callSyncMethod(plugin, () -> {
+                        this.apply(user, plugin);
+                        return null;
+                    }).get();
+                    return;
+                } catch (Exception e) {
+                    throw new IllegalStateException("Failed to apply attributes on main thread", e);
+                }
+            }
+
+            final AttributeSettings settings = plugin.getSettings().getSynchronization().getAttributes();
+            Registry.ATTRIBUTE.forEach(id -> {
+                if (settings.isIgnoredAttribute(id.getKey().toString())) {
+                    return;
+                }
+                applyAttribute(user.getPlayer().getAttribute(id), getAttribute(id).orElse(null));
+            });
         }
+
     }
 
     @Getter
