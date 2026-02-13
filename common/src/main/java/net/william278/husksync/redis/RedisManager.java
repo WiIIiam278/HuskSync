@@ -41,6 +41,7 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import java.util.logging.Level;
 
 /**
@@ -69,7 +70,6 @@ public class RedisManager implements RedisPubSubListener<byte[], byte[]> {
 
     @Blocking
     public void initialize() throws IllegalStateException {
-
         final Settings.RedisSettings.RedisCredentials credentials = plugin.getSettings().getRedis().getCredentials();
 
         final String user = credentials.getUser();
@@ -147,8 +147,8 @@ public class RedisManager implements RedisPubSubListener<byte[], byte[]> {
                         .toArray(byte[][]::new));
     }
 
-    private static @NotNull GenericObjectPoolConfig<StatefulRedisConnection<byte[],byte[]>> buildPoolConfig(Settings.RedisSettings.RedisCredentials credentials) {
-        GenericObjectPoolConfig<StatefulRedisConnection<byte[],byte[]>> poolConfig = new GenericObjectPoolConfig<>();
+    private static @NotNull GenericObjectPoolConfig<StatefulRedisConnection<byte[], byte[]>> buildPoolConfig(Settings.RedisSettings.RedisCredentials credentials) {
+        GenericObjectPoolConfig<StatefulRedisConnection<byte[], byte[]>> poolConfig = new GenericObjectPoolConfig<>();
         poolConfig.setMaxIdle(credentials.getMaxIdleConnections());
         poolConfig.setMinIdle(credentials.getMinIdleConnections());
         poolConfig.setMaxTotal(credentials.getMaxTotalConnections());
@@ -237,11 +237,12 @@ public class RedisManager implements RedisPubSubListener<byte[], byte[]> {
 
     @Blocking
     protected void sendMessage(@NotNull String channel, @NotNull String message) {
-        try (var lettuceConnection = lettucePool.borrowObject()) {
-            lettuceConnection.sync().publish(channel.getBytes(StandardCharsets.UTF_8), message.getBytes(StandardCharsets.UTF_8));
-        } catch (Exception e) {
-            plugin.log(Level.SEVERE, "An exception occurred sending a message to Redis", e);
-        }
+        tryExecute(connection -> {
+                    connection.sync().publish(channel.getBytes(StandardCharsets.UTF_8), message.getBytes(StandardCharsets.UTF_8));
+                    return null;
+                }, (t) -> null, "An exception occurred publish a message to Redis channel " + channel,
+                plugin.getSettings().getRedis().getCredentials().getMaxRetries());
+
     }
 
     @Blocking
@@ -265,6 +266,7 @@ public class RedisManager implements RedisPubSubListener<byte[], byte[]> {
                         Optional.of(online.createSnapshot(saveCause))))
                 .orElse(this.getNetworkedUserData(requestId, user));
     }
+
     // Request a user's dat x-server
     private CompletableFuture<Optional<DataSnapshot.Packed>> getNetworkedUserData(@NotNull UUID requestId, @NotNull User user) {
         final CompletableFuture<Optional<DataSnapshot.Packed>> future = new CompletableFuture<>();
@@ -288,82 +290,81 @@ public class RedisManager implements RedisPubSubListener<byte[], byte[]> {
 
     @Blocking
     public void setUserData(@NotNull User user, @NotNull DataSnapshot.Packed data) {
-        try (var lettuceConnection = lettucePool.borrowObject()) {
-            lettuceConnection.sync().setex(
-                    getKey(RedisKeyType.LATEST_SNAPSHOT, user.getUuid(), clusterId),
-                    RedisKeyType.TTL_1_YEAR,
-                    data.asBytes(plugin));
-            plugin.debug(String.format("[%s] Set %s key on Redis", user.getName(), RedisKeyType.LATEST_SNAPSHOT));
-        } catch (Throwable e) {
-            plugin.log(Level.SEVERE, "An exception occurred setting user data on Redis", e);
-        }
+        tryExecute(connection -> {
+                    connection.sync().setex(
+                            getKey(RedisKeyType.LATEST_SNAPSHOT, user.getUuid(), clusterId),
+                            RedisKeyType.TTL_1_YEAR,
+                            data.asBytes(plugin));
+                    plugin.debug(String.format("[%s] Set %s key on Redis", user.getName(), RedisKeyType.LATEST_SNAPSHOT));
+                    return null;
+                }, (t) -> null, "An exception occurred setting user data on Redis",
+                plugin.getSettings().getRedis().getCredentials().getMaxRetries());
     }
 
     @Blocking
     public void clearUserData(@NotNull User user) {
-        try (var lettuceConnection = lettucePool.borrowObject()) {
-            lettuceConnection.sync().del(
-                    getKey(RedisKeyType.LATEST_SNAPSHOT, user.getUuid(), clusterId));
-            plugin.debug(String.format("[%s] Cleared %s on Redis", user.getName(), RedisKeyType.LATEST_SNAPSHOT));
-        } catch (Throwable e) {
-            plugin.log(Level.SEVERE, "An exception occurred clearing user data on Redis", e);
-        }
+        tryExecute(connection -> {
+                    connection.sync().del(
+                            getKey(RedisKeyType.LATEST_SNAPSHOT, user.getUuid(), clusterId));
+                    plugin.debug(String.format("[%s] Cleared %s on Redis", user.getName(), RedisKeyType.LATEST_SNAPSHOT));
+                    return null;
+                }, (t) -> null, "An exception occurred clearing user data on Redis",
+                plugin.getSettings().getRedis().getCredentials().getMaxRetries());
     }
 
     @Blocking
     public void setUserCheckedOut(@NotNull User user, boolean checkedOut) {
-        try (var lettuceConnection = lettucePool.borrowObject()) {
-            final String key = getKeyString(RedisKeyType.DATA_CHECKOUT, user.getUuid(), clusterId);
-            if (checkedOut) {
-                lettuceConnection.sync().set(
-                        key.getBytes(StandardCharsets.UTF_8),
-                        plugin.getServerName().getBytes(StandardCharsets.UTF_8));
-            } else {
-                if (lettuceConnection.sync().del(key.getBytes(StandardCharsets.UTF_8)) == 0) {
-                    plugin.debug(String.format("[%s] %s key not set on Redis when attempting removal (%s)",
-                            user.getName(), RedisKeyType.DATA_CHECKOUT, key));
-                    return;
-                }
-            }
-            plugin.debug(String.format("[%s] %s %s key %s Redis (%s)", user.getName(),
-                    checkedOut ? "Set" : "Removed", RedisKeyType.DATA_CHECKOUT, checkedOut ? "to" : "from", key));
-        } catch (Throwable e) {
-            plugin.log(Level.SEVERE, "An exception occurred setting checkout to", e);
-        }
+        tryExecute(connection -> {
+                    final String key = getKeyString(RedisKeyType.DATA_CHECKOUT, user.getUuid(), clusterId);
+                    if (checkedOut) {
+                        connection.sync().set(
+                                key.getBytes(StandardCharsets.UTF_8),
+                                plugin.getServerName().getBytes(StandardCharsets.UTF_8));
+                    } else {
+                        if (connection.sync().del(key.getBytes(StandardCharsets.UTF_8)) == 0) {
+                            plugin.debug(String.format("[%s] %s key not set on Redis when attempting removal (%s)",
+                                    user.getName(), RedisKeyType.DATA_CHECKOUT, key));
+                            return null;
+                        }
+                    }
+                    plugin.debug(String.format("[%s] %s %s key %s Redis (%s)", user.getName(),
+                            checkedOut ? "Set" : "Removed", RedisKeyType.DATA_CHECKOUT, checkedOut ? "to" : "from", key));
+                    return null;
+                }, (t) -> null, "An exception occurred setting checkout to Redis",
+                plugin.getSettings().getRedis().getCredentials().getMaxRetries());
     }
 
     @Blocking
     public Optional<String> getUserCheckedOut(@NotNull User user) {
-        try (var lettuceConnection = lettucePool.borrowObject()) {
-            final byte[] key = getKey(RedisKeyType.DATA_CHECKOUT, user.getUuid(), clusterId);
-            final byte[] readData = lettuceConnection.sync().get(key);
-            if (readData != null) {
-                final String checkoutServer = new String(readData, StandardCharsets.UTF_8);
-                plugin.debug(String.format("[%s] Waiting for %s %s key to be unset on Redis",
-                        user.getName(), checkoutServer, RedisKeyType.DATA_CHECKOUT));
-                return Optional.of(checkoutServer);
-            }
-        } catch (Throwable e) {
-            plugin.log(Level.SEVERE, "An exception occurred getting a user's checkout key from Redis", e);
-        }
-        plugin.debug(String.format("[%s] %s key not set on Redis", user.getName(),
-                RedisKeyType.DATA_CHECKOUT));
-        return Optional.empty();
+        return tryExecute(connection -> {
+                    final byte[] key = getKey(RedisKeyType.DATA_CHECKOUT, user.getUuid(), clusterId);
+                    final byte[] readData = connection.sync().get(key);
+                    if (readData != null) {
+                        final String checkoutServer = new String(readData, StandardCharsets.UTF_8);
+                        plugin.debug(String.format("[%s] Waiting for %s %s key to be unset on Redis",
+                                user.getName(), checkoutServer, RedisKeyType.DATA_CHECKOUT));
+                        return Optional.of(checkoutServer);
+                    }
+                    plugin.debug(String.format("[%s] %s key not set on Redis", user.getName(),
+                            RedisKeyType.DATA_CHECKOUT));
+                    return Optional.empty();
+                }, (t) -> Optional.empty(), "An exception occurred getting a user's checkout key from Redis",
+                plugin.getSettings().getRedis().getCredentials().getMaxRetries());
     }
 
     @Blocking
     public void clearUsersCheckedOutOnServer() {
         final String keyFormat = String.format("%s*", RedisKeyType.DATA_CHECKOUT.getKeyPrefix(clusterId));
-        try (var lettuceConnection = lettucePool.borrowObject()) {
-            final List<byte[]> keys = lettuceConnection.sync().keys(keyFormat);
-            for (byte[] key : keys) {
-                if (Arrays.equals(lettuceConnection.sync().get(key), plugin.getServerName().getBytes(StandardCharsets.UTF_8))) {
-                    lettuceConnection.sync().del(key);
-                }
-            }
-        } catch (Throwable e) {
-            plugin.log(Level.SEVERE, "An exception occurred clearing this server's checkout keys on Redis", e);
-        }
+        tryExecute(connection -> {
+                    final List<byte[]> keys = connection.sync().keys(keyFormat);
+                    for (byte[] key : keys) {
+                        if (Arrays.equals(connection.sync().get(key), plugin.getServerName().getBytes(StandardCharsets.UTF_8))) {
+                            connection.sync().del(key);
+                        }
+                    }
+                    return null;
+                }, (t) -> null, "An exception occurred clearing this server's checkout keys on Redis",
+                plugin.getSettings().getRedis().getCredentials().getMaxRetries());
     }
 
     /**
@@ -373,16 +374,17 @@ public class RedisManager implements RedisPubSubListener<byte[], byte[]> {
      */
     @Blocking
     public void setUserServerSwitch(@NotNull User user) {
-        try (var lettuceConnection = lettucePool.borrowObject()) {
-            lettuceConnection.sync().setex(
-                    getKey(RedisKeyType.SERVER_SWITCH, user.getUuid(), clusterId),
-                    RedisKeyType.TTL_10_SECONDS,
-                    new byte[0]);
-            plugin.debug(String.format("[%s] Set %s key to Redis",
-                    user.getName(), RedisKeyType.SERVER_SWITCH));
-        } catch (Throwable e) {
-            plugin.log(Level.SEVERE, "An exception occurred setting a user's server switch key from Redis", e);
-        }
+        tryExecute(connection -> {
+                    connection.sync().setex(
+                            getKey(RedisKeyType.SERVER_SWITCH, user.getUuid(), clusterId),
+                            RedisKeyType.TTL_10_SECONDS,
+                            new byte[0]);
+                    plugin.debug(String.format("[%s] Set %s key to Redis",
+                            user.getName(), RedisKeyType.SERVER_SWITCH));
+                    return null;
+                }, (t) -> null, "An exception occurred setting a user's server switch key on Redis",
+                plugin.getSettings().getRedis().getCredentials().getMaxRetries());
+
     }
 
     /**
@@ -394,48 +396,44 @@ public class RedisManager implements RedisPubSubListener<byte[], byte[]> {
      */
     @Blocking
     public Optional<DataSnapshot.Packed> getUserData(@NotNull User user) {
-        try (var lettuceConnection = lettucePool.borrowObject()) {
-            final byte[] key = getKey(RedisKeyType.LATEST_SNAPSHOT, user.getUuid(), clusterId);
-            final byte[] dataByteArray = lettuceConnection.sync().get(key);
-            if (dataByteArray == null) {
-                plugin.debug(String.format("[%s] Waiting for %s key from Redis",
-                        user.getName(), RedisKeyType.LATEST_SNAPSHOT));
-                return Optional.empty();
-            }
-            plugin.debug(String.format("[%s] Read %s key from Redis",
-                    user.getName(), RedisKeyType.LATEST_SNAPSHOT));
+        return tryExecute(connection -> {
+                    final byte[] key = getKey(RedisKeyType.LATEST_SNAPSHOT, user.getUuid(), clusterId);
+                    final byte[] dataByteArray = connection.sync().get(key);
+                    if (dataByteArray == null) {
+                        plugin.debug(String.format("[%s] Waiting for %s key from Redis",
+                                user.getName(), RedisKeyType.LATEST_SNAPSHOT));
+                        return Optional.empty();
+                    }
+                    plugin.debug(String.format("[%s] Read %s key from Redis",
+                            user.getName(), RedisKeyType.LATEST_SNAPSHOT));
 
-            // Consume the key (delete from redis)
-            lettuceConnection.sync().del(key);
+                    // Consume the key (delete from redis)
+                    connection.sync().del(key);
 
-            // Use Snappy to decompress the json
-            return Optional.of(DataSnapshot.deserialize(plugin, dataByteArray));
-        } catch (Throwable e) {
-            plugin.log(Level.SEVERE, "An exception occurred getting a user's data from Redis", e);
-            return Optional.empty();
-        }
+                    // Use Snappy to decompress the json
+                    return Optional.of(DataSnapshot.deserialize(plugin, dataByteArray));
+                }, (t) -> Optional.empty(), "An exception occurred getting a user's data from Redis",
+                plugin.getSettings().getRedis().getCredentials().getMaxRetries());
     }
 
     @Blocking
     public boolean getUserServerSwitch(@NotNull User user) {
-        try (var lettuceConnection = lettucePool.borrowObject()) {
-            final byte[] key = getKey(RedisKeyType.SERVER_SWITCH, user.getUuid(), clusterId);
-            final byte[] readData = lettuceConnection.sync().get(key);
-            if (readData == null) {
-                plugin.debug(String.format("[%s] Waiting for %s key from Redis",
-                        user.getName(), RedisKeyType.SERVER_SWITCH));
-                return false;
-            }
-            plugin.debug(String.format("[%s] Read %s key from Redis",
-                    user.getName(), RedisKeyType.SERVER_SWITCH));
+        return tryExecute(connection -> {
+                    final byte[] key = getKey(RedisKeyType.SERVER_SWITCH, user.getUuid(), clusterId);
+                    final byte[] readData = connection.sync().get(key);
+                    if (readData == null) {
+                        plugin.debug(String.format("[%s] Waiting for %s key from Redis",
+                                user.getName(), RedisKeyType.SERVER_SWITCH));
+                        return false;
+                    }
+                    plugin.debug(String.format("[%s] Read %s key from Redis",
+                            user.getName(), RedisKeyType.SERVER_SWITCH));
 
-            // Consume the key (delete from redis)
-            lettuceConnection.sync().del(key);
-            return true;
-        } catch (Throwable e) {
-            plugin.log(Level.SEVERE, "An exception occurred getting a user's server switch from Redis", e);
-            return false;
-        }
+                    // Consume the key (delete from redis)
+                    connection.sync().del(key);
+                    return true;
+                }, (t) -> false, "An exception occurred getting a user's server switch from Redis",
+                plugin.getSettings().getRedis().getCredentials().getMaxRetries());
     }
 
     @Blocking
@@ -473,89 +471,100 @@ public class RedisManager implements RedisPubSubListener<byte[], byte[]> {
 
     @Blocking
     public void bindMapIds(@NotNull String fromServer, int fromId, @NotNull String toServer, int toId) {
-        try (var lettuceConnection = lettucePool.borrowObject()) {
-            lettuceConnection.sync().setex(
-                    getMapIdKey(fromServer, fromId, toServer, clusterId),
-                    RedisKeyType.TTL_1_YEAR,
-                    String.valueOf(toId).getBytes(StandardCharsets.UTF_8));
-            lettuceConnection.sync().setex(
-                    getReversedMapIdKey(toServer, toId, clusterId),
-                    RedisKeyType.TTL_1_YEAR,
-                    String.format("%s:%s", fromServer, fromId).getBytes(StandardCharsets.UTF_8));
-            plugin.debug(String.format("Bound map %s:%s -> %s:%s on Redis", fromServer, fromId, toServer, toId));
-        } catch (Throwable e) {
-            plugin.log(Level.SEVERE, "An exception occurred binding map ids on Redis", e);
-        }
+        tryExecute(connection -> {
+                    connection.sync().setex(
+                            getMapIdKey(fromServer, fromId, toServer, clusterId),
+                            RedisKeyType.TTL_1_YEAR,
+                            String.valueOf(toId).getBytes(StandardCharsets.UTF_8));
+                    connection.sync().setex(
+                            getReversedMapIdKey(toServer, toId, clusterId),
+                            RedisKeyType.TTL_1_YEAR,
+                            String.format("%s:%s", fromServer, fromId).getBytes(StandardCharsets.UTF_8));
+                    plugin.debug(String.format("Bound map %s:%s -> %s:%s on Redis", fromServer, fromId, toServer, toId));
+                    return null;
+                }, (t) -> null, "An exception occurred binding map ids on Redis",
+                plugin.getSettings().getRedis().getCredentials().getMaxRetries());
     }
 
     @Blocking
     public Optional<Integer> getBoundMapId(@NotNull String fromServer, int fromId, @NotNull String toServer) {
-        try (var lettuceConnection = lettucePool.borrowObject()) {
-            final byte[] readData = lettuceConnection.sync().get(getMapIdKey(fromServer, fromId, toServer, clusterId));
-            if (readData == null) {
-                plugin.debug(String.format("[%s:%s] No bound map id for server %s Redis",
-                        fromServer, fromId, toServer));
-                return Optional.empty();
-            }
-            plugin.debug(String.format("[%s:%s] Read bound map id for server %s from Redis",
-                    fromServer, fromId, toServer));
+        return tryExecute(connection -> {
+                    final byte[] readData = connection.sync().get(getMapIdKey(fromServer, fromId, toServer, clusterId));
+                    if (readData == null) {
+                        plugin.debug(String.format("[%s:%s] No bound map id for server %s Redis",
+                                fromServer, fromId, toServer));
+                        return Optional.empty();
+                    }
+                    plugin.debug(String.format("[%s:%s] Read bound map id for server %s from Redis",
+                            fromServer, fromId, toServer));
 
-            return Optional.of(Integer.parseInt(new String(readData, StandardCharsets.UTF_8)));
-        } catch (Throwable e) {
-            plugin.log(Level.SEVERE, "An exception occurred getting bound map id from Redis", e);
-            return Optional.empty();
-        }
+                    return Optional.of(Integer.parseInt(new String(readData, StandardCharsets.UTF_8)));
+                }, (t) -> Optional.empty(), "An exception occurred getting bound map id from Redis",
+                plugin.getSettings().getRedis().getCredentials().getMaxRetries());
     }
 
     @Blocking
     public @Nullable Map.Entry<String, Integer> getReversedMapBound(@NotNull String toServer, int toId) {
-        try (var lettuceConnection = lettucePool.borrowObject()) {
-            final byte[] readData = lettuceConnection.sync().get(getReversedMapIdKey(toServer, toId, clusterId));
-            if (readData == null) {
-                plugin.debug(String.format("[%s:%s] No reversed map bound on Redis",
-                        toServer, toId));
-                return null;
-            }
-            plugin.debug(String.format("[%s:%s] Read reversed map bound from Redis",
-                    toServer, toId));
+        return tryExecute(connection -> {
+                    final byte[] readData = connection.sync().get(getReversedMapIdKey(toServer, toId, clusterId));
+                    if (readData == null) {
+                        plugin.debug(String.format("[%s:%s] No reversed map bound on Redis",
+                                toServer, toId));
+                        return null;
+                    }
+                    plugin.debug(String.format("[%s:%s] Read reversed map bound from Redis",
+                            toServer, toId));
 
-            String[] parts = new String(readData, StandardCharsets.UTF_8).split(":");
-            return Map.entry(parts[0], Integer.parseInt(parts[1]));
-        } catch (Throwable e) {
-            plugin.log(Level.SEVERE, "An exception occurred reading reversed map bound from Redis", e);
-            return null;
-        }
+                    String[] parts = new String(readData, StandardCharsets.UTF_8).split(":");
+                    return Map.entry(parts[0], Integer.parseInt(parts[1]));
+                }, (t) -> null, "An exception occurred reading reversed map bound from Redis",
+                plugin.getSettings().getRedis().getCredentials().getMaxRetries());
     }
 
     @Blocking
     public void setMapData(@NotNull String serverName, int mapId, byte[] data) {
-        try (var lettuceConnection = lettucePool.borrowObject()) {
-            lettuceConnection.sync().setex(
-                    getMapDataKey(serverName, mapId, clusterId),
-                    RedisKeyType.TTL_1_YEAR,
-                    data);
-            plugin.debug(String.format("Set map data %s:%s on Redis", serverName, mapId));
-        } catch (Throwable e) {
-            plugin.log(Level.SEVERE, "An exception occurred setting map data on Redis", e);
-        }
+        tryExecute(connection -> {
+                    connection.sync().setex(
+                            getMapDataKey(serverName, mapId, clusterId),
+                            RedisKeyType.TTL_1_YEAR,
+                            data);
+                    plugin.debug(String.format("Set map data %s:%s on Redis", serverName, mapId));
+                    return null;
+                }, (t) -> null, "An exception occurred setting map data on Redis",
+                plugin.getSettings().getRedis().getCredentials().getMaxRetries());
     }
 
     @Blocking
     public byte @Nullable [] getMapData(@NotNull String serverName, int mapId) {
-        try (var lettuceConnection = lettucePool.borrowObject()) {
-            final byte[] readData = lettuceConnection.sync().get(getMapDataKey(serverName, mapId, clusterId));
-            if (readData == null) {
-                plugin.debug(String.format("[%s:%s] No map data on Redis",
-                        serverName, mapId));
-                return null;
-            }
-            plugin.debug(String.format("[%s:%s] Read map data from Redis",
-                    serverName, mapId));
+        return tryExecute(connection -> {
+                    final byte[] readData = connection.sync().get(getMapDataKey(serverName, mapId, clusterId));
+                    if (readData == null) {
+                        plugin.debug(String.format("[%s:%s] No map data on Redis",
+                                serverName, mapId));
+                        return null;
+                    }
+                    plugin.debug(String.format("[%s:%s] Read map data from Redis",
+                            serverName, mapId));
 
-            return readData;
+                    return readData;
+                }, (t) -> null, "An exception occurred reading map data from Redis",
+                plugin.getSettings().getRedis().getCredentials().getMaxRetries());
+    }
+
+    private <T> T tryExecute(Function<StatefulRedisConnection<byte[], byte[]>, T> consumer, Function<Throwable, T> returnOnError, String errorMessage, int tries) {
+        try (var lettuceConnection = lettucePool.borrowObject()) {
+            return consumer.apply(lettuceConnection);
         } catch (Throwable e) {
-            plugin.log(Level.SEVERE, "An exception occurred reading map data from Redis", e);
-            return null;
+            if (tries > 0) {
+                plugin.log(Level.WARNING, errorMessage + " retry remaining: " + tries);
+                try {
+                    Thread.sleep(plugin.getSettings().getRedis().getCredentials().getRetryBackoffMillis()); // Brief pause before retrying
+                } catch (InterruptedException ignored) {}
+                return tryExecute(consumer, returnOnError, errorMessage, tries - 1);
+            } else {
+                plugin.log(Level.SEVERE, errorMessage + " after multiple attempts", e);
+                return returnOnError.apply(e);
+            }
         }
     }
 
