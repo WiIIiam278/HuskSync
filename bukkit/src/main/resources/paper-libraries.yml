@@ -1,6 +1,8 @@
 # Dependencies for HuskSync on Paper
 libraries:
   - 'redis.clients:jedis:${jedis_version}'
+  - 'io.lettuce:lettuce-core:${lettuce_version}'
+  - 'org.apache.commons:commons-pool2:2.4.3'
   - 'com.mysql:mysql-connector-j:${mysql_driver_version}'
   - 'org.mariadb.jdbc:mariadb-java-client:${mariadb_driver_version}'
   - 'org.postgresql:postgresql:${postgres_driver_version}'
