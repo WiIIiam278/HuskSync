@@ -82,6 +82,7 @@ shadowJar {
     relocate 'net.roxeez', 'net.william278.husksync.libraries'
     relocate 'org.bstats', 'net.william278.husksync.libraries.bstats'
     relocate 'dev.triumphteam.gui', 'net.william278.husksync.libraries.triumphgui'
+    relocate 'space.arim.morepaperlib', 'net.william278.husksync.libraries.paperlib'
     relocate 'de.tr7zw.changeme.nbtapi', 'net.william278.husksync.libraries.nbtapi'
 
     minimize()

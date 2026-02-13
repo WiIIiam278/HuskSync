@@ -85,6 +85,7 @@ allprojects {
         maven { url 'https://repo.minebench.de/' }
         maven { url 'https://repo.alessiodp.com/releases/' }
         maven { url 'https://jitpack.io' }
+        maven { url 'https://mvn-repo.arim.space/lesser-gpl3/' }
         maven { url 'https://libraries.minecraft.net/' }
     }
 
