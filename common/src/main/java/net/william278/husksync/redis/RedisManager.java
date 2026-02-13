@@ -19,18 +19,24 @@
 
 package net.william278.husksync.redis;
 
+import io.lettuce.core.*;
+import io.lettuce.core.api.StatefulRedisConnection;
+import io.lettuce.core.codec.ByteArrayCodec;
+import io.lettuce.core.pubsub.RedisPubSubListener;
+import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
+import io.lettuce.core.support.ConnectionPoolSupport;
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.config.Settings;
 import net.william278.husksync.data.DataSnapshot;
 import net.william278.husksync.user.User;
+import org.apache.commons.pool2.impl.GenericObjectPool;
+import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.jetbrains.annotations.Blocking;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import redis.clients.jedis.*;
-import redis.clients.jedis.exceptions.JedisException;
-import redis.clients.jedis.util.Pool;
 
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -40,18 +46,16 @@ import java.util.logging.Level;
 /**
  * Manages the connection to Redis, handling the caching of user data
  */
-public class RedisManager extends JedisPubSub {
+public class RedisManager implements RedisPubSubListener<byte[], byte[]> {
 
     protected static final String KEY_NAMESPACE = "husksync:";
-    private static final int RECONNECTION_TIME = 8000;
 
     private final HuskSync plugin;
     private final String clusterId;
-    private Pool<Jedis> jedisPool;
+    private RedisClient lettuceClient;
+    private StatefulRedisPubSubConnection<byte[], byte[]> pubSubConnection;
+    private GenericObjectPool<StatefulRedisConnection<byte[], byte[]>> lettucePool;
     private final Map<UUID, CompletableFuture<Optional<DataSnapshot.Packed>>> pendingRequests;
-
-    private boolean enabled;
-    private boolean reconnected;
 
     public RedisManager(@NotNull HuskSync plugin) {
         this.plugin = plugin;
@@ -65,6 +69,7 @@ public class RedisManager extends JedisPubSub {
 
     @Blocking
     public void initialize() throws IllegalStateException {
+
         final Settings.RedisSettings.RedisCredentials credentials = plugin.getSettings().getRedis().getCredentials();
 
         final String user = credentials.getUser();
@@ -74,103 +79,99 @@ public class RedisManager extends JedisPubSub {
         final int database = credentials.getDatabase();
         final boolean useSSL = credentials.isUseSsl();
 
-        // Configure JedisPoolConfig
-        final JedisPoolConfig config = new JedisPoolConfig();
-        config.setMaxTotal(credentials.getMaxTotalConnections());
-        config.setMaxIdle(credentials.getMaxIdleConnections());
-        config.setMinIdle(credentials.getMinIdleConnections());
-        config.setTestOnBorrow(credentials.isTestOnBorrow());
-        config.setTestOnReturn(credentials.isTestOnReturn());
-        config.setTestWhileIdle(credentials.isTestWhileIdle());
-        config.setMinEvictableIdleTimeMillis(credentials.getMinEvictableIdleTimeMillis());
-        config.setTimeBetweenEvictionRunsMillis(credentials.getTimeBetweenEvictionRunsMillis());
+        // 1. BUILD REDIS URI WITH AUTHENTICATION
+        RedisURI.Builder redisUriBuilder = RedisURI.Builder.redis(host, port)
+                .withAuthentication(RedisCredentialsProvider.from(() -> RedisCredentials.just(user, password)))
+                .withDatabase(database)
+                .withSsl(useSSL);
 
+        // 2. CONFIGURE REDIS SENTINEL (if applicable)
         final Settings.RedisSettings.RedisSentinel sentinel = plugin.getSettings().getRedis().getSentinel();
-        Set<String> redisSentinelNodes = new HashSet<>(sentinel.getNodes());
 
-        if (redisSentinelNodes.isEmpty()) {
-            // Standalone Redis setup
-            DefaultJedisClientConfig.Builder clientConfigBuilder = DefaultJedisClientConfig.builder()
-                    .ssl(useSSL)
-                    .database(database)
-                    .timeoutMillis(credentials.getConnectionTimeout()) // connection and socket timeout combined
-                    .user(user.isEmpty() ? null : user)
-                    .password(password.isEmpty() ? null : password);
-
-            this.jedisPool = new JedisPool(config, new HostAndPort(host, port), clientConfigBuilder.build());
-        } else {
-            final String sentinelPassword = sentinel.getPassword();
-            this.jedisPool = new JedisSentinelPool(
-                    sentinel.getMaster(),
-                    redisSentinelNodes,
-                    config,
-                    credentials.getConnectionTimeout(),
-                    credentials.getSocketTimeout(),
-                    password.isEmpty() ? null : password,
-                    sentinelPassword.isEmpty() ? null : sentinelPassword,
-                    database);
+        // Set the master ID if Sentinel is configured
+        if (!sentinel.getMaster().isEmpty()) {
+            redisUriBuilder.withSentinelMasterId(sentinel.getMaster());
         }
 
-        try (var jedis = jedisPool.getResource()) {
-            jedis.ping();
-        } catch (JedisException e) {
-            throw new IllegalStateException("Failed to establish connection with Redis. " +
-                    "Please check the supplied credentials in the config file", e);
-        }
+        // Add each Sentinel node with optional password authentication
+        for (String node : sentinel.getNodes()) {
+            final String[] parts = node.split(":");
 
-        enabled = true;
-        new Thread(this::subscribe, "husksync:redis_subscriber").start();
-    }
-
-    @Blocking
-    private void subscribe() {
-        while (enabled && !Thread.interrupted() && jedisPool != null && !jedisPool.isClosed()) {
-            try (Jedis jedis = jedisPool.getResource()) {
-                if (reconnected) {
-                    plugin.log(Level.INFO, "Redis connection is alive again");
-                }
-                // Subscribe channels and lock the thread
-                jedis.subscribe(
-                        this,
-                        Arrays.stream(RedisMessage.Type.values())
-                                .map(type -> type.getMessageChannel(clusterId))
-                                .toArray(String[]::new));
-            } catch (Throwable t) {
-                // Thread was unlocked due error
-                onThreadUnlock(t);
+            if (sentinel.getPassword().isEmpty()) {
+                // Add Sentinel node without password
+                redisUriBuilder.withSentinel(parts[0], Integer.parseInt(parts[1]));
+            } else {
+                // Add Sentinel node with password
+                redisUriBuilder.withSentinel(parts[0], Integer.parseInt(parts[1]), sentinel.getPassword());
             }
         }
+
+        // Build the final Redis URI
+        RedisURI redisUri = redisUriBuilder.build();
+
+        // 3. CREATE AND CONFIGURE REDIS CLIENT
+        this.lettuceClient = RedisClient.create();
+
+        // Configure client options with connection and socket timeouts
+        this.lettuceClient.setOptions(ClientOptions.builder()
+                .timeoutOptions(TimeoutOptions
+                        .enabled(Duration.ofMillis(credentials.getConnectionTimeout())))
+                .socketOptions(SocketOptions.builder()
+                        .connectTimeout(Duration.ofMillis(credentials.getSocketTimeout()))
+                        .build())
+                .build());
+
+        // 4. CREATE CONNECTION POOL
+        this.lettucePool = ConnectionPoolSupport.createGenericObjectPool(
+                () -> this.lettuceClient.connect(ByteArrayCodec.INSTANCE, redisUri),
+                buildPoolConfig(credentials));
+
+        // 5. VERIFY CONNECTION
+        try (var lettuceConnection = this.lettucePool.borrowObject()) {
+            lettuceConnection.sync().ping();
+        } catch (Exception e) {
+            throw new IllegalStateException(
+                    "Failed to establish connection with Redis. " +
+                            "Please check the supplied credentials in the config file", e);
+        }
+
+        // 6. SETUP PUB/SUB CONNECTION
+        this.pubSubConnection = lettuceClient.connectPubSub(ByteArrayCodec.INSTANCE, redisUri);
+
+        pubSubConnection.addListener(this);
+
+        // Subscribe to all message type channels for this cluster
+        pubSubConnection.async().subscribe(
+                Arrays.stream(RedisMessage.Type.values())
+                        .map(type -> type.getMessageChannel(clusterId).getBytes(StandardCharsets.UTF_8))
+                        .toArray(byte[][]::new));
     }
 
-    private void onThreadUnlock(@NotNull Throwable t) {
-        if (!enabled) {
-            return;
-        }
+    private static @NotNull GenericObjectPoolConfig<StatefulRedisConnection<byte[],byte[]>> buildPoolConfig(Settings.RedisSettings.RedisCredentials credentials) {
+        GenericObjectPoolConfig<StatefulRedisConnection<byte[],byte[]>> poolConfig = new GenericObjectPoolConfig<>();
+        poolConfig.setMaxIdle(credentials.getMaxIdleConnections());
+        poolConfig.setMinIdle(credentials.getMinIdleConnections());
+        poolConfig.setMaxTotal(credentials.getMaxTotalConnections());
+        poolConfig.setTestOnBorrow(credentials.isTestOnBorrow());
+        poolConfig.setTestOnReturn(credentials.isTestOnReturn());
+        poolConfig.setTestWhileIdle(credentials.isTestWhileIdle());
+        poolConfig.setMinEvictableIdleTimeMillis(credentials.getMinEvictableIdleTimeMillis());
+        poolConfig.setTimeBetweenEvictionRunsMillis(credentials.getTimeBetweenEvictionRunsMillis());
+        return poolConfig;
+    }
 
-        if (reconnected) {
-            plugin.log(Level.WARNING, "Redis Server connection lost. Attempting reconnect in %ss..."
-                    .formatted(RECONNECTION_TIME / 1000), t);
-        }
-        try {
-            this.unsubscribe();
-        } catch (Throwable ignored) {
-            // empty catch
-        }
 
-        // Make an instant subscribe if occurs any error on initialization
-        if (!reconnected) {
-            reconnected = true;
-        } else {
-            try {
-                Thread.sleep(RECONNECTION_TIME);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
-        }
+    @Override
+    public void message(byte[] channel, byte[] message) {
+        onMessage(new String(channel, StandardCharsets.UTF_8), new String(message, StandardCharsets.UTF_8));
     }
 
     @Override
-    public void onMessage(@NotNull String channel, @NotNull String message) {
+    public void message(byte[] pattern, byte[] channel, byte[] message) {
+        onMessage(new String(channel, StandardCharsets.UTF_8), new String(message, StandardCharsets.UTF_8));
+    }
+
+    private void onMessage(@NotNull String channel, @NotNull String message) {
         final RedisMessage.Type messageType = RedisMessage.Type.getTypeFromChannel(channel, clusterId).orElse(null);
         if (messageType == null) {
             return;
@@ -192,8 +193,8 @@ public class RedisManager extends JedisPubSub {
                     });
             case REQUEST_USER_DATA -> redisMessage.getTargetUser(plugin).ifPresent(
                     user -> RedisMessage.create(
-                            UUID.fromString(new String(redisMessage.getPayload(), StandardCharsets.UTF_8)),
-                            user.createSnapshot(DataSnapshot.SaveCause.INVENTORY_COMMAND).asBytes(plugin))
+                                    UUID.fromString(new String(redisMessage.getPayload(), StandardCharsets.UTF_8)),
+                                    user.createSnapshot(DataSnapshot.SaveCause.INVENTORY_COMMAND).asBytes(plugin))
                             .dispatch(plugin, RedisMessage.Type.RETURN_USER_DATA));
             case CHECK_IN_PETITION -> {
                 if (!redisMessage.isTargetServer(plugin)
@@ -233,20 +234,13 @@ public class RedisManager extends JedisPubSub {
         }
     }
 
-    @Override
-    public void onSubscribe(String channel, int subscribedChannels) {
-        plugin.log(Level.INFO, "Redis subscribed to channel '" + channel + "'");
-    }
-
-    @Override
-    public void onUnsubscribe(String channel, int subscribedChannels) {
-        plugin.log(Level.INFO, "Redis unsubscribed from channel '" + channel + "'");
-    }
 
     @Blocking
     protected void sendMessage(@NotNull String channel, @NotNull String message) {
-        try (Jedis jedis = jedisPool.getResource()) {
-            jedis.publish(channel, message);
+        try (var lettuceConnection = lettucePool.borrowObject()) {
+            lettuceConnection.sync().publish(channel.getBytes(StandardCharsets.UTF_8), message.getBytes(StandardCharsets.UTF_8));
+        } catch (Exception e) {
+            plugin.log(Level.SEVERE, "An exception occurred sending a message to Redis", e);
         }
     }
 
@@ -264,17 +258,15 @@ public class RedisManager extends JedisPubSub {
     }
 
     public CompletableFuture<Optional<DataSnapshot.Packed>> getOnlineUserData(@NotNull UUID requestId,
-            @NotNull User user,
-            @NotNull DataSnapshot.SaveCause saveCause) {
+                                                                              @NotNull User user,
+                                                                              @NotNull DataSnapshot.SaveCause saveCause) {
         return plugin.getOnlineUser(user.getUuid())
                 .map(online -> CompletableFuture.completedFuture(
                         Optional.of(online.createSnapshot(saveCause))))
                 .orElse(this.getNetworkedUserData(requestId, user));
     }
-
     // Request a user's dat x-server
-    private CompletableFuture<Optional<DataSnapshot.Packed>> getNetworkedUserData(@NotNull UUID requestId,
-            @NotNull User user) {
+    private CompletableFuture<Optional<DataSnapshot.Packed>> getNetworkedUserData(@NotNull UUID requestId, @NotNull User user) {
         final CompletableFuture<Optional<DataSnapshot.Packed>> future = new CompletableFuture<>();
         pendingRequests.put(requestId, future);
         plugin.runAsync(() -> {
@@ -292,12 +284,12 @@ public class RedisManager extends JedisPubSub {
                     return Optional.empty();
                 });
     }
-
     // Set a user's data to Redis
+
     @Blocking
     public void setUserData(@NotNull User user, @NotNull DataSnapshot.Packed data) {
-        try (Jedis jedis = jedisPool.getResource()) {
-            jedis.setex(
+        try (var lettuceConnection = lettucePool.borrowObject()) {
+            lettuceConnection.sync().setex(
                     getKey(RedisKeyType.LATEST_SNAPSHOT, user.getUuid(), clusterId),
                     RedisKeyType.TTL_1_YEAR,
                     data.asBytes(plugin));
@@ -309,8 +301,8 @@ public class RedisManager extends JedisPubSub {
 
     @Blocking
     public void clearUserData(@NotNull User user) {
-        try (Jedis jedis = jedisPool.getResource()) {
-            jedis.del(
+        try (var lettuceConnection = lettucePool.borrowObject()) {
+            lettuceConnection.sync().del(
                     getKey(RedisKeyType.LATEST_SNAPSHOT, user.getUuid(), clusterId));
             plugin.debug(String.format("[%s] Cleared %s on Redis", user.getName(), RedisKeyType.LATEST_SNAPSHOT));
         } catch (Throwable e) {
@@ -320,14 +312,14 @@ public class RedisManager extends JedisPubSub {
 
     @Blocking
     public void setUserCheckedOut(@NotNull User user, boolean checkedOut) {
-        try (Jedis jedis = jedisPool.getResource()) {
+        try (var lettuceConnection = lettucePool.borrowObject()) {
             final String key = getKeyString(RedisKeyType.DATA_CHECKOUT, user.getUuid(), clusterId);
             if (checkedOut) {
-                jedis.set(
+                lettuceConnection.sync().set(
                         key.getBytes(StandardCharsets.UTF_8),
                         plugin.getServerName().getBytes(StandardCharsets.UTF_8));
             } else {
-                if (jedis.del(key.getBytes(StandardCharsets.UTF_8)) == 0) {
+                if (lettuceConnection.sync().del(key.getBytes(StandardCharsets.UTF_8)) == 0) {
                     plugin.debug(String.format("[%s] %s key not set on Redis when attempting removal (%s)",
                             user.getName(), RedisKeyType.DATA_CHECKOUT, key));
                     return;
@@ -342,9 +334,9 @@ public class RedisManager extends JedisPubSub {
 
     @Blocking
     public Optional<String> getUserCheckedOut(@NotNull User user) {
-        try (Jedis jedis = jedisPool.getResource()) {
+        try (var lettuceConnection = lettucePool.borrowObject()) {
             final byte[] key = getKey(RedisKeyType.DATA_CHECKOUT, user.getUuid(), clusterId);
-            final byte[] readData = jedis.get(key);
+            final byte[] readData = lettuceConnection.sync().get(key);
             if (readData != null) {
                 final String checkoutServer = new String(readData, StandardCharsets.UTF_8);
                 plugin.debug(String.format("[%s] Waiting for %s %s key to be unset on Redis",
@@ -362,15 +354,11 @@ public class RedisManager extends JedisPubSub {
     @Blocking
     public void clearUsersCheckedOutOnServer() {
         final String keyFormat = String.format("%s*", RedisKeyType.DATA_CHECKOUT.getKeyPrefix(clusterId));
-        try (Jedis jedis = jedisPool.getResource()) {
-            final Set<String> keys = jedis.keys(keyFormat);
-            if (keys == null) {
-                plugin.log(Level.WARNING, "Checkout key returned null from Redis during clearing");
-                return;
-            }
-            for (String key : keys) {
-                if (jedis.get(key).equals(plugin.getServerName())) {
-                    jedis.del(key);
+        try (var lettuceConnection = lettucePool.borrowObject()) {
+            final List<byte[]> keys = lettuceConnection.sync().keys(keyFormat);
+            for (byte[] key : keys) {
+                if (Arrays.equals(lettuceConnection.sync().get(key), plugin.getServerName().getBytes(StandardCharsets.UTF_8))) {
+                    lettuceConnection.sync().del(key);
                 }
             }
         } catch (Throwable e) {
@@ -385,8 +373,8 @@ public class RedisManager extends JedisPubSub {
      */
     @Blocking
     public void setUserServerSwitch(@NotNull User user) {
-        try (Jedis jedis = jedisPool.getResource()) {
-            jedis.setex(
+        try (var lettuceConnection = lettucePool.borrowObject()) {
+            lettuceConnection.sync().setex(
                     getKey(RedisKeyType.SERVER_SWITCH, user.getUuid(), clusterId),
                     RedisKeyType.TTL_10_SECONDS,
                     new byte[0]);
@@ -402,13 +390,13 @@ public class RedisManager extends JedisPubSub {
      *
      * @param user The user to fetch data for
      * @return The user's data, if it's present on the database. Otherwise, an empty
-     *         optional.
+     * optional.
      */
     @Blocking
     public Optional<DataSnapshot.Packed> getUserData(@NotNull User user) {
-        try (Jedis jedis = jedisPool.getResource()) {
+        try (var lettuceConnection = lettucePool.borrowObject()) {
             final byte[] key = getKey(RedisKeyType.LATEST_SNAPSHOT, user.getUuid(), clusterId);
-            final byte[] dataByteArray = jedis.get(key);
+            final byte[] dataByteArray = lettuceConnection.sync().get(key);
             if (dataByteArray == null) {
                 plugin.debug(String.format("[%s] Waiting for %s key from Redis",
                         user.getName(), RedisKeyType.LATEST_SNAPSHOT));
@@ -418,7 +406,7 @@ public class RedisManager extends JedisPubSub {
                     user.getName(), RedisKeyType.LATEST_SNAPSHOT));
 
             // Consume the key (delete from redis)
-            jedis.del(key);
+            lettuceConnection.sync().del(key);
 
             // Use Snappy to decompress the json
             return Optional.of(DataSnapshot.deserialize(plugin, dataByteArray));
@@ -430,9 +418,9 @@ public class RedisManager extends JedisPubSub {
 
     @Blocking
     public boolean getUserServerSwitch(@NotNull User user) {
-        try (Jedis jedis = jedisPool.getResource()) {
+        try (var lettuceConnection = lettucePool.borrowObject()) {
             final byte[] key = getKey(RedisKeyType.SERVER_SWITCH, user.getUuid(), clusterId);
-            final byte[] readData = jedis.get(key);
+            final byte[] readData = lettuceConnection.sync().get(key);
             if (readData == null) {
                 plugin.debug(String.format("[%s] Waiting for %s key from Redis",
                         user.getName(), RedisKeyType.SERVER_SWITCH));
@@ -442,7 +430,7 @@ public class RedisManager extends JedisPubSub {
                     user.getName(), RedisKeyType.SERVER_SWITCH));
 
             // Consume the key (delete from redis)
-            jedis.del(key);
+            lettuceConnection.sync().del(key);
             return true;
         } catch (Throwable e) {
             plugin.log(Level.SEVERE, "An exception occurred getting a user's server switch from Redis", e);
@@ -452,17 +440,23 @@ public class RedisManager extends JedisPubSub {
 
     @Blocking
     public String getStatusDump() {
-        try (Jedis jedis = jedisPool.getResource()) {
-            return jedis.info();
+        try (var lettuceConnection = lettucePool.borrowObject()) {
+            return lettuceConnection.sync().info();
+        } catch (Exception e) {
+            plugin.log(Level.WARNING, "An exception occurred pinging Redis to get status dump", e);
+            return "";
         }
     }
 
     @Blocking
     public long getLatency() {
         final long startTime = System.currentTimeMillis();
-        try (Jedis jedis = jedisPool.getResource()) {
-            jedis.ping();
+        try (var lettuceConnection = lettucePool.borrowObject()) {
+            lettuceConnection.sync().ping();
             return System.currentTimeMillis() - startTime;
+        } catch (Exception e) {
+            plugin.log(Level.WARNING, "An exception occurred pinging Redis to get latency", e);
+            return -1;
         }
     }
 
@@ -479,12 +473,12 @@ public class RedisManager extends JedisPubSub {
 
     @Blocking
     public void bindMapIds(@NotNull String fromServer, int fromId, @NotNull String toServer, int toId) {
-        try (Jedis jedis = jedisPool.getResource()) {
-            jedis.setex(
+        try (var lettuceConnection = lettucePool.borrowObject()) {
+            lettuceConnection.sync().setex(
                     getMapIdKey(fromServer, fromId, toServer, clusterId),
                     RedisKeyType.TTL_1_YEAR,
                     String.valueOf(toId).getBytes(StandardCharsets.UTF_8));
-            jedis.setex(
+            lettuceConnection.sync().setex(
                     getReversedMapIdKey(toServer, toId, clusterId),
                     RedisKeyType.TTL_1_YEAR,
                     String.format("%s:%s", fromServer, fromId).getBytes(StandardCharsets.UTF_8));
@@ -496,8 +490,8 @@ public class RedisManager extends JedisPubSub {
 
     @Blocking
     public Optional<Integer> getBoundMapId(@NotNull String fromServer, int fromId, @NotNull String toServer) {
-        try (Jedis jedis = jedisPool.getResource()) {
-            final byte[] readData = jedis.get(getMapIdKey(fromServer, fromId, toServer, clusterId));
+        try (var lettuceConnection = lettucePool.borrowObject()) {
+            final byte[] readData = lettuceConnection.sync().get(getMapIdKey(fromServer, fromId, toServer, clusterId));
             if (readData == null) {
                 plugin.debug(String.format("[%s:%s] No bound map id for server %s Redis",
                         fromServer, fromId, toServer));
@@ -515,8 +509,8 @@ public class RedisManager extends JedisPubSub {
 
     @Blocking
     public @Nullable Map.Entry<String, Integer> getReversedMapBound(@NotNull String toServer, int toId) {
-        try (Jedis jedis = jedisPool.getResource()) {
-            final byte[] readData = jedis.get(getReversedMapIdKey(toServer, toId, clusterId));
+        try (var lettuceConnection = lettucePool.borrowObject()) {
+            final byte[] readData = lettuceConnection.sync().get(getReversedMapIdKey(toServer, toId, clusterId));
             if (readData == null) {
                 plugin.debug(String.format("[%s:%s] No reversed map bound on Redis",
                         toServer, toId));
@@ -535,8 +529,8 @@ public class RedisManager extends JedisPubSub {
 
     @Blocking
     public void setMapData(@NotNull String serverName, int mapId, byte[] data) {
-        try (Jedis jedis = jedisPool.getResource()) {
-            jedis.setex(
+        try (var lettuceConnection = lettucePool.borrowObject()) {
+            lettuceConnection.sync().setex(
                     getMapDataKey(serverName, mapId, clusterId),
                     RedisKeyType.TTL_1_YEAR,
                     data);
@@ -548,8 +542,8 @@ public class RedisManager extends JedisPubSub {
 
     @Blocking
     public byte @Nullable [] getMapData(@NotNull String serverName, int mapId) {
-        try (Jedis jedis = jedisPool.getResource()) {
-            final byte[] readData = jedis.get(getMapDataKey(serverName, mapId, clusterId));
+        try (var lettuceConnection = lettucePool.borrowObject()) {
+            final byte[] readData = lettuceConnection.sync().get(getMapDataKey(serverName, mapId, clusterId));
             if (readData == null) {
                 plugin.debug(String.format("[%s:%s] No map data on Redis",
                         serverName, mapId));
@@ -567,13 +561,16 @@ public class RedisManager extends JedisPubSub {
 
     @Blocking
     public void terminate() {
-        enabled = false;
-        if (jedisPool != null) {
-            if (!jedisPool.isClosed()) {
-                jedisPool.close();
+        if (lettucePool != null) {
+            if (!lettucePool.isClosed()) {
+                lettucePool.close();
             }
         }
-        this.unsubscribe();
+        pubSubConnection.sync().unsubscribe(
+                Arrays.stream(RedisMessage.Type.values())
+                        .map(type -> type.getMessageChannel(clusterId).getBytes(StandardCharsets.UTF_8))
+                        .toArray(byte[][]::new));
+        lettuceClient.shutdown();
     }
 
     private static byte[] getKey(@NotNull RedisKeyType keyType, @NotNull UUID uuid, @NotNull String clusterId) {
@@ -586,7 +583,7 @@ public class RedisManager extends JedisPubSub {
     }
 
     private static byte[] getMapIdKey(@NotNull String fromServer, int fromId, @NotNull String toServer,
-            @NotNull String clusterId) {
+                                      @NotNull String clusterId) {
         return String.format("%s:%s:%s:%s", RedisKeyType.MAP_ID.getKeyPrefix(clusterId), fromServer, fromId, toServer)
                 .getBytes(StandardCharsets.UTF_8);
     }
@@ -601,4 +598,23 @@ public class RedisManager extends JedisPubSub {
                 .getBytes(StandardCharsets.UTF_8);
     }
 
+    @Override
+    public void subscribed(byte[] channel, long count) {
+        plugin.log(Level.INFO, "Redis subscribed to channel '" + new String(channel, StandardCharsets.UTF_8) + "'");
+    }
+
+    @Override
+    public void psubscribed(byte[] pattern, long count) {
+        plugin.log(Level.INFO, "Redis subscribed to pattern '" + new String(pattern, StandardCharsets.UTF_8) + "'");
+    }
+
+    @Override
+    public void unsubscribed(byte[] channel, long count) {
+        plugin.log(Level.INFO, "Redis unsubscribed to channel '" + new String(channel, StandardCharsets.UTF_8) + "'");
+    }
+
+    @Override
+    public void punsubscribed(byte[] pattern, long count) {
+        plugin.log(Level.INFO, "Redis unsubscribed to pattern '" + new String(pattern, StandardCharsets.UTF_8) + "'");
+    }
 }
