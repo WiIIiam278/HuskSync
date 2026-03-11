@@ -616,7 +616,6 @@ public abstract class BukkitData implements Data {
                     instance.getBaseValue(),
                     instance.getModifiers().stream()
                             .filter(modifier -> !settings.isIgnoredModifier(modifier.getName()))
-                            .filter(modifier -> modifier.getSlotGroup() != EquipmentSlotGroup.ANY)
                             .map(BukkitData.Attributes::adapt).collect(Collectors.toSet())
             );
         }
@@ -641,7 +640,7 @@ public abstract class BukkitData implements Data {
                 attribute.modifiers().stream()
                         .filter(mod -> instance.getModifiers().stream().map(AttributeModifier::getName)
                                 .noneMatch(n -> n.equals(mod.name())))
-                        .distinct().filter(mod -> !mod.hasUuid())
+                        .distinct()
                         .forEach(mod -> instance.addModifier(adapt(mod)));
             }
         }
@@ -728,6 +727,14 @@ public abstract class BukkitData implements Data {
         @Override
         @SuppressWarnings("deprecation")
         public void apply(@NotNull BukkitUser user, @NotNull BukkitHuskSync plugin) throws IllegalStateException {
+            if (!Bukkit.isPrimaryThread()) {
+                try {
+                    Bukkit.getScheduler().callSyncMethod(plugin, () -> { this.apply(user, plugin); return null; }).get();
+                    return;
+                } catch (Exception e) {
+                    throw new IllegalStateException("Failed to apply health on main thread", e);
+                }
+            }
             final Player player = user.getPlayer();
 
             // Set health
