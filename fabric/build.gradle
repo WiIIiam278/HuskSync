@@ -28,7 +28,7 @@ dependencies {
     implementation include("org.postgresql:postgresql:$postgres_driver_version")
     implementation include("org.mariadb.jdbc:mariadb-java-client:$mariadb_driver_version")
     implementation include("org.xerial.snappy:snappy-java:$snappy_version")
-    implementation include("redis.clients:jedis:$jedis_version")
+    implementation include("io.lettuce:lettuce-core:$lettuce_version")
     implementation include("redis.clients.authentication:redis-authx-core:0.1.1-beta2") // Redis dep
     implementation include('org.apache.commons:commons-pool2:2.12.1') // Redis dep
 
