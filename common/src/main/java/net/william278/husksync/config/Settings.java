@@ -313,6 +313,9 @@ public class Settings {
         @Comment("Commands which should be blocked before a player has finished syncing (Use * to block all commands)")
         private List<String> blacklistedCommandsWhileLocked = new ArrayList<>(List.of("*"));
 
+        @Comment("Prevent ender pearl launch events from being blocked while the user is being locked (fixes stasis chambers on 1.21.1+)")
+        private boolean allowPearlSpawningWhileLocked = false;
+
         @Comment("Configuration for how to sync attributes")
         private AttributeSettings attributes = new AttributeSettings();
 
