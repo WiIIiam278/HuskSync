@@ -21,11 +21,8 @@ package net.william278.husksync.data;
 
 import com.google.gson.reflect.TypeToken;
 import de.tr7zw.changeme.nbtapi.NBT;
-import de.tr7zw.changeme.nbtapi.NBTCompound;
 import de.tr7zw.changeme.nbtapi.NBTContainer;
 import de.tr7zw.changeme.nbtapi.iface.ReadWriteNBT;
-import de.tr7zw.changeme.nbtapi.iface.ReadWriteNBTCompoundList;
-import de.tr7zw.changeme.nbtapi.utils.DataFixerUtil;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import net.william278.desertwell.util.Version;
@@ -121,43 +118,12 @@ public class BukkitSerializer {
         }
     }
 
-    // Utility interface for deserializing and upgrading item stacks from legacy versions
+    // Utility interface for deserializing item stacks; relies on NBTAPI's built-in DataFixer for version upgrades
     private interface ItemDeserializer {
 
         @Nullable
         default ItemStack[] getItems(@NotNull ReadWriteNBT tag, @NotNull Version mcVersion) {
-            if (mcVersion.compareTo(getPlugin().getMinecraftVersion()) < 0) {
-                return upgradeItemStacks((NBTCompound) tag, mcVersion);
-            }
             return NBT.itemStackArrayFromNBT(tag);
-        }
-
-        @NotNull
-        private ItemStack @NotNull [] upgradeItemStacks(@NotNull NBTCompound itemsNbt, @NotNull Version mcVersion) {
-            final ReadWriteNBTCompoundList items = itemsNbt.getCompoundList("items");
-            final ItemStack[] itemStacks = new ItemStack[itemsNbt.getInteger("size")];
-            for (int i = 0; i < items.size(); i++) {
-                if (items.get(i) == null) {
-                    itemStacks[i] = new ItemStack(Material.AIR);
-                    continue;
-                }
-                try {
-                    itemStacks[i] = NBT.itemStackFromNBT(upgradeItemData(items.get(i), mcVersion));
-                } catch (Throwable e) {
-                    itemStacks[i] = new ItemStack(Material.AIR);
-                }
-            }
-            return itemStacks;
-        }
-
-        @NotNull
-        private ReadWriteNBT upgradeItemData(@NotNull ReadWriteNBT tag, @NotNull Version mcVersion)
-                throws NoSuchFieldException, IllegalAccessException {
-            return DataFixerUtil.fixUpItemData(
-                    tag,
-                    getPlugin().getDataVersion(mcVersion),
-                    DataFixerUtil.getCurrentVersion()
-            );
         }
 
         @NotNull
