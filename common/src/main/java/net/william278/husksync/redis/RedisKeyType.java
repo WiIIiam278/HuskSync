@@ -33,6 +33,7 @@ public enum RedisKeyType {
     MAP_DATA;
 
     public static final int TTL_1_YEAR = 60 * 60 * 24 * 7 * 52; // 1 year
+    public static final int TTL_7_DAYS = 60 * 60 * 24 * 7; // 7 days
     public static final int TTL_10_SECONDS = 10; // 10 seconds
 
     @NotNull

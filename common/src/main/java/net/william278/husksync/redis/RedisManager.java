@@ -299,7 +299,7 @@ public class RedisManager extends JedisPubSub {
         try (Jedis jedis = jedisPool.getResource()) {
             jedis.setex(
                     getKey(RedisKeyType.LATEST_SNAPSHOT, user.getUuid(), clusterId),
-                    RedisKeyType.TTL_1_YEAR,
+                    RedisKeyType.TTL_7_DAYS,
                     data.asBytes(plugin));
             plugin.debug(String.format("[%s] Set %s key on Redis", user.getName(), RedisKeyType.LATEST_SNAPSHOT));
         } catch (Throwable e) {
