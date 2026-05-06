@@ -239,12 +239,16 @@ public class FabricHuskSync implements DedicatedServerModInitializer, HuskSync, 
         // Handle shutdown
         this.disabling = true;
 
-        // Close the event listener / data syncer
-        if (this.dataSyncer != null) {
-            this.dataSyncer.terminate();
-        }
+        // 1. Complete all player saves (including in-flight async saves from disconnect events)
+        //    and close DB/Redis connections. Must run before terminate() clears Redis checkout
+        //    keys, otherwise another server may read a stale LATEST_SNAPSHOT (fix for #654).
         if (this.eventListener != null) {
             this.eventListener.handlePluginDisable();
+        }
+
+        // 2. Clear Redis checkout state after snapshots are correctly persisted
+        if (this.dataSyncer != null) {
+            this.dataSyncer.terminate();
         }
 
         // Cancel tasks, close audiences

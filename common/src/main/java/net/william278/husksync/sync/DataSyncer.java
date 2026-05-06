@@ -32,6 +32,11 @@ import org.jetbrains.annotations.Blocking;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
@@ -48,9 +53,11 @@ import java.util.logging.Level;
 public abstract class DataSyncer {
     private static final long BASE_LISTEN_ATTEMPTS = 16;
     private static final long LISTEN_DELAY = 10;
+    private static final long SHUTDOWN_SAVE_TIMEOUT_MS = 5000L;
 
     protected final HuskSync plugin;
     private final long maxListenAttempts;
+    private final Set<CompletableFuture<Void>> pendingSaves = ConcurrentHashMap.newKeySet();
 
     @ApiStatus.Internal
     protected DataSyncer(@NotNull HuskSync plugin) {
@@ -211,6 +218,35 @@ public abstract class DataSyncer {
         };
         task.set(plugin.getRepeatingTask(runnable, LISTEN_DELAY));
         task.get().run();
+    }
+
+    /**
+     * Run a task asynchronously and track it so {@link #awaitPendingSaves} can wait for completion.
+     * Subclasses should use this instead of {@code plugin.runAsync()} for disconnect saves.
+     */
+    protected CompletableFuture<Void> runTrackedAsync(@NotNull Runnable task) {
+        final CompletableFuture<Void> future = CompletableFuture.runAsync(task);
+        pendingSaves.add(future);
+        future.whenComplete((v, t) -> pendingSaves.remove(future));
+        return future;
+    }
+
+    /**
+     * Block until all in-flight disconnect saves complete, up to {@code SHUTDOWN_SAVE_TIMEOUT_MS}.
+     * Called during plugin shutdown before connections are terminated.
+     */
+    public void awaitPendingSaves() {
+        if (pendingSaves.isEmpty()) {
+            return;
+        }
+        try {
+            CompletableFuture.allOf(pendingSaves.toArray(CompletableFuture[]::new))
+                    .get(SHUTDOWN_SAVE_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+        } catch (TimeoutException e) {
+            plugin.log(Level.WARNING, "Shutdown: timed out waiting for in-flight player saves ("
+                    + SHUTDOWN_SAVE_TIMEOUT_MS + "ms); some data may not have been flushed to Redis");
+        } catch (Exception ignored) {
+        }
     }
 
     @NotNull

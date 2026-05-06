@@ -58,7 +58,7 @@ public class DelayDataSyncer extends DataSyncer {
 
     @Override
     public void syncSaveUserData(@NotNull OnlineUser onlineUser) {
-        plugin.runAsync(() -> {
+        runTrackedAsync(() -> {
             getRedis().setUserServerSwitch(onlineUser);
             saveData(
                     onlineUser, onlineUser.createSnapshot(DataSnapshot.SaveCause.DISCONNECT),
