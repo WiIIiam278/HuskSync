@@ -35,6 +35,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -221,11 +222,20 @@ public abstract class DataSyncer {
     }
 
     /**
-     * Run a task asynchronously and track it so {@link #awaitPendingSaves} can wait for completion.
-     * Subclasses should use this instead of {@code plugin.runAsync()} for disconnect saves.
+     * Run a task asynchronously via the plugin scheduler and track it so {@link #awaitPendingSaves}
+     * can wait for completion. Uses {@code plugin.runAsync()} instead of the bare ForkJoinPool,
+     * ensuring MorePaperLib's scheduler (with Folia region-context and isPluginDisabled guard) is used.
      */
     protected CompletableFuture<Void> runTrackedAsync(@NotNull Runnable task) {
-        final CompletableFuture<Void> future = CompletableFuture.runAsync(task);
+        final CompletableFuture<Void> future = new CompletableFuture<>();
+        plugin.runAsync(() -> {
+            try {
+                task.run();
+                future.complete(null);
+            } catch (Throwable t) {
+                future.completeExceptionally(t);
+            }
+        });
         pendingSaves.add(future);
         future.whenComplete((v, t) -> pendingSaves.remove(future));
         return future;
@@ -236,16 +246,17 @@ public abstract class DataSyncer {
      * Called during plugin shutdown before connections are terminated.
      */
     public void awaitPendingSaves() {
-        if (pendingSaves.isEmpty()) {
-            return;
-        }
         try {
             CompletableFuture.allOf(pendingSaves.toArray(CompletableFuture[]::new))
                     .get(SHUTDOWN_SAVE_TIMEOUT_MS, TimeUnit.MILLISECONDS);
         } catch (TimeoutException e) {
             plugin.log(Level.WARNING, "Shutdown: timed out waiting for in-flight player saves ("
                     + SHUTDOWN_SAVE_TIMEOUT_MS + "ms); some data may not have been flushed to Redis");
-        } catch (Exception ignored) {
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        } catch (ExecutionException e) {
+            plugin.log(Level.WARNING, "Shutdown: a player save failed: "
+                    + (e.getCause() != null ? e.getCause().getMessage() : e.getMessage()));
         }
     }
 
