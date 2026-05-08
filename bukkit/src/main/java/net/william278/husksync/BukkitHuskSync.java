@@ -238,7 +238,7 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
         this.disabling = true;
 
         // 1. Complete all player saves (including in-flight async saves from PlayerQuitEvent)
-        //    and close DB/Redis connections. Must run before terminate() clears Redis checkout
+        //    and close DB connections. Must run before terminate() clears Redis checkout
         //    keys, otherwise Server B may read a stale LATEST_SNAPSHOT (fix for #654).
         if (this.eventListener != null) {
             this.eventListener.handlePluginDisable();
@@ -247,6 +247,11 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
         // 2. Clear Redis checkout state after snapshots are correctly persisted
         if (this.dataSyncer != null) {
             this.dataSyncer.terminate();
+        }
+
+        // 3. Close Redis after checkout keys are cleared (must be last)
+        if (this.redisManager != null) {
+            this.redisManager.terminate();
         }
 
         // Unregister API and cancel tasks
