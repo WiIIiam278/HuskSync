@@ -30,8 +30,11 @@ import org.jetbrains.annotations.NotNull;
 
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 
 public class InventoryCommand extends ItemsCommand {
 
@@ -64,8 +67,10 @@ public class InventoryCommand extends ItemsCommand {
                 allowEdit,
                 inventory.getSlotCount(),
                 (itemsOnClose) -> {
-                    if (allowEdit && !inventory.equals(itemsOnClose)) {
-                        plugin.runAsync(() -> this.updateItems(viewer, itemsOnClose, user));
+                    if (allowEdit && !itemsEqual(inventory, itemsOnClose)) {
+                        plugin.runAsync(() -> this.updateItems(
+                                viewer, inventory, itemsOnClose, user
+                        ));
                     }
                 }
         );
@@ -73,7 +78,8 @@ public class InventoryCommand extends ItemsCommand {
 
     // Creates a new snapshot with the updated inventory
     @SuppressWarnings("DuplicatedCode")
-    private void updateItems(@NotNull OnlineUser viewer, @NotNull Data.Items.Items items, @NotNull User holder) {
+    private void updateItems(@NotNull OnlineUser viewer, @NotNull Data.Items.Items openedItems,
+                             @NotNull Data.Items.Items items, @NotNull User holder) {
         final Optional<DataSnapshot.Packed> latestData = plugin.getDatabase().getLatestSnapshot(holder);
         if (latestData.isEmpty()) {
             plugin.getLocales().getLocale("error_no_data_to_display")
@@ -81,21 +87,72 @@ public class InventoryCommand extends ItemsCommand {
             return;
         }
 
-        // Create and pack the snapshot with the updated inventory
-        final DataSnapshot.Packed snapshot = latestData.get().copy();
-        boolean pin = plugin.getSettings().getSynchronization().doAutoPin(saveCause);
-        snapshot.edit(plugin, (data) -> {
-            data.getInventory().ifPresent(inventory -> inventory.setContents(items));
-            data.setSaveCause(saveCause);
-            data.setPinned(pin);
-        });
+        plugin.getRedisManager().getOnlineUserData(UUID.randomUUID(), holder, saveCause).thenAccept(currentData -> {
+            final Optional<Data.Items.Inventory> currentInventory = currentData
+                    .or(() -> latestData)
+                    .flatMap(snapshot -> snapshot.unpack(plugin).getInventory());
 
-        // Save data
-        final RedisManager redis = plugin.getRedisManager();
-        plugin.getDataSyncer().saveData(holder, snapshot, (user, data) -> {
-            redis.getUserData(user).ifPresent(d -> redis.setUserData(user, snapshot));
-            redis.sendUserDataUpdate(user, data);
+            if (currentInventory.isEmpty()) {
+                plugin.getLocales().getLocale("error_no_data_to_display")
+                        .ifPresent(viewer::sendMessage);
+                return;
+            }
+
+            if (itemsEqual(currentInventory.get(), items)) {
+                return;
+            }
+
+            if (!itemsEqual(currentInventory.get(), openedItems)) {
+                plugin.getLocales().getLocale("error_inventory_changed").ifPresent(viewer::sendMessage);
+                return;
+            }
+
+            // Create and pack the snapshot with the updated inventory
+            final DataSnapshot.Packed snapshot = latestData.get().copy();
+            boolean pin = plugin.getSettings().getSynchronization().doAutoPin(saveCause);
+            snapshot.edit(plugin, (data) -> {
+                data.getInventory().ifPresent(inventory -> inventory.setContents(items));
+                data.setSaveCause(saveCause);
+                data.setPinned(pin);
+            });
+
+            // Save data
+            final RedisManager redis = plugin.getRedisManager();
+            plugin.getDataSyncer().saveData(holder, snapshot, (user, data) -> {
+                redis.getUserData(user).ifPresent(d -> redis.setUserData(user, snapshot));
+                redis.sendUserDataUpdate(user, data);
+            });
         });
     }
 
+    private boolean itemsEqual(@NotNull Data.Items first, @NotNull Data.Items second) {
+        final Data.Items.Stack[] firstStacks = first.getStack();
+        final Data.Items.Stack[] secondStacks = second.getStack();
+        final int slotCount = first.getSlotCount();
+
+        for (int slot = 0; slot < slotCount; slot++) {
+            if (!stackEqual(getStack(firstStacks, slot), getStack(secondStacks, slot))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private Data.Items.Stack getStack(@NotNull Data.Items.Stack[] stacks, int slot) {
+        return slot < stacks.length ? stacks[slot] : null;
+    }
+
+    private boolean stackEqual(Data.Items.Stack first, Data.Items.Stack second) {
+        if (first == second) {
+            return true;
+        }
+        if (first == null || second == null) {
+            return false;
+        }
+        return first.amount() == second.amount()
+                && first.material().equals(second.material())
+                && Objects.equals(first.name(), second.name())
+                && Objects.equals(first.lore(), second.lore())
+                && new HashSet<>(first.enchantments()).equals(new HashSet<>(second.enchantments()));
+    }
 }
