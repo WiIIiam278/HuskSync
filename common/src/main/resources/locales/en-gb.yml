@@ -65,6 +65,8 @@ locales:
   error_in_game_command_only: 'Error: That command can only be used in-game.'
   error_no_data_to_display: '[Error:](#ff3300) [Could not find any user data to display.](#ff7e5e)'
   error_invalid_version_uuid: '[Error:](#ff3300) [Could not find any user data for that version UUID.](#ff7e5e)'
+  error_inventory_changed: '[Error:](#ff3300) [This player''s inventory changed while you were editing it. Reopen the inventory and try again.](#ff7e5e)'
+  error_ender_chest_changed: '[Error:](#ff3300) [This player''s Ender Chest changed while you were editing it. Reopen the Ender Chest and try again.](#ff7e5e)'
   husksync_command_description: 'Manage the HuskSync plugin'
   userdata_command_description: 'View, manage & restore player userdata'
   inventory_command_description: 'View & edit a player''s inventory'

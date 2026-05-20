@@ -65,7 +65,7 @@ public class EnderChestCommand extends ItemsCommand {
                 enderChest.getSlotCount(),
                 (itemsOnClose) -> {
                     if (allowEdit && !enderChest.equals(itemsOnClose)) {
-                        plugin.runAsync(() -> this.updateItems(viewer, itemsOnClose, user));
+                        plugin.runAsync(() -> this.updateItems(viewer, enderChest, itemsOnClose, user));
                     }
                 }
         );
@@ -73,11 +73,23 @@ public class EnderChestCommand extends ItemsCommand {
 
     // Creates a new snapshot with the updated enderChest
     @SuppressWarnings("DuplicatedCode")
-    private void updateItems(@NotNull OnlineUser viewer, @NotNull Data.Items.Items items, @NotNull User holder) {
+    private void updateItems(@NotNull OnlineUser viewer, @NotNull Data.Items.Items openedItems, @NotNull Data.Items.Items items, @NotNull User holder) {
         final Optional<DataSnapshot.Packed> latestData = plugin.getDatabase().getLatestSnapshot(holder);
         if (latestData.isEmpty()) {
             plugin.getLocales().getLocale("error_no_data_to_display")
                     .ifPresent(viewer::sendMessage);
+            return;
+        }
+
+        final Optional<Data.Items.EnderChest> latestEnderChest = latestData.get().unpack(plugin).getEnderChest();
+        if (latestEnderChest.isEmpty()) {
+            plugin.getLocales().getLocale("error_no_data_to_display")
+                    .ifPresent(viewer::sendMessage);
+            return;
+        }
+
+        if (!latestEnderChest.get().equals(openedItems)) {
+            plugin.getLocales().getLocale("error_ender_chest_changed").ifPresent(viewer::sendMessage);
             return;
         }
 
@@ -97,5 +109,4 @@ public class EnderChestCommand extends ItemsCommand {
             redis.sendUserDataUpdate(user, data);
         });
     }
-
 }
