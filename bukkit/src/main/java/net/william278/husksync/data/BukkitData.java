@@ -236,8 +236,7 @@ public abstract class BukkitData implements Data {
 
         @NotNull
         public static BukkitData.PotionEffects from(@NotNull Collection<PotionEffect> sei) {
-            return new BukkitData.PotionEffects(Lists.newArrayList(sei.stream().filter(e -> !e.isAmbient()).toList()));
-
+            return new BukkitData.PotionEffects(Lists.newArrayList(sei));
         }
 
         @NotNull
