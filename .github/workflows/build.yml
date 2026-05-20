@@ -32,6 +32,9 @@ jobs:
           cache: gradle
           overwrite-settings: false
 
+      - name: Build
+        run: ./gradlew clean build -x test --no-daemon -Pversion=${{ inputs.version }}
+
       - name: Create GitHub Release and upload JARs
         uses: softprops/action-gh-release@v2
         with:
