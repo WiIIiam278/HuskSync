@@ -65,7 +65,7 @@ public class InventoryCommand extends ItemsCommand {
                 inventory.getSlotCount(),
                 (itemsOnClose) -> {
                     if (allowEdit && !inventory.equals(itemsOnClose)) {
-                        plugin.runAsync(() -> this.updateItems(viewer, inventory, itemsOnClose, user));
+                        plugin.runAsync(() -> this.updateItems(viewer, itemsOnClose, user));
                     }
                 }
         );
@@ -73,24 +73,11 @@ public class InventoryCommand extends ItemsCommand {
 
     // Creates a new snapshot with the updated inventory
     @SuppressWarnings("DuplicatedCode")
-    private void updateItems(@NotNull OnlineUser viewer, @NotNull Data.Items.Items openedItems,
-                             @NotNull Data.Items.Items items, @NotNull User holder) {
+    private void updateItems(@NotNull OnlineUser viewer, @NotNull Data.Items.Items items, @NotNull User holder) {
         final Optional<DataSnapshot.Packed> latestData = plugin.getDatabase().getLatestSnapshot(holder);
         if (latestData.isEmpty()) {
             plugin.getLocales().getLocale("error_no_data_to_display")
                     .ifPresent(viewer::sendMessage);
-            return;
-        }
-
-        final Optional<Data.Items.Inventory> latestInventory = latestData.get().unpack(plugin).getInventory();
-        if (latestInventory.isEmpty()) {
-            plugin.getLocales().getLocale("error_no_data_to_display")
-                    .ifPresent(viewer::sendMessage);
-            return;
-        }
-
-        if (!latestInventory.get().equals(openedItems)) {
-            plugin.getLocales().getLocale("error_inventory_changed").ifPresent(viewer::sendMessage);
             return;
         }
 
@@ -110,4 +97,5 @@ public class InventoryCommand extends ItemsCommand {
             redis.sendUserDataUpdate(user, data);
         });
     }
+
 }
