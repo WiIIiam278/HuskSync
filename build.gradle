@@ -3,15 +3,13 @@ import org.apache.tools.ant.filters.ReplaceTokens
 plugins {
     id 'com.gradleup.shadow' version '9.2.2'
     id 'org.cadixdev.licenser' version '0.6.1' apply false
-    id 'dev.architectury.loom' version '1.9-SNAPSHOT' apply false
-    id 'gg.essential.multi-version.root' apply false
     id 'org.ajoberstar.grgit' version '5.3.2'
     id 'maven-publish'
     id 'java'
 }
 
 group 'net.william278'
-version "$ext.plugin_version${versionMetadata()}"
+version "$ext.plugin_version"
 description "$ext.plugin_description"
 defaultTasks 'licenseFormat', 'build'
 
@@ -27,43 +25,12 @@ ext {
     set 'snappy_version', snappy_version.toString()
 }
 
-publishing {
-    repositories {
-        if (System.getenv("RELEASES_MAVEN_USERNAME") != null) {
-            maven {
-                name = "william278-releases"
-                url = "https://repo.william278.net/releases"
-                credentials {
-                    username = System.getenv("RELEASES_MAVEN_USERNAME")
-                    password = System.getenv("RELEASES_MAVEN_PASSWORD")
-                }
-                authentication {
-                    basic(BasicAuthentication)
-                }
-            }
-        }
-        if (System.getenv("SNAPSHOTS_MAVEN_USERNAME") != null) {
-            maven {
-                name = "william278-snapshots"
-                url = "https://repo.william278.net/snapshots"
-                credentials {
-                    username = System.getenv("SNAPSHOTS_MAVEN_USERNAME")
-                    password = System.getenv("SNAPSHOTS_MAVEN_PASSWORD")
-                }
-                authentication {
-                    basic(BasicAuthentication)
-                }
-            }
-        }
-    }
-}
-
 allprojects {
     // Ignore parent projects (no jars)
-    if (project.name == 'fabric' || project.name == 'bukkit') {
+    if (project.name == 'bukkit') {
         return
     }
-    
+
     apply plugin: 'com.gradleup.shadow'
     apply plugin: 'org.cadixdev.licenser'
     apply plugin: 'java'
@@ -117,7 +84,7 @@ allprojects {
 
 subprojects {
     // Ignore parent projects (no jars)
-    if (['fabric', 'bukkit'].contains(project.name)) {
+    if (project.name == 'bukkit') {
         return
     }
 
@@ -132,13 +99,9 @@ subprojects {
     archivesBaseName = name
 
     // Version-specific configuration
-    if (['fabric', 'bukkit'].contains(project.parent?.name)) {
+    if (project.parent?.name?.equals('bukkit')) {
         compileJava.options.release.set 21
         version += "+mc.${project.name}"
-
-        if (project.parent?.name?.equals('fabric')) {
-            apply plugin: 'dev.architectury.loom'
-        }
     }
 
     jar {
@@ -151,7 +114,7 @@ subprojects {
     }
 
     // API publishing
-    if (project.name == 'common' || ['fabric', 'bukkit'].contains(project.parent?.name)) {
+    if (project.name == 'common' || project.parent?.name?.equals('bukkit')) {
         java {
             withSourcesJar()
             withJavadocJar()
@@ -183,21 +146,8 @@ subprojects {
                     "mavenJavaBukkit_${project.name.replace('.', '_')}"(MavenPublication) {
                         groupId = 'net.william278.husksync'
                         artifactId = 'husksync-bukkit'
-                        version = "$rootProject.version+$project.name"
+                        version = "$rootProject.version-mc.$project.name"
                         artifact shadowJar
-                        artifact sourcesJar
-                        artifact javadocJar
-                    }
-                }
-            }
-
-            if (project.parent?.name?.equals('fabric')) {
-                publications {
-                    "mavenJavaFabric_${project.name.replace('.', '_')}"(MavenPublication) {
-                        groupId = 'net.william278.husksync'
-                        artifactId = 'husksync-fabric'
-                        version = "$rootProject.version+$project.name"
-                        artifact remapJar
                         artifact sourcesJar
                         artifact javadocJar
                     }
@@ -211,23 +161,3 @@ subprojects {
 }
 
 logger.lifecycle("Building HuskSync ${version} by William278")
-
-@SuppressWarnings('GrMethodMayBeStatic')
-def versionMetadata() {
-    // Require grgit
-    if (grgit == null) {
-        return '-unknown'
-    }
-
-    // If unclean, return the last commit hash with -indev
-    if (!grgit.status().clean) {
-        return '-' + grgit.head().abbreviatedId + '-indev'
-    }
-
-    // Otherwise if this matches a tag, return nothing
-    def tag = grgit.tag.list().find { it.commit.id == grgit.head().id }
-    if (tag != null) {
-        return ''
-    }
-    return '-' + grgit.head().abbreviatedId
-}
