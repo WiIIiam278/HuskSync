@@ -27,6 +27,7 @@ import net.william278.husksync.redis.RedisManager;
 import net.william278.husksync.user.OnlineUser;
 import net.william278.husksync.user.User;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
@@ -60,6 +61,7 @@ public class EnderChestCommand extends ItemsCommand {
 
         // Show GUI
         final Data.Items.EnderChest enderChest = optionalEnderChest.get();
+        final Optional<Data.Items.Inventory> openedInventory = snapshot.getInventory();
         viewer.showGui(
                 enderChest,
                 plugin.getLocales().getLocale("ender_chest_viewer_menu_title", user.getName())
@@ -69,7 +71,7 @@ public class EnderChestCommand extends ItemsCommand {
                 (itemsOnClose) -> {
                     if (allowEdit && !itemsEqual(enderChest, itemsOnClose)) {
                         plugin.runAsync(() -> this.updateItems(
-                                viewer, enderChest, itemsOnClose, user
+                                viewer, enderChest, openedInventory.orElse(null), itemsOnClose, user
                         ));
                     }
                 }
@@ -79,6 +81,7 @@ public class EnderChestCommand extends ItemsCommand {
     // Creates a new snapshot with the updated enderChest
     @SuppressWarnings("DuplicatedCode")
     private void updateItems(@NotNull OnlineUser viewer, @NotNull Data.Items.Items openedItems,
+                             @Nullable Data.Items.Inventory openedInventory,
                              @NotNull Data.Items.Items items, @NotNull User holder) {
         final Optional<DataSnapshot.Packed> latestData = plugin.getDatabase().getLatestSnapshot(holder);
         if (latestData.isEmpty()) {
@@ -88,10 +91,12 @@ public class EnderChestCommand extends ItemsCommand {
         }
 
         plugin.getRedisManager().getOnlineUserData(UUID.randomUUID(), holder, saveCause).thenAccept(currentData -> {
-            final Optional<Data.Items.EnderChest> currentEnderChest = currentData
+            final DataSnapshot.Unpacked currentSnapshot = currentData
                     .or(() -> latestData)
-                    .flatMap(snapshot -> snapshot.unpack(plugin).getEnderChest());
+                    .map(snapshot -> snapshot.unpack(plugin))
+                    .orElseThrow();
 
+            final Optional<Data.Items.EnderChest> currentEnderChest = currentSnapshot.getEnderChest();
             if (currentEnderChest.isEmpty()) {
                 plugin.getLocales().getLocale("error_no_data_to_display")
                         .ifPresent(viewer::sendMessage);
@@ -103,6 +108,13 @@ public class EnderChestCommand extends ItemsCommand {
             }
 
             if (!itemsEqual(currentEnderChest.get(), openedItems)) {
+                plugin.getLocales().getLocale("error_ender_chest_changed").ifPresent(viewer::sendMessage);
+                return;
+            }
+
+            final Optional<Data.Items.Inventory> currentInventory = currentSnapshot.getInventory();
+            if (openedInventory != null && currentInventory.isPresent()
+                    && !itemsEqual(currentInventory.get(), openedInventory)) {
                 plugin.getLocales().getLocale("error_ender_chest_changed").ifPresent(viewer::sendMessage);
                 return;
             }
