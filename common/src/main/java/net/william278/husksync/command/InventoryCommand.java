@@ -120,7 +120,7 @@ public class InventoryCommand extends ItemsCommand {
             }
 
             // Create and pack the snapshot with the updated inventory
-            final DataSnapshot.Packed snapshot = latestData.get().copy();
+            final DataSnapshot.Packed snapshot = currentData.or(() -> latestData).orElseThrow().copy();
             boolean pin = plugin.getSettings().getSynchronization().doAutoPin(saveCause);
             snapshot.edit(plugin, (data) -> {
                 data.getInventory().ifPresent(inventory -> inventory.setContents(items));
