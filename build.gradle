@@ -2,7 +2,7 @@ import org.apache.tools.ant.filters.ReplaceTokens
 
 plugins {
     id 'com.gradleup.shadow' version '9.2.2'
-    id 'org.cadixdev.licenser' version '0.6.1' apply false
+    id 'dev.yumi.gradle.licenser' version '2.1.1' apply false
     id 'dev.architectury.loom' version '1.9-SNAPSHOT' apply false
     id 'gg.essential.multi-version.root' apply false
     id 'org.ajoberstar.grgit' version '5.3.2'
@@ -13,7 +13,7 @@ plugins {
 group 'net.william278'
 version "$ext.plugin_version${versionMetadata()}"
 description "$ext.plugin_description"
-defaultTasks 'licenseFormat', 'build'
+defaultTasks 'applyLicenses', 'build'
 
 ext {
     set 'version', version.toString()
@@ -65,7 +65,7 @@ allprojects {
     }
     
     apply plugin: 'com.gradleup.shadow'
-    apply plugin: 'org.cadixdev.licenser'
+    apply plugin: 'dev.yumi.gradle.licenser'
     apply plugin: 'java'
 
     compileJava.options.encoding = 'UTF-8'
@@ -96,9 +96,8 @@ allprojects {
     }
 
     license {
-        header = rootProject.file('HEADER')
+        rule rootProject.file('HEADER')
         include '**/*.java'
-        newLine = true
     }
 
     test {
@@ -129,7 +128,7 @@ subprojects {
     } else {
         name += "-${project.name.capitalize()}"
     }
-    archivesBaseName = name
+    base.archivesName = name
 
     // Version-specific configuration
     if (['fabric', 'bukkit'].contains(project.parent?.name)) {
