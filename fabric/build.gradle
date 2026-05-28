@@ -39,10 +39,12 @@ dependencies {
     annotationProcessor 'org.projectlombok:lombok:1.18.42'
 
     implementation include(project(path: ":common"))
-    project(":common").configurations.api.dependencies.each { dependency ->
+    rootProject.findProject(":common").configurations.api.dependencies.each { dependency ->
         include(dependency)
     }
 }
+
+evaluationDependsOn(":common")
 
 processResources {
     filesMatching(Arrays.asList("fabric.mod.json", "compatibility.yml")) {
