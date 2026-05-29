@@ -15,6 +15,12 @@ pluginManagement {
     }
 }
 
+plugins {
+    // Auto-provisions required JDK toolchains (e.g. Java 25 for Paper 26.1.2)
+    // on machines that don't already have them installed.
+    id 'org.gradle.toolchains.foojay-resolver-convention' version '1.0.0'
+}
+
 // Common
 rootProject.name = 'HuskSync'
 include("common")
