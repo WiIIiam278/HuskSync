@@ -132,7 +132,14 @@ subprojects {
 
     // Version-specific configuration
     if (['fabric', 'bukkit'].contains(project.parent?.name)) {
-        compileJava.options.release.set 21
+        // Target Java version is set per-module via the 'java_version' property
+        // (defaults to 21); newer Minecraft builds (e.g. Paper 26.1.2) require a
+        // newer JDK, so pin a matching toolchain when an explicit version is given.
+        def javaVersion = (project.findProperty('java_version') ?: '21').toString().toInteger()
+        compileJava.options.release.set javaVersion
+        if (project.hasProperty('java_version')) {
+            java.toolchain.languageVersion.set(JavaLanguageVersion.of(javaVersion))
+        }
         version += "+mc.${project.name}"
 
         if (project.parent?.name?.equals('fabric')) {
