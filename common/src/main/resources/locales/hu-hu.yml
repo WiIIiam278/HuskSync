@@ -72,4 +72,5 @@ locales:
   husksync_command_description: 'HuskSync plugin kezelése'
   userdata_command_description: 'Játékosadatok megtekintése, kezelése és visszaállítása'
   inventory_command_description: 'Játékos leltárának megtekintése és szerkesztése'
-  enderchest_command_description: 'Játékos Ender ládájának megtekintése és szerkesztése'
+  inventory_command_description: 'Játékos eszköztárának megtekintése és szerkesztése'
+  enderchest_command_description: 'Játékos enderládájának megtekintése és szerkesztése'
