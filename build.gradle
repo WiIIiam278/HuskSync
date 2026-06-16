@@ -129,7 +129,7 @@ subprojects {
     } else {
         name += "-${project.name.capitalize()}"
     }
-    archivesBaseName = name
+    base.archivesName = name
 
     // Version-specific configuration
     if (['fabric', 'bukkit'].contains(project.parent?.name)) {
