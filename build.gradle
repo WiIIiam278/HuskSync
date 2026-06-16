@@ -133,7 +133,13 @@ subprojects {
 
     // Version-specific configuration
     if (['fabric', 'bukkit'].contains(project.parent?.name)) {
-        compileJava.options.release.set 21
+        def javaVer = project.hasProperty('java_version') ? Integer.parseInt(project.java_version as String) : 21
+        java {
+            toolchain {
+                languageVersion = JavaLanguageVersion.of(javaVer)
+            }
+        }
+        compileJava.options.release.set javaVer
         version += "+mc.${project.name}"
 
         if (project.parent?.name?.equals('fabric')) {
