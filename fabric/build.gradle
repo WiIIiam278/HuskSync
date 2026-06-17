@@ -10,6 +10,8 @@ repositories {
     maven { url 'https://maven.nucleoid.xyz' }
 }
 
+def commonProject = rootProject.project(":common")
+
 dependencies {
     modImplementation include("net.kyori:adventure-platform-fabric:${fabric_adventure_platform_version}")
     modImplementation include("me.lucko:fabric-permissions-api:${fabric_permissions_api_version}")
@@ -39,7 +41,7 @@ dependencies {
     annotationProcessor 'org.projectlombok:lombok:1.18.42'
 
     implementation include(project(path: ":common"))
-    project(":common").configurations.api.dependencies.each { dependency ->
+    commonProject.configurations.api.dependencies.each { dependency ->
         include(dependency)
     }
 }
