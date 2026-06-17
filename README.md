@@ -48,18 +48,21 @@ HuskSync supports the following [compatible versions](https://william278.net/doc
 
 |    Minecraft    | Latest HuskSync | Java Version | Platforms     | Support Status                |
 |:---------------:|:---------------:|:------------:|:--------------|:------------------------------|
-|     1.21.10     |    _latest_     |      21      | Paper         | ✅ **Active Release**          |
-|    1.21.7/8     |    _latest_     |      21      | Paper, Fabric | ✅ **August 2026**             |
-|     1.21.6      |      3.8.5      |      21      | Paper         | 🗃️ Archived (July 2025)      |
-|     1.21.5      |    _latest_     |      21      | Paper         | ✅ **February 2026** (Non-LTS) |
-|     1.21.4      |    _latest_     |      21      | Paper, Fabric | ✅ **February 2026** (Non-LTS) |
-|     1.21.3      |      3.7.1      |      21      | Paper, Fabric | 🗃️ Archived (December 2024)  |
-|     1.21.1      |    _latest_     |      21      | Paper, Fabric | ✅ **May 2026** (LTS)          |
-|     1.20.6      |      3.6.8      |      17      | Paper         | 🗃️ Archived (October 2024)   |
-|     1.20.4      |      3.6.8      |      17      | Paper         | 🗃️ Archived (July 2024)      |
-|     1.20.1      |      3.8.7      |      17      | Paper, Fabric | 🗃️ Archived (November 2024)  |
+|     26.1.2    |    _latest_   |      25      | Paper         |     ✅ **Active Release**      |
+|     1.21.11   |    3.8.7     |      21      | Paper            | 🗃️ Archived (June 2026)      |
+|     1.21.10   |      3.8.7      |      21      | Paper         | 🗃️ Archived (June 2026)      |
+|     1.21.10   |      3.8.7      |      21      | Paper         | 🗃️ Archived (June 2026)      |
+|    1.21.7/8   |      3.8.7      |      21      | Paper, Fabric | 🗃️ Archived (June 2026)      |
+|     1.21.6    |      3.8.5      |      21      | Paper         | 🗃️ Archived (July 2025)      |
+|     1.21.5    |      3.8.7      |      21      | Paper         | 🗃️ Archived (June 2026)      |
+|     1.21.4    |      3.8.7      |      21      | Paper, Fabric | 🗃️ Archived (June 2026)      |
+|     1.21.3    |      3.7.1      |      21      | Paper, Fabric | 🗃️ Archived (December 2024)  |
+|     1.21.1    |      3.8.7      |      21      | Paper, Fabric | 🗃️ Archived (June 2026)      |
+|     1.20.6    |      3.6.8      |      17      | Paper         | 🗃️ Archived (October 2024)   |
+|     1.20.4    |      3.6.8      |      17      | Paper         | 🗃️ Archived (July 2024)      |
+|     1.20.1    |      3.8.7      |      17      | Paper, Fabric | 🗃️ Archived (November 2024)  |
 | 1.17.1 - 1.19.4 |      3.6.8      |      17      | Paper         | 🗃️ Archived                  |
-|     1.16.5      |      3.2.1      |      16      | Paper         | 🗃️ Archived                  |
+|     1.16.5    |      3.2.1      |      16      | Paper         | 🗃️ Archived                  |
 
 HuskSync is primarily developed against the latest release. Old Minecraft versions are allocated a support channel based on popularity, mod support, etc:
 
