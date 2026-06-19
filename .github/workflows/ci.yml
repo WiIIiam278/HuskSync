@@ -51,10 +51,14 @@ jobs:
           version: ${{ env.version_name }}
           changelog: ${{ github.event.head_commit.message }}
           distro-names: |
+            paper-26.2
             paper-26.1.2
           distro-groups: |
             paper
+            paper
           distro-descriptions: |
+            Paper 26.2
             Paper 26.1.2
           files: |
+            target/HuskSync-Bukkit-${{ env.version_name }}+mc.26.2.jar
             target/HuskSync-Bukkit-${{ env.version_name }}+mc.26.1.2.jar
