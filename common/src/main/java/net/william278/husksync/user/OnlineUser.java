@@ -32,6 +32,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.Consumer;
+import java.util.logging.Level;
 
 /**
  * Represents a logged-in {@link User}
@@ -86,7 +87,12 @@ public abstract class OnlineUser extends User implements CommandUser, UserDataHo
      * @param mineDown the parsed {@link MineDown} to send
      */
     public void sendMessage(@NotNull MineDown mineDown) {
-        sendMessage(mineDown.toComponent());
+        try {
+            sendMessage(mineDown.toComponent());
+        } catch (Throwable e) {
+            getPlugin().log(Level.WARNING,
+                    String.format("Failed to render MineDown message for %s", getName()), e);
+        }
     }
 
     /**
@@ -95,7 +101,12 @@ public abstract class OnlineUser extends User implements CommandUser, UserDataHo
      * @param mineDown the parsed {@link MineDown} to send
      */
     public void sendActionBar(@NotNull MineDown mineDown) {
-        getAudience().sendActionBar(mineDown.toComponent());
+        try {
+            getAudience().sendActionBar(mineDown.toComponent());
+        } catch (Throwable e) {
+            getPlugin().log(Level.WARNING,
+                    String.format("Failed to render MineDown action bar for %s", getName()), e);
+        }
     }
 
     /**
@@ -158,16 +169,26 @@ public abstract class OnlineUser extends User implements CommandUser, UserDataHo
      */
     public void completeSync(boolean succeeded, @NotNull DataSnapshot.UpdateCause cause, @NotNull HuskSync plugin) {
         if (succeeded) {
-            switch (plugin.getSettings().getSynchronization().getNotificationDisplaySlot()) {
-                case CHAT -> cause.getCompletedLocale(plugin).ifPresent(this::sendMessage);
-                case ACTION_BAR -> cause.getCompletedLocale(plugin).ifPresent(this::sendActionBar);
+            try {
+                switch (plugin.getSettings().getSynchronization().getNotificationDisplaySlot()) {
+                    case CHAT -> cause.getCompletedLocale(plugin).ifPresent(this::sendMessage);
+                    case ACTION_BAR -> cause.getCompletedLocale(plugin).ifPresent(this::sendActionBar);
+                }
+            } catch (Throwable e) {
+                plugin.log(Level.WARNING,
+                        String.format("Failed to send sync complete notification to %s", getName()), e);
             }
             plugin.fireEvent(
                     plugin.getSyncCompleteEvent(this),
                     (event) -> plugin.unlockPlayer(getUuid())
             );
         } else {
-            cause.getFailedLocale(plugin).ifPresent(this::sendMessage);
+            try {
+                cause.getFailedLocale(plugin).ifPresent(this::sendMessage);
+            } catch (Throwable e) {
+                plugin.log(Level.WARNING,
+                        String.format("Failed to send sync failure notification to %s", getName()), e);
+            }
         }
 
         // Ensure the user is in the database

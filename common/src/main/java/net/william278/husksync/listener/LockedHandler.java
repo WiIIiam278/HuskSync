@@ -41,13 +41,18 @@ public interface LockedHandler {
     }
 
     /**
-     * Determine whether a player event should be canceled
+     * Determine whether a player event should be cancelled
      *
      * @param userUuid The UUID of the user to check
-     * @return Whether the event should be canceled
+     * @return Whether the event should be cancelled
      */
     default boolean cancelPlayerEvent(@NotNull UUID userUuid) {
-        return getPlugin().isDisabling() || getPlugin().isLocked(userUuid);
+        final boolean locked = getPlugin().isLocked(userUuid);
+        if (locked || getPlugin().isDisabling()) {
+            getPlugin().debug(String.format("[%s] cancelPlayerEvent: cancelled (locked=%s, disabling=%s)",
+                    userUuid, locked, getPlugin().isDisabling()));
+        }
+        return getPlugin().isDisabling() || locked;
     }
 
     @NotNull

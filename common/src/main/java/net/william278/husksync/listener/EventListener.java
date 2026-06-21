@@ -71,6 +71,9 @@ public abstract class EventListener {
         if (!plugin.isLocked(user.getUuid())) {
             plugin.lockPlayer(user.getUuid());
             plugin.getDataSyncer().syncSaveUserData(user);
+        } else {
+            plugin.debug(String.format("[%s] disconnected while locked - data will NOT be saved!",
+                    user.getName()));
         }
     }
 
