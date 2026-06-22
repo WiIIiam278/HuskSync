@@ -60,7 +60,7 @@ public class Locales {
     // The raw set of locales loaded from yaml
     Map<String, String> locales = Maps.newTreeMap();
 
-    int locale_format_version = LOCALE_FORMAT_VERSION;
+    Integer locale_format_version = null;
 
     /**
      * Returns a raw, unformatted locale loaded from the locale file

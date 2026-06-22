@@ -107,7 +107,8 @@ public interface ConfigProvider {
         if (Files.exists(path)) {
             try {
                 final Locales existing = store.load(path);
-                if (existing.locale_format_version >= Locales.LOCALE_FORMAT_VERSION) {
+                if (existing.locale_format_version != null
+                        && existing.locale_format_version >= Locales.LOCALE_FORMAT_VERSION) {
                     setLocales(existing);
                     return;
                 }
