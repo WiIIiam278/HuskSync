@@ -1,71 +1,140 @@
+# MineDown formatting has been converted to MiniMessage
+# https://docs.advntr.dev/minimessage/index.html
 locales:
-  synchronization_complete: '[⏵データが同期されました！](#00fb9a)'
-  synchronization_failed: '[⏵ データの同期に失敗しました！管理者に連絡してください。](#ff7e5e)'
-  inventory_viewer_menu_title: '&0%1%のインベントリ'
-  ender_chest_viewer_menu_title: '&0%1%のエンダーチェスト'
-  inventory_viewer_opened: '[⌚ %2%](#00fb9a) [%1%](#00fb9a bold) [のインベントリのスナップショットを閲覧する](#00fb9a)'
-  ender_chest_viewer_opened: '[⌚ %2%](#00fb9a) [%1%](#00fb9a bold) [のエンダーチェストのスナップショットを閲覧する](#00fb9a)'
-  data_update_complete: '[🔔 データが更新されました！](#00fb9a)'
-  data_update_failed: '[🔔 データの更新に失敗しました！管理者に連絡してください。](#ff7e5e)'
-  user_registration_complete: '[⭐ ユーザー登録が完了しました！](#00fb9a)'
-  data_manager_title: '[%3%](#00fb9a bold show_text=&7プレイヤーUUID:\n&8%4%) [のユーザーデータスナップショット](#00fb9a)[%1%](#00fb9a show_text=&7バージョンUUID:\n&8%2%)[を表示:](#00fb9a)'
-  data_manager_timestamp: '[⌚ %1%](#ffc43b-#f5c962 show_text=&7バージョンタイムスタンプ:\n&8データの保存時期)'
-  data_manager_pinned: '[※ ピン留めされたスナップショット](#d8ff2b show_text=&7ピン留め:\n&8このユーザーデータのスナップショットは自動的にローテーションされません。)'
-  data_manager_cause: '[⚑ %1%](#23a825-#36f539 show_text=&7保存理由:\n&8データが保存された理由)'
-  data_manager_server: '[☁ %1%](#ff87b3-#f5538e show_text=&7サーバー:\n&8データが保存されたサーバー名)'
-  data_manager_size: '[⏏ %1%](color=#62a9f5-#7ab8fa show_text=&7スナップショットサイズ:\n&8スナップショットの推定ファイルサイズ（単位:KiB）)\n'
-  data_manger_status: '[%1%](red)[/](gray)[%2%](red)[×](gray)[❤](red show_text=&7体力)   [%3%](yellow)[×](gray)[🍖](yellow show_text=&7空腹度)   [ʟᴠ](green)[.](gray)[%4%](green show_text=&7経験値レベル)   [🏹 %5%](dark_aqua show_text=&7ゲームモード)'
-  data_manager_advancements_statistics: '[⭐ 進捗: %1%](color=#ffc43b-#f5c962 show_text=&7達成した進捗:\n&8%2%)   [⌛ プレイ時間: %3%ʜʀs](color=#62a9f5-#7ab8fa show_text=&7ゲーム内のプレイ時間\n&8⚠ ゲーム内の統計に基づく)\n'
-  data_manager_item_buttons: '[表示:](gray) [[🪣 インベントリ…]](color=#a17b5f-#f5b98c show_text=&7クリックで表示 run_command=/husksync:inventory %1% %2%)   [[⌀ エンダーチェスト…]](#b649c4-#d254ff show_text=&7クリックで表示 run_command=/husksync:enderchest %1% %2%)'
-  data_manager_management_buttons: '[管理:](gray) [[❌ 消去…]](#ff3300 show_text=&7クリックでこのユーザーデータのスナップショットを消去します。\n&8これはユーザーの現在のデータには影響しません。\n&#ff3300&⚠ この操作は元に戻せません！ suggest_command=/husksync:userdata delete %1% %2%)   [[⏪ 復元…]](#00fb9a show_text=&7クリックでこのユーザーデータを復元します。\n&8これにより、ユーザーデータはこのスナップショットに設定されます。\n&#ff3300&⚠ %1% の現在のデータは上書きされます！ suggest_command=/husksync:userdata restore %1% %2%)   [[※ ピン留め/ピン外し…]](#d8ff2b show_text=&7クリックでこのユーザーデータのスナップショットをピン留め、若しくはピンを外します。\n&8ピン留めされたスナップショットは自動的にローテーションしません。 run_command=/userdata pin %1% %2%)'
-  data_manager_system_buttons: '[システム:](gray) [[⏷ ファイルダンプ…]](dark_gray show_text=&7クリックで未加工のユーザーデータスナップショットをダンプファイルにします。\n&8データダンプの場所は ~/plugins/HuskSync/dumps/ です run_command=/husksync:userdata dump %1% %2% file)   [[☂ Webダンプ…]](dark_gray show_text=&7クリックでユーザーデータスナップショットをmc-logsサービスにダンプします。\n&8データを含むURLが提供されます。 run_command=/husksync:userdata dump %1% %2% web)'
-  data_manager_advancements_preview_remaining: 'さらに %1% 件…'
-  data_list_title: '[%1% のユーザーデータスナップショット:](#00fb9a) [(%4%件中](#00fb9a bold) [%2%-%3%件](#00fb9a)[)](#00fb9a)\n'
-  data_list_item: '[%1%](gray show_text=&7%2% のユーザーデータスナップショット&8⚡ %4% run_command=/husksync:userdata view %2% %3%) [%5%](#d8ff2b show_text=&7ピン留め:\n&8ピン留めされたスナップショットは自動的にローテーションしません。 run_command=/husksync:userdata view %2% %3%) [%6%](color=#ffc43b-#f5c962 show_text=&7バージョンタイムスタンプ:&7\n&8データの保存時期\n&8%7% run_command=/userdata view %2% %3%)   [⚑ %8%](#23a825-#36f539 show_text=&7保存理由:\n&8データが保存された理由 run_command=/userdata view %2% %3%)   [⏏ %9%](color=#62a9f5-#7ab8fa show_text=&7スナップショットサイズ:&7\n&8スナップショットの推定ファイルサイズ (単位:KiB) run_command=/userdata view %2% %3%)'
-  data_list_item_invalid: '[%1%](dark_gray show_text=&7%2% のユーザーデータスナップショット\n&8⚡ %4% suggest_command=/userdata delete %2% %3%) [%5%](dark_gray show_text=&7ピン留め:\n&8ピン留めされたスナップショットは自動的にローテーションしません。 suggest_command=/userdata delete %2% %3%) [%6%   ⚑ %8%   ⏏ %9%](gray strikethrough show_text=&#ff3300&無効なデータのスナップショット\n&#ff7e5e&クリックで消去\n\n&7⚠ %10% suggest_command=/userdata delete %2% %3%)'
-  data_saved: '[%1% の現在のユーザーデータのスナップショットを正常に保存しました。](#00fb9a)'
-  data_deleted: '[❌](#00fb9a) [%3%](#00fb9a show_text=&7Player UUID:\n&8%4%) [のユーザーデータスナップショット](#00fb9a) [%1%](#00fb9a show_text=&7Version UUID:\n&8%2%) [の消去に成功しました。](#00fb9a)'
-  data_restored: '[⏪](#00fb9a) [スナップショット](#00fb9a) [%3%](#00fb9a show_text=&7Version UUID:\n&8%4%) [から](#00fb9a) [%1%](#00fb9a show_text=&7Player UUID:\n&8%2%) [の現在のユーザーデータの復元に成功しました。](#00fb9a)'
-  data_pinned: '[※](#00fb9a) [%3%](#00fb9a show_text=&7Player UUID:\n&8%4%) [のユーザーデータスナップショット](#00fb9a) [%1%](#00fb9a show_text=&7Version UUID:\n&8%2%) [のピン留めに成功しました。](#00fb9a)'
-  data_unpinned: '[※](#00fb9a) [%3%](#00fb9a show_text=&7Player UUID:\n&8%4%) [のユーザーデータスナップショット](#00fb9a) [%1%](#00fb9a show_text=&7Version UUID:\n&8%2%) [のピン外しに成功しました。](#00fb9a)'
-  data_dumped: '[☂ %2% のユーザーデータスナップショット %1% のダンプに成功:](#00fb9a)'
-  list_footer: '\n%1%[ページ](#00fb9a) [%2%](#00fb9a)/[%3%](#00fb9a)%4%   %5%'
-  list_previous_page_button: '[◀](white show_text=&7前のページへ run_command=%2% %1%) '
-  list_next_page_button: ' [▶](white show_text=&7次のページへ run_command=%2% %1%)'
-  list_page_jumpers: '(%1%)'
-  list_page_jumper_button: '[%1%](show_text=&7%1% ページ目へ run_command=%2% %1%)'
-  list_page_jumper_current_page: '[%1%](#00fb9a)'
+  synchronization_complete: <color:#00fb9a>⏵データが同期されました！</color>
+  synchronization_failed: <color:#ff7e5e>⏵ データの同期に失敗しました！管理者に連絡してください。</color>
+  inventory_viewer_menu_title: <black>%1%のインベントリ
+  ender_chest_viewer_menu_title: <black>%1%のエンダーチェスト
+  inventory_viewer_opened: <color:#00fb9a>⌚ %2%</color> <bold><color:#00fb9a>%1%</color></bold> <color:#00fb9a>のインベントリのスナップショットを閲覧する</color>
+  ender_chest_viewer_opened: <color:#00fb9a>⌚ %2%</color> <bold><color:#00fb9a>%1%</color></bold> <color:#00fb9a>のエンダーチェストのスナップショットを閲覧する</color>
+  data_update_complete: <color:#00fb9a>🔔 データが更新されました！</color>
+  data_update_failed: <color:#ff7e5e>🔔 データの更新に失敗しました！管理者に連絡してください。</color>
+  user_registration_complete: <color:#00fb9a>⭐ ユーザー登録が完了しました！</color>
+  data_manager_title: '<bold><color:#00fb9a><hover:show_text:''<gray>プレイヤーUUID:
+
+    <dark_gray>%4%''>%3%</hover></color></bold> <color:#00fb9a>のユーザーデータスナップショット</color><color:#00fb9a><hover:show_text:''<gray>バージョンUUID:
+
+    <dark_gray>%2%''>%1%</hover></color><color:#00fb9a>を表示:</color>'
+  data_manager_timestamp: '<hover:show_text:''<gray>バージョンタイムスタンプ:
+
+    <dark_gray>データの保存時期''>⌚ %1%</hover>'
+  data_manager_pinned: '<color:#d8ff2b><hover:show_text:''<gray>ピン留め:
+
+    <dark_gray>このユーザーデータのスナップショットは自動的にローテーションされません。''>※ ピン留めされたスナップショット</hover></color>'
+  data_manager_cause: '<hover:show_text:''<gray>保存理由:
+
+    <dark_gray>データが保存された理由''>⚑ %1%</hover>'
+  data_manager_server: '<hover:show_text:''<gray>サーバー:
+
+    <dark_gray>データが保存されたサーバー名''>☁ %1%</hover>'
+  data_manager_size: '<gradient:#62a9f5:#7ab8fa><hover:show_text:''<gray>スナップショットサイズ:
+
+    <dark_gray>スナップショットの推定ファイルサイズ（単位:KiB）''>⏏ %1%</hover></gradient>\n'
+  data_manger_status: <red>%1%</red><gray>/</gray><red>%2%</red><gray>×</gray><red><hover:show_text:'<gray>体力'>❤</hover></red>   <yellow>%3%</yellow><gray>×</gray><yellow><hover:show_text:'<gray>空腹度'>🍖</hover></yellow>   <green>ʟᴠ</green><gray>.</gray><green><hover:show_text:'<gray>経験値レベル'>%4%</hover></green>   <dark_aqua><hover:show_text:'<gray>ゲームモード'>🏹 %5%</hover></dark_aqua>
+  data_manager_advancements_statistics: '<gradient:#ffc43b:#f5c962><hover:show_text:''<gray>達成した進捗:
+
+    <dark_gray>%2%''>⭐ 進捗: %1%</hover></gradient>   <gradient:#62a9f5:#7ab8fa><hover:show_text:''<gray>ゲーム内のプレイ時間
+
+    <dark_gray>⚠ ゲーム内の統計に基づく''>⌛ プレイ時間: %3%ʜʀs</hover></gradient>\n'
+  data_manager_item_buttons: <gray>表示:</gray> <gradient:#a17b5f:#f5b98c><click:run_command:'/husksync:inventory'><hover:show_text:'<gray>クリックで表示'>[🪣 インベントリ…]</hover></click></gradient>   <click:run_command:'/husksync:enderchest'><hover:show_text:'<gray>クリックで表示'>[⌀ エンダーチェスト…]</hover></click>
+  data_manager_management_buttons: '<gray>管理:</gray> <color:#ff3300><click:suggest_command:''/husksync:userdata''><hover:show_text:''<gray>クリックでこのユーザーデータのスナップショットを消去します。
+
+    <dark_gray>これはユーザーの現在のデータには影響しません。
+
+    <color:#ff3300>&⚠ この操作は元に戻せません！''>[❌ 消去…]</hover></click></color>   <color:#00fb9a><click:suggest_command:''/husksync:userdata''><hover:show_text:''<gray>クリックでこのユーザーデータを復元します。
+
+    <dark_gray>これにより、ユーザーデータはこのスナップショットに設定されます。
+
+    <color:#ff3300>&⚠ %1% の現在のデータは上書きされます！''>[⏪ 復元…]</hover></click></color>   <color:#d8ff2b><click:run_command:''/userdata''><hover:show_text:''<gray>クリックでこのユーザーデータのスナップショットをピン留め、若しくはピンを外します。
+
+    <dark_gray>ピン留めされたスナップショットは自動的にローテーションしません。''>[※ ピン留め/ピン外し…]</hover></click></color>'
+  data_manager_system_buttons: '<gray>システム:</gray> <dark_gray><click:run_command:''/husksync:userdata''><hover:show_text:''<gray>クリックで未加工のユーザーデータスナップショットをダンプファイルにします。
+
+    <dark_gray>データダンプの場所は ~/plugins/HuskSync/dumps/ です''>[⏷ ファイルダンプ…]</hover></click></dark_gray>   <dark_gray><click:run_command:''/husksync:userdata''><hover:show_text:''<gray>クリックでユーザーデータスナップショットをmc-logsサービスにダンプします。
+
+    <dark_gray>データを含むURLが提供されます。''>[☂ Webダンプ…]</hover></click></dark_gray>'
+  data_manager_advancements_preview_remaining: さらに %1% 件…
+  data_list_title: <color:#00fb9a>%1% のユーザーデータスナップショット:</color> <bold><color:#00fb9a>(%4%件中</color></bold> <color:#00fb9a>%2%-%3%件</color><color:#00fb9a>)</color>\n
+  data_list_item: '<gray><click:run_command:''/husksync:userdata''><hover:show_text:''<gray>%2% のユーザーデータスナップショット<dark_gray>⚡ %4%''>%1%</hover></click></gray> <color:#d8ff2b><click:run_command:''/husksync:userdata''><hover:show_text:''<gray>ピン留め:
+
+    <dark_gray>ピン留めされたスナップショットは自動的にローテーションしません。''>%5%</hover></click></color> <gradient:#ffc43b:#f5c962><click:run_command:''/userdata''><hover:show_text:''<gray>バージョンタイムスタンプ:<gray>
+
+    <dark_gray>データの保存時期
+
+    <dark_gray>%7%''>%6%</hover></click></gradient>   <click:run_command:''/userdata''><hover:show_text:''<gray>保存理由:
+
+    <dark_gray>データが保存された理由''>⚑ %8%</hover></click>   <gradient:#62a9f5:#7ab8fa><click:run_command:''/userdata''><hover:show_text:''<gray>スナップショットサイズ:<gray>
+
+    <dark_gray>スナップショットの推定ファイルサイズ (単位:KiB)''>⏏ %9%</hover></click></gradient>'
+  data_list_item_invalid: '<dark_gray><click:suggest_command:''/userdata''><hover:show_text:''<gray>%2% のユーザーデータスナップショット
+
+    <dark_gray>⚡ %4%''>%1%</hover></click></dark_gray> <dark_gray><click:suggest_command:''/userdata''><hover:show_text:''<gray>ピン留め:
+
+    <dark_gray>ピン留めされたスナップショットは自動的にローテーションしません。''>%5%</hover></click></dark_gray> <strikethrough><gray><click:suggest_command:''/userdata''><hover:show_text:''<color:#ff3300>&無効なデータのスナップショット
+
+    <color:#ff7e5e>&クリックで消去
+
+
+    <gray>⚠ %10%''>%6%   ⚑ %8%   ⏏ %9%</hover></click></gray></strikethrough>'
+  data_saved: <color:#00fb9a>%1% の現在のユーザーデータのスナップショットを正常に保存しました。</color>
+  data_deleted: '<color:#00fb9a>❌</color> <color:#00fb9a><hover:show_text:''<gray>Player UUID:
+
+    <dark_gray>%4%''>%3%</hover></color> <color:#00fb9a>のユーザーデータスナップショット</color> <color:#00fb9a><hover:show_text:''<gray>Version UUID:
+
+    <dark_gray>%2%''>%1%</hover></color> <color:#00fb9a>の消去に成功しました。</color>'
+  data_restored: '<color:#00fb9a>⏪</color> <color:#00fb9a>スナップショット</color> <color:#00fb9a><hover:show_text:''<gray>Version UUID:
+
+    <dark_gray>%4%''>%3%</hover></color> <color:#00fb9a>から</color> <color:#00fb9a><hover:show_text:''<gray>Player UUID:
+
+    <dark_gray>%2%''>%1%</hover></color> <color:#00fb9a>の現在のユーザーデータの復元に成功しました。</color>'
+  data_pinned: '<color:#00fb9a>※</color> <color:#00fb9a><hover:show_text:''<gray>Player UUID:
+
+    <dark_gray>%4%''>%3%</hover></color> <color:#00fb9a>のユーザーデータスナップショット</color> <color:#00fb9a><hover:show_text:''<gray>Version UUID:
+
+    <dark_gray>%2%''>%1%</hover></color> <color:#00fb9a>のピン留めに成功しました。</color>'
+  data_unpinned: '<color:#00fb9a>※</color> <color:#00fb9a><hover:show_text:''<gray>Player UUID:
+
+    <dark_gray>%4%''>%3%</hover></color> <color:#00fb9a>のユーザーデータスナップショット</color> <color:#00fb9a><hover:show_text:''<gray>Version UUID:
+
+    <dark_gray>%2%''>%1%</hover></color> <color:#00fb9a>のピン外しに成功しました。</color>'
+  data_dumped: <color:#00fb9a>☂ %2% のユーザーデータスナップショット %1% のダンプに成功:</color>
+  list_footer: \n%1%<color:#00fb9a>ページ</color> <color:#00fb9a>%2%</color>/<color:#00fb9a>%3%</color>%4%   %5%
+  list_previous_page_button: '<white><click:run_command:''%2%''><hover:show_text:''<gray>前のページへ''>◀</hover></click></white> '
+  list_next_page_button: ' <white><click:run_command:''%2%''><hover:show_text:''<gray>次のページへ''>▶</hover></click></white>'
+  list_page_jumpers: (%1%)
+  list_page_jumper_button: <click:run_command:'%2%'><hover:show_text:'<gray>%1% ページ目へ'>%1%</hover></click>
+  list_page_jumper_current_page: <color:#00fb9a>%1%</color>
   list_page_jumper_separator: ' '
-  list_page_jumper_group_separator: '…'
-  save_cause_disconnect: '切断'
-  save_cause_world_save: 'ワールド保存'
-  save_cause_death: '死亡'
-  save_cause_server_shutdown: 'サーバーシャットダウン'
-  save_cause_save_command: 'セーブコマンド'
-  save_cause_dump_command: 'ダンプコマンド'
-  save_cause_inventory_command: 'インベントリコマンド'
-  save_cause_enderchest_command: 'エンダーチェストコマンド'
-  save_cause_backup_restore: 'バックアップ復元'
-  save_cause_api: 'API'
-  save_cause_mpdb_migration: 'MPDB移行'
-  save_cause_legacy_migration: 'レガシー移行'
-  save_cause_converted_from_v2: 'v2からの変換'
-  up_to_date: '[HuskSync](#00fb9a bold) [| HuskSyncの最新バージョンを実行しています(v%1%).](#00fb9a)'
-  update_available: '[HuskSync](#ff7e5e bold) [| HuskSyncの新バージョンが利用可能になりました: v%1% (実行中: v%2%).](#ff7e5e)'
-  reload_complete: '[HuskSync](#00fb9a bold) [| 設定ファイルとメッセージファイルを再読み込みしました。](#00fb9a)\n[⚠ すべてのサーバーで設定ファイルが最新であることを確認してください！](#00fb9a)\n[設定の変更を有効にするには再起動が必要です。](#00fb9a italic)'
-  system_status_header: '[HuskSync](#00fb9a bold) [| システムステータスレポート:](#00fb9a)'
-  system_dump_confirm: '[HuskSync](#00fb9a bold) [| システムダンプを作成しますか？ 含まれる内容:](#00fb9a)\n[• 最新のサーバーログと HuskSync の設定ファイル](gray)\n[• 現在のプラグインシステムの状態](gray)\n[• Java と Minecraft サーバー環境の情報](gray)\n[• 現在インストールされている他のプラグイン一覧](gray)\n[確認するには、次を実行してください:](#00fb9a) [/husksync dump confirm](#00fb9a italic show_text=&7クリックでダンプを準備 run_command=/husksync dump confirm)'
-  system_dump_started: '[HuskSync](#00fb9a bold) [| システムステータスダンプを準備中です。お待ちください…](#00fb9a)'
-  system_dump_ready: '[HuskSync](#00fb9a bold) [| システムステータスダンプが準備できました！クリックで表示:](#00fb9a)'
-  error_invalid_syntax: '[エラー:](#ff3300) [構文が正しくありません。使用法:](#ff7e5e) [%1%](#ff7e5e italic show_text=&#ff7e5e&クリックでサジェスト suggest_command=%1%)'
-  error_invalid_player: '[エラー:](#ff3300) [そのプレイヤーは見つかりませんでした](#ff7e5e)'
-  error_invalid_data: '[エラー:](#ff3300) [スナップショットが無効または破損しているため、ユーザーデータを展開できません。](#ff7e5e) [(詳細…)](gray show_text=&7⚠ %1%)'
-  error_no_permission: '[エラー:](#ff3300) [このコマンドを実行する権限がありません](#ff7e5e)'
-  error_console_command_only: '[エラー:](#ff3300) [そのコマンドは%1%コンソールからのみ実行できます](#ff7e5e)'
+  list_page_jumper_group_separator: …
+  save_cause_disconnect: 切断
+  save_cause_world_save: ワールド保存
+  save_cause_death: 死亡
+  save_cause_server_shutdown: サーバーシャットダウン
+  save_cause_save_command: セーブコマンド
+  save_cause_dump_command: ダンプコマンド
+  save_cause_inventory_command: インベントリコマンド
+  save_cause_enderchest_command: エンダーチェストコマンド
+  save_cause_backup_restore: バックアップ復元
+  save_cause_api: API
+  save_cause_mpdb_migration: MPDB移行
+  save_cause_legacy_migration: レガシー移行
+  save_cause_converted_from_v2: v2からの変換
+  up_to_date: <bold><color:#00fb9a>HuskSync</color></bold> <color:#00fb9a>| HuskSyncの最新バージョンを実行しています(v%1%).</color>
+  update_available: '<bold><color:#ff7e5e>HuskSync</color></bold> <color:#ff7e5e>| HuskSyncの新バージョンが利用可能になりました: v%1% (実行中: v%2%).</color>'
+  reload_complete: <bold><color:#00fb9a>HuskSync</color></bold> <color:#00fb9a>| 設定ファイルとメッセージファイルを再読み込みしました。</color>\n<color:#00fb9a>⚠ すべてのサーバーで設定ファイルが最新であることを確認してください！</color>\n<italic><color:#00fb9a>設定の変更を有効にするには再起動が必要です。</color></italic>
+  system_status_header: <bold><color:#00fb9a>HuskSync</color></bold> <color:#00fb9a>| システムステータスレポート:</color>
+  system_dump_confirm: <bold><color:#00fb9a>HuskSync</color></bold> <color:#00fb9a>| システムダンプを作成しますか？ 含まれる内容:</color>\n<gray>• 最新のサーバーログと HuskSync の設定ファイル</gray>\n<gray>• 現在のプラグインシステムの状態</gray>\n<gray>• Java と Minecraft サーバー環境の情報</gray>\n<gray>• 現在インストールされている他のプラグイン一覧</gray>\n<color:#00fb9a>確認するには、次を実行してください:</color> <italic><color:#00fb9a><click:run_command:'/husksync'><hover:show_text:'<gray>クリックでダンプを準備'>/husksync dump confirm</hover></click></color></italic>
+  system_dump_started: <bold><color:#00fb9a>HuskSync</color></bold> <color:#00fb9a>| システムステータスダンプを準備中です。お待ちください…</color>
+  system_dump_ready: <bold><color:#00fb9a>HuskSync</color></bold> <color:#00fb9a>| システムステータスダンプが準備できました！クリックで表示:</color>
+  error_invalid_syntax: <color:#ff3300>エラー:</color> <color:#ff7e5e>構文が正しくありません。使用法:</color> <italic><color:#ff7e5e><click:suggest_command:'%1%'><hover:show_text:'<color:#ff7e5e>&クリックでサジェスト'>%1%</hover></click></color></italic>
+  error_invalid_player: <color:#ff3300>エラー:</color> <color:#ff7e5e>そのプレイヤーは見つかりませんでした</color>
+  error_invalid_data: <color:#ff3300>エラー:</color> <color:#ff7e5e>スナップショットが無効または破損しているため、ユーザーデータを展開できません。</color> <gray><hover:show_text:'<gray>⚠ %1%'>(詳細…)</hover></gray>
+  error_no_permission: <color:#ff3300>エラー:</color> <color:#ff7e5e>このコマンドを実行する権限がありません</color>
+  error_console_command_only: <color:#ff3300>エラー:</color> <color:#ff7e5e>そのコマンドは%1%コンソールからのみ実行できます</color>
   error_in_game_command_only: 'エラー: そのコマンドはゲーム内でしか使えません。'
-  error_no_data_to_display: '[エラー:](#ff3300) [表示するユーザーデータが見つかりませんでした。](#ff7e5e)'
-  error_invalid_version_uuid: '[エラー:](#ff3300) [そのバージョンUUIDのユーザーデータが見つかりませんでした。](#ff7e5e)'
-  husksync_command_description: 'HuskSyncプラグインを管理する'
-  userdata_command_description: 'プレイヤーのユーザーデータを表示・管理・復元する'
-  inventory_command_description: 'プレイヤーのインベントリを閲覧・編集する'
-  enderchest_command_description: 'プレイヤーのエンダーチェストを閲覧・編集する'
+  error_no_data_to_display: <color:#ff3300>エラー:</color> <color:#ff7e5e>表示するユーザーデータが見つかりませんでした。</color>
+  error_invalid_version_uuid: <color:#ff3300>エラー:</color> <color:#ff7e5e>そのバージョンUUIDのユーザーデータが見つかりませんでした。</color>
+  husksync_command_description: HuskSyncプラグインを管理する
+  userdata_command_description: プレイヤーのユーザーデータを表示・管理・復元する
+  inventory_command_description: プレイヤーのインベントリを閲覧・編集する
+  enderchest_command_description: プレイヤーのエンダーチェストを閲覧・編集する

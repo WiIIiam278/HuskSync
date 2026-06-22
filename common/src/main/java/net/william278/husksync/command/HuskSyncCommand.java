@@ -21,7 +21,6 @@ package net.william278.husksync.command;
 
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import de.themoep.minedown.adventure.MineDown;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.JoinConfiguration;
 import net.kyori.adventure.text.event.ClickEvent;
@@ -152,8 +151,8 @@ public class HuskSyncCommand extends PluginCommand {
                 plugin.loadServer();
                 plugin.getLocales().getLocale("reload_complete").ifPresent(user::sendMessage);
             } catch (Throwable e) {
-                user.sendMessage(new MineDown(
-                        "[Error:](#ff3300) [Failed to reload the plugin. Check console for errors.](#ff7e5e)"
+                user.sendMessage(plugin.getLocales().format(
+                        "<red>Error:</red> <gold>Failed to reload the plugin. Check console for errors.</gold>"
                 ));
                 plugin.log(Level.SEVERE, "Failed to reload the plugin", e);
             }

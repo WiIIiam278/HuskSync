@@ -1,71 +1,142 @@
+# MineDown formatting has been converted to MiniMessage
+# https://docs.advntr.dev/minimessage/index.html
 locales:
-  synchronization_complete: '[⏵資料已同步!](#00fb9a)'
-  synchronization_failed: '[⏵ 無法同步您的資料! 請聯繫管理員](#ff7e5e)'
-  inventory_viewer_menu_title: '&0%1% 的背包'
-  ender_chest_viewer_menu_title: '&0%1% 的終界箱'
-  inventory_viewer_opened: '[查看](#00fb9a) [%1%](#00fb9a bold) [於 ⌚ %2% 的背包快照資料](#00fb9a)'
-  ender_chest_viewer_opened: '[查看](#00fb9a) [%1%](#00fb9a bold) [於 ⌚ %2% 的終界箱快照資料](#00fb9a)'
-  data_update_complete: '[🔔 你的資料已更新!](#00fb9a)'
-  data_update_failed: '[🔔 無法更新您的資料！ 請聯繫管理員](#ff7e5e)'
-  user_registration_complete: '[⭐ 使用者註冊成功!](#00fb9a)'
-  data_manager_title: '[查看](#00fb9a) [%3%](#00fb9a bold show_text=&7玩家 UUID:\n&8%4%) [的快照:](#00fb9a) [%1%](#00fb9a show_text=&7Version UUID:\n&8%2%) [:](#00fb9a)'
-  data_manager_timestamp: '[⌚ %1%](#ffc43b-#f5c962 show_text=&7快照時間:\n&8資料儲存時間)'
-  data_manager_pinned: '[※ 被標記的快照](#d8ff2b show_text=&7標記:\n&8此快照資料不會自動輪換)'
-  data_manager_cause: '[⚑ %1%](#23a825-#36f539 show_text=&7保存原因:\n&8觸發儲存的原因)'
-  data_manager_server: '[☁ %1%](#ff87b3-#f5538e show_text=&7伺服器:\n&8儲存資料的伺服器名稱)'
-  data_manager_size: '[⏏ %1%](color=#62a9f5-#7ab8fa show_text=&7快照大小:\n&8快照的預估檔案大小（KiB）)\n'
-  data_manger_status: '[%1%](red)[/](gray)[%2%](red)[×](gray)[❤](red show_text=&7血量)   [%3%](yellow)[×](gray)[🍖](yellow show_text=&7飽食度)   [ʟᴠ](green)[.](gray)[%4%](green show_text=&7經驗等級)   [🏹 %5%](dark_aqua show_text=&7遊戲模式)'
-  data_manager_advancements_statistics: '[⭐ 成就: %1%](color=#ffc43b-#f5c962 show_text=&7已獲得的成就:\n&8%2%)   [⌛ 遊戲時間: %3%ʜʀs](color=#62a9f5-#7ab8fa show_text=&7遊戲內的遊玩時間\n&8⚠ 根據遊戲內統計)\n'
-  data_manager_item_buttons: '[查看:](gray) [[🪣 背包…]](color=#a17b5f-#f5b98c show_text=&7點擊查看 run_command=/inventory %1% %2%)   [[⌀ 終界箱…]](#b649c4-#d254ff show_text=&7點擊查看 run_command=/enderchest %1% %2%)'
-  data_manager_management_buttons: '[管理:](gray) [[❌ 刪除…]](#ff3300 show_text=&7點擊刪除這個快照\n&8這不會影像目前玩家的資料\n&#ff3300&⚠ 此操作不能取消! suggest_command=/husksync:userdata delete %1% %2%)   [[⏪ 恢復…]](#00fb9a show_text=&7點擊將玩家資料覆蓋為此快照\n&8這將導致玩家的資料會被此快照覆蓋\n&#ff3300&⚠ %1% 當前的資料將被覆蓋! suggest_command=/husksync:userdata restore %1% %2%)   [[※ 標記…]](#d8ff2b show_text=&7點擊切換標記狀態\n&8被標記的快照將不會自動輪換更新 run_command=/userdata pin %1% %2%)'
-  data_manager_system_buttons: '[系統:](gray) [[⏷ 本地轉存…]](dark_gray show_text=&7點擊將此玩家資料快照轉存到本地文件中\n&8轉存的資料可以在以下路徑找到 ~/plugins/HuskSync/dumps/ run_command=/husksync:userdata dump %1% %2% file)   [[☂ 雲端轉存…]](dark_gray show_text=&7點擊將此玩家資料快照轉存到 mc-logs 服務\n&8您將獲得一個包含資料的 URL. run_command=/husksync:userdata dump %1% %2% web)'
-  data_manager_advancements_preview_remaining: '還有 %1% …'
-  data_list_title: '[%1% 的玩家資料快照:](#00fb9a) [(%2%-%3% 共](#00fb9a) [%4%](#00fb9a bold)[)](#00fb9a)\n'
-  data_list_item: '[%1%](gray show_text=&7玩家資料快照 %2%\n&8⚡ %4% run_command=/userdata view %2% %3%) [%5%](#d8ff2b show_text=&7已標記:\n&8標記的快照將不會自動輪換。 run_command=/userdata view %2% %3%) [%6%](color=#ffc43b-#f5c962 show_text=&7版本時間戳:\n&8資料儲存時間\n&8%7% run_command=/userdata view %2% %3%) [⚑ %8%](#23a825-#36f539 show_text=&7儲存原因:\n&8觸發儲存的原因 run_command=/userdata view %2% %3%) [⏏ %9%](color=#62a9f5-#7ab8fa show_text=&7快照大小:\n&8快照的預估檔案大小（KiB） run_command=/userdata view %2% %3%)'
-  data_list_item_invalid: '[%1%](dark_gray show_text=&7玩家資料快照 %2%\n&8⚡ %4% suggest_command=/userdata delete %2% %3%) [%5%](dark_gray show_text=&7已標記:\n&8標記的快照將不會自動輪換。 suggest_command=/userdata delete %2% %3%) [%6% ⚑ %8% ⏏ %9%](gray strikethrough show_text=&#ff3300&無效的資料快照\n&#ff7e5e&點擊刪除\n\n&7⚠ %10% suggest_command=/userdata delete %2% %3%)'
-  data_saved: '[✅ 成功儲存 %1% 的目前使用者資料快照。](#00fb9a)'
-  data_deleted: '[❌ 成功刪除:](#00fb9a) [%3%](#00fb9a show_text=&7玩家 UUID:\n&8%4%) [的快照:](#00fb9a) [%1%](#00fb9a show_text=&7Version UUID:\n&8%2%)'
-  data_restored: '[⏪ 成功將玩家](#00fb9a) [%1%](#00fb9a show_text=&7玩家 UUID:\n&8%2%)[的資料恢復為 快照:](#00fb9a) [%3%.](#00fb9a show_text=&7Version UUID:\n&8%4%)'
-  data_pinned: '[※ 成功標記](#00fb9a) [%3%](#00fb9a show_text=&7玩家 UUID:\n&8%4%) [的快照:](#00fb9a) [%1%](#00fb9a show_text=&7Version UUID:\n&8%2%)'
-  data_unpinned: '[※ 成功解除](#00fb9a) [%3%](#00fb9a show_text=&7玩家 UUID:\n&8%4%) [快照:](#00fb9a) [%1%](#00fb9a show_text=&7Version UUID:\n&8%2%) [的標記](#00fb9a)'
-  data_dumped: '[☂ 成功將 %2% 資料快照 %1% 儲存至:](#00fb9a)'
-  list_footer: '\n%1%[頁面](#00fb9a) [%2%](#00fb9a)/[%3%](#00fb9a)%4%   %5%'
-  list_previous_page_button: '[◀](white show_text=&7查看上一頁 run_command=%2% %1%) '
-  list_next_page_button: ' [▶](white show_text=&7查看下一頁 run_command=%2% %1%)'
-  list_page_jumpers: '(%1%)'
-  list_page_jumper_button: '[%1%](show_text=&7跳至第 %1% 頁 run_command=%2% %1%)'
-  list_page_jumper_current_page: '[%1%](#00fb9a)'
+  synchronization_complete: <color:#00fb9a>⏵資料已同步!</color>
+  synchronization_failed: <color:#ff7e5e>⏵ 無法同步您的資料! 請聯繫管理員</color>
+  inventory_viewer_menu_title: <black>%1% 的背包
+  ender_chest_viewer_menu_title: <black>%1% 的終界箱
+  inventory_viewer_opened: <color:#00fb9a>查看</color> <bold><color:#00fb9a>%1%</color></bold> <color:#00fb9a>於 ⌚ %2% 的背包快照資料</color>
+  ender_chest_viewer_opened: <color:#00fb9a>查看</color> <bold><color:#00fb9a>%1%</color></bold> <color:#00fb9a>於 ⌚ %2% 的終界箱快照資料</color>
+  data_update_complete: <color:#00fb9a>🔔 你的資料已更新!</color>
+  data_update_failed: <color:#ff7e5e>🔔 無法更新您的資料！ 請聯繫管理員</color>
+  user_registration_complete: <color:#00fb9a>⭐ 使用者註冊成功!</color>
+  data_manager_title: '<color:#00fb9a>查看</color> <bold><color:#00fb9a><hover:show_text:''<gray>玩家 UUID:
+
+    <dark_gray>%4%''>%3%</hover></color></bold> <color:#00fb9a>的快照:</color> <color:#00fb9a><hover:show_text:''<gray>Version UUID:
+
+    <dark_gray>%2%''>%1%</hover></color> <color:#00fb9a>:</color>'
+  data_manager_timestamp: '<hover:show_text:''<gray>快照時間:
+
+    <dark_gray>資料儲存時間''>⌚ %1%</hover>'
+  data_manager_pinned: '<color:#d8ff2b><hover:show_text:''<gray>標記:
+
+    <dark_gray>此快照資料不會自動輪換''>※ 被標記的快照</hover></color>'
+  data_manager_cause: '<hover:show_text:''<gray>保存原因:
+
+    <dark_gray>觸發儲存的原因''>⚑ %1%</hover>'
+  data_manager_server: '<hover:show_text:''<gray>伺服器:
+
+    <dark_gray>儲存資料的伺服器名稱''>☁ %1%</hover>'
+  data_manager_size: '<gradient:#62a9f5:#7ab8fa><hover:show_text:''<gray>快照大小:
+
+    <dark_gray>快照的預估檔案大小（KiB）''>⏏ %1%</hover></gradient>\n'
+  data_manger_status: <red>%1%</red><gray>/</gray><red>%2%</red><gray>×</gray><red><hover:show_text:'<gray>血量'>❤</hover></red>   <yellow>%3%</yellow><gray>×</gray><yellow><hover:show_text:'<gray>飽食度'>🍖</hover></yellow>   <green>ʟᴠ</green><gray>.</gray><green><hover:show_text:'<gray>經驗等級'>%4%</hover></green>   <dark_aqua><hover:show_text:'<gray>遊戲模式'>🏹 %5%</hover></dark_aqua>
+  data_manager_advancements_statistics: '<gradient:#ffc43b:#f5c962><hover:show_text:''<gray>已獲得的成就:
+
+    <dark_gray>%2%''>⭐ 成就: %1%</hover></gradient>   <gradient:#62a9f5:#7ab8fa><hover:show_text:''<gray>遊戲內的遊玩時間
+
+    <dark_gray>⚠ 根據遊戲內統計''>⌛ 遊戲時間: %3%ʜʀs</hover></gradient>\n'
+  data_manager_item_buttons: <gray>查看:</gray> <gradient:#a17b5f:#f5b98c><click:run_command:'/inventory'><hover:show_text:'<gray>點擊查看'>[🪣 背包…]</hover></click></gradient>   <click:run_command:'/enderchest'><hover:show_text:'<gray>點擊查看'>[⌀ 終界箱…]</hover></click>
+  data_manager_management_buttons: '<gray>管理:</gray> <color:#ff3300><click:suggest_command:''/husksync:userdata''><hover:show_text:''<gray>點擊刪除這個快照
+
+    <dark_gray>這不會影像目前玩家的資料
+
+    <color:#ff3300>&⚠ 此操作不能取消!''>[❌ 刪除…]</hover></click></color>   <color:#00fb9a><click:suggest_command:''/husksync:userdata''><hover:show_text:''<gray>點擊將玩家資料覆蓋為此快照
+
+    <dark_gray>這將導致玩家的資料會被此快照覆蓋
+
+    <color:#ff3300>&⚠ %1% 當前的資料將被覆蓋!''>[⏪ 恢復…]</hover></click></color>   <color:#d8ff2b><click:run_command:''/userdata''><hover:show_text:''<gray>點擊切換標記狀態
+
+    <dark_gray>被標記的快照將不會自動輪換更新''>[※ 標記…]</hover></click></color>'
+  data_manager_system_buttons: '<gray>系統:</gray> <dark_gray><click:run_command:''/husksync:userdata''><hover:show_text:''<gray>點擊將此玩家資料快照轉存到本地文件中
+
+    <dark_gray>轉存的資料可以在以下路徑找到 ~/plugins/HuskSync/dumps/''>[⏷ 本地轉存…]</hover></click></dark_gray>   <dark_gray><click:run_command:''/husksync:userdata''><hover:show_text:''<gray>點擊將此玩家資料快照轉存到 mc-logs 服務
+
+    <dark_gray>您將獲得一個包含資料的 URL.''>[☂ 雲端轉存…]</hover></click></dark_gray>'
+  data_manager_advancements_preview_remaining: 還有 %1% …
+  data_list_title: <color:#00fb9a>%1% 的玩家資料快照:</color> <color:#00fb9a>(%2%-%3% 共</color> <bold><color:#00fb9a>%4%</color></bold><color:#00fb9a>)</color>\n
+  data_list_item: '<gray><click:run_command:''/userdata''><hover:show_text:''<gray>玩家資料快照 %2%
+
+    <dark_gray>⚡ %4%''>%1%</hover></click></gray> <color:#d8ff2b><click:run_command:''/userdata''><hover:show_text:''<gray>已標記:
+
+    <dark_gray>標記的快照將不會自動輪換。''>%5%</hover></click></color> <gradient:#ffc43b:#f5c962><click:run_command:''/userdata''><hover:show_text:''<gray>版本時間戳:
+
+    <dark_gray>資料儲存時間
+
+    <dark_gray>%7%''>%6%</hover></click></gradient> <click:run_command:''/userdata''><hover:show_text:''<gray>儲存原因:
+
+    <dark_gray>觸發儲存的原因''>⚑ %8%</hover></click> <gradient:#62a9f5:#7ab8fa><click:run_command:''/userdata''><hover:show_text:''<gray>快照大小:
+
+    <dark_gray>快照的預估檔案大小（KiB）''>⏏ %9%</hover></click></gradient>'
+  data_list_item_invalid: '<dark_gray><click:suggest_command:''/userdata''><hover:show_text:''<gray>玩家資料快照 %2%
+
+    <dark_gray>⚡ %4%''>%1%</hover></click></dark_gray> <dark_gray><click:suggest_command:''/userdata''><hover:show_text:''<gray>已標記:
+
+    <dark_gray>標記的快照將不會自動輪換。''>%5%</hover></click></dark_gray> <strikethrough><gray><click:suggest_command:''/userdata''><hover:show_text:''<color:#ff3300>&無效的資料快照
+
+    <color:#ff7e5e>&點擊刪除
+
+
+    <gray>⚠ %10%''>%6% ⚑ %8% ⏏ %9%</hover></click></gray></strikethrough>'
+  data_saved: <color:#00fb9a>✅ 成功儲存 %1% 的目前使用者資料快照。</color>
+  data_deleted: '<color:#00fb9a>❌ 成功刪除:</color> <color:#00fb9a><hover:show_text:''<gray>玩家 UUID:
+
+    <dark_gray>%4%''>%3%</hover></color> <color:#00fb9a>的快照:</color> <color:#00fb9a><hover:show_text:''<gray>Version UUID:
+
+    <dark_gray>%2%''>%1%</hover></color>'
+  data_restored: '<color:#00fb9a>⏪ 成功將玩家</color> <color:#00fb9a><hover:show_text:''<gray>玩家 UUID:
+
+    <dark_gray>%2%''>%1%</hover></color><color:#00fb9a>的資料恢復為 快照:</color> <color:#00fb9a><hover:show_text:''<gray>Version UUID:
+
+    <dark_gray>%4%''>%3%.</hover></color>'
+  data_pinned: '<color:#00fb9a>※ 成功標記</color> <color:#00fb9a><hover:show_text:''<gray>玩家 UUID:
+
+    <dark_gray>%4%''>%3%</hover></color> <color:#00fb9a>的快照:</color> <color:#00fb9a><hover:show_text:''<gray>Version UUID:
+
+    <dark_gray>%2%''>%1%</hover></color>'
+  data_unpinned: '<color:#00fb9a>※ 成功解除</color> <color:#00fb9a><hover:show_text:''<gray>玩家 UUID:
+
+    <dark_gray>%4%''>%3%</hover></color> <color:#00fb9a>快照:</color> <color:#00fb9a><hover:show_text:''<gray>Version UUID:
+
+    <dark_gray>%2%''>%1%</hover></color> <color:#00fb9a>的標記</color>'
+  data_dumped: <color:#00fb9a>☂ 成功將 %2% 資料快照 %1% 儲存至:</color>
+  list_footer: \n%1%<color:#00fb9a>頁面</color> <color:#00fb9a>%2%</color>/<color:#00fb9a>%3%</color>%4%   %5%
+  list_previous_page_button: '<white><click:run_command:''%2%''><hover:show_text:''<gray>查看上一頁''>◀</hover></click></white> '
+  list_next_page_button: ' <white><click:run_command:''%2%''><hover:show_text:''<gray>查看下一頁''>▶</hover></click></white>'
+  list_page_jumpers: (%1%)
+  list_page_jumper_button: <click:run_command:'%2%'><hover:show_text:'<gray>跳至第 %1% 頁'>%1%</hover></click>
+  list_page_jumper_current_page: <color:#00fb9a>%1%</color>
   list_page_jumper_separator: ' '
-  list_page_jumper_group_separator: '…'
-  save_cause_disconnect: '離線'
-  save_cause_world_save: '世界儲存'
-  save_cause_death: '死亡'
-  save_cause_server_shutdown: '伺服器關閉'
-  save_cause_save_command: '儲存指令'
-  save_cause_dump_command: '導出指令'
-  save_cause_inventory_command: '背包指令'
-  save_cause_enderchest_command: '終界箱指令'
-  save_cause_backup_restore: '備份還原'
-  save_cause_api: 'API'
-  save_cause_mpdb_migration: 'MPDB 遷移'
-  save_cause_legacy_migration: '舊版遷移'
-  save_cause_converted_from_v2: '從 v2 轉換'
-  up_to_date: '[HuskSync](#00fb9a bold) [| 您運行的是最新版本的 HuskSync (v%1%).](#00fb9a)'
-  update_available: '[HuskSync](#ff7e5e bold) [| 發現可用的新版本: v%1% (running: v%2%).](#ff7e5e)'
-  reload_complete: '[HuskSync](#00fb9a bold) [| 配置和語言文件已重新加載。](#00fb9a)\n[⚠ 確保所有伺服器上的配置文件都是最新的！](#00fb9a)\n[重啟後配置變更才會生效。](#00fb9a italic)'
-  system_status_header: '[HuskSync](#00fb9a bold) [| 系統狀態報告:](#00fb9a)'
-  system_dump_confirm: '[HuskSync](#00fb9a bold) [| 要產生系統狀態紀錄檔嗎？這將包含以下內容：](#00fb9a)\n[• 最近的伺服器日誌與 HuskSync 設定檔](gray)\n[• 插件目前的系統狀態資訊](gray)\n[• 有關您的 Java 與 Minecraft 伺服器環境的資訊](gray)\n[• 目前已安裝的其他插件清單](gray)\n[若要確認，請輸入：](#00fb9a) [/husksync dump confirm](#00fb9a italic show_text=&7點擊以產生紀錄檔 run_command=/husksync dump confirm)'
-  system_dump_started: '[HuskSync](#00fb9a bold) [| 正在產生系統狀態紀錄檔，請稍候…](#00fb9a)'
-  system_dump_ready: '[HuskSync](#00fb9a bold) [| 系統狀態紀錄檔已完成！點擊以下連結以查看：](#00fb9a)'
-  error_invalid_syntax: '[錯誤:](#ff3300) [語法不正確，用法:](#ff7e5e) [%1%](#ff7e5e italic show_text=&#ff7e5e&點擊建議 suggest_command=%1%)'
-  error_invalid_player: '[錯誤:](#ff3300) [找不到這位玩家](#ff7e5e)'
-  error_invalid_data: '[錯誤:](#ff3300) [無法解壓使用者資料，因為快照無效或已損壞。](#ff7e5e) [(詳細資訊…)](gray show_text=&7⚠ %1%)'
-  error_no_permission: '[錯誤:](#ff3300) [您沒有權限執行這個指令](#ff7e5e)'
-  error_console_command_only: '[錯誤:](#ff3300) [該指令只能透過 控制台 執行](#ff7e5e)'
-  error_in_game_command_only: '[錯誤:](#ff3300) [該指令只能在遊戲內執行](#ff7e5e)'
-  error_no_data_to_display: '[錯誤:](#ff3300) [找不到任何可顯示的用戶資料.](#ff7e5e)'
-  error_invalid_version_uuid: '[錯誤:](#ff3300) [找不到正確的 Version UUID.](#ff7e5e)'
-  husksync_command_description: '管理 HuskSync 插件'
-  userdata_command_description: '查看、管理和還原玩家資料'
-  inventory_command_description: '查看和編輯玩家的物品欄'
-  enderchest_command_description: '查看和編輯玩家的終界箱'
+  list_page_jumper_group_separator: …
+  save_cause_disconnect: 離線
+  save_cause_world_save: 世界儲存
+  save_cause_death: 死亡
+  save_cause_server_shutdown: 伺服器關閉
+  save_cause_save_command: 儲存指令
+  save_cause_dump_command: 導出指令
+  save_cause_inventory_command: 背包指令
+  save_cause_enderchest_command: 終界箱指令
+  save_cause_backup_restore: 備份還原
+  save_cause_api: API
+  save_cause_mpdb_migration: MPDB 遷移
+  save_cause_legacy_migration: 舊版遷移
+  save_cause_converted_from_v2: 從 v2 轉換
+  up_to_date: <bold><color:#00fb9a>HuskSync</color></bold> <color:#00fb9a>| 您運行的是最新版本的 HuskSync (v%1%).</color>
+  update_available: '<bold><color:#ff7e5e>HuskSync</color></bold> <color:#ff7e5e>| 發現可用的新版本: v%1% (running: v%2%).</color>'
+  reload_complete: <bold><color:#00fb9a>HuskSync</color></bold> <color:#00fb9a>| 配置和語言文件已重新加載。</color>\n<color:#00fb9a>⚠ 確保所有伺服器上的配置文件都是最新的！</color>\n<italic><color:#00fb9a>重啟後配置變更才會生效。</color></italic>
+  system_status_header: <bold><color:#00fb9a>HuskSync</color></bold> <color:#00fb9a>| 系統狀態報告:</color>
+  system_dump_confirm: <bold><color:#00fb9a>HuskSync</color></bold> <color:#00fb9a>| 要產生系統狀態紀錄檔嗎？這將包含以下內容：</color>\n<gray>• 最近的伺服器日誌與 HuskSync 設定檔</gray>\n<gray>• 插件目前的系統狀態資訊</gray>\n<gray>• 有關您的 Java 與 Minecraft 伺服器環境的資訊</gray>\n<gray>• 目前已安裝的其他插件清單</gray>\n<color:#00fb9a>若要確認，請輸入：</color> <italic><color:#00fb9a><click:run_command:'/husksync'><hover:show_text:'<gray>點擊以產生紀錄檔'>/husksync dump confirm</hover></click></color></italic>
+  system_dump_started: <bold><color:#00fb9a>HuskSync</color></bold> <color:#00fb9a>| 正在產生系統狀態紀錄檔，請稍候…</color>
+  system_dump_ready: <bold><color:#00fb9a>HuskSync</color></bold> <color:#00fb9a>| 系統狀態紀錄檔已完成！點擊以下連結以查看：</color>
+  error_invalid_syntax: <color:#ff3300>錯誤:</color> <color:#ff7e5e>語法不正確，用法:</color> <italic><color:#ff7e5e><click:suggest_command:'%1%'><hover:show_text:'<color:#ff7e5e>&點擊建議'>%1%</hover></click></color></italic>
+  error_invalid_player: <color:#ff3300>錯誤:</color> <color:#ff7e5e>找不到這位玩家</color>
+  error_invalid_data: <color:#ff3300>錯誤:</color> <color:#ff7e5e>無法解壓使用者資料，因為快照無效或已損壞。</color> <gray><hover:show_text:'<gray>⚠ %1%'>(詳細資訊…)</hover></gray>
+  error_no_permission: <color:#ff3300>錯誤:</color> <color:#ff7e5e>您沒有權限執行這個指令</color>
+  error_console_command_only: <color:#ff3300>錯誤:</color> <color:#ff7e5e>該指令只能透過 控制台 執行</color>
+  error_in_game_command_only: <color:#ff3300>錯誤:</color> <color:#ff7e5e>該指令只能在遊戲內執行</color>
+  error_no_data_to_display: <color:#ff3300>錯誤:</color> <color:#ff7e5e>找不到任何可顯示的用戶資料.</color>
+  error_invalid_version_uuid: <color:#ff3300>錯誤:</color> <color:#ff7e5e>找不到正確的 Version UUID.</color>
+  husksync_command_description: 管理 HuskSync 插件
+  userdata_command_description: 查看、管理和還原玩家資料
+  inventory_command_description: 查看和編輯玩家的物品欄
+  enderchest_command_description: 查看和編輯玩家的終界箱

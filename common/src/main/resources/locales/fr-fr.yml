@@ -1,71 +1,140 @@
+# MineDown formatting has been converted to MiniMessage
+# https://docs.advntr.dev/minimessage/index.html
 locales:
-  synchronization_complete: '[⏵ Données synchronisées!](#00fb9a)'
-  synchronization_failed: '[⏵ Impossible de synchroniser vos données! Veuillez contacter un administrateur.](#ff7e5e)'
-  inventory_viewer_menu_title: '&0Inventaire de %1%'
-  ender_chest_viewer_menu_title: '&0Coffre de l''Ender de %1%'
-  inventory_viewer_opened: '[Visualisation de l''instantané de](#00fb9a) [%1%](#00fb9a bold)[''s inventaire à partir de ⌚ %2%](#00fb9a)'
-  ender_chest_viewer_opened: '[Visualisation de l''instantané du](#00fb9a) [%1%](#00fb9a bold)[''s coffre de l''Ender à partir de ⌚ %2%](#00fb9a)'
-  data_update_complete: '[🔔 Vos données ont été mises à jour!](#00fb9a)'
-  data_update_failed: '[🔔 Échec de la mise à jour de vos données! Veuillez contacter un administrateur.](#ff7e5e)'
-  user_registration_complete: '[⭐ Inscription de l''utilisateur complète!](#00fb9a)'
-  data_manager_title: '[Visualisation de l''instantané des données utilisateur](#00fb9a) [%1%](#00fb9a show_text=&7UUID de la version:\n&8%2%) [pour](#00fb9a) [%3%](#00fb9a bold show_text=&7UUID du joueur:\n&8%4%)[:](#00fb9a)'
-  data_manager_timestamp: '[⌚ %1%](#ffc43b-#f5c962 show_text=&7Horodatage de la version:\n&8Quand les données ont été enregistrées)'
-  data_manager_pinned: '[※ Instantané épinglé](#d8ff2b show_text=&7Épinglé:\n&8Cet instantané des données utilisateur ne sera pas automatiquement supprimé.)'
-  data_manager_cause: '[⚑ %1%](#23a825-#36f539 show_text=&7Cause de la sauvegarde:\n&8Ce qui a causé l''enregistrement des données)'
-  data_manager_server: '[☁ %1%](#ff87b3-#f5538e show_text=&7Serveur:\n&8Nom du serveur sur lequel les données ont été enregistrées)'
-  data_manager_size: '[⏏ %1%](color=#62a9f5-#7ab8fa show_text=&7Taille de l''instantané:\n&8Taille du fichier estimée de l''instantané (en KiB))\n'
-  data_manger_status: '[%1%](red)[/](gray)[%2%](red)[×](gray)[❤](red show_text=&7Points de vie)   [%3%](yellow)[×](gray)[🍖](yellow show_text=&7Points de faim)   [ʟᴠ](green)[.](gray)[%4%](greenshow_text=&7Niveau XP)   [🏹 %5%](dark_aqua show_text=&7Mode de jeu)'
-  data_manager_advancements_statistics: '[⭐ Avancements: %1%](color=#ffc43b-#f5c962show_text=&7Avancements dans lesquels vous avez progressé:\n&8%2%)   [⌛ Temps de jeu: %3%ʜʀs](color=#62a9f5-#7ab8fashow_text=&7Temps de jeu en jeu\n&8⚠ Basé sur les statistiques en jeu)\n'
-  data_manager_item_buttons: '[Voir:](gray) [[🪣 Inventaire…]](color=#a17b5f-#f5b98cshow_text=&7Cliquez pour voir run_command=/inventory %1% %2%)   [[⌀ Coffre de l''Ender…]](#b649c4-#d254ffshow_text=&7Cliquez pour voir run_command=/enderchest %1% %2%)'
-  data_manager_management_buttons: '[Gérer:](gray) [[❌ Supprimer…]](#ff3300 show_text=&7Cliquezpour supprimer cet instantané des données utilisateur.\n&8Cela n''affectera pas les données actuelles de l''utilisateur.\n&#ff3300&⚠ Cette action est irréversible! suggest_command=/husksync:userdata delete%1% %2%)   [[⏪ Restaurer…]](#00fb9a show_text=&7Cliquez pour restaurer ces données utilisateur.\n&8Cela définira les données de l''utilisateur sur cet instantané.\n&#ff3300&⚠ Les données actuelles de %1% serontremplacées! suggest_command=/husksync:userdata restore %1% %2%)   [[※ Épingler/Détacher…]](#d8ff2bshow_text=&7Cliquez pour épingler ou détacher cet instantané des données utilisateur\n&8Les instantanés épinglés ne seront pas automatiquement supprimés run_command=/userdata pin %1% %2%)'
-  data_manager_system_buttons: '[Système:](gray) [[⏷ Export fichier…]](dark_gray show_text=&7Cliquezpour exporter cet instantané des données utilisateur à un fichier.\n&8Les exports de données peuvent être trouvés dans ~/plugins/HuskSync/dumps/run_command=/husksync:userdata dump %1% %2% file)   [[☂ Export web…]](dark_grayshow_text=&7Cliquez pour exporter cet instantané des données utilisateur au service mc-logs\n&8Vousobtiendrez une URL contenant les données. run_command=/husksync:userdatadump %1% %2% web)'
-  data_manager_advancements_preview_remaining: 'et %1% autres…'
-  data_list_title: '[Les instantanés des données utilisateur de %1%:](#00fb9a) [(%2%-%3% sur](#00fb9a)[%4%](#00fb9a bold)[)](#00fb9a)\n'
-  data_list_item: '[%1%](gray show_text=&7Instantané des données utilisateur pour %2%\n&8⚡ %4% run_command=/userdataview %2% %3%) [%5%](#d8ff2b show_text=&7Épinglé:\n&8Les instantanés épinglés ne serontpas automatiquement supprimés. run_command=/userdata view %2% %3%) [%6%](color=#ffc43b-#f5c962show_text=&7Horodatage de la version:&7\n&8Quand les données ont été enregistrées\n&8%7% run_command=/userdataview %2% %3%)   [⚑ %8%](#23a825-#36f539 show_text=&7Cause de la sauvegarde:\n&8Ce qui a causél''enregistrement des données run_command=/userdata view %2% %3%)   [⏏ %9%](color=#62a9f5-#7ab8fashow_text=&7Taille de l''instantané:&7\n&8Taille du fichier estimée de l''instantané (en KiB) run_command=/userdataview %2% %3%)'
-  data_list_item_invalid: '[%1%](dark_gray show_text=&7Instantané des données utilisateur pour %2%\n&8⚡%4% suggest_command=/userdata delete %2% %3%) [%5%](dark_gray show_text=&7Épinglé:\n&8Lesinstantanés épinglés ne seront pas automatiquement supprimés. suggest_command=/userdata delete %2%%3%) [%6%   ⚑ %8%   ⏏ %9%](gray strikethrough show_text=&#ff3300&Instantané des donnéesinvalide\n&#ff7e5e&Cliquez pour supprimer\n\n&7⚠ %10% suggest_command=/userdata delete%2% %3%)'
-  data_saved: '[Successfully saved a snapshot of %1%''s current user data.](#00fb9a)'
-  data_deleted: '[❌ Instantané des données utilisateur supprimé avec succès](#00fb9a) [%1%](#00fb9ashow_text=&7UUID de la version:\n&8%2%) [pour](#00fb9a) [%3%.](#00fb9a show_text=&7UUID du joueur:\n&8%4%)'
-  data_restored: '[⏪ Données utilisateur actuelles de %1% restaurées avec succès à partir de l''instantané](#00fb9a) [%3%.](#00fb9a show_text=&7UUID de la version:\n&8%4%)'
-  data_pinned: '[※ Instantané des données utilisateur épinglé avec succès](#00fb9a) [%1%](#00fb9ashow_text=&7UUID de la version:\n&8%2%) [pour](#00fb9a) [%3%.](#00fb9a show_text=&7UUID du joueur:\n&8%4%)'
-  data_unpinned: '[※ Instantané des données utilisateur détaché avec succès](#00fb9a) [%1%](#00fb9ashow_text=&7UUID de la version:\n&8%2%) [pour](#00fb9a) [%3%.](#00fb9a show_text=&7UUID du joueur:\n&8%4%)'
-  data_dumped: '[☂ Dump de l''instantané des données utilisateur %1% pour %2% à:](#00fb9a)'
-  list_footer: '\n%1%[Page](#00fb9a) [%2%](#00fb9a)/[%3%](#00fb9a)%4%   %5%'
-  list_previous_page_button: '[◀](white show_text=&7Voir la page précédente run_command=%2%%1%) '
-  list_next_page_button: ' [▶](white show_text=&7Voir la page suivante run_command=%2% %1%)'
-  list_page_jumpers: '(%1%)'
-  list_page_jumper_button: '[%1%](show_text=&7Aller à la page %1% run_command=%2% %1%)'
-  list_page_jumper_current_page: '[%1%](#00fb9a)'
+  synchronization_complete: <color:#00fb9a>⏵ Données synchronisées!</color>
+  synchronization_failed: <color:#ff7e5e>⏵ Impossible de synchroniser vos données! Veuillez contacter un administrateur.</color>
+  inventory_viewer_menu_title: <black>Inventaire de %1%
+  ender_chest_viewer_menu_title: <black>Coffre de l'Ender de %1%
+  inventory_viewer_opened: <color:#00fb9a>Visualisation de l'instantané de</color> <bold><color:#00fb9a>%1%</color></bold><color:#00fb9a>'s inventaire à partir de ⌚ %2%</color>
+  ender_chest_viewer_opened: <color:#00fb9a>Visualisation de l'instantané du</color> <bold><color:#00fb9a>%1%</color></bold><color:#00fb9a>'s coffre de l'Ender à partir de ⌚ %2%</color>
+  data_update_complete: <color:#00fb9a>🔔 Vos données ont été mises à jour!</color>
+  data_update_failed: <color:#ff7e5e>🔔 Échec de la mise à jour de vos données! Veuillez contacter un administrateur.</color>
+  user_registration_complete: <color:#00fb9a>⭐ Inscription de l'utilisateur complète!</color>
+  data_manager_title: '<color:#00fb9a>Visualisation de l''instantané des données utilisateur</color> <color:#00fb9a><hover:show_text:''<gray>UUID de la version:
+
+    <dark_gray>%2%''>%1%</hover></color> <color:#00fb9a>pour</color> <bold><color:#00fb9a><hover:show_text:''<gray>UUID du joueur:
+
+    <dark_gray>%4%''>%3%</hover></color></bold><color:#00fb9a>:</color>'
+  data_manager_timestamp: '<hover:show_text:''<gray>Horodatage de la version:
+
+    <dark_gray>Quand les données ont été enregistrées''>⌚ %1%</hover>'
+  data_manager_pinned: '<color:#d8ff2b><hover:show_text:''<gray>Épinglé:
+
+    <dark_gray>Cet instantané des données utilisateur ne sera pas automatiquement supprimé.''>※ Instantané épinglé</hover></color>'
+  data_manager_cause: '<hover:show_text:''<gray>Cause de la sauvegarde:
+
+    <dark_gray>Ce qui a causé l\''enregistrement des données''>⚑ %1%</hover>'
+  data_manager_server: '<hover:show_text:''<gray>Serveur:
+
+    <dark_gray>Nom du serveur sur lequel les données ont été enregistrées''>☁ %1%</hover>'
+  data_manager_size: '<gradient:#62a9f5:#7ab8fa><hover:show_text:''<gray>Taille de l\''instantané:
+
+    <dark_gray>Taille du fichier estimée de l\''instantané (en KiB)''>⏏ %1%</hover></gradient>\n'
+  data_manger_status: <red>%1%</red><gray>/</gray><red>%2%</red><gray>×</gray><red><hover:show_text:'<gray>Points de vie'>❤</hover></red>   <yellow>%3%</yellow><gray>×</gray><yellow><hover:show_text:'<gray>Points de faim'>🍖</hover></yellow>   <green>ʟᴠ</green><gray>.</gray><green><hover:show_text:'<gray>Niveau XP'>%4%</hover></green>   <dark_aqua><hover:show_text:'<gray>Mode de jeu'>🏹 %5%</hover></dark_aqua>
+  data_manager_advancements_statistics: '<gradient:#ffc43b:#f5c962><hover:show_text:''<gray>Avancements dans lesquels vous avez progressé:
+
+    <dark_gray>%2%''>⭐ Avancements: %1%</hover></gradient>   <gradient:#62a9f5:#7ab8fa><hover:show_text:''<gray>Temps de jeu en jeu
+
+    <dark_gray>⚠ Basé sur les statistiques en jeu''>⌛ Temps de jeu: %3%ʜʀs</hover></gradient>\n'
+  data_manager_item_buttons: <gray>Voir:</gray> <gradient:#a17b5f:#f5b98c><click:run_command:'/inventory'><hover:show_text:'<gray>Cliquez pour voir'>[🪣 Inventaire…]</hover></click></gradient>   <click:run_command:'/enderchest'><hover:show_text:'<gray>Cliquez pour voir'>[⌀ Coffre de l'Ender…]</hover></click>
+  data_manager_management_buttons: '<gray>Gérer:</gray> <color:#ff3300><click:suggest_command:''/husksync:userdata''><hover:show_text:''<gray>Cliquezpour supprimer cet instantané des données utilisateur.
+
+    <dark_gray>Cela n\''affectera pas les données actuelles de l\''utilisateur.
+
+    <color:#ff3300>&⚠ Cette action est irréversible!''>[❌ Supprimer…]</hover></click></color>   <color:#00fb9a><click:suggest_command:''/husksync:userdata''><hover:show_text:''<gray>Cliquez pour restaurer ces données utilisateur.
+
+    <dark_gray>Cela définira les données de l\''utilisateur sur cet instantané.
+
+    <color:#ff3300>&⚠ Les données actuelles de %1% serontremplacées!''>[⏪ Restaurer…]</hover></click></color>   <color:#d8ff2b><click:run_command:''/userdata''><hover:show_text:''<gray>Cliquez pour épingler ou détacher cet instantané des données utilisateur
+
+    <dark_gray>Les instantanés épinglés ne seront pas automatiquement supprimés''>[※ Épingler/Détacher…]</hover></click></color>'
+  data_manager_system_buttons: '<gray>Système:</gray> <dark_gray><hover:show_text:''<gray>Cliquezpour exporter cet instantané des données utilisateur à un fichier.
+
+    <dark_gray>Les exports de données peuvent être trouvés dans ~/plugins/HuskSync/dumps/''>[⏷ Export fichier…]</hover></dark_gray>   <dark_gray><click:run_command:''/husksync:userdatadump''><hover:show_text:''<gray>Cliquez pour exporter cet instantané des données utilisateur au service mc-logs
+
+    <dark_gray>Vousobtiendrez une URL contenant les données.''>[☂ Export web…]</hover></click></dark_gray>'
+  data_manager_advancements_preview_remaining: et %1% autres…
+  data_list_title: <color:#00fb9a>Les instantanés des données utilisateur de %1%:</color> <color:#00fb9a>(%2%-%3% sur</color><bold><color:#00fb9a>%4%</color></bold><color:#00fb9a>)</color>\n
+  data_list_item: '<gray><click:run_command:''/userdataview''><hover:show_text:''<gray>Instantané des données utilisateur pour %2%
+
+    <dark_gray>⚡ %4%''>%1%</hover></click></gray> <color:#d8ff2b><click:run_command:''/userdata''><hover:show_text:''<gray>Épinglé:
+
+    <dark_gray>Les instantanés épinglés ne serontpas automatiquement supprimés.''>%5%</hover></click></color> <gradient:#ffc43b:#f5c962><click:run_command:''/userdataview''><hover:show_text:''<gray>Horodatage de la version:<gray>
+
+    <dark_gray>Quand les données ont été enregistrées
+
+    <dark_gray>%7%''>%6%</hover></click></gradient>   <click:run_command:''/userdata''><hover:show_text:''<gray>Cause de la sauvegarde:
+
+    <dark_gray>Ce qui a causél\''enregistrement des données''>⚑ %8%</hover></click>   <gradient:#62a9f5:#7ab8fa><click:run_command:''/userdataview''><hover:show_text:''<gray>Taille de l\''instantané:<gray>
+
+    <dark_gray>Taille du fichier estimée de l\''instantané (en KiB)''>⏏ %9%</hover></click></gradient>'
+  data_list_item_invalid: '<dark_gray><click:suggest_command:''/userdata''><hover:show_text:''<gray>Instantané des données utilisateur pour %2%
+
+    <dark_gray>⚡%4%''>%1%</hover></click></dark_gray> <dark_gray><click:suggest_command:''/userdata''><hover:show_text:''<gray>Épinglé:
+
+    <dark_gray>Lesinstantanés épinglés ne seront pas automatiquement supprimés.''>%5%</hover></click></dark_gray> <strikethrough><gray><click:suggest_command:''/userdata''><hover:show_text:''<color:#ff3300>&Instantané des donnéesinvalide
+
+    <color:#ff7e5e><red>liquez pour supprimer
+
+
+    <gray>⚠ %10%''>%6%   ⚑ %8%   ⏏ %9%</hover></click></gray></strikethrough>'
+  data_saved: <color:#00fb9a>Successfully saved a snapshot of %1%'s current user data.</color>
+  data_deleted: '<color:#00fb9a>❌ Instantané des données utilisateur supprimé avec succès</color> <color:#00fb9a><hover:show_text:''<gray>UUID de la version:
+
+    <dark_gray>%2%''>%1%</hover></color> <color:#00fb9a>pour</color> <color:#00fb9a><hover:show_text:''<gray>UUID du joueur:
+
+    <dark_gray>%4%''>%3%.</hover></color>'
+  data_restored: '<color:#00fb9a>⏪ Données utilisateur actuelles de %1% restaurées avec succès à partir de l''instantané</color> <color:#00fb9a><hover:show_text:''<gray>UUID de la version:
+
+    <dark_gray>%4%''>%3%.</hover></color>'
+  data_pinned: '<color:#00fb9a>※ Instantané des données utilisateur épinglé avec succès</color> <color:#00fb9a><hover:show_text:''<gray>UUID de la version:
+
+    <dark_gray>%2%''>%1%</hover></color> <color:#00fb9a>pour</color> <color:#00fb9a><hover:show_text:''<gray>UUID du joueur:
+
+    <dark_gray>%4%''>%3%.</hover></color>'
+  data_unpinned: '<color:#00fb9a>※ Instantané des données utilisateur détaché avec succès</color> <color:#00fb9a><hover:show_text:''<gray>UUID de la version:
+
+    <dark_gray>%2%''>%1%</hover></color> <color:#00fb9a>pour</color> <color:#00fb9a><hover:show_text:''<gray>UUID du joueur:
+
+    <dark_gray>%4%''>%3%.</hover></color>'
+  data_dumped: <color:#00fb9a>☂ Dump de l'instantané des données utilisateur %1% pour %2% à:</color>
+  list_footer: \n%1%<color:#00fb9a>Page</color> <color:#00fb9a>%2%</color>/<color:#00fb9a>%3%</color>%4%   %5%
+  list_previous_page_button: '<white><click:run_command:''%2%%1%''><hover:show_text:''<gray>Voir la page précédente''>◀</hover></click></white> '
+  list_next_page_button: ' <white><click:run_command:''%2%''><hover:show_text:''<gray>Voir la page suivante''>▶</hover></click></white>'
+  list_page_jumpers: (%1%)
+  list_page_jumper_button: <click:run_command:'%2%'><hover:show_text:'<gray>Aller à la page %1%'>%1%</hover></click>
+  list_page_jumper_current_page: <color:#00fb9a>%1%</color>
   list_page_jumper_separator: ' '
-  list_page_jumper_group_separator: '…'
-  save_cause_disconnect: 'déconnexion'
-  save_cause_world_save: 'sauvegarde du monde'
-  save_cause_death: 'mort'
-  save_cause_server_shutdown: 'arrêt du serveur'
-  save_cause_save_command: 'save command'
-  save_cause_dump_command: 'dump command'
-  save_cause_inventory_command: 'commande d''inventaire'
-  save_cause_enderchest_command: 'commande du coffre de l''Ender'
-  save_cause_backup_restore: 'restauration de sauvegarde'
-  save_cause_api: 'API'
-  save_cause_mpdb_migration: 'migration MPDB'
-  save_cause_legacy_migration: 'migration legacy'
-  save_cause_converted_from_v2: 'converti de v2'
-  up_to_date: '[HuskSync](#00fb9a bold) [| Vous utilisez la dernière version de HuskSync(v%1%).](#00fb9a)'
-  update_available: '[HuskSync](#ff7e5e bold) [| Une nouvelle version de HuskSync est disponible:v%1% (version actuelle: v%2%).](#ff7e5e)'
-  reload_complete: '[HuskSync](#00fb9a bold) [| Config et messages rechargés.](#00fb9a)\n[⚠Assurez-vous que les fichiers de configuration sont à jour sur tous les serveurs!](#00fb9a)\n[Un redémarrage est nécessairepour que les modifications de configuration prennent effet.](#00fb9a italic)'
-  system_status_header: '[HuskSync](#00fb9a bold) [| Rapport d''état du système:](#00fb9a)'
-  system_dump_confirm: '[HuskSync](#00fb9a bold) [| Prepare a system dump? This will include:](#00fb9a)\n[• Your latest server logs and HuskSync config files](gray)\n[• Current plugin system status information](gray)\n[• Information about your Java & Minecraft server environment](gray)\n[• A list of other currently installed plugins](gray)\n[To confirm, use:](#00fb9a) [/husksync dump confirm](#00fb9a italic show_text=&7Click to prepare dump run_command=/husksync dump confirm)'
-  system_dump_started: '[HuskSync](#00fb9a bold) [| Preparing system status dump, please wait…](#00fb9a)'
-  system_dump_ready: '[HuskSync](#00fb9a bold) [| System status dump prepared! Click to view:](#00fb9a)'
-  error_invalid_syntax: '[Erreur:](#ff3300) [Syntaxe incorrecte. Utilisation:](#ff7e5e) [%1%](#ff7e5eitalic show_text=&#ff7e5e&Cliquez pour suggérer suggest_command=%1%)'
-  error_invalid_player: '[Erreur:](#ff3300) [Impossible de trouver un joueur avec ce nom.](#ff7e5e)'
-  error_invalid_data: '[Erreur:](#ff3300) [Impossible de déballer les données de l''instantané car elles sont invalides ou corrompues.](#ff7e5e) [(Détails…)](gray show_text=&7⚠ %1%)'
-  error_no_permission: '[Erreur:](#ff3300) [Vous n''avez pas la permission d''exécuter cettecommande](#ff7e5e)'
-  error_console_command_only: '[Erreur:](#ff3300) [Cette commande peut seulement être exécutée via la console](#ff7e5e)'
+  list_page_jumper_group_separator: …
+  save_cause_disconnect: déconnexion
+  save_cause_world_save: sauvegarde du monde
+  save_cause_death: mort
+  save_cause_server_shutdown: arrêt du serveur
+  save_cause_save_command: save command
+  save_cause_dump_command: dump command
+  save_cause_inventory_command: commande d'inventaire
+  save_cause_enderchest_command: commande du coffre de l'Ender
+  save_cause_backup_restore: restauration de sauvegarde
+  save_cause_api: API
+  save_cause_mpdb_migration: migration MPDB
+  save_cause_legacy_migration: migration legacy
+  save_cause_converted_from_v2: converti de v2
+  up_to_date: <bold><color:#00fb9a>HuskSync</color></bold> <color:#00fb9a>| Vous utilisez la dernière version de HuskSync(v%1%).</color>
+  update_available: '<bold><color:#ff7e5e>HuskSync</color></bold> <color:#ff7e5e>| Une nouvelle version de HuskSync est disponible:v%1% (version actuelle: v%2%).</color>'
+  reload_complete: <bold><color:#00fb9a>HuskSync</color></bold> <color:#00fb9a>| Config et messages rechargés.</color>\n<color:#00fb9a>⚠Assurez-vous que les fichiers de configuration sont à jour sur tous les serveurs!</color>\n<italic><color:#00fb9a>Un redémarrage est nécessairepour que les modifications de configuration prennent effet.</color></italic>
+  system_status_header: <bold><color:#00fb9a>HuskSync</color></bold> <color:#00fb9a>| Rapport d'état du système:</color>
+  system_dump_confirm: <bold><color:#00fb9a>HuskSync</color></bold> <color:#00fb9a>| Prepare a system dump? This will include:</color>\n<gray>• Your latest server logs and HuskSync config files</gray>\n<gray>• Current plugin system status information</gray>\n<gray>• Information about your Java & Minecraft server environment</gray>\n<gray>• A list of other currently installed plugins</gray>\n<color:#00fb9a>To confirm, use:</color> <italic><color:#00fb9a><click:run_command:'/husksync'><hover:show_text:'<gray>Click to prepare dump'>/husksync dump confirm</hover></click></color></italic>
+  system_dump_started: <bold><color:#00fb9a>HuskSync</color></bold> <color:#00fb9a>| Preparing system status dump, please wait…</color>
+  system_dump_ready: <bold><color:#00fb9a>HuskSync</color></bold> <color:#00fb9a>| System status dump prepared! Click to view:</color>
+  error_invalid_syntax: <color:#ff3300>Erreur:</color> <color:#ff7e5e>Syntaxe incorrecte. Utilisation:</color> <click:suggest_command:'%1%'><hover:show_text:'<color:#ff7e5e><red>liquez pour suggérer'>%1%</hover></click>
+  error_invalid_player: <color:#ff3300>Erreur:</color> <color:#ff7e5e>Impossible de trouver un joueur avec ce nom.</color>
+  error_invalid_data: <color:#ff3300>Erreur:</color> <color:#ff7e5e>Impossible de déballer les données de l'instantané car elles sont invalides ou corrompues.</color> <gray><hover:show_text:'<gray>⚠ %1%'>(Détails…)</hover></gray>
+  error_no_permission: <color:#ff3300>Erreur:</color> <color:#ff7e5e>Vous n'avez pas la permission d'exécuter cettecommande</color>
+  error_console_command_only: <color:#ff3300>Erreur:</color> <color:#ff7e5e>Cette commande peut seulement être exécutée via la console</color>
   error_in_game_command_only: 'Erreur: Cette commande peut uniquement être utilisée en jeu.'
-  error_no_data_to_display: '[Erreur:](#ff3300) [Impossible de trouver des données utilisateur à afficher.](#ff7e5e)'
-  error_invalid_version_uuid: '[Erreur:](#ff3300) [Impossible de trouver des données utilisateur pour cet UUID de version.](#ff7e5e)'
-  husksync_command_description: 'Gérer le plugin HuskSync'
-  userdata_command_description: 'Voir, gérer & restaurer les données utilisateur des joueurs'
-  inventory_command_description: 'Voir & modifier l''inventaire d''un joueur'
-  enderchest_command_description: 'Voir & modifier le Coffre de l''Ender d''un joueur'
+  error_no_data_to_display: <color:#ff3300>Erreur:</color> <color:#ff7e5e>Impossible de trouver des données utilisateur à afficher.</color>
+  error_invalid_version_uuid: <color:#ff3300>Erreur:</color> <color:#ff7e5e>Impossible de trouver des données utilisateur pour cet UUID de version.</color>
+  husksync_command_description: Gérer le plugin HuskSync
+  userdata_command_description: Voir, gérer & restaurer les données utilisateur des joueurs
+  inventory_command_description: Voir & modifier l'inventaire d'un joueur
+  enderchest_command_description: Voir & modifier le Coffre de l'Ender d'un joueur

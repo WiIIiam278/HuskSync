@@ -19,12 +19,12 @@
 
 package net.william278.husksync.user;
 
-import de.themoep.minedown.adventure.MineDown;
 import eu.pb4.sgui.api.ClickType;
 import eu.pb4.sgui.api.elements.GuiElementInterface;
 import eu.pb4.sgui.api.gui.SimpleGui;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.kyori.adventure.audience.Audience;
+import net.kyori.adventure.text.Component;
 //#if MC>=12104
 import net.kyori.adventure.platform.modcommon.MinecraftServerAudiences;
 //#else
@@ -77,7 +77,7 @@ public class FabricUser extends OnlineUser implements FabricUserDataHolder {
 
     @Override
     @Deprecated(since = "3.6.7")
-    public void sendToast(@NotNull MineDown title, @NotNull MineDown description, @NotNull String iconMaterial,
+    public void sendToast(@NotNull Component title, @NotNull Component description, @NotNull String iconMaterial,
                           @NotNull String backgroundType) {
         plugin.log(Level.WARNING, "Toast notifications are deprecated. " +
                 "Please change your notification display slot to CHAT, ACTION_BAR or NONE.");
@@ -85,7 +85,7 @@ public class FabricUser extends OnlineUser implements FabricUserDataHolder {
     }
 
     @Override
-    public void showGui(@NotNull Data.Items.Items items, @NotNull MineDown title, boolean editable, int size,
+    public void showGui(@NotNull Data.Items.Items items, @NotNull Component title, boolean editable, int size,
                         @NotNull Consumer<Data.Items> onClose) {
         plugin.runSync(
                 () -> new ItemViewerGui(size, player, title, (FabricData.Items) items, onClose, editable, plugin).open()
@@ -98,7 +98,7 @@ public class FabricUser extends OnlineUser implements FabricUserDataHolder {
         private final int size;
         private final boolean editable;
 
-        public ItemViewerGui(int size, @NotNull ServerPlayerEntity player, @NotNull MineDown title,
+        public ItemViewerGui(int size, @NotNull ServerPlayerEntity player, @NotNull Component title,
                              @NotNull FabricData.Items items, @NotNull Consumer<Data.Items> onClose,
                              boolean editable, @NotNull HuskSync plugin) {
             super(getScreenHandler(size), player, false);
@@ -108,9 +108,9 @@ public class FabricUser extends OnlineUser implements FabricUserDataHolder {
 
             // Set title, items
             //#if MC>=12104
-            this.setTitle(((MinecraftServerAudiences) plugin.getAudiences()).asNative(title.toComponent()));
+            this.setTitle(((MinecraftServerAudiences) plugin.getAudiences()).asNative(title));
             //#else
-            //$$ this.setTitle(((FabricServerAudiences) plugin.getAudiences()).toNative(title.toComponent()));
+            //$$ this.setTitle(((FabricServerAudiences) plugin.getAudiences()).toNative(title));
             //#endif
             this.setLockPlayerInventory(!editable);
             for (int i = 0; i < size; i++) {
