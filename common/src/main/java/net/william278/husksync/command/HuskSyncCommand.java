@@ -66,10 +66,10 @@ public class HuskSyncCommand extends PluginCommand {
 
         return Component.join(JoinConfiguration.newlines(),
                 // Title
-                Component.text()
-                        .append(Component.text("HuskSync", primary, TextDecoration.BOLD))
-                        .append(Component.text(" v" + plugin.getPluginVersion(), NamedTextColor.GRAY))
-                        .build(),
+                Component.textOfChildren(
+                        Component.text("HuskSync", primary, TextDecoration.BOLD),
+                        Component.text(" v" + plugin.getPluginVersion(), NamedTextColor.GRAY)
+                ),
                 // Description
                 Component.text("A modern, cross-server player data synchronization system", gray),
                 Component.empty(),
@@ -103,25 +103,22 @@ public class HuskSyncCommand extends PluginCommand {
                         credit("IbanEtchep", "French (fr-fr)")),
                 Component.empty(),
                 // Buttons
-                Component.text()
-                        .append(link("⛏ Documentation", "https://william278.net/docs/husksync"))
-                        .append(Component.text("  ", gray))
-                        .append(link("❌ Issues", "https://github.com/WiIIiam278/HuskSync/issues", TextColor.color(0xff9f0f)))
-                        .append(Component.text("  ", gray))
-                        .append(link("⭐ Discord", "https://discord.gg/tVYhJfyDWG", TextColor.color(0x6773f5)))
-                        .build()
+                Component.textOfChildren(
+                        link("⛏ Documentation", "https://william278.net/docs/husksync"),
+                        Component.text("  ", gray),
+                        link("❌ Issues", "https://github.com/WiIIiam278/HuskSync/issues", TextColor.color(0xff9f0f)),
+                        Component.text("  ", gray),
+                        link("⭐ Discord", "https://discord.gg/tVYhJfyDWG", TextColor.color(0x6773f5))
+                )
         );
     }
 
     @NotNull
     private static Component buildCredits(@NotNull String title, @NotNull Component... credits) {
-        return Component.text()
-                .append(Component.text(title + ": ", TextColor.color(0x00fb9a), TextDecoration.BOLD))
-                .append(Component.join(
-                        JoinConfiguration.commas(true),
-                        credits
-                ))
-                .build();
+        return Component.textOfChildren(
+                Component.text(title + ": ", TextColor.color(0x00fb9a), TextDecoration.BOLD),
+                Component.join(JoinConfiguration.commas(true), credits)
+        );
     }
 
     @NotNull
