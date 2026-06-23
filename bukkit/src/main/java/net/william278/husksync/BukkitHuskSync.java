@@ -149,8 +149,7 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
 
         // Preload NBT-API
         if (!NBT.preloadApi()) {
-            log(Level.SEVERE, "Failed to load NBT API. HuskSync will not be initialized!");
-            return;
+            log(Level.WARNING, "Failed to load NBT API (unrecognized server version). NBT features may not work correctly!");
         }
 
         // Register commands
