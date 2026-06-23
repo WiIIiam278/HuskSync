@@ -86,7 +86,8 @@ public class HuskSyncCommand extends PluginCommand {
                         AboutMenu.Credit.of("cada3141").description("Korean (ko-kr)"),
                         AboutMenu.Credit.of("Wirayuda5620").description("Indonesian (id-id)"),
                         AboutMenu.Credit.of("WinTone01").description("Turkish (tr-tr)"),
-                        AboutMenu.Credit.of("IbanEtchep").description("French (fr-fr)"))
+                        AboutMenu.Credit.of("IbanEtchep").description("French (fr-fr)")),
+                        AboutMenu.Credit.of("Ris").description("Hungarian (hu-hu)"))
                 .buttons(
                         AboutMenu.Link.of("https://william278.net/docs/husksync").text("Documentation").icon("⛏"),
                         AboutMenu.Link.of("https://github.com/WiIIiam278/HuskSync/issues").text("Issues").icon("❌").color(TextColor.color(0xff9f0f)),
