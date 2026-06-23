@@ -1,71 +1,140 @@
+# MineDown formatting has been converted to MiniMessage
+# https://docs.advntr.dev/minimessage/index.html
 locales:
-  synchronization_complete: '[⏵ 데이터 연동됨!](#00fb9a)'
-  synchronization_failed: '[⏵ 데이터 연동에 실패하였습니다! 관리자에게 문의해 주세요.](#ff7e5e)'
-  inventory_viewer_menu_title: '&0%1%님의 인벤토리'
-  ender_chest_viewer_menu_title: '&0%1%님의 엔더상자'
-  inventory_viewer_opened: '[%1%](#00fb9a bold)[님의 ⌚ %2%의 인벤토리를 엽니다](#00fb9a)'
-  ender_chest_viewer_opened: '[%1%](#00fb9a bold)[님의 ⌚ %2%의 엔더상자를 엽니다](#00fb9a)'
-  data_update_complete: '[🔔 당신의 데이터가 업데이트 되었습니다!](#00fb9a)'
-  data_update_failed: '[🔔 데이터 업데이트에 실패하였습니다! 관리자에게 문의해 주세요.](#ff7e5e)'
-  user_registration_complete: '[⭐ 유저 등록이 완료되었습니다!](#00fb9a)'
-  data_manager_title: '[%3%](#00fb9a bold show_text=&7플레이어 UUID:\n&8%4%)[님의 ](#00fb9a) [%1%](#00fb9a show_text=&7버전 UUID:\n&8%2%) [데이터 스냅샷을 표시합니다](#00fb9a)[:](#00fb9a)'
-  data_manager_timestamp: '[⌚ %1%](#ffc43b-#f5c962 show_text=&7저장 시각:\n&8데이터가 저장된 시각)'
-  data_manager_pinned: '[※ 스냅샷 고정됨](#d8ff2b show_text=&7고정됨:\n&8이 유저의 데이터 스냅샷은 자동으로 갱신되지 않습니다.)'
-  data_manager_cause: '[⚑ %1%](#23a825-#36f539 show_text=&7저장 사유:\n&8데이터가 저장된 사유입니다.)'
-  data_manager_server: '[☁ %1%](#ff87b3-#f5538e show_text=&7서버:\n&8데이터 저장이 이루어진 서버입니다.)'
-  data_manager_size: '[⏏ %1%](color=#62a9f5-#7ab8fa show_text=&7스냅샷 크기:\n&8스냅샷 파일의 대략적인 크기입니다. (단위 KiB))\n'
-  data_manger_status: '[%1%](red)[/](gray)[%2%](red)[×](gray)[❤](red show_text=&7체력)   [%3%](yellow)[×](gray)[🍖](yellow show_text=&7허기)   [ʟᴠ](green)[.](gray)[%4%](green show_text=&7경험치 레벨)   [🏹 %5%](dark_aqua show_text=&7게임 모드)'
-  data_manager_advancements_statistics: '[⭐ 도전 과제: %1%](color=#ffc43b-#f5c962 show_text=&7진행한 도전 과제:\n&8%2%)   [⌛ 플레이 타임: %3%ʜʀs](color=#62a9f5-#7ab8fa show_text=&7인게임 플레이 시간\n&8⚠ 인게임 통계에 기반합니다.)\n'
-  data_manager_item_buttons: '[보기:](gray) [[🪣 인벤토리…]](color=#a17b5f-#f5b98c show_text=&7클릭하여 확인 run_command=/inventory %1% %2%)   [[⌀ 엔더상자…]](#b649c4-#d254ff show_text=&7클릭하여 확인 run_command=/enderchest %1% %2%)'
-  data_manager_management_buttons: '[관리:](gray) [[❌ 삭제…]](#ff3300 show_text=&7클릭하여 이 유저 스냅샷 데이터를 삭제\n&8이 기능은 현재 유저의 인벤토리 데이터에는 영향을 미치지 않습니다.\n&#ff3300&⚠ 이 작업은 되돌릴 수 없습니다! suggest_command=/husksync:userdata delete %1% %2%)   [[⏪ 복구…]](#00fb9a show_text=&7클릭하여 유저 데이터 복구\n&8유저의 데이터가 이 스냅샷의 데이터로 변경됩니다.\n&#ff3300&⚠ %1%님의 현재 데이터에 덧씌워 집니다! suggest_command=/husksync:userdata restore %1% %2%)   [[※ 고정/고정 해제…]](#d8ff2b show_text=&7클릭하여 유저 데이터를 고정 또는 고정 해제\n&8고정된 스냅샷은 자동적으로 갱신되지 않습니다. run_command=/userdata pin %1% %2%)'
-  data_manager_system_buttons: '[시스템:](gray) [[⏷ 파일 덤프…]](dark_gray show_text=&7클릭하여 이 유저 데이터 스냅샷을 덤프하기\n&8데이터 덤프 파일은 ~/plugins/HuskSync/dumps/ 에서 찾을 수 있습니다. run_command=/husksync:userdata dump %1% %2% file)   [[☂ 웹 덤프…]](dark_gray show_text=&7클릭하여 유저 데이터 스냅샷을 mc-log 서비스에 덤프하기\n&8데이터를 포함한 URL이 제공됩니다. run_command=/husksync:userdata dump %1% %2% web)'
-  data_manager_advancements_preview_remaining: '외 %1%개...'
-  data_list_title: '[%1%님의 유저 데이터 스냅샷 목록:](#00fb9a) [(%2%-%3% 중](#00fb9a) [%4%](#00fb9a bold)[)](#00fb9a)\n'
-  data_list_item: '[%1%](gray show_text=&7%2%&7님의 유저 데이터 스냅샷&8⚡ %4% run_command=/userdata view %2% %3%) [%5%](#d8ff2b show_text=&7고정됨:\n&8고정된 스냅샷은 자동적으로 갱신되지 않습니다. run_command=/userdata view %2% %3%) [%6%](color=#ffc43b-#f5c962 show_text=&7저장 시각:&7\n&8데이터가 저장된 시각입니다.\n&8%7% run_command=/userdata view %2% %3%)   [⚑ %8%](#23a825-#36f539 show_text=&7저장 사유:\n&8데이터가 저장된 사유입니다. run_command=/userdata view %2% %3%)   [⏏ %9%](color=#62a9f5-#7ab8fa show_text=&7스냅샷 크기:&7\n&8스냅샷 파일의 대략적인 크기입니다. (단위 KiB) run_command=/userdata view %2% %3%)'
-  data_list_item_invalid: '[%1%](dark_gray show_text=&7User Data Snapshot for %2%\n&8⚡ %4% suggest_command=/userdata delete %2% %3%) [%5%](dark_gray show_text=&7Pinned:\n&8Pinned snapshots won''t be automatically rotated. suggest_command=/userdata delete %2% %3%) [%6%   ⚑ %8%   ⏏ %9%](gray strikethrough show_text=&#ff3300&Invalid Data Snapshot\n&#ff7e5e&Click to delete\n\n&7⚠ %10% suggest_command=/userdata delete %2% %3%)'
-  data_saved: '[Successfully saved a snapshot of %1%''s current user data.](#00fb9a)'
-  data_deleted: '[❌ 성공적으로](#00fb9a) [%3%](#00fb9a show_text=&7플레이어 UUID:\n&8%4%) [님의 유저 데이터 스냅샷](#00fb9a) [%1%](#00fb9a show_text=&7버전 UUID:\n&8%2%)[을 삭제하였습니다.](#00fb9a)'
-  data_restored: '[⏪ 성공적으로 복구되었습니다.](#00fb9a) [%1%](#00fb9a show_text=&7플레이어 UUID:\n&8%2%)[님의 현재 유저 데이터 스냅샷이](#00fb9a) [%3%](#00fb9a show_text=&7버전 UUID:\n&8%4%)[으로 변경되었습니다.](#00fb9a)'
-  data_pinned: '[※ 성공적으로](#00fb9a) [%3%](#00fb9a show_text=&7플레이어 UUID:\n&8%4%)[님의 유저 데이터 스냅샷](#00fb9a) [%1%](#00fb9a show_text=&7버전 UUID:\n&8%2%)[을 고정하였습니다.](#00fb9a)'
-  data_unpinned: '[※ 성공적으로](#00fb9a) [%3%](#00fb9a show_text=&7플레이어 UUID:\n&8%4%) [님의 유저 데이터 스냅샷](#00fb9a) [%1%](#00fb9a show_text=&7버전 UUID:\n&8%2%)[을 고정 해제하였습니다.](#00fb9a)'
-  data_dumped: '[☂ 성공적으로 %2%님의 유저 데이터 스냅샷 %1%를 다음으로 덤프하였습니다:](#00fb9a)'
-  list_footer: '\n%1%[페이지](#00fb9a) [%2%](#00fb9a)/[%3%](#00fb9a)%4%   %5%'
-  list_previous_page_button: '[◀](white show_text=&7이전 페이지 보기 run_command=%2% %1%) '
-  list_next_page_button: ' [▶](white show_text=&7다음 페이지 보기 run_command=%2% %1%)'
-  list_page_jumpers: '(%1%)'
-  list_page_jumper_button: '[%1%](show_text=&7%1% 페이지 보기 run_command=%2% %1%)'
-  list_page_jumper_current_page: '[%1%](#00fb9a)'
+  synchronization_complete: <color:#00fb9a>⏵ 데이터 연동됨!</color>
+  synchronization_failed: <color:#ff7e5e>⏵ 데이터 연동에 실패하였습니다! 관리자에게 문의해 주세요.</color>
+  inventory_viewer_menu_title: <black>%1%님의 인벤토리
+  ender_chest_viewer_menu_title: <black>%1%님의 엔더상자
+  inventory_viewer_opened: <bold><color:#00fb9a>%1%</color></bold><color:#00fb9a>님의 ⌚ %2%의 인벤토리를 엽니다</color>
+  ender_chest_viewer_opened: <bold><color:#00fb9a>%1%</color></bold><color:#00fb9a>님의 ⌚ %2%의 엔더상자를 엽니다</color>
+  data_update_complete: <color:#00fb9a>🔔 당신의 데이터가 업데이트 되었습니다!</color>
+  data_update_failed: <color:#ff7e5e>🔔 데이터 업데이트에 실패하였습니다! 관리자에게 문의해 주세요.</color>
+  user_registration_complete: <color:#00fb9a>⭐ 유저 등록이 완료되었습니다!</color>
+  data_manager_title: '<bold><color:#00fb9a><hover:show_text:''<gray>플레이어 UUID:
+
+    <dark_gray>%4%''>%3%</hover></color></bold><color:#00fb9a>님의 </color> <color:#00fb9a><hover:show_text:''<gray>버전 UUID:
+
+    <dark_gray>%2%''>%1%</hover></color> <color:#00fb9a>데이터 스냅샷을 표시합니다</color><color:#00fb9a>:</color>'
+  data_manager_timestamp: '<hover:show_text:''<gray>저장 시각:
+
+    <dark_gray>데이터가 저장된 시각''>⌚ %1%</hover>'
+  data_manager_pinned: '<color:#d8ff2b><hover:show_text:''<gray>고정됨:
+
+    <dark_gray>이 유저의 데이터 스냅샷은 자동으로 갱신되지 않습니다.''>※ 스냅샷 고정됨</hover></color>'
+  data_manager_cause: '<hover:show_text:''<gray>저장 사유:
+
+    <dark_gray>데이터가 저장된 사유입니다.''>⚑ %1%</hover>'
+  data_manager_server: '<hover:show_text:''<gray>서버:
+
+    <dark_gray>데이터 저장이 이루어진 서버입니다.''>☁ %1%</hover>'
+  data_manager_size: '<gradient:#62a9f5:#7ab8fa><hover:show_text:''<gray>스냅샷 크기:
+
+    <dark_gray>스냅샷 파일의 대략적인 크기입니다. (단위 KiB)''>⏏ %1%</hover></gradient>\n'
+  data_manger_status: <red>%1%</red><gray>/</gray><red>%2%</red><gray>×</gray><red><hover:show_text:'<gray>체력'>❤</hover></red>   <yellow>%3%</yellow><gray>×</gray><yellow><hover:show_text:'<gray>허기'>🍖</hover></yellow>   <green>ʟᴠ</green><gray>.</gray><green><hover:show_text:'<gray>경험치 레벨'>%4%</hover></green>   <dark_aqua><hover:show_text:'<gray>게임 모드'>🏹 %5%</hover></dark_aqua>
+  data_manager_advancements_statistics: '<gradient:#ffc43b:#f5c962><hover:show_text:''<gray>진행한 도전 과제:
+
+    <dark_gray>%2%''>⭐ 도전 과제: %1%</hover></gradient>   <gradient:#62a9f5:#7ab8fa><hover:show_text:''<gray>인게임 플레이 시간
+
+    <dark_gray>⚠ 인게임 통계에 기반합니다.''>⌛ 플레이 타임: %3%ʜʀs</hover></gradient>\n'
+  data_manager_item_buttons: <gray>보기:</gray> <gradient:#a17b5f:#f5b98c><click:run_command:'/inventory'><hover:show_text:'<gray>클릭하여 확인'>[🪣 인벤토리…]</hover></click></gradient>   <click:run_command:'/enderchest'><hover:show_text:'<gray>클릭하여 확인'>[⌀ 엔더상자…]</hover></click>
+  data_manager_management_buttons: '<gray>관리:</gray> <color:#ff3300><click:suggest_command:''/husksync:userdata''><hover:show_text:''<gray>클릭하여 이 유저 스냅샷 데이터를 삭제
+
+    <dark_gray>이 기능은 현재 유저의 인벤토리 데이터에는 영향을 미치지 않습니다.
+
+    <color:#ff3300>&⚠ 이 작업은 되돌릴 수 없습니다!''>[❌ 삭제…]</hover></click></color>   <color:#00fb9a><click:suggest_command:''/husksync:userdata''><hover:show_text:''<gray>클릭하여 유저 데이터 복구
+
+    <dark_gray>유저의 데이터가 이 스냅샷의 데이터로 변경됩니다.
+
+    <color:#ff3300>&⚠ %1%님의 현재 데이터에 덧씌워 집니다!''>[⏪ 복구…]</hover></click></color>   <color:#d8ff2b><click:run_command:''/userdata''><hover:show_text:''<gray>클릭하여 유저 데이터를 고정 또는 고정 해제
+
+    <dark_gray>고정된 스냅샷은 자동적으로 갱신되지 않습니다.''>[※ 고정/고정 해제…]</hover></click></color>'
+  data_manager_system_buttons: '<gray>시스템:</gray> <dark_gray><click:run_command:''/husksync:userdata''><hover:show_text:''<gray>클릭하여 이 유저 데이터 스냅샷을 덤프하기
+
+    <dark_gray>데이터 덤프 파일은 ~/plugins/HuskSync/dumps/ 에서 찾을 수 있습니다.''>[⏷ 파일 덤프…]</hover></click></dark_gray>   <dark_gray><click:run_command:''/husksync:userdata''><hover:show_text:''<gray>클릭하여 유저 데이터 스냅샷을 mc-log 서비스에 덤프하기
+
+    <dark_gray>데이터를 포함한 URL이 제공됩니다.''>[☂ 웹 덤프…]</hover></click></dark_gray>'
+  data_manager_advancements_preview_remaining: 외 %1%개...
+  data_list_title: <color:#00fb9a>%1%님의 유저 데이터 스냅샷 목록:</color> <color:#00fb9a>(%2%-%3% 중</color> <bold><color:#00fb9a>%4%</color></bold><color:#00fb9a>)</color>\n
+  data_list_item: '<gray><click:run_command:''/userdata''><hover:show_text:''<gray>%2%<gray>님의 유저 데이터 스냅샷<dark_gray>⚡ %4%''>%1%</hover></click></gray> <color:#d8ff2b><click:run_command:''/userdata''><hover:show_text:''<gray>고정됨:
+
+    <dark_gray>고정된 스냅샷은 자동적으로 갱신되지 않습니다.''>%5%</hover></click></color> <gradient:#ffc43b:#f5c962><click:run_command:''/userdata''><hover:show_text:''<gray>저장 시각:<gray>
+
+    <dark_gray>데이터가 저장된 시각입니다.
+
+    <dark_gray>%7%''>%6%</hover></click></gradient>   <click:run_command:''/userdata''><hover:show_text:''<gray>저장 사유:
+
+    <dark_gray>데이터가 저장된 사유입니다.''>⚑ %8%</hover></click>   <gradient:#62a9f5:#7ab8fa><click:run_command:''/userdata''><hover:show_text:''<gray>스냅샷 크기:<gray>
+
+    <dark_gray>스냅샷 파일의 대략적인 크기입니다. (단위 KiB)''>⏏ %9%</hover></click></gradient>'
+  data_list_item_invalid: '<dark_gray><click:suggest_command:''/userdata''><hover:show_text:''<gray>User Data Snapshot for %2%
+
+    <dark_gray>⚡ %4%''>%1%</hover></click></dark_gray> <dark_gray><click:suggest_command:''/userdata''><hover:show_text:''<gray>Pinned:
+
+    <dark_gray>Pinned snapshots won\''t be automatically rotated.''>%5%</hover></click></dark_gray> <strikethrough><gray><click:suggest_command:''/userdata''><hover:show_text:''<color:#ff3300>&Invalid Data Snapshot
+
+    <color:#ff7e5e><red>lick to delete
+
+
+    <gray>⚠ %10%''>%6%   ⚑ %8%   ⏏ %9%</hover></click></gray></strikethrough>'
+  data_saved: <color:#00fb9a>Successfully saved a snapshot of %1%'s current user data.</color>
+  data_deleted: '<color:#00fb9a>❌ 성공적으로</color> <color:#00fb9a><hover:show_text:''<gray>플레이어 UUID:
+
+    <dark_gray>%4%''>%3%</hover></color> <color:#00fb9a>님의 유저 데이터 스냅샷</color> <color:#00fb9a><hover:show_text:''<gray>버전 UUID:
+
+    <dark_gray>%2%''>%1%</hover></color><color:#00fb9a>을 삭제하였습니다.</color>'
+  data_restored: '<color:#00fb9a>⏪ 성공적으로 복구되었습니다.</color> <color:#00fb9a><hover:show_text:''<gray>플레이어 UUID:
+
+    <dark_gray>%2%''>%1%</hover></color><color:#00fb9a>님의 현재 유저 데이터 스냅샷이</color> <color:#00fb9a><hover:show_text:''<gray>버전 UUID:
+
+    <dark_gray>%4%''>%3%</hover></color><color:#00fb9a>으로 변경되었습니다.</color>'
+  data_pinned: '<color:#00fb9a>※ 성공적으로</color> <color:#00fb9a><hover:show_text:''<gray>플레이어 UUID:
+
+    <dark_gray>%4%''>%3%</hover></color><color:#00fb9a>님의 유저 데이터 스냅샷</color> <color:#00fb9a><hover:show_text:''<gray>버전 UUID:
+
+    <dark_gray>%2%''>%1%</hover></color><color:#00fb9a>을 고정하였습니다.</color>'
+  data_unpinned: '<color:#00fb9a>※ 성공적으로</color> <color:#00fb9a><hover:show_text:''<gray>플레이어 UUID:
+
+    <dark_gray>%4%''>%3%</hover></color> <color:#00fb9a>님의 유저 데이터 스냅샷</color> <color:#00fb9a><hover:show_text:''<gray>버전 UUID:
+
+    <dark_gray>%2%''>%1%</hover></color><color:#00fb9a>을 고정 해제하였습니다.</color>'
+  data_dumped: <color:#00fb9a>☂ 성공적으로 %2%님의 유저 데이터 스냅샷 %1%를 다음으로 덤프하였습니다:</color>
+  list_footer: \n%1%<color:#00fb9a>페이지</color> <color:#00fb9a>%2%</color>/<color:#00fb9a>%3%</color>%4%   %5%
+  list_previous_page_button: '<white><click:run_command:''%2%''><hover:show_text:''<gray>이전 페이지 보기''>◀</hover></click></white> '
+  list_next_page_button: ' <white><click:run_command:''%2%''><hover:show_text:''<gray>다음 페이지 보기''>▶</hover></click></white>'
+  list_page_jumpers: (%1%)
+  list_page_jumper_button: <click:run_command:'%2%'><hover:show_text:'<gray>%1% 페이지 보기'>%1%</hover></click>
+  list_page_jumper_current_page: <color:#00fb9a>%1%</color>
   list_page_jumper_separator: ' '
-  list_page_jumper_group_separator: '…'
-  save_cause_disconnect: 'disconnect'
-  save_cause_world_save: 'world save'
-  save_cause_death: 'death'
-  save_cause_server_shutdown: 'server shutdown'
-  save_cause_save_command: 'save command'
-  save_cause_dump_command: 'dump command'
-  save_cause_inventory_command: 'inventory command'
-  save_cause_enderchest_command: 'enderchest command'
-  save_cause_backup_restore: 'backup restore'
-  save_cause_api: 'API'
-  save_cause_mpdb_migration: 'MPDB migration'
-  save_cause_legacy_migration: 'legacy migration'
-  save_cause_converted_from_v2: 'converted from v2'
-  up_to_date: '[HuskSync](#00fb9a bold) [| 가장 최신 버전의 HuskSync를 실행 중입니다 (v%1%).](#00fb9a)'
-  update_available: '[HuskSync](#ff7e5e bold) [| 새로운 버전의 HuskSync가 존재합니다: v%1% (현재 버전: v%2%).](#ff7e5e)'
-  reload_complete: '[HuskSync](#00fb9a bold) [| 콘피그와 메시지 파일을 다시 불러왔습니다.](#00fb9a)\n[⚠ 모든 서버의 컨피그 파일을 변경하였는지 확인하세요!](#00fb9a)\n[몇몇 설정은 재시작 후에 적용됩니다.](#00fb9a italic)'
-  system_status_header: '[HuskSync](#00fb9a bold) [| System status report:](#00fb9a)'
-  system_dump_confirm: '[HuskSync](#00fb9a bold) [| Prepare a system dump? This will include:](#00fb9a)\n[• Your latest server logs and HuskSync config files](gray)\n[• Current plugin system status information](gray)\n[• Information about your Java & Minecraft server environment](gray)\n[• A list of other currently installed plugins](gray)\n[To confirm, use:](#00fb9a) [/husksync dump confirm](#00fb9a italic show_text=&7Click to prepare dump run_command=/husksync dump confirm)'
-  system_dump_started: '[HuskSync](#00fb9a bold) [| Preparing system status dump, please wait…](#00fb9a)'
-  system_dump_ready: '[HuskSync](#00fb9a bold) [| System status dump prepared! Click to view:](#00fb9a)'
-  error_invalid_syntax: '[오류:](#ff3300) [잘못된 사용법. 사용법:](#ff7e5e) [%1%](#ff7e5e italic show_text=&#ff7e5e&클릭하여 입력할 수 있습니다. suggest_command=%1%)'
-  error_invalid_player: '[오류:](#ff3300) [해당 이름의 사용자를 찾을 수 없습니다.](#ff7e5e)'
-  error_invalid_data: '[Error:](#ff3300) [Failed to unpack user data as the snapshot is invalid or corrupt.](#ff7e5e) [(Details…)](gray show_text=&7⚠ %1%)'
-  error_no_permission: '[오류:](#ff3300) [해당 명령어를 사용할 권한이 없습니다.](#ff7e5e)'
-  error_console_command_only: '[오류:](#ff3300) [해당 명령어는 콘솔을 통해서만 사용할 수 있습니다.](#ff7e5e)'
+  list_page_jumper_group_separator: …
+  save_cause_disconnect: disconnect
+  save_cause_world_save: world save
+  save_cause_death: death
+  save_cause_server_shutdown: server shutdown
+  save_cause_save_command: save command
+  save_cause_dump_command: dump command
+  save_cause_inventory_command: inventory command
+  save_cause_enderchest_command: enderchest command
+  save_cause_backup_restore: backup restore
+  save_cause_api: API
+  save_cause_mpdb_migration: MPDB migration
+  save_cause_legacy_migration: legacy migration
+  save_cause_converted_from_v2: converted from v2
+  up_to_date: <bold><color:#00fb9a>HuskSync</color></bold> <color:#00fb9a>| 가장 최신 버전의 HuskSync를 실행 중입니다 (v%1%).</color>
+  update_available: '<bold><color:#ff7e5e>HuskSync</color></bold> <color:#ff7e5e>| 새로운 버전의 HuskSync가 존재합니다: v%1% (현재 버전: v%2%).</color>'
+  reload_complete: <bold><color:#00fb9a>HuskSync</color></bold> <color:#00fb9a>| 콘피그와 메시지 파일을 다시 불러왔습니다.</color>\n<color:#00fb9a>⚠ 모든 서버의 컨피그 파일을 변경하였는지 확인하세요!</color>\n<italic><color:#00fb9a>몇몇 설정은 재시작 후에 적용됩니다.</color></italic>
+  system_status_header: <bold><color:#00fb9a>HuskSync</color></bold> <color:#00fb9a>| System status report:</color>
+  system_dump_confirm: <bold><color:#00fb9a>HuskSync</color></bold> <color:#00fb9a>| Prepare a system dump? This will include:</color>\n<gray>• Your latest server logs and HuskSync config files</gray>\n<gray>• Current plugin system status information</gray>\n<gray>• Information about your Java & Minecraft server environment</gray>\n<gray>• A list of other currently installed plugins</gray>\n<color:#00fb9a>To confirm, use:</color> <italic><color:#00fb9a><click:run_command:'/husksync'><hover:show_text:'<gray>Click to prepare dump'>/husksync dump confirm</hover></click></color></italic>
+  system_dump_started: <bold><color:#00fb9a>HuskSync</color></bold> <color:#00fb9a>| Preparing system status dump, please wait…</color>
+  system_dump_ready: <bold><color:#00fb9a>HuskSync</color></bold> <color:#00fb9a>| System status dump prepared! Click to view:</color>
+  error_invalid_syntax: <color:#ff3300>오류:</color> <color:#ff7e5e>잘못된 사용법. 사용법:</color> <italic><color:#ff7e5e><click:suggest_command:'%1%'><hover:show_text:'<color:#ff7e5e>&클릭하여 입력할 수 있습니다.'>%1%</hover></click></color></italic>
+  error_invalid_player: <color:#ff3300>오류:</color> <color:#ff7e5e>해당 이름의 사용자를 찾을 수 없습니다.</color>
+  error_invalid_data: <color:#ff3300>Error:</color> <color:#ff7e5e>Failed to unpack user data as the snapshot is invalid or corrupt.</color> <gray><hover:show_text:'<gray>⚠ %1%'>(Details…)</hover></gray>
+  error_no_permission: <color:#ff3300>오류:</color> <color:#ff7e5e>해당 명령어를 사용할 권한이 없습니다.</color>
+  error_console_command_only: <color:#ff3300>오류:</color> <color:#ff7e5e>해당 명령어는 콘솔을 통해서만 사용할 수 있습니다.</color>
   error_in_game_command_only: '오류: 해당 명령어는 게임 내부에서만 사용할 수 있습니다.'
-  error_no_data_to_display: '[오류:](#ff3300) [표시할 유저 데이터를 찾을 수 없습니다.](#ff7e5e)'
-  error_invalid_version_uuid: '[오류:](#ff3300) [해당 버전 UUID의 유저 데이터 스냅샷을 찾을 수 없습니다.](#ff7e5e)'
-  husksync_command_description: 'HuskSync 플러그인을 관리합니다.'
-  userdata_command_description: '확인, 관리 또는 복구합니다.'
-  inventory_command_description: '플레이어의 인벤토리를 열람 또는 편집합니다.'
-  enderchest_command_description: '플레이어의 엔더상자를 열람 또는 편집합니다.'
+  error_no_data_to_display: <color:#ff3300>오류:</color> <color:#ff7e5e>표시할 유저 데이터를 찾을 수 없습니다.</color>
+  error_invalid_version_uuid: <color:#ff3300>오류:</color> <color:#ff7e5e>해당 버전 UUID의 유저 데이터 스냅샷을 찾을 수 없습니다.</color>
+  husksync_command_description: HuskSync 플러그인을 관리합니다.
+  userdata_command_description: 확인, 관리 또는 복구합니다.
+  inventory_command_description: 플레이어의 인벤토리를 열람 또는 편집합니다.
+  enderchest_command_description: 플레이어의 엔더상자를 열람 또는 편집합니다.

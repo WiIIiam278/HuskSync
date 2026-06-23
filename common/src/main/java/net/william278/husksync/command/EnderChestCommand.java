@@ -19,7 +19,7 @@
 
 package net.william278.husksync.command;
 
-import de.themoep.minedown.adventure.MineDown;
+import net.kyori.adventure.text.Component;
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.data.Data;
 import net.william278.husksync.data.DataSnapshot;
@@ -60,7 +60,7 @@ public class EnderChestCommand extends ItemsCommand {
         viewer.showGui(
                 enderChest,
                 plugin.getLocales().getLocale("ender_chest_viewer_menu_title", user.getName())
-                        .orElse(new MineDown(String.format("%s's Ender Chest", user.getName()))),
+                        .orElse(Component.text(String.format("%s's Ender Chest", user.getName()))),
                 allowEdit,
                 enderChest.getSlotCount(),
                 (itemsOnClose) -> {

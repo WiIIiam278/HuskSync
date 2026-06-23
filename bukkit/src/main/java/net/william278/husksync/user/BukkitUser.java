@@ -19,7 +19,7 @@
 
 package net.william278.husksync.user;
 
-import de.themoep.minedown.adventure.MineDown;
+import net.kyori.adventure.text.Component;
 import dev.triumphteam.gui.builder.gui.StorageBuilder;
 import dev.triumphteam.gui.guis.Gui;
 import dev.triumphteam.gui.guis.StorageGui;
@@ -64,7 +64,7 @@ public class BukkitUser extends OnlineUser implements BukkitUserDataHolder {
 
     @Override
     @Deprecated(since = "3.6.7")
-    public void sendToast(@NotNull MineDown title, @NotNull MineDown description,
+    public void sendToast(@NotNull Component title, @NotNull Component description,
                           @NotNull String iconMaterial, @NotNull String backgroundType) {
         plugin.log(Level.WARNING, "Toast notifications are deprecated. " +
                                   "Please change your notification display slot to CHAT, ACTION_BAR or NONE.");
@@ -72,7 +72,7 @@ public class BukkitUser extends OnlineUser implements BukkitUserDataHolder {
     }
 
     @Override
-    public void showGui(@NotNull Data.Items items, @NotNull MineDown title, boolean editable, int size,
+    public void showGui(@NotNull Data.Items items, @NotNull Component title, boolean editable, int size,
                         @NotNull Consumer<Data.Items> onClose) {
         final ItemStack[] contents = ((BukkitData.Items) items).getContents();
         final StorageBuilder builder = Gui.storage().rows((int) Math.ceil(size / 9.0d));
@@ -81,7 +81,7 @@ public class BukkitUser extends OnlineUser implements BukkitUserDataHolder {
         }
         final StorageGui gui = builder
                 .apply(a -> a.getInventory().setContents(contents))
-                .title(title.toComponent()).create();
+                .title(title).create();
         gui.setCloseGuiAction((close) -> onClose.accept(BukkitData.Items.ItemArray.adapt(
                 Arrays.stream(close.getInventory().getContents()).limit(size).toArray(ItemStack[]::new)
         )));
