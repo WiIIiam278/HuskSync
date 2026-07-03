@@ -19,6 +19,7 @@
 
 package net.william278.husksync.user;
 
+import de.themoep.minedown.adventure.MineDown;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.william278.husksync.HuskSync;
@@ -81,12 +82,31 @@ public abstract class OnlineUser extends User implements CommandUser, UserDataHo
     }
 
     /**
-     * Send an action bar message to this player
+     * Dispatch a MineDown-formatted message to this player
      *
-     * @param component the {@link Component} message to send
+     * @param mineDown the parsed {@link MineDown} to send
      */
-    public void sendActionBar(@NotNull Component component) {
-        getAudience().sendActionBar(component);
+    public void sendMessage(@NotNull MineDown mineDown) {
+        try {
+            sendMessage(mineDown.toComponent());
+        } catch (Throwable e) {
+            getPlugin().log(Level.WARNING,
+                    String.format("Failed to render MineDown message for %s", getName()), e);
+        }
+    }
+
+    /**
+     * Dispatch a MineDown-formatted action bar message to this player
+     *
+     * @param mineDown the parsed {@link MineDown} to send
+     */
+    public void sendActionBar(@NotNull MineDown mineDown) {
+        try {
+            getAudience().sendActionBar(mineDown.toComponent());
+        } catch (Throwable e) {
+            getPlugin().log(Level.WARNING,
+                    String.format("Failed to render MineDown action bar for %s", getName()), e);
+        }
     }
 
     /**
@@ -99,7 +119,7 @@ public abstract class OnlineUser extends User implements CommandUser, UserDataHo
      * @deprecated No longer supported
      */
     @Deprecated(since = "3.6.7")
-    public abstract void sendToast(@NotNull Component title, @NotNull Component description,
+    public abstract void sendToast(@NotNull MineDown title, @NotNull MineDown description,
                                    @NotNull String iconMaterial, @NotNull String backgroundType);
 
     /**
@@ -111,7 +131,7 @@ public abstract class OnlineUser extends User implements CommandUser, UserDataHo
      * @param size     the size of the menu
      * @param onClose  the action to perform when the menu is closed
      */
-    public abstract void showGui(@NotNull Data.Items.Items items, @NotNull Component title, boolean editable, int size,
+    public abstract void showGui(@NotNull Data.Items.Items items, @NotNull MineDown title, boolean editable, int size,
                                  @NotNull Consumer<Data.Items.Items> onClose);
 
     /**
