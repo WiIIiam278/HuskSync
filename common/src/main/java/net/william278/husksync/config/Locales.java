@@ -21,10 +21,11 @@ package net.william278.husksync.config;
 
 import com.google.common.collect.Maps;
 import de.exlll.configlib.Configuration;
-import de.themoep.minedown.adventure.MineDown;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
-import net.william278.paginedown.ListOptions;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.william278.husksync.util.PaginatedList;
 import org.apache.commons.text.StringEscapeUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -48,13 +49,18 @@ public class Locales {
             ┃    Developed by William278   ┃
             ┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
             ┣╸ See plugin about menu for international locale credits
-            ┣╸ Formatted in MineDown: https://github.com/Phoenix616/MineDown
+            ┣╸ Formatted in MiniMessage: https://docs.advntr.dev/minimessage/index.html
             ┗╸ Translate HuskSync: https://william278.net/docs/husksync/translations""";
 
     protected static final String DEFAULT_LOCALE = "en-gb";
 
+    // Locale format version - increment to force re-extraction on format changes
+    public static final int LOCALE_FORMAT_VERSION = 3;
+
     // The raw set of locales loaded from yaml
     Map<String, String> locales = Maps.newTreeMap();
+
+    Integer locale_format_version = null;
 
     /**
      * Returns a raw, unformatted locale loaded from the locale file
@@ -68,8 +74,6 @@ public class Locales {
 
     /**
      * Returns a raw, un-formatted locale loaded from the locales file, with replacements applied
-     * <p>
-     * Note that replacements will not be MineDown-escaped; use {@link #escapeText(String)} to escape replacements
      *
      * @param localeId     String identifier of the locale, corresponding to a key in the file
      * @param replacements Ordered array of replacement strings to fill in placeholders with
@@ -80,38 +84,38 @@ public class Locales {
     }
 
     /**
-     * Returns a MineDown-formatted locale from the locales file
+     * Returns a MiniMessage-formatted locale from the locales file
      *
      * @param localeId String identifier of the locale, corresponding to a key in the file
      * @return An {@link Optional} containing the formatted locale corresponding to the id, if it exists
      */
-    public Optional<MineDown> getLocale(@NotNull String localeId) {
+    public Optional<Component> getLocale(@NotNull String localeId) {
         return getRawLocale(localeId).map(this::format);
     }
 
     /**
-     * Returns a MineDown-formatted locale from the locales file, with replacements applied
+     * Returns a MiniMessage-formatted locale from the locales file, with replacements applied
      * <p>
-     * Note that replacements will be MineDown-escaped before application
+     * Note that replacements will be MiniMessage-escaped before application
      *
      * @param localeId     String identifier of the locale, corresponding to a key in the file
      * @param replacements Ordered array of replacement strings to fill in placeholders with
      * @return An {@link Optional} containing the replacement-applied, formatted locale corresponding to the id, if it exists
      */
-    public Optional<MineDown> getLocale(@NotNull String localeId, @NotNull String... replacements) {
+    public Optional<Component> getLocale(@NotNull String localeId, @NotNull String... replacements) {
         return getRawLocale(localeId, Arrays.stream(replacements).map(Locales::escapeText)
                 .toArray(String[]::new)).map(this::format);
     }
 
     /**
-     * Returns a MineDown-formatted string
+     * Returns a MiniMessage-formatted string
      *
      * @param text The text to format
-     * @return A {@link MineDown} object containing the formatted text
+     * @return A {@link Component} containing the formatted text
      */
     @NotNull
-    public MineDown format(@NotNull String text) {
-        return new MineDown(text);
+    public Component format(@NotNull String text) {
+        return MiniMessage.miniMessage().deserialize(text);
     }
 
     /**
@@ -133,26 +137,16 @@ public class Locales {
     }
 
     /**
-     * Escape a string from {@link MineDown} formatting for use in a MineDown-formatted locale
+     * Escape a string from MiniMessage formatting for use in a MiniMessage-formatted locale
      *
      * @param string The string to escape
      * @return The escaped string
      */
     @NotNull
     public static String escapeText(@NotNull String string) {
-        final StringBuilder value = new StringBuilder();
-        for (int i = 0; i < string.length(); ++i) {
-            char c = string.charAt(i);
-            boolean isEscape = c == '\\';
-            boolean isColorCode = i + 1 < string.length() && (c == 167 || c == '&');
-            boolean isEvent = c == '[' || c == ']' || c == '(' || c == ')';
-            if (isEscape || isColorCode || isEvent) {
-                value.append('\\');
-            }
-
-            value.append(c);
-        }
-        return value.toString();
+        return string.replace("\\", "\\\\")
+                .replace("<", "\\<")
+                .replace(">", "\\>");
     }
 
     /**
@@ -162,8 +156,8 @@ public class Locales {
      * @return The list options
      */
     @NotNull
-    public ListOptions.Builder getBaseChatList(int itemsPerPage) {
-        return new ListOptions.Builder()
+    public PaginatedList.Builder getBaseChatList(int itemsPerPage) {
+        return new PaginatedList.Builder()
                 .setFooterFormat(getRawLocale("list_footer",
                         "%previous_page_button%", "%current_page%",
                         "%total_pages%", "%next_page_button%", "%page_jumpers%").orElse(""))
@@ -179,10 +173,7 @@ public class Locales {
                         "%current_page%").orElse(""))
                 .setPageJumperPageSeparator(getRawLocale("list_page_jumper_separator").orElse(""))
                 .setPageJumperGroupSeparator(getRawLocale("list_page_jumper_group_separator").orElse(""))
-                .setItemsPerPage(itemsPerPage)
-                .setEscapeItemsMineDown(false)
-                .setSpaceAfterHeader(false)
-                .setSpaceBeforeFooter(false);
+                .setItemsPerPage(itemsPerPage);
     }
 
     /**

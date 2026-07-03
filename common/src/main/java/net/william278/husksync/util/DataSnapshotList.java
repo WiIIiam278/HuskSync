@@ -23,7 +23,6 @@ import net.william278.husksync.HuskSync;
 import net.william278.husksync.data.DataSnapshot;
 import net.william278.husksync.user.CommandUser;
 import net.william278.husksync.user.User;
-import net.william278.paginedown.PaginatedList;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.format.DateTimeFormatter;
@@ -45,7 +44,8 @@ public class DataSnapshotList {
     private DataSnapshotList(@NotNull List<DataSnapshot.Packed> snapshots, @NotNull User dataOwner,
                              @NotNull HuskSync plugin) {
         final AtomicInteger snapshotNumber = new AtomicInteger(1);
-        this.paginatedList = PaginatedList.of(snapshots.stream()
+        this.paginatedList = plugin.getLocales().getBaseChatList(6)
+                .setItems(snapshots.stream()
                         .map(snapshot -> plugin.getLocales()
                                 .getRawLocale(!snapshot.isInvalid() ? "data_list_item" : "data_list_item_invalid",
                                         getNumberIcon(snapshotNumber.getAndIncrement()),
@@ -60,14 +60,13 @@ public class DataSnapshotList {
                                         snapshot.getSaveCause().getLocale(plugin),
                                         String.format("%.2fKiB", snapshot.getFileSize(plugin) / 1024f),
                                         snapshot.isInvalid() ? snapshot.getInvalidReason(plugin) : "")
-                                .orElse("• " + snapshot.getId())).toList(),
-                plugin.getLocales().getBaseChatList(6)
-                        .setHeaderFormat(plugin.getLocales()
-                                .getRawLocale("data_list_title", dataOwner.getName(),
-                                        "%first_item_on_page_index%", "%last_item_on_page_index%", "%total_items%")
-                                .orElse(""))
-                        .setCommand("/husksync:userdata list " + dataOwner.getName())
-                        .build());
+                                .orElse("• " + snapshot.getId())).toList())
+                .setHeaderFormat(plugin.getLocales()
+                        .getRawLocale("data_list_title", dataOwner.getName(),
+                                "%first_item_on_page_index%", "%last_item_on_page_index%", "%total_items%")
+                        .orElse(""))
+                .setCommand("/husksync:userdata list " + dataOwner.getName())
+                .build();
     }
 
     /**

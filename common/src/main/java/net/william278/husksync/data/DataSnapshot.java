@@ -22,7 +22,7 @@ package net.william278.husksync.data;
 import com.google.common.collect.Maps;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
-import de.themoep.minedown.adventure.MineDown;
+import net.kyori.adventure.text.Component;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -1077,7 +1077,7 @@ public class DataSnapshot {
          * @param plugin plugin instance
          * @return the message
          */
-        public Optional<MineDown> getCompletedLocale(@NotNull HuskSync plugin) {
+        public Optional<Component> getCompletedLocale(@NotNull HuskSync plugin) {
             if (completedLocale() != null) {
                 return Optional.of(plugin.getLocales().getLocale(completedLocale())
                         .orElse(plugin.getLocales().format(getDisplayName())));
@@ -1091,7 +1091,7 @@ public class DataSnapshot {
          * @param plugin plugin instance
          * @return the message
          */
-        public Optional<MineDown> getFailedLocale(@NotNull HuskSync plugin) {
+        public Optional<Component> getFailedLocale(@NotNull HuskSync plugin) {
             if (failureLocale() != null) {
                 return Optional.of(plugin.getLocales().getLocale(failureLocale())
                         .orElse(plugin.getLocales().format(failureLocale())));

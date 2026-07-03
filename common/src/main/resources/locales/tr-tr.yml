@@ -1,71 +1,140 @@
+# MineDown formatting has been converted to MiniMessage
+# https://docs.advntr.dev/minimessage/index.html
 locales:
-  synchronization_complete: '[⏵ Veri senkronize edildi!](#00fb9a)'
-  synchronization_failed: '[⏵ Veriler senkronize edilemedi! Lütfen bir yönetici ile iletişime geçin.](#ff7e5e)'
-  inventory_viewer_menu_title: '&0%1%''ın Envanteri'
-  ender_chest_viewer_menu_title: '&0%1%''ın Ender Sandığı'
-  inventory_viewer_opened: '[Görüntülenen anlık](#00fb9a) [%1%](#00fb9a bold)[''ın envanteri ⌚ %2% tarihine kadar](#00fb9a)'
-  ender_chest_viewer_opened: '[Görüntülenen anlık](#00fb9a) [%1%](#00fb9a bold)[''ın Ender Sandığı ⌚ %2% tarihine kadar](#00fb9a)'
-  data_update_complete: '[🔔 Verileriniz güncellendi!](#00fb9a)'
-  data_update_failed: '[🔔 Verileriniz güncellenirken bir hata oluştu! Lütfen bir yönetici ile iletişime geçin.](#ff7e5e)'
-  user_registration_complete: '[⭐ Kullanıcı kaydı tamamlandı!](#00fb9a)'
-  data_manager_title: '[Kullanıcı veri anlık görünümü](#00fb9a) [%1%](#00fb9a show_text=&7Versiyon UUID:\n&8%2%) [için](#00fb9a) [%3%](#00fb9a bold show_text=&7Oyuncu UUID:\n&8%4%)[:](#00fb9a)'
-  data_manager_timestamp: '[⌚ %1%](#ffc43b-#f5c962 show_text=&7Versiyon zaman damgası:\n&8Verinin ne zaman kaydedildiği)'
-  data_manager_pinned: '[※ Anlık sabitlendi](#d8ff2b show_text=&7Sabitlendi:\n&8Bu kullanıcı veri anlığı otomatik olarak döndürülmeyecek.)'
-  data_manager_cause: '[⚑ %1%](#23a825-#36f539 show_text=&7Kaydetme sebebi:\n&8Verinin kaydedilme nedeni)'
-  data_manager_server: '[☁ %1%](#ff87b3-#f5538e show_text=&7Sunucu:\n&8Verinin kaydedildiği sunucu adı)'
-  data_manager_size: '[⏏ %1%](color=#62a9f5-#7ab8fa show_text=&7Anlık boyutu:\n&8Anlının tahmini dosya boyutu (KiB cinsinden))\n'
-  data_manger_status: '[%1%](red)[/](gray)[%2%](red)[×](gray)[❤](red show_text=&7Can puanı)   [%3%](yellow)[×](gray)[🍖](yellow show_text=&7Açlık puanı)   [ʟᴠ](green)[.](gray)[%4%](green show_text=&7XP seviyesi)   [🏹 %5%](dark_aqua show_text=&7Oyun modu)'
-  data_manager_advancements_statistics: '[⭐ Gelişmeler: %1%](color=#ffc43b-#f5c962 show_text=&7Gelişmelerdeki ilerlemeniz:\n&8%2%)   [⌛ Oynama Süresi: %3%s](color=#62a9f5-#7ab8fa show_text=&7Oyunda geçen süre\n&8⚠ Oyun içi istatistiklere dayanır)\n'
-  data_manager_item_buttons: '[Görünüm:](gray) [[🪣 Envanter…]](color=#a17b5f-#f5b98c show_text=&7Görüntülemek için tıklayın run_command=/inventory %1% %2%)   [[⌀ Ender Sandığı…]](#b649c4-#d254ff show_text=&7Görüntülemek için tıklayın run_command=/enderchest %1% %2%)'
-  data_manager_management_buttons: '[Yönet:](gray) [[❌ Sil…]](#ff3300 show_text=&7Bu kullanıcı veri anlığını silmek için tıklayın.\n&8Bu, kullanıcının mevcut verilerini etkilemez.\n&#ff3300&⚠ Geri alınamaz! suggest_command=/husksync:userdata delete %1% %2%)   [[⏪ Geri Yükle…]](#00fb9a show_text=&7Bu kullanıcı verisini geri yüklemek için tıklayın.\n&8Bu, kullanıcının verisini bu anlığa ayarlar.\n&#ff3300&⚠ %1%''nın mevcut verisi üzerine yazılacak! suggest_command=/husksync:userdata restore %1% %2%)   [[※ Sabitle/Çöz…]](#d8ff2b show_text=&7Bu kullanıcı veri anlığını sabitlemek veya çözmek için tıklayın\n&8Sabitlenmiş anlıklar otomatik olarak döndürülmez run_command=/userdata pin %1% %2%)'
-  data_manager_system_buttons: '[Sistem:](gray) [[⏷ Dosya Dök…]](dark_gray show_text=&7Bu ham kullanıcı veri anlığını bir dosyaya dökmek için tıklayın.\n&8Veri dökümleri ~/plugins/HuskSync/dumps/ klasöründe bulunabilir. run_command=/husksync:userdata dump %1% %2% file)   [[☂ Web Dök…]](dark_gray show_text=&7Bu ham kullanıcı veri anlığını mc-logs servisine dökme için tıklayın\n&8Verileri içeren bir URL ile sağlanacaksınız. run_command=/husksync:userdata dump %1% %2% web)'
-  data_manager_advancements_preview_remaining: 've %1% daha fazla…'
-  data_list_title: '[%1%''ın kullanıcı veri anlıkları:](#00fb9a) [(%2%-%3% /](#00fb9a) [%4%](#00fb9a bold)[)](#00fb9a)\n'
-  data_list_item: '[%1%](gray show_text=&7Oyuncu Veri Anlığı %2% için %3%&8⚡ %4% run_command=/userdata view %2% %3%) [%5%](#d8ff2b show_text=&7Sabitlendi:\n&8Sabitlenmiş anlıklar otomatik olarak döndürülmez. run_command=/userdata view %2% %3%) [%6%](color=#ffc43b-#f5c962 show_text=&7Versiyon zaman damgası:&7\n&8Verinin ne zaman kaydedildiği\n&8%7% run_command=/userdata view %2% %3%)   [⚑ %8%](#23a825-#36f539 show_text=&7Kaydetme sebebi:\n&8Verinin kaydedilme nedeni run_command=/userdata view %2% %3%)   [⏏ %9%](color=#62a9f5-#7ab8fa show_text=&7Anlık boyutu:&7\n&8Anlının tahmini dosya boyutu (KiB cinsinden) run_command=/userdata view %2% %3%)'
-  data_list_item_invalid: '[%1%](dark_gray show_text=&7User Data Snapshot for %2%\n&8⚡ %4% suggest_command=/userdata delete %2% %3%) [%5%](dark_gray show_text=&7Pinned:\n&8Pinned snapshots won''t be automatically rotated. suggest_command=/userdata delete %2% %3%) [%6%   ⚑ %8%   ⏏ %9%](gray strikethrough show_text=&#ff3300&Invalid Data Snapshot\n&#ff7e5e&Click to delete\n\n&7⚠ %10% suggest_command=/userdata delete %2% %3%)'
-  data_saved: '[Successfully saved a snapshot of %1%''s current user data.](#00fb9a)'
-  data_deleted: '[❌ Kullanıcı veri anlığı başarıyla silindi](#00fb9a) [%1%](#00fb9a show_text=&7Versiyon UUID:\n&8%2%) [için](#00fb9a) [%3%.](#00fb9a show_text=&7Oyuncu UUID:\n&8%4%)'
-  data_restored: '[⏪ Başarıyla geri yüklendi](#00fb9a) [%1%](#00fb9a show_text=&7Oyuncu UUID:\n&8%2%)[''ın mevcut kullanıcı verisi anlığından](#00fb9a) [%3%.](#00fb9a show_text=&7Versiyon UUID:\n&8%4%)'
-  data_pinned: '[※ Kullanıcı veri anlığı başarıyla sabitlendi](#00fb9a) [%1%](#00fb9a show_text=&7Versiyon UUID:\n&8%2%) [için](#00fb9a) [%3%.](#00fb9a show_text=&7Oyuncu UUID:\n&8%4%)'
-  data_unpinned: '[※ Kullanıcı veri anlığı başarıyla çözüldü](#00fb9a) [%1%](#00fb9a show_text=&7Versiyon UUID:\n&8%2%) [için](#00fb9a) [%3%.](#00fb9a show_text=&7Oyuncu UUID:\n&8%4%)'
-  data_dumped: '[☂ Kullanıcı veri anlığı başarıyla döküldü %1% için %2%:](#00fb9a)'
-  list_footer: '\n%1%[Sayfa](#00fb9a) [%2%](#00fb9a)/[%3%](#00fb9a)%4%   %5%'
-  list_previous_page_button: '[◀](white show_text=&7Önceki sayfayı görüntüle run_command=%2% %1%) '
-  list_next_page_button: ' [▶](white show_text=&7Sonraki sayfayı görüntüle run_command=%2% %1%)'
-  list_page_jumpers: '(%1%)'
-  list_page_jumper_button: '[%1%](show_text=&7Sayfaya git %1% run_command=%2% %1%)'
-  list_page_jumper_current_page: '[%1%](#00fb9a)'
+  synchronization_complete: <color:#00fb9a>⏵ Veri senkronize edildi!</color>
+  synchronization_failed: <color:#ff7e5e>⏵ Veriler senkronize edilemedi! Lütfen bir yönetici ile iletişime geçin.</color>
+  inventory_viewer_menu_title: <black>%1%'ın Envanteri
+  ender_chest_viewer_menu_title: <black>%1%'ın Ender Sandığı
+  inventory_viewer_opened: <color:#00fb9a>Görüntülenen anlık</color> <bold><color:#00fb9a>%1%</color></bold><color:#00fb9a>'ın envanteri ⌚ %2% tarihine kadar</color>
+  ender_chest_viewer_opened: <color:#00fb9a>Görüntülenen anlık</color> <bold><color:#00fb9a>%1%</color></bold><color:#00fb9a>'ın Ender Sandığı ⌚ %2% tarihine kadar</color>
+  data_update_complete: <color:#00fb9a>🔔 Verileriniz güncellendi!</color>
+  data_update_failed: <color:#ff7e5e>🔔 Verileriniz güncellenirken bir hata oluştu! Lütfen bir yönetici ile iletişime geçin.</color>
+  user_registration_complete: <color:#00fb9a>⭐ Kullanıcı kaydı tamamlandı!</color>
+  data_manager_title: '<color:#00fb9a>Kullanıcı veri anlık görünümü</color> <color:#00fb9a><hover:show_text:''<gray>Versiyon UUID:
+
+    <dark_gray>%2%''>%1%</hover></color> <color:#00fb9a>için</color> <bold><color:#00fb9a><hover:show_text:''<gray>Oyuncu UUID:
+
+    <dark_gray>%4%''>%3%</hover></color></bold><color:#00fb9a>:</color>'
+  data_manager_timestamp: '<hover:show_text:''<gray>Versiyon zaman damgası:
+
+    <dark_gray>Verinin ne zaman kaydedildiği''>⌚ %1%</hover>'
+  data_manager_pinned: '<color:#d8ff2b><hover:show_text:''<gray>Sabitlendi:
+
+    <dark_gray>Bu kullanıcı veri anlığı otomatik olarak döndürülmeyecek.''>※ Anlık sabitlendi</hover></color>'
+  data_manager_cause: '<hover:show_text:''<gray>Kaydetme sebebi:
+
+    <dark_gray>Verinin kaydedilme nedeni''>⚑ %1%</hover>'
+  data_manager_server: '<hover:show_text:''<gray>Sunucu:
+
+    <dark_gray>Verinin kaydedildiği sunucu adı''>☁ %1%</hover>'
+  data_manager_size: '<gradient:#62a9f5:#7ab8fa><hover:show_text:''<gray>Anlık boyutu:
+
+    <dark_gray>Anlının tahmini dosya boyutu (KiB cinsinden)''>⏏ %1%</hover></gradient>\n'
+  data_manger_status: <red>%1%</red><gray>/</gray><red>%2%</red><gray>×</gray><red><hover:show_text:'<gray>Can puanı'>❤</hover></red>   <yellow>%3%</yellow><gray>×</gray><yellow><hover:show_text:'<gray>Açlık puanı'>🍖</hover></yellow>   <green>ʟᴠ</green><gray>.</gray><green><hover:show_text:'<gray>XP seviyesi'>%4%</hover></green>   <dark_aqua><hover:show_text:'<gray>Oyun modu'>🏹 %5%</hover></dark_aqua>
+  data_manager_advancements_statistics: '<gradient:#ffc43b:#f5c962><hover:show_text:''<gray>Gelişmelerdeki ilerlemeniz:
+
+    <dark_gray>%2%''>⭐ Gelişmeler: %1%</hover></gradient>   <gradient:#62a9f5:#7ab8fa><hover:show_text:''<gray>Oyunda geçen süre
+
+    <dark_gray>⚠ Oyun içi istatistiklere dayanır''>⌛ Oynama Süresi: %3%s</hover></gradient>\n'
+  data_manager_item_buttons: <gray>Görünüm:</gray> <gradient:#a17b5f:#f5b98c><click:run_command:'/inventory'><hover:show_text:'<gray>Görüntülemek için tıklayın'>[🪣 Envanter…]</hover></click></gradient>   <click:run_command:'/enderchest'><hover:show_text:'<gray>Görüntülemek için tıklayın'>[⌀ Ender Sandığı…]</hover></click>
+  data_manager_management_buttons: '<gray>Yönet:</gray> <color:#ff3300><click:suggest_command:''/husksync:userdata''><hover:show_text:''<gray>Bu kullanıcı veri anlığını silmek için tıklayın.
+
+    <dark_gray>Bu, kullanıcının mevcut verilerini etkilemez.
+
+    <color:#ff3300>&⚠ Geri alınamaz!''>[❌ Sil…]</hover></click></color>   <color:#00fb9a><click:suggest_command:''/husksync:userdata''><hover:show_text:''<gray>Bu kullanıcı verisini geri yüklemek için tıklayın.
+
+    <dark_gray>Bu, kullanıcının verisini bu anlığa ayarlar.
+
+    <color:#ff3300>&⚠ %1%\''nın mevcut verisi üzerine yazılacak!''>[⏪ Geri Yükle…]</hover></click></color>   <color:#d8ff2b><click:run_command:''/userdata''><hover:show_text:''<gray>Bu kullanıcı veri anlığını sabitlemek veya çözmek için tıklayın
+
+    <dark_gray>Sabitlenmiş anlıklar otomatik olarak döndürülmez''>[※ Sabitle/Çöz…]</hover></click></color>'
+  data_manager_system_buttons: '<gray>Sistem:</gray> <dark_gray><click:run_command:''/husksync:userdata''><hover:show_text:''<gray>Bu ham kullanıcı veri anlığını bir dosyaya dökmek için tıklayın.
+
+    <dark_gray>Veri dökümleri ~/plugins/HuskSync/dumps/ klasöründe bulunabilir.''>[⏷ Dosya Dök…]</hover></click></dark_gray>   <dark_gray><click:run_command:''/husksync:userdata''><hover:show_text:''<gray>Bu ham kullanıcı veri anlığını mc-logs servisine dökme için tıklayın
+
+    <dark_gray>Verileri içeren bir URL ile sağlanacaksınız.''>[☂ Web Dök…]</hover></click></dark_gray>'
+  data_manager_advancements_preview_remaining: ve %1% daha fazla…
+  data_list_title: <color:#00fb9a>%1%'ın kullanıcı veri anlıkları:</color> <color:#00fb9a>(%2%-%3% /</color> <bold><color:#00fb9a>%4%</color></bold><color:#00fb9a>)</color>\n
+  data_list_item: '<gray><click:run_command:''/userdata''><hover:show_text:''<gray>Oyuncu Veri Anlığı %2% için %3%<dark_gray>⚡ %4%''>%1%</hover></click></gray> <color:#d8ff2b><click:run_command:''/userdata''><hover:show_text:''<gray>Sabitlendi:
+
+    <dark_gray>Sabitlenmiş anlıklar otomatik olarak döndürülmez.''>%5%</hover></click></color> <gradient:#ffc43b:#f5c962><click:run_command:''/userdata''><hover:show_text:''<gray>Versiyon zaman damgası:<gray>
+
+    <dark_gray>Verinin ne zaman kaydedildiği
+
+    <dark_gray>%7%''>%6%</hover></click></gradient>   <click:run_command:''/userdata''><hover:show_text:''<gray>Kaydetme sebebi:
+
+    <dark_gray>Verinin kaydedilme nedeni''>⚑ %8%</hover></click>   <gradient:#62a9f5:#7ab8fa><click:run_command:''/userdata''><hover:show_text:''<gray>Anlık boyutu:<gray>
+
+    <dark_gray>Anlının tahmini dosya boyutu (KiB cinsinden)''>⏏ %9%</hover></click></gradient>'
+  data_list_item_invalid: '<dark_gray><click:suggest_command:''/userdata''><hover:show_text:''<gray>User Data Snapshot for %2%
+
+    <dark_gray>⚡ %4%''>%1%</hover></click></dark_gray> <dark_gray><click:suggest_command:''/userdata''><hover:show_text:''<gray>Pinned:
+
+    <dark_gray>Pinned snapshots won\''t be automatically rotated.''>%5%</hover></click></dark_gray> <strikethrough><gray><click:suggest_command:''/userdata''><hover:show_text:''<color:#ff3300>&Invalid Data Snapshot
+
+    <color:#ff7e5e><red>lick to delete
+
+
+    <gray>⚠ %10%''>%6%   ⚑ %8%   ⏏ %9%</hover></click></gray></strikethrough>'
+  data_saved: <color:#00fb9a>Successfully saved a snapshot of %1%'s current user data.</color>
+  data_deleted: '<color:#00fb9a>❌ Kullanıcı veri anlığı başarıyla silindi</color> <color:#00fb9a><hover:show_text:''<gray>Versiyon UUID:
+
+    <dark_gray>%2%''>%1%</hover></color> <color:#00fb9a>için</color> <color:#00fb9a><hover:show_text:''<gray>Oyuncu UUID:
+
+    <dark_gray>%4%''>%3%.</hover></color>'
+  data_restored: '<color:#00fb9a>⏪ Başarıyla geri yüklendi</color> <color:#00fb9a><hover:show_text:''<gray>Oyuncu UUID:
+
+    <dark_gray>%2%''>%1%</hover></color><color:#00fb9a>''ın mevcut kullanıcı verisi anlığından</color> <color:#00fb9a><hover:show_text:''<gray>Versiyon UUID:
+
+    <dark_gray>%4%''>%3%.</hover></color>'
+  data_pinned: '<color:#00fb9a>※ Kullanıcı veri anlığı başarıyla sabitlendi</color> <color:#00fb9a><hover:show_text:''<gray>Versiyon UUID:
+
+    <dark_gray>%2%''>%1%</hover></color> <color:#00fb9a>için</color> <color:#00fb9a><hover:show_text:''<gray>Oyuncu UUID:
+
+    <dark_gray>%4%''>%3%.</hover></color>'
+  data_unpinned: '<color:#00fb9a>※ Kullanıcı veri anlığı başarıyla çözüldü</color> <color:#00fb9a><hover:show_text:''<gray>Versiyon UUID:
+
+    <dark_gray>%2%''>%1%</hover></color> <color:#00fb9a>için</color> <color:#00fb9a><hover:show_text:''<gray>Oyuncu UUID:
+
+    <dark_gray>%4%''>%3%.</hover></color>'
+  data_dumped: <color:#00fb9a>☂ Kullanıcı veri anlığı başarıyla döküldü %1% için %2%:</color>
+  list_footer: \n%1%<color:#00fb9a>Sayfa</color> <color:#00fb9a>%2%</color>/<color:#00fb9a>%3%</color>%4%   %5%
+  list_previous_page_button: '<white><click:run_command:''%2%''><hover:show_text:''<gray>Önceki sayfayı görüntüle''>◀</hover></click></white> '
+  list_next_page_button: ' <white><click:run_command:''%2%''><hover:show_text:''<gray>Sonraki sayfayı görüntüle''>▶</hover></click></white>'
+  list_page_jumpers: (%1%)
+  list_page_jumper_button: <click:run_command:'%2%'><hover:show_text:'<gray>Sayfaya git %1%'>%1%</hover></click>
+  list_page_jumper_current_page: <color:#00fb9a>%1%</color>
   list_page_jumper_separator: ' '
-  list_page_jumper_group_separator: '…'
-  save_cause_disconnect: 'bağlantı kesilmesi'
-  save_cause_world_save: 'dünya kaydı'
-  save_cause_death: 'ölüm'
-  save_cause_server_shutdown: 'sunucu kapatma'
-  save_cause_save_command: 'save command'
-  save_cause_dump_command: 'dump command'
-  save_cause_inventory_command: 'envanter komutu'
-  save_cause_enderchest_command: 'ender sandığı komutu'
-  save_cause_backup_restore: 'yedek geri yükleme'
-  save_cause_api: 'API'
-  save_cause_mpdb_migration: 'MPDB migration'
-  save_cause_legacy_migration: 'legacy migration'
-  save_cause_converted_from_v2: 'v2 den dönüştürüldü'
-  up_to_date: '[HuskSync](#00fb9a bold) [| HuskSync\''in en son sürümünü kullanıyorsunuz (v%1%).](#00fb9a)'
-  update_available: '[HuskSync](#ff7e5e bold) [| HuskSync\''in yeni bir sürümü mevcut: v%1% (kullanılan sürüm: v%2%).](#ff7e5e)'
-  reload_complete: '[HuskSync](#00fb9a bold) [| Yapılandırma ve mesaj dosyaları yeniden yüklendi.](#00fb9a)\n[⚠ Lütfen yapılandırma dosyalarının tüm sunucularda güncel olduğundan emin olun!](#00fb9a)\n[Yapılandırma değişikliklerinin etkili olabilmesi için bir yeniden başlatma gereklidir.](#00fb9a italic)'
-  system_status_header: '[HuskSync](#00fb9a bold) [| Sistem durumu raporu:](#00fb9a)'
-  system_dump_confirm: '[HuskSync](#00fb9a bold) [| Prepare a system dump? This will include:](#00fb9a)\n[• Your latest server logs and HuskSync config files](gray)\n[• Current plugin system status information](gray)\n[• Information about your Java & Minecraft server environment](gray)\n[• A list of other currently installed plugins](gray)\n[To confirm, use:](#00fb9a) [/husksync dump confirm](#00fb9a italic show_text=&7Click to prepare dump run_command=/husksync dump confirm)'
-  system_dump_started: '[HuskSync](#00fb9a bold) [| Preparing system status dump, please wait…](#00fb9a)'
-  system_dump_ready: '[HuskSync](#00fb9a bold) [| System status dump prepared! Click to view:](#00fb9a)'
-  error_invalid_syntax: '[Hata:](#ff3300) [Yanlış sözdizimi. Kullanım:](#ff7e5e) [%1%](#ff7e5e italic show_text=&#ff7e5e&Öneri için tıklayın Suggest_command=%1%)'
-  error_invalid_player: '[Hata:](#ff3300) [Bu isimde bir oyuncu bulunamadı.](#ff7e5e)'
-  error_invalid_data: '[Error:](#ff3300) [Failed to unpack user data as the snapshot is invalid or corrupt.](#ff7e5e) [(Details…)](gray show_text=&7⚠ %1%)'
-  error_no_permission: '[Hata:](#ff3300) [Bu komutu gerçekleştirmek için izniniz yok](#ff7e5e)'
-  error_console_command_only: '[Hata:](#ff3300) [Bu komut yalnızca konsoldan çalıştırılabilir](#ff7e5e)'
+  list_page_jumper_group_separator: …
+  save_cause_disconnect: bağlantı kesilmesi
+  save_cause_world_save: dünya kaydı
+  save_cause_death: ölüm
+  save_cause_server_shutdown: sunucu kapatma
+  save_cause_save_command: save command
+  save_cause_dump_command: dump command
+  save_cause_inventory_command: envanter komutu
+  save_cause_enderchest_command: ender sandığı komutu
+  save_cause_backup_restore: yedek geri yükleme
+  save_cause_api: API
+  save_cause_mpdb_migration: MPDB migration
+  save_cause_legacy_migration: legacy migration
+  save_cause_converted_from_v2: v2 den dönüştürüldü
+  up_to_date: <bold><color:#00fb9a>HuskSync</color></bold> <color:#00fb9a>| HuskSync\'in en son sürümünü kullanıyorsunuz (v%1%).</color>
+  update_available: '<bold><color:#ff7e5e>HuskSync</color></bold> <color:#ff7e5e>| HuskSync\''in yeni bir sürümü mevcut: v%1% (kullanılan sürüm: v%2%).</color>'
+  reload_complete: <bold><color:#00fb9a>HuskSync</color></bold> <color:#00fb9a>| Yapılandırma ve mesaj dosyaları yeniden yüklendi.</color>\n<color:#00fb9a>⚠ Lütfen yapılandırma dosyalarının tüm sunucularda güncel olduğundan emin olun!</color>\n<italic><color:#00fb9a>Yapılandırma değişikliklerinin etkili olabilmesi için bir yeniden başlatma gereklidir.</color></italic>
+  system_status_header: <bold><color:#00fb9a>HuskSync</color></bold> <color:#00fb9a>| Sistem durumu raporu:</color>
+  system_dump_confirm: <bold><color:#00fb9a>HuskSync</color></bold> <color:#00fb9a>| Prepare a system dump? This will include:</color>\n<gray>• Your latest server logs and HuskSync config files</gray>\n<gray>• Current plugin system status information</gray>\n<gray>• Information about your Java & Minecraft server environment</gray>\n<gray>• A list of other currently installed plugins</gray>\n<color:#00fb9a>To confirm, use:</color> <italic><color:#00fb9a><click:run_command:'/husksync'><hover:show_text:'<gray>Click to prepare dump'>/husksync dump confirm</hover></click></color></italic>
+  system_dump_started: <bold><color:#00fb9a>HuskSync</color></bold> <color:#00fb9a>| Preparing system status dump, please wait…</color>
+  system_dump_ready: <bold><color:#00fb9a>HuskSync</color></bold> <color:#00fb9a>| System status dump prepared! Click to view:</color>
+  error_invalid_syntax: <color:#ff3300>Hata:</color> <color:#ff7e5e>Yanlış sözdizimi. Kullanım:</color> <italic><color:#ff7e5e><hover:show_text:'<color:#ff7e5e>&Öneri için tıklayın Suggest_command=%1%'>%1%</hover></color></italic>
+  error_invalid_player: <color:#ff3300>Hata:</color> <color:#ff7e5e>Bu isimde bir oyuncu bulunamadı.</color>
+  error_invalid_data: <color:#ff3300>Error:</color> <color:#ff7e5e>Failed to unpack user data as the snapshot is invalid or corrupt.</color> <gray><hover:show_text:'<gray>⚠ %1%'>(Details…)</hover></gray>
+  error_no_permission: <color:#ff3300>Hata:</color> <color:#ff7e5e>Bu komutu gerçekleştirmek için izniniz yok</color>
+  error_console_command_only: <color:#ff3300>Hata:</color> <color:#ff7e5e>Bu komut yalnızca konsoldan çalıştırılabilir</color>
   error_in_game_command_only: 'Hata: Bu komut yalnızca oyun içinde kullanılabilir.'
-  error_no_data_to_display: '[Hata:](#ff3300) [Görüntülenecek kullanıcı verisi bulunamadı.](#ff7e5e)'
-  error_invalid_version_uuid: '[Hata:](#ff3300) [Bu sürüm UUID''si için kullanıcı verisi bulunamadı.](#ff7e5e)'
-  husksync_command_description: 'HuskSync eklentisini yönet'
-  userdata_command_description: 'Oyuncu verilerini görüntüle, yönet ve geri yükle'
-  inventory_command_description: 'Oyuncunun envanterini görüntüle ve düzenle'
-  enderchest_command_description: 'Oyuncunun Ender Chest''ini görüntüle ve düzenle'
+  error_no_data_to_display: <color:#ff3300>Hata:</color> <color:#ff7e5e>Görüntülenecek kullanıcı verisi bulunamadı.</color>
+  error_invalid_version_uuid: <color:#ff3300>Hata:</color> <color:#ff7e5e>Bu sürüm UUID'si için kullanıcı verisi bulunamadı.</color>
+  husksync_command_description: HuskSync eklentisini yönet
+  userdata_command_description: Oyuncu verilerini görüntüle, yönet ve geri yükle
+  inventory_command_description: Oyuncunun envanterini görüntüle ve düzenle
+  enderchest_command_description: Oyuncunun Ender Chest'ini görüntüle ve düzenle

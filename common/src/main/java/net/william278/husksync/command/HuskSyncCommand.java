@@ -21,14 +21,12 @@ package net.william278.husksync.command;
 
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import de.themoep.minedown.adventure.MineDown;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.JoinConfiguration;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
-import net.william278.desertwell.about.AboutMenu;
 import net.william278.desertwell.util.UpdateChecker;
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.data.DataSnapshot;
@@ -53,45 +51,92 @@ import java.util.stream.Collectors;
 public class HuskSyncCommand extends PluginCommand {
 
     private final UpdateChecker updateChecker;
-    private final AboutMenu aboutMenu;
+    private final Component aboutMenu;
 
     public HuskSyncCommand(@NotNull HuskSync plugin) {
         super("husksync", List.of(), Permission.Default.TRUE, ExecutionScope.ALL, plugin);
         this.updateChecker = plugin.getUpdateChecker();
-        this.aboutMenu = AboutMenu.builder()
-                .title(Component.text("HuskSync"))
-                .description(Component.text("A modern, cross-server player data synchronization system"))
-                .version(plugin.getPluginVersion())
-                .credits("Author",
-                        AboutMenu.Credit.of("William278").description("Click to visit website").url("https://william278.net"))
-                .credits("Contributors",
-                        AboutMenu.Credit.of("HarvelsX").description("Code"),
-                        AboutMenu.Credit.of("HookWoods").description("Code"),
-                        AboutMenu.Credit.of("Preva1l").description("Code"),
-                        AboutMenu.Credit.of("hanbings").description("Code (Fabric porting)"),
-                        AboutMenu.Credit.of("Stampede2011").description("Code (Fabric mixins)"),
-                        AboutMenu.Credit.of("VinerDream").description("Code"))
-                .credits("Translators",
-                        AboutMenu.Credit.of("Namiu").description("Japanese (ja-jp)"),
-                        AboutMenu.Credit.of("anchelthe").description("Spanish (es-es)"),
-                        AboutMenu.Credit.of("Melonzio").description("Spanish (es-es)"),
-                        AboutMenu.Credit.of("Ceddix").description("German (de-de)"),
-                        AboutMenu.Credit.of("Pukejoy_1").description("Bulgarian (bg-bg)"),
-                        AboutMenu.Credit.of("mateusneresrb").description("Brazilian Portuguese (pt-br)"),
-                        AboutMenu.Credit.of("小蔡").description("Traditional Chinese (zh-tw)"),
-                        AboutMenu.Credit.of("Ghost-chu").description("Simplified Chinese (zh-cn)"),
-                        AboutMenu.Credit.of("DJelly4K").description("Simplified Chinese (zh-cn)"),
-                        AboutMenu.Credit.of("Thourgard").description("Ukrainian (uk-ua)"),
-                        AboutMenu.Credit.of("xF3d3").description("Italian (it-it)"),
-                        AboutMenu.Credit.of("cada3141").description("Korean (ko-kr)"),
-                        AboutMenu.Credit.of("Wirayuda5620").description("Indonesian (id-id)"),
-                        AboutMenu.Credit.of("WinTone01").description("Turkish (tr-tr)"),
-                        AboutMenu.Credit.of("IbanEtchep").description("French (fr-fr)"))
-                .buttons(
-                        AboutMenu.Link.of("https://william278.net/docs/husksync").text("Documentation").icon("⛏"),
-                        AboutMenu.Link.of("https://github.com/WiIIiam278/HuskSync/issues").text("Issues").icon("❌").color(TextColor.color(0xff9f0f)),
-                        AboutMenu.Link.of("https://discord.gg/tVYhJfyDWG").text("Discord").icon("⭐").color(TextColor.color(0x6773f5)))
-                .build();
+        this.aboutMenu = buildAboutMenu(plugin);
+    }
+
+    @NotNull
+    private static Component buildAboutMenu(@NotNull HuskSync plugin) {
+        final TextColor primary = TextColor.color(0x00fb9a);
+        final TextColor gray = TextColor.color(0x808080);
+
+        return Component.join(JoinConfiguration.newlines(),
+                // Title
+                Component.textOfChildren(
+                        Component.text("HuskSync", primary, TextDecoration.BOLD),
+                        Component.text(" v" + plugin.getPluginVersion(), NamedTextColor.GRAY)
+                ),
+                // Description
+                Component.text("A modern, cross-server player data synchronization system", gray),
+                Component.empty(),
+                // Credits
+                buildCredits("Author",
+                        Component.text("William278", primary)
+                                .hoverEvent(Component.text("Click to visit website", gray))
+                                .clickEvent(ClickEvent.openUrl("https://william278.net"))),
+                buildCredits("Contributors",
+                        credit("HarvelsX", "Code"),
+                        credit("HookWoods", "Code"),
+                        credit("Preva1l", "Code"),
+                        credit("hanbings", "Code (Fabric porting)"),
+                        credit("Stampede2011", "Code (Fabric mixins)"),
+                        credit("VinerDream", "Code")),
+                buildCredits("Translators",
+                        credit("Namiu", "Japanese (ja-jp)"),
+                        credit("anchelthe", "Spanish (es-es)"),
+                        credit("Melonzio", "Spanish (es-es)"),
+                        credit("Ceddix", "German (de-de)"),
+                        credit("Pukejoy_1", "Bulgarian (bg-bg)"),
+                        credit("mateusneresrb", "Brazilian Portuguese (pt-br)"),
+                        credit("小蔡", "Traditional Chinese (zh-tw)"),
+                        credit("Ghost-chu", "Simplified Chinese (zh-cn)"),
+                        credit("DJelly4K", "Simplified Chinese (zh-cn)"),
+                        credit("Thourgard", "Ukrainian (uk-ua)"),
+                        credit("xF3d3", "Italian (it-it)"),
+                        credit("cada3141", "Korean (ko-kr)"),
+                        credit("Wirayuda5620", "Indonesian (id-id)"),
+                        credit("WinTone01", "Turkish (tr-tr)"),
+                        credit("IbanEtchep", "French (fr-fr)")),
+                Component.empty(),
+                // Buttons
+                Component.textOfChildren(
+                        link("⛏ Documentation", "https://william278.net/docs/husksync"),
+                        Component.text("  ", gray),
+                        link("❌ Issues", "https://github.com/WiIIiam278/HuskSync/issues", TextColor.color(0xff9f0f)),
+                        Component.text("  ", gray),
+                        link("⭐ Discord", "https://discord.gg/tVYhJfyDWG", TextColor.color(0x6773f5))
+                )
+        );
+    }
+
+    @NotNull
+    private static Component buildCredits(@NotNull String title, @NotNull Component... credits) {
+        return Component.textOfChildren(
+                Component.text(title + ": ", TextColor.color(0x00fb9a), TextDecoration.BOLD),
+                Component.join(JoinConfiguration.commas(true), credits)
+        );
+    }
+
+    @NotNull
+    private static Component credit(@NotNull String name, @NotNull String description) {
+        return Component.text(name, NamedTextColor.GRAY)
+                .hoverEvent(Component.text(description, TextColor.color(0x808080)));
+    }
+
+    @NotNull
+    private static Component link(@NotNull String text, @NotNull String url) {
+        return link(text, url, NamedTextColor.GRAY);
+    }
+
+    @NotNull
+    private static Component link(@NotNull String text, @NotNull String url, @NotNull TextColor color) {
+        return Component.text(text, color, TextDecoration.UNDERLINED)
+                .hoverEvent(Component.text("Click to open link", TextColor.color(0x808080)))
+                .clickEvent(ClickEvent.openUrl(url));
     }
 
     @Override
@@ -107,7 +152,7 @@ public class HuskSyncCommand extends PluginCommand {
     }
 
     private void about(@NotNull BaseCommand<?> c, @NotNull CommandContext<?> ctx) {
-        user(c, ctx).getAudience().sendMessage(aboutMenu.toComponent());
+        user(c, ctx).getAudience().sendMessage(aboutMenu);
     }
 
     @NotNull
@@ -152,8 +197,8 @@ public class HuskSyncCommand extends PluginCommand {
                 plugin.loadServer();
                 plugin.getLocales().getLocale("reload_complete").ifPresent(user::sendMessage);
             } catch (Throwable e) {
-                user.sendMessage(new MineDown(
-                        "[Error:](#ff3300) [Failed to reload the plugin. Check console for errors.](#ff7e5e)"
+                user.sendMessage(plugin.getLocales().format(
+                        "<red>Error:</red> <gold>Failed to reload the plugin. Check console for errors.</gold>"
                 ));
                 plugin.log(Level.SEVERE, "Failed to reload the plugin", e);
             }

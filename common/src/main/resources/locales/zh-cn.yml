@@ -1,71 +1,140 @@
+# MineDown formatting has been converted to MiniMessage
+# https://docs.advntr.dev/minimessage/index.html
 locales:
-  synchronization_complete: '[⏵ 数据同步完成!](#00fb9a)'
-  synchronization_failed: '[⏵ 无法同步你的数据! 请联系管理员.](#ff7e5e)'
-  inventory_viewer_menu_title: '&0%1% 的背包'
-  ender_chest_viewer_menu_title: '&0%1% 的末影箱'
-  inventory_viewer_opened: '[查看备份](#00fb9a) [%1%](#00fb9a bold) [于 ⌚ %2% 的背包备份](#00fb9a)'
-  ender_chest_viewer_opened: '[查看备份](#00fb9a) [%1%](#00fb9a bold) [于 ⌚ %2% 的末影箱备份](#00fb9a)'
-  data_update_complete: '[🔔 你的数据已更新!](#00fb9a)'
-  data_update_failed: '[🔔 无法更新你的数据! 请联系管理员.](#ff7e5e)'
-  user_registration_complete: '[⭐ 用户注册完成!](#00fb9a)'
-  data_manager_title: '[正在查看玩家](#00fb9a) [%3%](#00fb9a bold show_text=&7玩家UUID:\n&8%4%) [的数据备份](#00fb9a) [%1%](#00fb9a show_text=&7备份版本UUID:\n&8%2%)[:](#00fb9a)'
-  data_manager_timestamp: '[⌚ %1%](#ffc43b-#f5c962 show_text=&7备份时间:\n&8数据保存时间)'
-  data_manager_pinned: '[※ 置顶备份](#d8ff2b show_text=&7已置顶:\n&8此玩家数据备份不会按照备份时间自动排序.)'
-  data_manager_cause: '[⚑ %1%](#23a825-#36f539 show_text=&7保存原因:\n&8导致数据保存的原因)'
-  data_manager_server: '[☁ %1%](#ff87b3-#f5538e show_text=&7服务器:\n&8数据保存所在服务器的名称)'
-  data_manager_size: '[⏏ %1%](color=#62a9f5-#7ab8fa show_text=&7备份大小:\n&8预计备份的文件大小(以KiB为单位))\n'
-  data_manger_status: '[%1%](red)[/](gray)[%2%](red)[×](gray)[❤](red show_text=&7生命值)   [%3%](yellow)[×](gray)[🍖](yellow show_text=&7饥饿值)   [ʟᴠ](green)[.](gray)[%4%](green show_text=&7经验等级)   [🏹 %5%](dark_aqua show_text=&7游戏模式)'
-  data_manager_advancements_statistics: '[⭐ 进度: %1%](color=#ffc43b-#f5c962 show_text=&7你已经取得的进度:\n&8%2%)   [⌛ 游玩时间: %3%小时](color=#62a9f5-#7ab8fa show_text=&7在游戏内游玩的时间\n&8⚠ 基于游戏内的统计信息)\n'
-  data_manager_item_buttons: '[查看:](gray) [[🪣 背包…]](color=#a17b5f-#f5b98c show_text=&7点击查看 run_command=/inventory %1% %2%)   [[⌀ 末影箱…]](#b649c4-#d254ff show_text=&7点击查看 run_command=/enderchest %1% %2%)'
-  data_manager_management_buttons: '[管理:](gray) [[❌ 删除…]](#ff3300 show_text=&7点击删除此玩家数据备份.\n&8这不会影响用户的当前数据.\n&#ff3300&⚠ 此操作无法撤消! suggest_command=/husksync:userdata delete %1% %2%)   [[⏪ 恢复…]](#00fb9a show_text=&7点击还原此玩家数据.\n&8这将使用户的数据恢复到此备份.\n&#ff3300&⚠ %1%当前数据将被覆盖! suggest_command=/husksync:userdata restore %1% %2%)   [[※ 置顶/取消置顶…]](#d8ff2b show_text=&7点击置顶或取消置顶此玩家数据备份\n&8已置顶的备份不会按照备份时间自动排序 run_command=/userdata pin %1% %2%)'
-  data_manager_system_buttons: '[系统:](gray) [[⏷ 文件转储…]](dark_gray show_text=&7点击将此原始玩家数据备份转储到文件中.\n&8数据转储可以在~/plugins/HuskSync/dumps/中找到 run_command=/husksync:userdata dump %1% %2% file)   [[☂ 网络转储…]](dark_gray show_text=&7点击将此原始玩家数据备份转储到mc-logs服务中\n&8你将获得包含数据的网址. run_command=/husksync:userdata dump %1% %2% web)'
-  data_manager_advancements_preview_remaining: '以及其他 %1%…'
-  data_list_title: '[%1%的玩家数据备份:](#00fb9a) [(%2%-%3% of](#00fb9a) [%4%](#00fb9a bold)[)](#00fb9a)\n'
-  data_list_item: '[%1%](gray show_text=&7玩家数据备份 %2%&8⚡ %4% run_command=/userdata view %2% %3%) [%5%](#d8ff2b show_text=&7已置顶:\n&8已置顶的备份不会按照备份时间自动排序 run_command=/userdata view %2% %3%) [%6%](color=#ffc43b-#f5c962 show_text=&7备份时间:&7\n&8数据保存时间\n&8%7% run_command=/userdata view %2% %3%)   [⚑ %8%](#23a825-#36f539 show_text=&7保存原因:\n&8导致数据保存的原因 run_command=/userdata view %2% %3%)   [⏏ %9%](color=#62a9f5-#7ab8fa show_text=&7备份大小:&7\n&8预计备份文件大小(以KiB为单位) run_command=/userdata view %2% %3%)'
-  data_list_item_invalid: '[%1%](dark_gray show_text=&7%2%的用户数据快照\n&8⚡ %4% suggest_command=/userdata delete %2% %3%) [%5%](dark_gray show_text=&7置顶:\n&8已置顶的快照不会自动排序. suggest_command=/userdata delete %2% %3%) [%6%   ⚑ %8%   ⏏ %9%](gray strikethrough show_text=&#ff3300&无效的快照数据\n&#ff7e5e&点击删除\n\n&7⚠ %10% suggest_command=/userdata delete %2% %3%)'
-  data_saved: '[已成功保存 %1% 的当前用户数据快照.](#00fb9a)'
-  data_deleted: '[❌ 成功删除玩家](#00fb9a) [%3%](#00fb9a show_text=&7玩家 UUID:\n&7%4%) [的数据备份](#00fb9a) [%1%.](#00fb9a show_text=&7备份版本UUID:\n&7%2%)'
-  data_restored: '[⏪ 成功恢复玩家](#00fb9a) [%1%](#00fb9a show_text=&7玩家 UUID:\n&7%2%)[的数据备份](#00fb9a) [%3%.](#00fb9a show_text=&7备份版本UUID:\n&7%4%)'
-  data_pinned: '[※ 成功置顶玩家](#00fb9a) [%3%](#00fb9a show_text=&7玩家 UUID:\n&8%4%) [的数据备份](#00fb9a) [%1%.](#00fb9a show_text=&7备份版本UUID:\n&8%2%)'
-  data_unpinned: '[※ 成功取消置顶玩家](#00fb9a) [%3%](#00fb9a show_text=&7玩家 UUID:\n&8%4%) [的数据备份](#00fb9a) [%1%.](#00fb9a show_text=&7备份版本UUID:\n&8%2%)'
-  data_dumped: '[☂ 已成功将 %1% 的玩家数据快照 %2% 转储到:](#00fb9a)'
-  list_footer: '\n%1%[页数](#00fb9a) [%2%](#00fb9a)/[%3%](#00fb9a)%4%   %5%'
-  list_previous_page_button: '[◀](white show_text=&7查看上一页 run_command=%2% %1%) '
-  list_next_page_button: ' [▶](white show_text=&7查看下一页 run_command=%2% %1%)'
-  list_page_jumpers: '(%1%)'
-  list_page_jumper_button: '[%1%](show_text=&7跳转至第 %1% 页 run_command=%2% %1%)'
-  list_page_jumper_current_page: '[%1%](#00fb9a)'
+  synchronization_complete: <color:#00fb9a>⏵ 数据同步完成!</color>
+  synchronization_failed: <color:#ff7e5e>⏵ 无法同步你的数据! 请联系管理员.</color>
+  inventory_viewer_menu_title: <black>%1% 的背包
+  ender_chest_viewer_menu_title: <black>%1% 的末影箱
+  inventory_viewer_opened: <color:#00fb9a>查看备份</color> <bold><color:#00fb9a>%1%</color></bold> <color:#00fb9a>于 ⌚ %2% 的背包备份</color>
+  ender_chest_viewer_opened: <color:#00fb9a>查看备份</color> <bold><color:#00fb9a>%1%</color></bold> <color:#00fb9a>于 ⌚ %2% 的末影箱备份</color>
+  data_update_complete: <color:#00fb9a>🔔 你的数据已更新!</color>
+  data_update_failed: <color:#ff7e5e>🔔 无法更新你的数据! 请联系管理员.</color>
+  user_registration_complete: <color:#00fb9a>⭐ 用户注册完成!</color>
+  data_manager_title: '<color:#00fb9a>正在查看玩家</color> <bold><color:#00fb9a><hover:show_text:''<gray>玩家UUID:
+
+    <dark_gray>%4%''>%3%</hover></color></bold> <color:#00fb9a>的数据备份</color> <color:#00fb9a><hover:show_text:''<gray>备份版本UUID:
+
+    <dark_gray>%2%''>%1%</hover></color><color:#00fb9a>:</color>'
+  data_manager_timestamp: '<hover:show_text:''<gray>备份时间:
+
+    <dark_gray>数据保存时间''>⌚ %1%</hover>'
+  data_manager_pinned: '<color:#d8ff2b><hover:show_text:''<gray>已置顶:
+
+    <dark_gray>此玩家数据备份不会按照备份时间自动排序.''>※ 置顶备份</hover></color>'
+  data_manager_cause: '<hover:show_text:''<gray>保存原因:
+
+    <dark_gray>导致数据保存的原因''>⚑ %1%</hover>'
+  data_manager_server: '<hover:show_text:''<gray>服务器:
+
+    <dark_gray>数据保存所在服务器的名称''>☁ %1%</hover>'
+  data_manager_size: '<gradient:#62a9f5:#7ab8fa><hover:show_text:''<gray>备份大小:
+
+    <dark_gray>预计备份的文件大小(以KiB为单位)''>⏏ %1%</hover></gradient>\n'
+  data_manger_status: <red>%1%</red><gray>/</gray><red>%2%</red><gray>×</gray><red><hover:show_text:'<gray>生命值'>❤</hover></red>   <yellow>%3%</yellow><gray>×</gray><yellow><hover:show_text:'<gray>饥饿值'>🍖</hover></yellow>   <green>ʟᴠ</green><gray>.</gray><green><hover:show_text:'<gray>经验等级'>%4%</hover></green>   <dark_aqua><hover:show_text:'<gray>游戏模式'>🏹 %5%</hover></dark_aqua>
+  data_manager_advancements_statistics: '<gradient:#ffc43b:#f5c962><hover:show_text:''<gray>你已经取得的进度:
+
+    <dark_gray>%2%''>⭐ 进度: %1%</hover></gradient>   <gradient:#62a9f5:#7ab8fa><hover:show_text:''<gray>在游戏内游玩的时间
+
+    <dark_gray>⚠ 基于游戏内的统计信息''>⌛ 游玩时间: %3%小时</hover></gradient>\n'
+  data_manager_item_buttons: <gray>查看:</gray> <gradient:#a17b5f:#f5b98c><click:run_command:'/inventory'><hover:show_text:'<gray>点击查看'>[🪣 背包…]</hover></click></gradient>   <click:run_command:'/enderchest'><hover:show_text:'<gray>点击查看'>[⌀ 末影箱…]</hover></click>
+  data_manager_management_buttons: '<gray>管理:</gray> <color:#ff3300><click:suggest_command:''/husksync:userdata''><hover:show_text:''<gray>点击删除此玩家数据备份.
+
+    <dark_gray>这不会影响用户的当前数据.
+
+    <color:#ff3300>&⚠ 此操作无法撤消!''>[❌ 删除…]</hover></click></color>   <color:#00fb9a><click:suggest_command:''/husksync:userdata''><hover:show_text:''<gray>点击还原此玩家数据.
+
+    <dark_gray>这将使用户的数据恢复到此备份.
+
+    <color:#ff3300>&⚠ %1%当前数据将被覆盖!''>[⏪ 恢复…]</hover></click></color>   <color:#d8ff2b><click:run_command:''/userdata''><hover:show_text:''<gray>点击置顶或取消置顶此玩家数据备份
+
+    <dark_gray>已置顶的备份不会按照备份时间自动排序''>[※ 置顶/取消置顶…]</hover></click></color>'
+  data_manager_system_buttons: '<gray>系统:</gray> <dark_gray><click:run_command:''/husksync:userdata''><hover:show_text:''<gray>点击将此原始玩家数据备份转储到文件中.
+
+    <dark_gray>数据转储可以在~/plugins/HuskSync/dumps/中找到''>[⏷ 文件转储…]</hover></click></dark_gray>   <dark_gray><click:run_command:''/husksync:userdata''><hover:show_text:''<gray>点击将此原始玩家数据备份转储到mc-logs服务中
+
+    <dark_gray>你将获得包含数据的网址.''>[☂ 网络转储…]</hover></click></dark_gray>'
+  data_manager_advancements_preview_remaining: 以及其他 %1%…
+  data_list_title: <color:#00fb9a>%1%的玩家数据备份:</color> <color:#00fb9a>(%2%-%3% of</color> <bold><color:#00fb9a>%4%</color></bold><color:#00fb9a>)</color>\n
+  data_list_item: '<gray><click:run_command:''/userdata''><hover:show_text:''<gray>玩家数据备份 %2%<dark_gray>⚡ %4%''>%1%</hover></click></gray> <color:#d8ff2b><click:run_command:''/userdata''><hover:show_text:''<gray>已置顶:
+
+    <dark_gray>已置顶的备份不会按照备份时间自动排序''>%5%</hover></click></color> <gradient:#ffc43b:#f5c962><click:run_command:''/userdata''><hover:show_text:''<gray>备份时间:<gray>
+
+    <dark_gray>数据保存时间
+
+    <dark_gray>%7%''>%6%</hover></click></gradient>   <click:run_command:''/userdata''><hover:show_text:''<gray>保存原因:
+
+    <dark_gray>导致数据保存的原因''>⚑ %8%</hover></click>   <gradient:#62a9f5:#7ab8fa><click:run_command:''/userdata''><hover:show_text:''<gray>备份大小:<gray>
+
+    <dark_gray>预计备份文件大小(以KiB为单位)''>⏏ %9%</hover></click></gradient>'
+  data_list_item_invalid: '<dark_gray><click:suggest_command:''/userdata''><hover:show_text:''<gray>%2%的用户数据快照
+
+    <dark_gray>⚡ %4%''>%1%</hover></click></dark_gray> <dark_gray><click:suggest_command:''/userdata''><hover:show_text:''<gray>置顶:
+
+    <dark_gray>已置顶的快照不会自动排序.''>%5%</hover></click></dark_gray> <strikethrough><gray><click:suggest_command:''/userdata''><hover:show_text:''<color:#ff3300>&无效的快照数据
+
+    <color:#ff7e5e>&点击删除
+
+
+    <gray>⚠ %10%''>%6%   ⚑ %8%   ⏏ %9%</hover></click></gray></strikethrough>'
+  data_saved: <color:#00fb9a>已成功保存 %1% 的当前用户数据快照.</color>
+  data_deleted: '<color:#00fb9a>❌ 成功删除玩家</color> <color:#00fb9a><hover:show_text:''<gray>玩家 UUID:
+
+    <gray>%4%''>%3%</hover></color> <color:#00fb9a>的数据备份</color> <color:#00fb9a><hover:show_text:''<gray>备份版本UUID:
+
+    <gray>%2%''>%1%.</hover></color>'
+  data_restored: '<color:#00fb9a>⏪ 成功恢复玩家</color> <color:#00fb9a><hover:show_text:''<gray>玩家 UUID:
+
+    <gray>%2%''>%1%</hover></color><color:#00fb9a>的数据备份</color> <color:#00fb9a><hover:show_text:''<gray>备份版本UUID:
+
+    <gray>%4%''>%3%.</hover></color>'
+  data_pinned: '<color:#00fb9a>※ 成功置顶玩家</color> <color:#00fb9a><hover:show_text:''<gray>玩家 UUID:
+
+    <dark_gray>%4%''>%3%</hover></color> <color:#00fb9a>的数据备份</color> <color:#00fb9a><hover:show_text:''<gray>备份版本UUID:
+
+    <dark_gray>%2%''>%1%.</hover></color>'
+  data_unpinned: '<color:#00fb9a>※ 成功取消置顶玩家</color> <color:#00fb9a><hover:show_text:''<gray>玩家 UUID:
+
+    <dark_gray>%4%''>%3%</hover></color> <color:#00fb9a>的数据备份</color> <color:#00fb9a><hover:show_text:''<gray>备份版本UUID:
+
+    <dark_gray>%2%''>%1%.</hover></color>'
+  data_dumped: <color:#00fb9a>☂ 已成功将 %1% 的玩家数据快照 %2% 转储到:</color>
+  list_footer: \n%1%<color:#00fb9a>页数</color> <color:#00fb9a>%2%</color>/<color:#00fb9a>%3%</color>%4%   %5%
+  list_previous_page_button: '<white><click:run_command:''%2%''><hover:show_text:''<gray>查看上一页''>◀</hover></click></white> '
+  list_next_page_button: ' <white><click:run_command:''%2%''><hover:show_text:''<gray>查看下一页''>▶</hover></click></white>'
+  list_page_jumpers: (%1%)
+  list_page_jumper_button: <click:run_command:'%2%'><hover:show_text:'<gray>跳转至第 %1% 页'>%1%</hover></click>
+  list_page_jumper_current_page: <color:#00fb9a>%1%</color>
   list_page_jumper_separator: ' '
-  list_page_jumper_group_separator: '…'
-  save_cause_disconnect: '断开连接'
-  save_cause_world_save: '保存世界'
-  save_cause_death: '死亡'
-  save_cause_server_shutdown: '服务器关闭'
-  save_cause_save_command: '保存命令'
-  save_cause_dump_command: '转储命令'
-  save_cause_inventory_command: '背包命令'
-  save_cause_enderchest_command: '末影箱命令'
-  save_cause_backup_restore: '备份还原'
-  save_cause_api: 'API'
-  save_cause_mpdb_migration: 'MPDB迁移'
-  save_cause_legacy_migration: '旧版迁移'
-  save_cause_converted_from_v2: '从v2转换'
-  up_to_date: '[HuskSync](#00fb9a bold) [| 你正在运行最新版本的HuskSync(v%1%).](#00fb9a)'
-  update_available: '[HuskSync](#ff7e5e bold) [| 检测到HuskSync有新版本可以更新了:v%1%(当前版本:v%2%).](#ff7e5e)'
-  reload_complete: '[HuskSync](#00fb9a bold) [| 重新加载配置和消息文件完成.](#00fb9a)\n[⚠ 确保在所有服务器上更新配置文件!](#00fb9a)\n[需要重新启动才能使配置更改生效.](#00fb9a italic)'
-  system_status_header: '[HuskSync](#00fb9a bold) [| 系统状态报告:](#00fb9a)'
-  system_dump_confirm: '[HuskSync](#00fb9a bold) [| 准备系统转储? 这将包括:](#00fb9a)\n[• 您最新的服务器日志和 HuskSync 配置文件](gray)\n[• 当前插件系统状态信息](gray)\n[• 有关您的 Java 和 Minecraft 服务器环境的信息](gray)\n[• 其他当前安装的插件列表](gray)\n[要确认, 请执行命令:](#00fb9a) [/husksync dump confirm](#00fb9a italic show_text=&7点击以准备转储 run_command=/husksync dump confirm)'
-  system_dump_started: '[HuskSync](#00fb9a bold) [| 正在准备系统状态转储，请稍候...](#00fb9a)'
-  system_dump_ready: '[HuskSync](#00fb9a bold) [| 系统状态转储已完成! 点击查看:](#00fb9a)'
-  error_invalid_syntax: '[错误:](#ff3300) [语法错误.用法:](#ff7e5e) [%1%](#ff7e5e italic show_text=&#ff7e5e&点击建议 suggest_command=%1%)'
-  error_invalid_player: '[错误:](#ff3300) [找不到这个名称的玩家.](#ff7e5e)'
-  error_invalid_data: '[错误:](#ff3300) [无法解压缩快照数据, 因为它无效或已损坏.](#ff7e5e) [(详情…)](gray show_text=&7⚠ %1%)'
-  error_no_permission: '[错误:](#ff3300) [你没有执行此命令的权限](#ff7e5e)'
-  error_console_command_only: '[错误:](#ff3300) [该命令只能在控制台中运行](#ff7e5e)'
+  list_page_jumper_group_separator: …
+  save_cause_disconnect: 断开连接
+  save_cause_world_save: 保存世界
+  save_cause_death: 死亡
+  save_cause_server_shutdown: 服务器关闭
+  save_cause_save_command: 保存命令
+  save_cause_dump_command: 转储命令
+  save_cause_inventory_command: 背包命令
+  save_cause_enderchest_command: 末影箱命令
+  save_cause_backup_restore: 备份还原
+  save_cause_api: API
+  save_cause_mpdb_migration: MPDB迁移
+  save_cause_legacy_migration: 旧版迁移
+  save_cause_converted_from_v2: 从v2转换
+  up_to_date: <bold><color:#00fb9a>HuskSync</color></bold> <color:#00fb9a>| 你正在运行最新版本的HuskSync(v%1%).</color>
+  update_available: <bold><color:#ff7e5e>HuskSync</color></bold> <color:#ff7e5e>| 检测到HuskSync有新版本可以更新了:v%1%(当前版本:v%2%).</color>
+  reload_complete: <bold><color:#00fb9a>HuskSync</color></bold> <color:#00fb9a>| 重新加载配置和消息文件完成.</color>\n<color:#00fb9a>⚠ 确保在所有服务器上更新配置文件!</color>\n<italic><color:#00fb9a>需要重新启动才能使配置更改生效.</color></italic>
+  system_status_header: <bold><color:#00fb9a>HuskSync</color></bold> <color:#00fb9a>| 系统状态报告:</color>
+  system_dump_confirm: <bold><color:#00fb9a>HuskSync</color></bold> <color:#00fb9a>| 准备系统转储? 这将包括:</color>\n<gray>• 您最新的服务器日志和 HuskSync 配置文件</gray>\n<gray>• 当前插件系统状态信息</gray>\n<gray>• 有关您的 Java 和 Minecraft 服务器环境的信息</gray>\n<gray>• 其他当前安装的插件列表</gray>\n<color:#00fb9a>要确认, 请执行命令:</color> <italic><color:#00fb9a><click:run_command:'/husksync'><hover:show_text:'<gray>点击以准备转储'>/husksync dump confirm</hover></click></color></italic>
+  system_dump_started: <bold><color:#00fb9a>HuskSync</color></bold> <color:#00fb9a>| 正在准备系统状态转储，请稍候...</color>
+  system_dump_ready: <bold><color:#00fb9a>HuskSync</color></bold> <color:#00fb9a>| 系统状态转储已完成! 点击查看:</color>
+  error_invalid_syntax: <color:#ff3300>错误:</color> <color:#ff7e5e>语法错误.用法:</color> <italic><color:#ff7e5e><click:suggest_command:'%1%'><hover:show_text:'<color:#ff7e5e>&点击建议'>%1%</hover></click></color></italic>
+  error_invalid_player: <color:#ff3300>错误:</color> <color:#ff7e5e>找不到这个名称的玩家.</color>
+  error_invalid_data: <color:#ff3300>错误:</color> <color:#ff7e5e>无法解压缩快照数据, 因为它无效或已损坏.</color> <gray><hover:show_text:'<gray>⚠ %1%'>(详情…)</hover></gray>
+  error_no_permission: <color:#ff3300>错误:</color> <color:#ff7e5e>你没有执行此命令的权限</color>
+  error_console_command_only: <color:#ff3300>错误:</color> <color:#ff7e5e>该命令只能在控制台中运行</color>
   error_in_game_command_only: '错误: 该命令只能在游戏中使用.'
-  error_no_data_to_display: '[错误:](#ff3300) [找不到要显示的任何玩家数据.](#ff7e5e)'
-  error_invalid_version_uuid: '[错误:](#ff3300) [找不到该版本UUID的任何玩家数据.](#ff7e5e)'
-  husksync_command_description: '管理HuskSync插件'
-  userdata_command_description: '查看、管理和还原玩家玩家数据'
-  inventory_command_description: '查看和编辑玩家的背包'
-  enderchest_command_description: '查看和编辑玩家的末影箱'
+  error_no_data_to_display: <color:#ff3300>错误:</color> <color:#ff7e5e>找不到要显示的任何玩家数据.</color>
+  error_invalid_version_uuid: <color:#ff3300>错误:</color> <color:#ff7e5e>找不到该版本UUID的任何玩家数据.</color>
+  husksync_command_description: 管理HuskSync插件
+  userdata_command_description: 查看、管理和还原玩家玩家数据
+  inventory_command_description: 查看和编辑玩家的背包
+  enderchest_command_description: 查看和编辑玩家的末影箱

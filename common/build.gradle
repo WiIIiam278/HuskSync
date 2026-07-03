@@ -5,14 +5,13 @@ plugins {
 dependencies {
     api 'commons-io:commons-io:2.21.0'
     api 'org.apache.commons:commons-text:1.14.0'
-    api 'net.william278:minedown:1.8.2'
     api 'net.william278:mapdataapi:2.0'
     api 'org.json:json:20250517'
     api 'com.google.code.gson:gson:2.13.2'
     api 'com.fatboyindustrial.gson-javatime-serialisers:gson-javatime-serialisers:1.1.2'
     api 'de.exlll:configlib-yaml:4.6.4'
-    api 'net.william278:paginedown:1.1.2'
     api 'net.william278:DesertWell:2.0.4'
+    api 'net.kyori:adventure-text-minimessage:4.25.0'
     api('com.zaxxer:HikariCP:7.0.2') {
         exclude module: 'slf4j-api'
     }
