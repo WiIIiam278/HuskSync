@@ -100,7 +100,8 @@ public class HuskSyncCommand extends PluginCommand {
                         credit("cada3141", "Korean (ko-kr)"),
                         credit("Wirayuda5620", "Indonesian (id-id)"),
                         credit("WinTone01", "Turkish (tr-tr)"),
-                        credit("IbanEtchep", "French (fr-fr)")),
+                        credit("IbanEtchep", "French (fr-fr)"),
+                        credit("Ris", "Hungarian (hu-hu)")),
                 Component.empty(),
                 // Buttons
                 Component.textOfChildren(
