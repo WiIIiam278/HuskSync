@@ -375,6 +375,7 @@ public interface Data {
 
             @Deprecated(since = "3.7")
             public Modifier(@NotNull UUID uuid, @NotNull String name, double amount, int operation, int equipmentSlot) {
+                this.uuid = uuid;
                 this.name = name;
                 this.amount = amount;
                 this.operation = operation;

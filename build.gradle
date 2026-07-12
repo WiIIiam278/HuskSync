@@ -2,7 +2,7 @@ import org.apache.tools.ant.filters.ReplaceTokens
 
 plugins {
     id 'com.gradleup.shadow' version '9.2.2'
-    id 'org.cadixdev.licenser' version '0.6.1' apply false
+    id 'net.neoforged.licenser' version '0.7.5' apply false
     id 'dev.architectury.loom' version '1.9-SNAPSHOT' apply false
     id 'gg.essential.multi-version.root' apply false
     id 'org.ajoberstar.grgit' version '5.3.2'
@@ -65,7 +65,7 @@ allprojects {
     }
     
     apply plugin: 'com.gradleup.shadow'
-    apply plugin: 'org.cadixdev.licenser'
+    apply plugin: 'net.neoforged.licenser'
     apply plugin: 'java'
 
     compileJava.options.encoding = 'UTF-8'
@@ -129,11 +129,17 @@ subprojects {
     } else {
         name += "-${project.name.capitalize()}"
     }
-    archivesBaseName = name
+    base.archivesName = name
 
     // Version-specific configuration
     if (['fabric', 'bukkit'].contains(project.parent?.name)) {
-        compileJava.options.release.set 21
+        def javaVer = project.hasProperty('java_version') ? Integer.parseInt(project.java_version as String) : 25
+        java {
+            toolchain {
+                languageVersion = JavaLanguageVersion.of(javaVer)
+            }
+        }
+        compileJava.options.release.set javaVer
         version += "+mc.${project.name}"
 
         if (project.parent?.name?.equals('fabric')) {

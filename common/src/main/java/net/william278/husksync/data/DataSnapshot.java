@@ -22,7 +22,7 @@ package net.william278.husksync.data;
 import com.google.common.collect.Maps;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
-import de.themoep.minedown.adventure.MineDown;
+import net.kyori.adventure.text.Component;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -40,6 +40,7 @@ import org.jetbrains.annotations.Nullable;
 import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 /**
@@ -390,15 +391,23 @@ public class DataSnapshot {
         @NotNull
         @ApiStatus.Internal
         private Map<Identifier, Data> deserializeData(@NotNull HuskSync plugin) {
-            return data.entrySet().stream()
+            final Map<Identifier, Data> result = new HashMap<>();
+            data.entrySet().stream()
                     .filter(e -> plugin.getIdentifier(e.getKey()).isPresent())
                     .map(entry -> Map.entry(plugin.getIdentifier(entry.getKey()).orElseThrow(), entry.getValue()))
-                    .collect(Collectors.toMap(
-                            Map.Entry::getKey,
-                            entry -> plugin.deserializeData(entry.getKey(), entry.getValue(), getMinecraftVersion()),
-                            (a, b) -> a,
-                            HashMap::new
-                    ));
+                    .forEach(entry -> {
+                        try {
+                            result.put(entry.getKey(), plugin.deserializeData(
+                                    entry.getKey(), entry.getValue(), getMinecraftVersion()));
+                        } catch (Throwable e) {
+                            plugin.log(Level.WARNING,
+                                    "Failed to deserialize %s data for snapshot %s; skipping it. "
+                                            + "The data may contain invalid values (e.g. items with -Infinity NBT attributes). "
+                                            + "The player will load without this data type for this session."
+                                            .formatted(entry.getKey(), getId()), e);
+                        }
+                    });
+            return result;
         }
 
         @NotNull
@@ -1077,7 +1086,7 @@ public class DataSnapshot {
          * @param plugin plugin instance
          * @return the message
          */
-        public Optional<MineDown> getCompletedLocale(@NotNull HuskSync plugin) {
+        public Optional<Component> getCompletedLocale(@NotNull HuskSync plugin) {
             if (completedLocale() != null) {
                 return Optional.of(plugin.getLocales().getLocale(completedLocale())
                         .orElse(plugin.getLocales().format(getDisplayName())));
@@ -1091,7 +1100,7 @@ public class DataSnapshot {
          * @param plugin plugin instance
          * @return the message
          */
-        public Optional<MineDown> getFailedLocale(@NotNull HuskSync plugin) {
+        public Optional<Component> getFailedLocale(@NotNull HuskSync plugin) {
             if (failureLocale() != null) {
                 return Optional.of(plugin.getLocales().getLocale(failureLocale())
                         .orElse(plugin.getLocales().format(failureLocale())));

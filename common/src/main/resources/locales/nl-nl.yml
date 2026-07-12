@@ -1,71 +1,140 @@
+# MineDown formatting has been converted to MiniMessage
+# https://docs.advntr.dev/minimessage/index.html
 locales:
-  synchronization_complete: '[⏵ Data gesynchroniseerd!](#00fb9a)'
-  synchronization_failed: '[⏵ Synchroniseren van jouw gegevens is niet gelukt! Neem contact op met een beheerder.](#ff7e5e)'
-  inventory_viewer_menu_title: '&0%1%''s Inventaris'
-  ender_chest_viewer_menu_title: '&0%1%''s Enderkist'
-  inventory_viewer_opened: '[Momentopname bekijken van](#00fb9a) [%1%](#00fb9a bold)[''s inventaris per ⌚ %2%](#00fb9a)'
-  ender_chest_viewer_opened: '[Momentopname bekijken van](#00fb9a) [%1%](#00fb9a bold)[''s Enderkist per ⌚ %2%](#00fb9a)'
-  data_update_complete: '[🔔 Jouw gegevens zijn bijgewerkt!](#00fb9a)'
-  data_update_failed: '[🔔 Het is niet gelukt om jouw gegevens bij te werken! Neem contact op met een beheerder.](#ff7e5e)'
-  user_registration_complete: '[⭐ Gebruikersregistratie voltooid!](#00fb9a)'
-  data_manager_title: '[Momentopname van gebruikersgegevens bekijken](#00fb9a) [%1%](#00fb9a show_text=&7Versie UUID:\n&8%2%) [voor](#00fb9a) [%3%](#00fb9a bold show_text=&7Speler UUID:\n&8%4%)[:](#00fb9a)'
-  data_manager_timestamp: '[⌚ %1%](#ffc43b-#f5c962 show_text=&7Versie tijdmarkering:\n&8Toen de gegevens werden opgeslagen)'
-  data_manager_pinned: '[※ Momentopname vastgezet](#d8ff2b show_text=&7Vastgezet:\n&8Deze momentopname van gebruikersgegevens wordt niet automatisch gerouleerd.)'
-  data_manager_cause: '[⚑ %1%](#23a825-#36f539 show_text=&7Reden opslaan:\n&8Waarom de data is opgeslagen)'
-  data_manager_server: '[☁ %1%](#ff87b3-#f5538e show_text=&7Server:\n&8Name of the server the data was saved on)'
-  data_manager_size: '[⏏ %1%](color=#62a9f5-#7ab8fa show_text=&7Grootte van momentopname:\n&8Geschatte bestandsgrootte van de momentopname (in KiB))\n'
-  data_manger_status: '[%1%](red)[/](gray)[%2%](red)[×](gray)[❤](red show_text=&7Gezondheids punten)   [%3%](yellow)[×](gray)[🍖](yellow show_text=&7Honger punten)   [ʟᴠ](green)[.](gray)[%4%](green show_text=&7XP level)   [🏹 %5%](dark_aqua show_text=&7Speltype)'
-  data_manager_advancements_statistics: '[⭐ Advancements: %1%](color=#ffc43b-#f5c962 show_text=&7Advancements waarin je voortgang hebt:\n&8%2%)   [⌛ Speeltijd: %3%uren](color=#62a9f5-#7ab8fa show_text=&7In-game speeltijd\n&8⚠ Gebaseerd op in-game statistieken)\n'
-  data_manager_item_buttons: '[View:](gray) [[🪣 Inventaris…]](color=#a17b5f-#f5b98c show_text=&7Klikken om te bekijken run_command=/inventory %1% %2%)   [[⌀ Enderkist…]](#b649c4-#d254ff show_text=&7Klikken om te bekijken run_command=/enderchest %1% %2%)'
-  data_manager_management_buttons: '[Beheren:](gray) [[❌ Verwijderen…]](#ff3300 show_text=&7Klik om deze momentopname van gebruikersgegevens te verwijderen.\n&8Dit heeft geen invloed op de huidige gegevens van de gebruiker.\n&#ff3300&⚠ Dit kan niet ongedaan gemaakt worden! suggest_command=/husksync:userdata delete %1% %2%)   [[⏪ Herstellen…]](#00fb9a show_text=&7Klik om deze gebruikersgegevens te herstellen.\n&8Hierdoor worden de gegevens van de gebruiker ingesteld op deze momentopname.\n&#ff3300&⚠ %1%''s huidige gegevens worden overschreven! suggest_command=/husksync:userdata restore %1% %2%)   [[※ Vastzetten/losmaken…]](#d8ff2b show_text=&7Klik om deze momentopname van gebruikersgegevens vast te zetten of los te maken\n&8Vastgezette momentopnamen worden niet automatisch gerouleerd run_command=/userdata pin %1% %2%)'
-  data_manager_system_buttons: '[Systeem:](gray) [[⏷ Bestandsdump…]](dark_gray show_text=&7Klik om deze ruwe gebruikersgegevenssnapshot naar een bestand te dumperen.\n&8Gegevensdumps zijn te vinden in ~/plugins/HuskSync/dumps/ run_command=/husksync:userdata dump %1% %2% file)   [[☂ Webdump…]](dark_gray show_text=&7Klik om deze ruwe gebruikersgegevenssnapshot naar de mc-logs-service te dumpen\n&8Je ontvangt een URL met de gegevens. run_command=/husksync:userdata dump %1% %2% web)'
-  data_manager_advancements_preview_remaining: 'en %1% meer…'
-  data_list_title: '[%1%''s momentopnamen van gebruikersgegevens:](#00fb9a) [(%2%-%3% van](#00fb9a) [%4%](#00fb9a bold)[)](#00fb9a)\n'
-  data_list_item: '[%1%](gray show_text=&7Gebruikersgegevens momentopname voor %2%&8⚡ %4% run_command=/userdata view %2% %3%) [%5%](#d8ff2b show_text=&7Vastgezet:\n&8Vastgezette momentopnamen worden niet automatisch gerouleerd. run_command=/userdata view %2% %3%) [%6%](color=#ffc43b-#f5c962 show_text=&7Versie tijdmarkering:&7\n&8Wanneer de data was opgeslagen\n&8%7% run_command=/userdata view %2% %3%)   [⚑ %8%](#23a825-#36f539 show_text=&7Reden opslaan:\n&8Waarom de data is opgeslagen run_command=/userdata view %2% %3%)   [⏏ %9%](color=#62a9f5-#7ab8fa show_text=&7Grootte van momentopname:&7\n&8Geschatte bestandsgrootte van de momentopname (in KiB) run_command=/userdata view %2% %3%)'
-  data_list_item_invalid: '[%1%](dark_gray show_text=&7User Data Snapshot for %2%\n&8⚡ %4% suggest_command=/userdata delete %2% %3%) [%5%](dark_gray show_text=&7Pinned:\n&8Pinned snapshots won''t be automatically rotated. suggest_command=/userdata delete %2% %3%) [%6%   ⚑ %8%   ⏏ %9%](gray strikethrough show_text=&#ff3300&Invalid Data Snapshot\n&#ff7e5e&Click to delete\n\n&7⚠ %10% suggest_command=/userdata delete %2% %3%)'
-  data_saved: '[Successfully saved a snapshot of %1%''s current user data.](#00fb9a)'
-  data_deleted: '[❌ Momentopname van gebruikersgegevens is verwijderd](#00fb9a) [%1%](#00fb9a show_text=&7Versie UUID:\n&8%2%) [voor](#00fb9a) [%3%.](#00fb9a show_text=&7Speler UUID:\n&8%4%)'
-  data_restored: '[⏪ Succesvol hersteld](#00fb9a) [%1%](#00fb9a show_text=&7Speler UUID:\n&8%2%)[''s huidige gebruikersgegevens uit momentopname](#00fb9a) [%3%.](#00fb9a show_text=&7Versie UUID:\n&8%4%)'
-  data_pinned: '[※ Momentopname van gebruikersgegevens is vastgezet](#00fb9a) [%1%](#00fb9a show_text=&7Versie UUID:\n&8%2%) [voor](#00fb9a) [%3%.](#00fb9a show_text=&7Speler UUID:\n&8%4%)'
-  data_unpinned: '[※ Momentopname van gebruikersgegevens is losgemaakt](#00fb9a) [%1%](#00fb9a show_text=&7Versie UUID:\n&8%2%) [voor](#00fb9a) [%3%.](#00fb9a show_text=&7Speler UUID:\n&8%4%)'
-  data_dumped: '[☂ De momentopname van gebruikersgegevens %1% voor %2% is met succes gedumpt naar:](#00fb9a)'
-  list_footer: '\n%1%[Pagina](#00fb9a) [%2%](#00fb9a)/[%3%](#00fb9a)%4%   %5%'
-  list_previous_page_button: '[◀](white show_text=&7Bekijk vorige pagina run_command=%2% %1%) '
-  list_next_page_button: ' [▶](white show_text=&7Bekijk volgende pagina run_command=%2% %1%)'
-  list_page_jumpers: '(%1%)'
-  list_page_jumper_button: '[%1%](show_text=&7Ga naar pagina %1% run_command=%2% %1%)'
-  list_page_jumper_current_page: '[%1%](#00fb9a)'
+  synchronization_complete: <color:#00fb9a>⏵ Data gesynchroniseerd!</color>
+  synchronization_failed: <color:#ff7e5e>⏵ Synchroniseren van jouw gegevens is niet gelukt! Neem contact op met een beheerder.</color>
+  inventory_viewer_menu_title: <black>%1%'s Inventaris
+  ender_chest_viewer_menu_title: <black>%1%'s Enderkist
+  inventory_viewer_opened: <color:#00fb9a>Momentopname bekijken van</color> <bold><color:#00fb9a>%1%</color></bold><color:#00fb9a>'s inventaris per ⌚ %2%</color>
+  ender_chest_viewer_opened: <color:#00fb9a>Momentopname bekijken van</color> <bold><color:#00fb9a>%1%</color></bold><color:#00fb9a>'s Enderkist per ⌚ %2%</color>
+  data_update_complete: <color:#00fb9a>🔔 Jouw gegevens zijn bijgewerkt!</color>
+  data_update_failed: <color:#ff7e5e>🔔 Het is niet gelukt om jouw gegevens bij te werken! Neem contact op met een beheerder.</color>
+  user_registration_complete: <color:#00fb9a>⭐ Gebruikersregistratie voltooid!</color>
+  data_manager_title: '<color:#00fb9a>Momentopname van gebruikersgegevens bekijken</color> <color:#00fb9a><hover:show_text:''<gray>Versie UUID:
+
+    <dark_gray>%2%''>%1%</hover></color> <color:#00fb9a>voor</color> <bold><color:#00fb9a><hover:show_text:''<gray>Speler UUID:
+
+    <dark_gray>%4%''>%3%</hover></color></bold><color:#00fb9a>:</color>'
+  data_manager_timestamp: '<hover:show_text:''<gray>Versie tijdmarkering:
+
+    <dark_gray>Toen de gegevens werden opgeslagen''>⌚ %1%</hover>'
+  data_manager_pinned: '<color:#d8ff2b><hover:show_text:''<gray>Vastgezet:
+
+    <dark_gray>Deze momentopname van gebruikersgegevens wordt niet automatisch gerouleerd.''>※ Momentopname vastgezet</hover></color>'
+  data_manager_cause: '<hover:show_text:''<gray>Reden opslaan:
+
+    <dark_gray>Waarom de data is opgeslagen''>⚑ %1%</hover>'
+  data_manager_server: '<hover:show_text:''<gray>Server:
+
+    <dark_gray>Name of the server the data was saved on''>☁ %1%</hover>'
+  data_manager_size: '<gradient:#62a9f5:#7ab8fa><hover:show_text:''<gray>Grootte van momentopname:
+
+    <dark_gray>Geschatte bestandsgrootte van de momentopname (in KiB)''>⏏ %1%</hover></gradient>\n'
+  data_manger_status: <red>%1%</red><gray>/</gray><red>%2%</red><gray>×</gray><red><hover:show_text:'<gray>Gezondheids punten'>❤</hover></red>   <yellow>%3%</yellow><gray>×</gray><yellow><hover:show_text:'<gray>Honger punten'>🍖</hover></yellow>   <green>ʟᴠ</green><gray>.</gray><green><hover:show_text:'<gray>XP level'>%4%</hover></green>   <dark_aqua><hover:show_text:'<gray>Speltype'>🏹 %5%</hover></dark_aqua>
+  data_manager_advancements_statistics: '<gradient:#ffc43b:#f5c962><hover:show_text:''<gray>Advancements waarin je voortgang hebt:
+
+    <dark_gray>%2%''>⭐ Advancements: %1%</hover></gradient>   <gradient:#62a9f5:#7ab8fa><hover:show_text:''<gray>In-game speeltijd
+
+    <dark_gray>⚠ Gebaseerd op in-game statistieken''>⌛ Speeltijd: %3%uren</hover></gradient>\n'
+  data_manager_item_buttons: <gray>View:</gray> <gradient:#a17b5f:#f5b98c><click:run_command:'/inventory'><hover:show_text:'<gray>Klikken om te bekijken'>[🪣 Inventaris…]</hover></click></gradient>   <click:run_command:'/enderchest'><hover:show_text:'<gray>Klikken om te bekijken'>[⌀ Enderkist…]</hover></click>
+  data_manager_management_buttons: '<gray>Beheren:</gray> <color:#ff3300><click:suggest_command:''/husksync:userdata''><hover:show_text:''<gray>Klik om deze momentopname van gebruikersgegevens te verwijderen.
+
+    <dark_gray>Dit heeft geen invloed op de huidige gegevens van de gebruiker.
+
+    <color:#ff3300>&⚠ Dit kan niet ongedaan gemaakt worden!''>[❌ Verwijderen…]</hover></click></color>   <color:#00fb9a><click:suggest_command:''/husksync:userdata''><hover:show_text:''<gray>Klik om deze gebruikersgegevens te herstellen.
+
+    <dark_gray>Hierdoor worden de gegevens van de gebruiker ingesteld op deze momentopname.
+
+    <color:#ff3300>&⚠ %1%\''s huidige gegevens worden overschreven!''>[⏪ Herstellen…]</hover></click></color>   <color:#d8ff2b><click:run_command:''/userdata''><hover:show_text:''<gray>Klik om deze momentopname van gebruikersgegevens vast te zetten of los te maken
+
+    <dark_gray>Vastgezette momentopnamen worden niet automatisch gerouleerd''>[※ Vastzetten/losmaken…]</hover></click></color>'
+  data_manager_system_buttons: '<gray>Systeem:</gray> <dark_gray><click:run_command:''/husksync:userdata''><hover:show_text:''<gray>Klik om deze ruwe gebruikersgegevenssnapshot naar een bestand te dumperen.
+
+    <dark_gray>Gegevensdumps zijn te vinden in ~/plugins/HuskSync/dumps/''>[⏷ Bestandsdump…]</hover></click></dark_gray>   <dark_gray><click:run_command:''/husksync:userdata''><hover:show_text:''<gray>Klik om deze ruwe gebruikersgegevenssnapshot naar de mc-logs-service te dumpen
+
+    <dark_gray>Je ontvangt een URL met de gegevens.''>[☂ Webdump…]</hover></click></dark_gray>'
+  data_manager_advancements_preview_remaining: en %1% meer…
+  data_list_title: <color:#00fb9a>%1%'s momentopnamen van gebruikersgegevens:</color> <color:#00fb9a>(%2%-%3% van</color> <bold><color:#00fb9a>%4%</color></bold><color:#00fb9a>)</color>\n
+  data_list_item: '<gray><click:run_command:''/userdata''><hover:show_text:''<gray>Gebruikersgegevens momentopname voor %2%<dark_gray>⚡ %4%''>%1%</hover></click></gray> <color:#d8ff2b><click:run_command:''/userdata''><hover:show_text:''<gray>Vastgezet:
+
+    <dark_gray>Vastgezette momentopnamen worden niet automatisch gerouleerd.''>%5%</hover></click></color> <gradient:#ffc43b:#f5c962><click:run_command:''/userdata''><hover:show_text:''<gray>Versie tijdmarkering:<gray>
+
+    <dark_gray>Wanneer de data was opgeslagen
+
+    <dark_gray>%7%''>%6%</hover></click></gradient>   <click:run_command:''/userdata''><hover:show_text:''<gray>Reden opslaan:
+
+    <dark_gray>Waarom de data is opgeslagen''>⚑ %8%</hover></click>   <gradient:#62a9f5:#7ab8fa><click:run_command:''/userdata''><hover:show_text:''<gray>Grootte van momentopname:<gray>
+
+    <dark_gray>Geschatte bestandsgrootte van de momentopname (in KiB)''>⏏ %9%</hover></click></gradient>'
+  data_list_item_invalid: '<dark_gray><click:suggest_command:''/userdata''><hover:show_text:''<gray>User Data Snapshot for %2%
+
+    <dark_gray>⚡ %4%''>%1%</hover></click></dark_gray> <dark_gray><click:suggest_command:''/userdata''><hover:show_text:''<gray>Pinned:
+
+    <dark_gray>Pinned snapshots won\''t be automatically rotated.''>%5%</hover></click></dark_gray> <strikethrough><gray><click:suggest_command:''/userdata''><hover:show_text:''<color:#ff3300>&Invalid Data Snapshot
+
+    <color:#ff7e5e><red>lick to delete
+
+
+    <gray>⚠ %10%''>%6%   ⚑ %8%   ⏏ %9%</hover></click></gray></strikethrough>'
+  data_saved: <color:#00fb9a>Successfully saved a snapshot of %1%'s current user data.</color>
+  data_deleted: '<color:#00fb9a>❌ Momentopname van gebruikersgegevens is verwijderd</color> <color:#00fb9a><hover:show_text:''<gray>Versie UUID:
+
+    <dark_gray>%2%''>%1%</hover></color> <color:#00fb9a>voor</color> <color:#00fb9a><hover:show_text:''<gray>Speler UUID:
+
+    <dark_gray>%4%''>%3%.</hover></color>'
+  data_restored: '<color:#00fb9a>⏪ Succesvol hersteld</color> <color:#00fb9a><hover:show_text:''<gray>Speler UUID:
+
+    <dark_gray>%2%''>%1%</hover></color><color:#00fb9a>''s huidige gebruikersgegevens uit momentopname</color> <color:#00fb9a><hover:show_text:''<gray>Versie UUID:
+
+    <dark_gray>%4%''>%3%.</hover></color>'
+  data_pinned: '<color:#00fb9a>※ Momentopname van gebruikersgegevens is vastgezet</color> <color:#00fb9a><hover:show_text:''<gray>Versie UUID:
+
+    <dark_gray>%2%''>%1%</hover></color> <color:#00fb9a>voor</color> <color:#00fb9a><hover:show_text:''<gray>Speler UUID:
+
+    <dark_gray>%4%''>%3%.</hover></color>'
+  data_unpinned: '<color:#00fb9a>※ Momentopname van gebruikersgegevens is losgemaakt</color> <color:#00fb9a><hover:show_text:''<gray>Versie UUID:
+
+    <dark_gray>%2%''>%1%</hover></color> <color:#00fb9a>voor</color> <color:#00fb9a><hover:show_text:''<gray>Speler UUID:
+
+    <dark_gray>%4%''>%3%.</hover></color>'
+  data_dumped: <color:#00fb9a>☂ De momentopname van gebruikersgegevens %1% voor %2% is met succes gedumpt naar:</color>
+  list_footer: \n%1%<color:#00fb9a>Pagina</color> <color:#00fb9a>%2%</color>/<color:#00fb9a>%3%</color>%4%   %5%
+  list_previous_page_button: '<white><click:run_command:''%2%''><hover:show_text:''<gray>Bekijk vorige pagina''>◀</hover></click></white> '
+  list_next_page_button: ' <white><click:run_command:''%2%''><hover:show_text:''<gray>Bekijk volgende pagina''>▶</hover></click></white>'
+  list_page_jumpers: (%1%)
+  list_page_jumper_button: <click:run_command:'%2%'><hover:show_text:'<gray>Ga naar pagina %1%'>%1%</hover></click>
+  list_page_jumper_current_page: <color:#00fb9a>%1%</color>
   list_page_jumper_separator: ' '
-  list_page_jumper_group_separator: '…'
-  save_cause_disconnect: 'disconnect'
-  save_cause_world_save: 'world save'
-  save_cause_death: 'death'
-  save_cause_server_shutdown: 'server shutdown'
-  save_cause_save_command: 'save command'
-  save_cause_dump_command: 'dump command'
-  save_cause_inventory_command: 'inventory command'
-  save_cause_enderchest_command: 'enderchest command'
-  save_cause_backup_restore: 'backup restore'
-  save_cause_api: 'API'
-  save_cause_mpdb_migration: 'MPDB migration'
-  save_cause_legacy_migration: 'legacy migration'
-  save_cause_converted_from_v2: 'converted from v2'
-  up_to_date: '[HuskSync](#00fb9a bold) [| Je gebruikt de nieuwste versie van HuskSync (v%1%).](#00fb9a)'
-  update_available: '[HuskSync](#ff7e5e bold) [| Er is een nieuwe versie van HuskSync beschikbaar: v%1% (huidige versie: v%2%).](#ff7e5e)'
-  reload_complete: '[HuskSync](#00fb9a bold) [| Configuratie- en berichtbestanden opnieuw geladen.](#00fb9a)\n[⚠ Controleer of de configuratiebestanden up-to-date zijn op alle servers!](#00fb9a)\n[Een herstart is nodig voor de configuratiewijzigingen van kracht te laten worden.](#00fb9a italic)'
-  system_status_header: '[HuskSync](#00fb9a bold) [| System status report:](#00fb9a)'
-  system_dump_confirm: '[HuskSync](#00fb9a bold) [| Prepare a system dump? This will include:](#00fb9a)\n[• Your latest server logs and HuskSync config files](gray)\n[• Current plugin system status information](gray)\n[• Information about your Java & Minecraft server environment](gray)\n[• A list of other currently installed plugins](gray)\n[To confirm, use:](#00fb9a) [/husksync dump confirm](#00fb9a italic show_text=&7Click to prepare dump run_command=/husksync dump confirm)'
-  system_dump_started: '[HuskSync](#00fb9a bold) [| Preparing system status dump, please wait…](#00fb9a)'
-  system_dump_ready: '[HuskSync](#00fb9a bold) [| System status dump prepared! Click to view:](#00fb9a)'
-  error_invalid_syntax: '[Error:](#ff3300) [Onjuiste syntaxis. Gebruik:](#ff7e5e) [%1%](#ff7e5e italic show_text=&#ff7e5e&Click to suggest suggest_command=%1%)'
-  error_invalid_player: '[Error:](#ff3300) [Kan geen speler met die naam vinden.](#ff7e5e)'
-  error_invalid_data: '[Error:](#ff3300) [Failed to unpack user data as the snapshot is invalid or corrupt.](#ff7e5e) [(Details…)](gray show_text=&7⚠ %1%)'
-  error_no_permission: '[Error:](#ff3300) [Je hebt geen toestemming om deze opdracht uit te voeren](#ff7e5e)'
-  error_console_command_only: '[Error:](#ff3300) [Dat command kan alleen via de console worden uitgevoerd](#ff7e5e)'
+  list_page_jumper_group_separator: …
+  save_cause_disconnect: disconnect
+  save_cause_world_save: world save
+  save_cause_death: death
+  save_cause_server_shutdown: server shutdown
+  save_cause_save_command: save command
+  save_cause_dump_command: dump command
+  save_cause_inventory_command: inventory command
+  save_cause_enderchest_command: enderchest command
+  save_cause_backup_restore: backup restore
+  save_cause_api: API
+  save_cause_mpdb_migration: MPDB migration
+  save_cause_legacy_migration: legacy migration
+  save_cause_converted_from_v2: converted from v2
+  up_to_date: <bold><color:#00fb9a>HuskSync</color></bold> <color:#00fb9a>| Je gebruikt de nieuwste versie van HuskSync (v%1%).</color>
+  update_available: '<bold><color:#ff7e5e>HuskSync</color></bold> <color:#ff7e5e>| Er is een nieuwe versie van HuskSync beschikbaar: v%1% (huidige versie: v%2%).</color>'
+  reload_complete: <bold><color:#00fb9a>HuskSync</color></bold> <color:#00fb9a>| Configuratie- en berichtbestanden opnieuw geladen.</color>\n<color:#00fb9a>⚠ Controleer of de configuratiebestanden up-to-date zijn op alle servers!</color>\n<italic><color:#00fb9a>Een herstart is nodig voor de configuratiewijzigingen van kracht te laten worden.</color></italic>
+  system_status_header: <bold><color:#00fb9a>HuskSync</color></bold> <color:#00fb9a>| System status report:</color>
+  system_dump_confirm: <bold><color:#00fb9a>HuskSync</color></bold> <color:#00fb9a>| Prepare a system dump? This will include:</color>\n<gray>• Your latest server logs and HuskSync config files</gray>\n<gray>• Current plugin system status information</gray>\n<gray>• Information about your Java & Minecraft server environment</gray>\n<gray>• A list of other currently installed plugins</gray>\n<color:#00fb9a>To confirm, use:</color> <italic><color:#00fb9a><click:run_command:'/husksync'><hover:show_text:'<gray>Click to prepare dump'>/husksync dump confirm</hover></click></color></italic>
+  system_dump_started: <bold><color:#00fb9a>HuskSync</color></bold> <color:#00fb9a>| Preparing system status dump, please wait…</color>
+  system_dump_ready: <bold><color:#00fb9a>HuskSync</color></bold> <color:#00fb9a>| System status dump prepared! Click to view:</color>
+  error_invalid_syntax: <color:#ff3300>Error:</color> <color:#ff7e5e>Onjuiste syntaxis. Gebruik:</color> <italic><color:#ff7e5e><click:suggest_command:'%1%'><hover:show_text:'<color:#ff7e5e><red>lick to suggest'>%1%</hover></click></color></italic>
+  error_invalid_player: <color:#ff3300>Error:</color> <color:#ff7e5e>Kan geen speler met die naam vinden.</color>
+  error_invalid_data: <color:#ff3300>Error:</color> <color:#ff7e5e>Failed to unpack user data as the snapshot is invalid or corrupt.</color> <gray><hover:show_text:'<gray>⚠ %1%'>(Details…)</hover></gray>
+  error_no_permission: <color:#ff3300>Error:</color> <color:#ff7e5e>Je hebt geen toestemming om deze opdracht uit te voeren</color>
+  error_console_command_only: <color:#ff3300>Error:</color> <color:#ff7e5e>Dat command kan alleen via de console worden uitgevoerd</color>
   error_in_game_command_only: 'Error: Dat command kan alleen in-game worden gebruikt.'
-  error_no_data_to_display: '[Error:](#ff3300) [Kon geen gebruikersgegevens vinden om weer te geven.](#ff7e5e)'
-  error_invalid_version_uuid: '[Error:](#ff3300) [Kon geen gebruikersgegevens vinden voor dat versie-UUID.](#ff7e5e)'
-  husksync_command_description: 'Beheer de HuskSync plugin'
-  userdata_command_description: 'Bekijk, beheer en herstel de gebruikersgegevens van spelers'
-  inventory_command_description: 'Bekijk en bewerk de inventaris van een speler'
-  enderchest_command_description: 'Bekijk en bewerk de Enderkist van een speler'
+  error_no_data_to_display: <color:#ff3300>Error:</color> <color:#ff7e5e>Kon geen gebruikersgegevens vinden om weer te geven.</color>
+  error_invalid_version_uuid: <color:#ff3300>Error:</color> <color:#ff7e5e>Kon geen gebruikersgegevens vinden voor dat versie-UUID.</color>
+  husksync_command_description: Beheer de HuskSync plugin
+  userdata_command_description: Bekijk, beheer en herstel de gebruikersgegevens van spelers
+  inventory_command_description: Bekijk en bewerk de inventaris van een speler
+  enderchest_command_description: Bekijk en bewerk de Enderkist van een speler

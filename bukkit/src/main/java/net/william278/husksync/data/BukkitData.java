@@ -439,6 +439,28 @@ public abstract class BukkitData implements Data {
     @NoArgsConstructor(access = AccessLevel.PRIVATE)
     public static class Statistics extends BukkitData implements Data.Statistics, Adaptable {
 
+        // Pre-filtered material lists to avoid N×M iteration over the full Registry.MATERIAL per statistic type
+        private static Set<Material> BLOCK_MATERIALS;
+        private static Set<Material> ITEM_MATERIALS;
+
+        private static Set<Material> getBlockMaterials() {
+            if (BLOCK_MATERIALS == null) {
+                final Set<Material> blocks = new HashSet<>();
+                Registry.MATERIAL.forEach(mat -> { if (mat.isBlock()) blocks.add(mat); });
+                BLOCK_MATERIALS = Collections.unmodifiableSet(blocks);
+            }
+            return BLOCK_MATERIALS;
+        }
+
+        private static Set<Material> getItemMaterials() {
+            if (ITEM_MATERIALS == null) {
+                final Set<Material> items = new HashSet<>();
+                Registry.MATERIAL.forEach(mat -> { if (mat.isItem()) items.add(mat); });
+                ITEM_MATERIALS = Collections.unmodifiableSet(items);
+            }
+            return ITEM_MATERIALS;
+        }
+
         @SerializedName("generic")
         private Map<String, Integer> genericStatistics;
         @SerializedName("blocks")
@@ -457,8 +479,8 @@ public abstract class BukkitData implements Data {
                 switch (id.getType()) {
                     case UNTYPED -> addStatistic(player, id, generic);
                     // Todo - Future - Use BLOCK and ITEM registries when API stabilizes
-                    case BLOCK -> addStatistic(player, id, Registry.MATERIAL, blocks);
-                    case ITEM -> addStatistic(player, id, Registry.MATERIAL, items);
+                    case BLOCK -> addStatistic(player, id, getBlockMaterials(), blocks);
+                    case ITEM -> addStatistic(player, id, getItemMaterials(), items);
                     case ENTITY -> addStatistic(player, id, Registry.ENTITY_TYPE, entities);
                 }
             });
@@ -481,7 +503,7 @@ public abstract class BukkitData implements Data {
         }
 
         private static <R extends Keyed> void addStatistic(@NotNull Player p, @NotNull Statistic id,
-                                                           @NotNull Registry<R> registry,
+                                                           @NotNull Iterable<R> registry,
                                                            @NotNull Map<String, Map<String, Integer>> map) {
             registry.forEach(i -> {
                 try {

@@ -19,7 +19,6 @@
 
 package net.william278.husksync.user;
 
-import de.themoep.minedown.adventure.MineDown;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.william278.husksync.HuskSync;
@@ -32,6 +31,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.Consumer;
+import java.util.logging.Level;
 
 /**
  * Represents a logged-in {@link User}
@@ -81,21 +81,12 @@ public abstract class OnlineUser extends User implements CommandUser, UserDataHo
     }
 
     /**
-     * Dispatch a MineDown-formatted message to this player
+     * Send an action bar message to this player
      *
-     * @param mineDown the parsed {@link MineDown} to send
+     * @param component the {@link Component} message to send
      */
-    public void sendMessage(@NotNull MineDown mineDown) {
-        sendMessage(mineDown.toComponent());
-    }
-
-    /**
-     * Dispatch a MineDown-formatted action bar message to this player
-     *
-     * @param mineDown the parsed {@link MineDown} to send
-     */
-    public void sendActionBar(@NotNull MineDown mineDown) {
-        getAudience().sendActionBar(mineDown.toComponent());
+    public void sendActionBar(@NotNull Component component) {
+        getAudience().sendActionBar(component);
     }
 
     /**
@@ -108,7 +99,7 @@ public abstract class OnlineUser extends User implements CommandUser, UserDataHo
      * @deprecated No longer supported
      */
     @Deprecated(since = "3.6.7")
-    public abstract void sendToast(@NotNull MineDown title, @NotNull MineDown description,
+    public abstract void sendToast(@NotNull Component title, @NotNull Component description,
                                    @NotNull String iconMaterial, @NotNull String backgroundType);
 
     /**
@@ -120,7 +111,7 @@ public abstract class OnlineUser extends User implements CommandUser, UserDataHo
      * @param size     the size of the menu
      * @param onClose  the action to perform when the menu is closed
      */
-    public abstract void showGui(@NotNull Data.Items.Items items, @NotNull MineDown title, boolean editable, int size,
+    public abstract void showGui(@NotNull Data.Items.Items items, @NotNull Component title, boolean editable, int size,
                                  @NotNull Consumer<Data.Items.Items> onClose);
 
     /**
@@ -158,16 +149,26 @@ public abstract class OnlineUser extends User implements CommandUser, UserDataHo
      */
     public void completeSync(boolean succeeded, @NotNull DataSnapshot.UpdateCause cause, @NotNull HuskSync plugin) {
         if (succeeded) {
-            switch (plugin.getSettings().getSynchronization().getNotificationDisplaySlot()) {
-                case CHAT -> cause.getCompletedLocale(plugin).ifPresent(this::sendMessage);
-                case ACTION_BAR -> cause.getCompletedLocale(plugin).ifPresent(this::sendActionBar);
+            try {
+                switch (plugin.getSettings().getSynchronization().getNotificationDisplaySlot()) {
+                    case CHAT -> cause.getCompletedLocale(plugin).ifPresent(this::sendMessage);
+                    case ACTION_BAR -> cause.getCompletedLocale(plugin).ifPresent(this::sendActionBar);
+                }
+            } catch (Throwable e) {
+                plugin.log(Level.WARNING,
+                        String.format("Failed to send sync complete notification to %s", getName()), e);
             }
             plugin.fireEvent(
                     plugin.getSyncCompleteEvent(this),
                     (event) -> plugin.unlockPlayer(getUuid())
             );
         } else {
-            cause.getFailedLocale(plugin).ifPresent(this::sendMessage);
+            try {
+                cause.getFailedLocale(plugin).ifPresent(this::sendMessage);
+            } catch (Throwable e) {
+                plugin.log(Level.WARNING,
+                        String.format("Failed to send sync failure notification to %s", getName()), e);
+            }
         }
 
         // Ensure the user is in the database

@@ -4,7 +4,7 @@ This page contains the configuration structure for HuskSync.
 📁 `plugins/HuskSync/`
 - 📄 `config.yml`: General plugin configuration
 - 📄 `server.yml`: Server ID configuration
-- 📄 `messages-xx-xx.yml`: Plugin locales, formatted in MineDown (see [[Translations]])
+- 📄 `messages-xx-xx.yml`: Plugin locales, formatted in MiniMessage (see [[Translations]])
 
 ## Example files
 <details>

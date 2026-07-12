@@ -307,7 +307,10 @@ public class Identifier implements Comparable<Identifier> {
                 }
                 return 1;
             }
-            return -1;
+            if (i2.dependsOn(i1)) {
+                return -1;
+            }
+            return i1.compareTo(i2);
         }
 
     }

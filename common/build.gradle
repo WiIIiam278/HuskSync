@@ -5,13 +5,11 @@ plugins {
 dependencies {
     api 'commons-io:commons-io:2.21.0'
     api 'org.apache.commons:commons-text:1.14.0'
-    api 'net.william278:minedown:1.8.2'
     api 'net.william278:mapdataapi:2.0'
     api 'org.json:json:20250517'
     api 'com.google.code.gson:gson:2.13.2'
     api 'com.fatboyindustrial.gson-javatime-serialisers:gson-javatime-serialisers:1.1.2'
     api 'de.exlll:configlib-yaml:4.6.4'
-    api 'net.william278:paginedown:1.1.2'
     api 'net.william278:DesertWell:2.0.4'
     api('com.zaxxer:HikariCP:7.0.2') {
         exclude module: 'slf4j-api'
@@ -26,6 +24,7 @@ dependencies {
     compileOnly 'net.kyori:adventure-api:4.25.0'
     compileOnly 'net.kyori:adventure-platform-api:4.4.0'
     compileOnly "net.kyori:adventure-text-serializer-plain:4.25.0"
+    compileOnly "net.kyori:adventure-text-minimessage:4.25.0"
     compileOnly 'com.google.guava:guava:33.5.0-jre'
     compileOnly 'com.github.plan-player-analytics:Plan:5.6.2965'
     compileOnly "redis.clients:jedis:$jedis_version"
@@ -39,6 +38,7 @@ dependencies {
     testImplementation "org.xerial.snappy:snappy-java:$snappy_version"
     testImplementation 'com.google.guava:guava:33.5.0-jre'
     testImplementation 'com.github.plan-player-analytics:Plan:5.6.2965'
+    testImplementation 'net.kyori:adventure-text-minimessage:4.25.0'
     testCompileOnly 'de.exlll:configlib-yaml:4.6.4'
     testCompileOnly 'org.jetbrains:annotations:26.0.2-1'
 
