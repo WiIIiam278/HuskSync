@@ -58,10 +58,11 @@ public class DelayDataSyncer extends DataSyncer {
 
     @Override
     public void syncSaveUserData(@NotNull OnlineUser onlineUser) {
+        final DataSnapshot.Packed snapshot = onlineUser.createSnapshot(DataSnapshot.SaveCause.DISCONNECT);
         plugin.runAsync(() -> {
             getRedis().setUserServerSwitch(onlineUser);
             saveData(
-                    onlineUser, onlineUser.createSnapshot(DataSnapshot.SaveCause.DISCONNECT),
+                    onlineUser, snapshot,
                     (user, data) -> {
                         getRedis().setUserData(user, data);
                         plugin.unlockPlayer(user.getUuid());
