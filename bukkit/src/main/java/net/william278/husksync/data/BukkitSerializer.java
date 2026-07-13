@@ -39,6 +39,7 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static net.william278.husksync.data.BukkitData.Items.Inventory.INVENTORY_SLOT_COUNT;
@@ -136,14 +137,47 @@ public class BukkitSerializer {
         private ItemStack @NotNull [] upgradeItemStacks(@NotNull NBTCompound itemsNbt, @NotNull Version mcVersion) {
             final ReadWriteNBTCompoundList items = itemsNbt.getCompoundList("items");
             final ItemStack[] itemStacks = new ItemStack[itemsNbt.getInteger("size")];
+            final List<ItemStack> overFlow = new ArrayList<>();
             for (int i = 0; i < items.size(); i++) {
-                if (items.get(i) == null) {
-                    itemStacks[i] = new ItemStack(Material.AIR);
+                final ReadWriteNBT item = items.get(i);
+                if (item == null) {
                     continue;
                 }
+                final int slot = item.hasTag("Slot") ? item.getInteger("Slot") : i;
+                if (slot < 0) {
+                    continue;
+                }
+
+                ItemStack upgraded = null;
                 try {
-                    itemStacks[i] = NBT.itemStackFromNBT(upgradeItemData(items.get(i), mcVersion));
+                    upgraded = NBT.itemStackFromNBT(upgradeItemData(item, mcVersion));
                 } catch (Throwable e) {
+                    try {
+                        upgraded = NBT.itemStackFromNBT(item);
+                    } catch (Throwable e2) {
+                        upgraded = new ItemStack(Material.AIR);
+                    }
+                }
+                if (upgraded != null && !upgraded.isEmpty()) {
+                    if (slot < itemStacks.length && (itemStacks[slot] == null || itemStacks[slot].isEmpty())) {
+                        itemStacks[slot] = upgraded;
+                    } else {
+                        overFlow.add(upgraded);
+                    }
+                }
+            }
+
+            for (ItemStack remaining : overFlow) {
+                for (int i = 0; i < itemStacks.length; i++) {
+                    if (itemStacks[i] == null || itemStacks[i].isEmpty()) {
+                        itemStacks[i] = remaining;
+                        break;
+                    }
+                }
+            }
+
+            for (int i = 0; i < itemStacks.length; i++) {
+                if (itemStacks[i] == null) {
                     itemStacks[i] = new ItemStack(Material.AIR);
                 }
             }
