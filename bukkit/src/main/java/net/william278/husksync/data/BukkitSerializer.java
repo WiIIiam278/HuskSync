@@ -157,8 +157,8 @@ public class BukkitSerializer {
                         upgraded = new ItemStack(Material.AIR);
                     }
                 }
-                if(upgraded != null && !upgraded.isEmpty()) {
-                    if(slot < itemStacks.length && (itemStacks[slot] == null || itemStacks[slot].isEmpty())) {
+                if (upgraded != null && !upgraded.isEmpty()) {
+                    if (slot < itemStacks.length && (itemStacks[slot] == null || itemStacks[slot].isEmpty())) {
                         itemStacks[slot] = upgraded;
                     } else {
                         overFlow.add(upgraded);
@@ -166,17 +166,17 @@ public class BukkitSerializer {
                 }
             }
 
-            for(ItemStack remaining : overFlow) {
-                for(int i = 0; i < itemStacks.length; i++) {
-                    if(itemStacks[i] == null || itemStacks[i].isEmpty()) {
+            for (ItemStack remaining : overFlow) {
+                for (int i = 0; i < itemStacks.length; i++) {
+                    if (itemStacks[i] == null || itemStacks[i].isEmpty()) {
                         itemStacks[i] = remaining;
                         break;
                     }
                 }
             }
 
-            for(int i = 0; i < itemStacks.length; i++) {
-                if(itemStacks[i] == null) {
+            for (int i = 0; i < itemStacks.length; i++) {
+                if (itemStacks[i] == null) {
                     itemStacks[i] = new ItemStack(Material.AIR);
                 }
             }
