@@ -48,8 +48,9 @@ HuskSync supports the following [compatible versions](https://william278.net/doc
 
 |    Minecraft    | Latest HuskSync | Java Version | Platforms     | Support Status                |
 |:---------------:|:---------------:|:------------:|:--------------|:------------------------------|
-|     26.1.2    |    _latest_   |      25      | Paper         |     ✅ **Active Release**      |
-|     1.21.11   |    3.8.7     |      21      | Paper            | 🗃️ Archived (June 2026)      |
+|     26.2      |    _latest_     |      25      | Paper         | ✅ **Active Release**        |
+|     26.1.2    |    _latest_     |      25      | Paper         | ✅ **November 2026**         |
+|     1.21.11   |      4.0.0      |      21      | Paper         | 🗃️ Archived (August 2026)    |
 |     1.21.10   |      3.8.7      |      21      | Paper         | 🗃️ Archived (June 2026)      |
 |     1.21.10   |      3.8.7      |      21      | Paper         | 🗃️ Archived (June 2026)      |
 |    1.21.7/8   |      3.8.7      |      21      | Paper, Fabric | 🗃️ Archived (June 2026)      |
@@ -61,7 +62,7 @@ HuskSync supports the following [compatible versions](https://william278.net/doc
 |     1.20.6    |      3.6.8      |      17      | Paper         | 🗃️ Archived (October 2024)   |
 |     1.20.4    |      3.6.8      |      17      | Paper         | 🗃️ Archived (July 2024)      |
 |     1.20.1    |      3.8.7      |      17      | Paper, Fabric | 🗃️ Archived (November 2024)  |
-| 1.17.1 - 1.19.4 |      3.6.8      |      17      | Paper         | 🗃️ Archived                  |
+| 1.17.1 - 1.19.4 |      3.6.8    |      17      | Paper         | 🗃️ Archived                  |
 |     1.16.5    |      3.2.1      |      16      | Paper         | 🗃️ Archived                  |
 
 HuskSync is primarily developed against the latest release. Old Minecraft versions are allocated a support channel based on popularity, mod support, etc:
