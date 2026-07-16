@@ -140,6 +140,13 @@ public interface ConfigProvider {
                 Server.class,
                 YAML_CONFIGURATION_PROPERTIES.header(Server.CONFIG_HEADER).build()
         ));
+
+        String envServerName = System.getenv("HUSKSYNC_SERVER_NAME");
+        if (envServerName != null && !envServerName.isEmpty()) {
+            Server server = Server.of(envServerName);
+            setServerName(server);
+            getPlugin().log(Level.INFO, "Server name set to: " + envServerName);
+        }
     }
 
     default void validateConfigFiles() {

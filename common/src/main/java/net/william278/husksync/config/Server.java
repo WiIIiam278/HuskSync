@@ -38,7 +38,8 @@ public class Server {
             ┃    Developed by William278   ┃
             ┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
             ┣╸ This file should contain the ID of this server as defined in your proxy config.
-            ┗╸ If you join it using /server alpha, then set it to 'alpha' (case-sensitive)""";
+            ┣╸ If you join it using /server alpha, then set it to 'alpha' (case-sensitive)
+            ┗╸ You can also set the environment variable HUSKSYNC_SERVER_NAME to override this value""";
 
     private String name = getDefault();
 
