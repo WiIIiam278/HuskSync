@@ -260,7 +260,7 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
     @Override
     @NotNull
     public Set<OnlineUser> getOnlineUsers() {
-        return getServer().getOnlinePlayers().stream()
+        return new ArrayList<>(getServer().getOnlinePlayers()).stream()
                 .map(player -> BukkitUser.adapt(player, this))
                 .collect(Collectors.toSet());
     }
