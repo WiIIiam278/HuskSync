@@ -314,7 +314,7 @@ public class Settings {
         private List<String> blacklistedCommandsWhileLocked = new ArrayList<>(List.of("*"));
 
         @Comment("Prevent ender pearl launch events from being blocked while the user is being locked (fixes stasis chambers on 1.21.1+)")
-        private boolean allowPearlSpawningWhileLocked = false;
+        private boolean allowPearlSpawningWhileLocked = true;
 
         @Comment("Configuration for how to sync attributes")
         private AttributeSettings attributes = new AttributeSettings();
