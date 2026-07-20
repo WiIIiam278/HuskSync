@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 'Checkout for CI 🛎️'
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: 'Push Docs to Github Wiki 📄️'
         uses: Andrew-Chen-Wang/github-wiki-action@v5
         with:
