@@ -44,29 +44,30 @@ public class DataSnapshotList {
     private DataSnapshotList(@NotNull List<DataSnapshot.Packed> snapshots, @NotNull User dataOwner,
                              @NotNull HuskSync plugin) {
         final AtomicInteger snapshotNumber = new AtomicInteger(1);
-        this.paginatedList = plugin.getLocales().getBaseChatList(6)
-                .setItems(snapshots.stream()
-                        .map(snapshot -> plugin.getLocales()
-                                .getRawLocale(!snapshot.isInvalid() ? "data_list_item" : "data_list_item_invalid",
-                                        getNumberIcon(snapshotNumber.getAndIncrement()),
-                                        dataOwner.getName(),
-                                        snapshot.getId().toString(),
-                                        snapshot.getShortId(),
-                                        snapshot.isPinned() ? "※" : "  ",
-                                        snapshot.getTimestamp().format(DateTimeFormatter
-                                                .ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.SHORT)),
-                                        snapshot.getTimestamp().format(DateTimeFormatter
-                                                .ofLocalizedDateTime(FormatStyle.LONG, FormatStyle.MEDIUM)),
-                                        snapshot.getSaveCause().getLocale(plugin),
-                                        String.format("%.2fKiB", snapshot.getFileSize(plugin) / 1024f),
-                                        snapshot.isInvalid() ? snapshot.getInvalidReason(plugin) : "")
-                                .orElse("• " + snapshot.getId())).toList())
-                .setHeaderFormat(plugin.getLocales()
-                        .getRawLocale("data_list_title", dataOwner.getName(),
-                                "%first_item_on_page_index%", "%last_item_on_page_index%", "%total_items%")
-                        .orElse(""))
-                .setCommand("/husksync:userdata list " + dataOwner.getName())
-                .build();
+        this.paginatedList = PaginatedList.of(snapshots.stream()
+                .map(snapshot -> plugin.getLocales()
+                        .getRawLocale(!snapshot.isInvalid() ? "data_list_item" : "data_list_item_invalid",
+                                getNumberIcon(snapshotNumber.getAndIncrement()),
+                                dataOwner.getName(),
+                                snapshot.getId().toString(),
+                                snapshot.getShortId(),
+                                snapshot.isPinned() ? "※" : "  ",
+                                snapshot.getTimestamp().format(DateTimeFormatter
+                                        .ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.SHORT)),
+                                snapshot.getTimestamp().format(DateTimeFormatter
+                                        .ofLocalizedDateTime(FormatStyle.LONG, FormatStyle.MEDIUM)),
+                                snapshot.getSaveCause().getLocale(plugin),
+                                String.format("%.2fKiB", snapshot.getFileSize(plugin) / 1024f),
+                                snapshot.isInvalid() ? snapshot.getInvalidReason(plugin) : "")
+                        .orElse("• " + snapshot.getId()))
+                .toList(),
+                plugin.getLocales().getBaseChatList(6)
+                        .setHeaderFormat(plugin.getLocales()
+                                .getRawLocale("data_list_title", dataOwner.getName(),
+                                        "%first_item_on_page_index%", "%last_item_on_page_index%", "%total_items%")
+                                .orElse(""))
+                        .setCommand("/husksync:userdata list " + dataOwner.getName())
+                        .build());
     }
 
     /**

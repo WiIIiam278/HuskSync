@@ -62,6 +62,24 @@ public class PaginatedList {
         return (int) Math.ceil((double) items.size() / itemsPerPage);
     }
 
+    @NotNull
+    public static PaginatedList of(@NotNull List<String> items, @NotNull PaginatedList template) {
+        return new Builder()
+                .setItems(items)
+                .setItemsPerPage(template.itemsPerPage)
+                .setHeaderFormat(template.headerFormat)
+                .setFooterFormat(template.footerFormat)
+                .setPreviousButtonFormat(template.previousButtonFormat)
+                .setNextButtonFormat(template.nextButtonFormat)
+                .setPageJumpersFormat(template.pageJumpersFormat)
+                .setPageJumperPageFormat(template.pageJumperPageFormat)
+                .setPageJumperCurrentPageFormat(template.pageJumperCurrentPageFormat)
+                .setPageJumperPageSeparator(template.pageJumperSeparator)
+                .setPageJumperGroupSeparator(template.pageJumperGroupSeparator)
+                .setCommand(template.command)
+                .build();
+    }
+
     public Component getNearestValidPage(int page) {
         final int totalPages = getTotalPages();
         final int clampedPage = Math.max(1, Math.min(page, Math.max(1, totalPages)));
@@ -69,15 +87,18 @@ public class PaginatedList {
         final MiniMessage mm = MiniMessage.miniMessage();
         final List<Component> lines = new ArrayList<>();
 
+        final int startIndex = (clampedPage - 1) * itemsPerPage;
+        final int endIndex = Math.min(startIndex + itemsPerPage, items.size());
+
         if (headerFormat != null && !headerFormat.isEmpty()) {
             lines.add(mm.deserialize(headerFormat
                     .replace("%current_page%", Integer.toString(clampedPage))
                     .replace("%total_pages%", Integer.toString(totalPages))
-                    .replace("%total_items%", Integer.toString(items.size()))));
+                    .replace("%total_items%", Integer.toString(items.size()))
+                    .replace("%first_item_on_page_index%", Integer.toString(items.isEmpty() ? 0 : startIndex + 1))
+                    .replace("%last_item_on_page_index%", Integer.toString(endIndex))));
         }
 
-        final int startIndex = (clampedPage - 1) * itemsPerPage;
-        final int endIndex = Math.min(startIndex + itemsPerPage, items.size());
         IntStream.range(startIndex, endIndex)
                 .mapToObj(i -> mm.deserialize(items.get(i)))
                 .forEach(lines::add);
@@ -86,12 +107,12 @@ public class PaginatedList {
             final String previousButton = previousButtonFormat != null && clampedPage > 1
                     ? mm.serialize(mm.deserialize(previousButtonFormat
                     .replace("%previous_page_index%", Integer.toString(clampedPage - 1))
-                    .replace("%command%", command)))
+                    .replace("%command%", command + " " + (clampedPage - 1))))
                     : "";
             final String nextButton = nextButtonFormat != null && clampedPage < totalPages
                     ? mm.serialize(mm.deserialize(nextButtonFormat
                     .replace("%next_page_index%", Integer.toString(clampedPage + 1))
-                    .replace("%command%", command)))
+                    .replace("%command%", command + " " + (clampedPage + 1))))
                     : "";
             final String pageJumpers = buildPageJumpers(mm, clampedPage, totalPages);
 
@@ -122,7 +143,7 @@ public class PaginatedList {
             final String format = (i == currentPage) ? pageJumperCurrentPageFormat : pageJumperPageFormat;
             final String rendered = mm.serialize(mm.deserialize(format
                     .replace("%target_page_index%", Integer.toString(i))
-                    .replace("%command%", command)
+                    .replace("%command%", command + " " + i)
                     .replace("%current_page%", Integer.toString(i))));
             jumpButtons.add(rendered);
         }

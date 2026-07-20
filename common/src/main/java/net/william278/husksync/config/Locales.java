@@ -26,7 +26,6 @@ import lombok.NoArgsConstructor;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.william278.husksync.util.PaginatedList;
-import org.apache.commons.text.StringEscapeUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
@@ -69,7 +68,7 @@ public class Locales {
      * @return An {@link Optional} containing the locale corresponding to the id, if it exists
      */
     public Optional<String> getRawLocale(@NotNull String localeId) {
-        return Optional.ofNullable(locales.get(localeId)).map(StringEscapeUtils::unescapeJava);
+        return Optional.ofNullable(locales.get(localeId)).map(Locales::unescapeLocale);
     }
 
     /**
@@ -116,6 +115,32 @@ public class Locales {
     @NotNull
     public Component format(@NotNull String text) {
         return MiniMessage.miniMessage().deserialize(text);
+    }
+
+    /**
+     * Unescape a raw locale string loaded from YAML.
+     * <p>
+     * Leaves {@code \\}, {@code \'} and {@code \"} untouched, since these belong to
+     * MiniMessage's own quoted-argument escaping (e.g. {@code hover:show_text:'it\'s'}).
+     * <p>
+     * Leaves {@code \n}, since YAML translations use it to force a line break.
+     *
+     * @param string The raw string as loaded from the locale file
+     * @return The string with {@code \n} escapes resolved
+     */
+    @NotNull
+    private static String unescapeLocale(@NotNull String string) {
+        final StringBuilder out = new StringBuilder(string.length());
+        for (int i = 0; i < string.length(); i++) {
+            final char c = string.charAt(i);
+            if (c == '\\' && i + 1 < string.length() && string.charAt(i + 1) == 'n') {
+                out.append('\n');
+                i++;
+            } else {
+                out.append(c);
+            }
+        }
+        return out.toString();
     }
 
     /**
