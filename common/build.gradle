@@ -25,7 +25,7 @@ dependencies {
     compileOnly 'net.kyori:adventure-platform-api:4.4.0'
     compileOnly "net.kyori:adventure-text-serializer-plain:4.25.0"
     compileOnly "net.kyori:adventure-text-minimessage:4.25.0"
-    compileOnly 'com.google.guava:guava:33.5.0-jre'
+    compileOnly 'com.google.guava:guava:33.6.0-jre'
     compileOnly 'com.github.plan-player-analytics:Plan:5.6.2965'
     compileOnly "redis.clients:jedis:$jedis_version"
     compileOnly "com.mysql:mysql-connector-j:$mysql_driver_version"
@@ -36,7 +36,7 @@ dependencies {
 
     testImplementation "redis.clients:jedis:$jedis_version"
     testImplementation "org.xerial.snappy:snappy-java:$snappy_version"
-    testImplementation 'com.google.guava:guava:33.5.0-jre'
+    testImplementation 'com.google.guava:guava:33.6.0-jre'
     testImplementation 'com.github.plan-player-analytics:Plan:5.6.2965'
     testImplementation 'net.kyori:adventure-text-minimessage:4.25.0'
     testCompileOnly 'de.exlll:configlib-yaml:4.6.4'
