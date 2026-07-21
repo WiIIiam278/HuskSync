@@ -26,6 +26,8 @@ import net.william278.husksync.user.OnlineUser;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
+import java.util.logging.Level;
+import java.util.stream.Collectors;
 
 import static net.william278.husksync.config.Settings.SynchronizationSettings.SaveOnDeathSettings;
 
@@ -63,6 +65,11 @@ public abstract class EventListener {
     protected final void handlePlayerQuit(@NotNull OnlineUser user) {
         // Check the user is a user, the plugin isn't disabling, then mark as disconnecting
         if (user.isNpc() || plugin.isDisabling()) {
+            if (plugin.isDisabling()) {
+                plugin.log(Level.WARNING, String.format(
+                        "[SHUTDOWN-LOSS] %s left the server while plugin is disabling — DATA MAY BE LOST!",
+                        user.getName()));
+            }
             return;
         }
         plugin.getDisconnectingPlayers().add(user.getUuid());
@@ -118,12 +125,36 @@ public abstract class EventListener {
      */
     public void handlePluginDisable() {
         // Save for all online players.
+        final Set<UUID> onlineUuids = plugin.getOnlineUsers().stream()
+                .map(OnlineUser::getUuid)
+                .collect(Collectors.toSet());
         plugin.getOnlineUsers().stream()
                 .filter(user -> !plugin.isLocked(user.getUuid()) && !user.isNpc())
                 .forEach(user -> {
                     plugin.lockPlayer(user.getUuid());
                     plugin.getDataSyncer().saveCurrentUserData(user, DataSnapshot.SaveCause.SERVER_SHUTDOWN);
                 });
+
+        // Log any locked players still in-flight after the sync save pass
+        final Set<UUID> lockedAfterSave = plugin.getLockedPlayers().stream()
+                .filter(uuid -> !onlineUuids.contains(uuid))
+                .collect(Collectors.toSet());
+        if (!lockedAfterSave.isEmpty()) {
+            plugin.log(Level.WARNING, String.format(
+                    "[SHUTDOWN-LOSS] %d player(s) are still locked and no longer online — their async saves "
+                            + "will be cancelled by cancelTasks() — DATA MAY BE LOST!: %s",
+                    lockedAfterSave.size(), lockedAfterSave));
+        }
+
+        // Log online players that were locked and skipped
+        final Set<UUID> onlineLocked = plugin.getLockedPlayers().stream()
+                .filter(onlineUuids::contains)
+                .collect(Collectors.toSet());
+        if (!onlineLocked.isEmpty()) {
+            plugin.log(Level.WARNING, String.format(
+                    "[SHUTDOWN-LOSS] %d online player(s) were locked during shutdown — DATA MAY BE LOST!: %s",
+                    onlineLocked.size(), onlineLocked));
+        }
 
         // Close outstanding connections
         plugin.getDatabase().terminate();
