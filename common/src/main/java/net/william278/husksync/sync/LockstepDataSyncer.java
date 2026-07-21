@@ -25,6 +25,7 @@ import net.william278.husksync.user.OnlineUser;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 public class LockstepDataSyncer extends DataSyncer {
 
@@ -76,14 +77,18 @@ public class LockstepDataSyncer extends DataSyncer {
 
     @Override
     public void syncSaveUserData(@NotNull OnlineUser onlineUser) {
-        plugin.runAsync(() -> saveData(
-                onlineUser, onlineUser.createSnapshot(DataSnapshot.SaveCause.DISCONNECT),
-                (user, data) -> {
-                    getRedis().setUserData(user, data);
-                    getRedis().setUserCheckedOut(user, false);
-                    plugin.unlockPlayer(user.getUuid());
-                }
-        ));
+        final CompletableFuture<Void> future = plugin.supplyAsync(() -> {
+            saveData(
+                    onlineUser, onlineUser.createSnapshot(DataSnapshot.SaveCause.DISCONNECT),
+                    (user, data) -> {
+                        getRedis().setUserData(user, data);
+                        getRedis().setUserCheckedOut(user, false);
+                        plugin.unlockPlayer(user.getUuid());
+                    }
+            );
+            return null;
+        });
+        trackSave(onlineUser.getUuid(), future);
     }
 
 }

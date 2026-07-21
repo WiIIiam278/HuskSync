@@ -132,7 +132,15 @@ public interface FabricTask extends Task {
 
         @Override
         default void cancelTasks() {
-            ASYNC_EXEC.shutdownNow();
+            ASYNC_EXEC.shutdown();
+            try {
+                if (!ASYNC_EXEC.awaitTermination(10, TimeUnit.SECONDS)) {
+                    ASYNC_EXEC.shutdownNow();
+                }
+            } catch (InterruptedException e) {
+                ASYNC_EXEC.shutdownNow();
+                Thread.currentThread().interrupt();
+            }
         }
 
     }

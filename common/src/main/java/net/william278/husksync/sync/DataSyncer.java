@@ -32,6 +32,12 @@ import org.jetbrains.annotations.Blocking;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.time.Duration;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
@@ -51,6 +57,7 @@ public abstract class DataSyncer {
 
     protected final HuskSync plugin;
     private final long maxListenAttempts;
+    private final ConcurrentHashMap<UUID, CompletableFuture<Void>> pendingSaves = new ConcurrentHashMap<>();
 
     @ApiStatus.Internal
     protected DataSyncer(@NotNull HuskSync plugin) {
@@ -78,6 +85,58 @@ public abstract class DataSyncer {
      * Called when the plugin is disabled
      */
     public void terminate() {
+    }
+
+    /**
+     * Track a pending save future for a user, so it can be awaited during shutdown
+     */
+    protected void trackSave(@NotNull UUID uuid, @NotNull CompletableFuture<Void> save) {
+        pendingSaves.put(uuid, save);
+        save.whenComplete((v, t) -> {
+            pendingSaves.remove(uuid);
+            if (t != null) {
+                plugin.log(Level.WARNING, String.format(
+                        "Pending save for %s failed: %s", uuid, t.getMessage()));
+            }
+        });
+    }
+
+    /**
+     * Blocks until all tracked pending saves complete, or the timeout expires
+     *
+     * @param timeout maximum time to wait
+     */
+    public void awaitPendingSaves(@NotNull Duration timeout) {
+        if (pendingSaves.isEmpty()) {
+            return;
+        }
+        final int pendingCount = pendingSaves.size();
+        plugin.log(Level.INFO, String.format(
+                "Waiting for %d pending data save(s) to complete before shutting down...", pendingCount));
+        try {
+            CompletableFuture
+                    .allOf(pendingSaves.values().toArray(new CompletableFuture[0]))
+                    .orTimeout(timeout.toMillis(), TimeUnit.MILLISECONDS)
+                    .join();
+        } catch (CompletionException e) {
+            if (e.getCause() instanceof java.util.concurrent.TimeoutException) {
+                plugin.log(Level.WARNING, String.format(
+                        "Timed out after %ds waiting for %d pending save(s). Data may be lost for some players.",
+                        timeout.toSeconds(), pendingSaves.size()));
+            } else {
+                plugin.log(Level.WARNING, String.format(
+                        "A pending save failed unexpectedly: %s. Data may be lost.",
+                        e.getCause() != null ? e.getCause().getMessage() : e.getMessage()));
+            }
+        }
+        if (pendingSaves.isEmpty()) {
+            plugin.log(Level.INFO, String.format(
+                    "%d pending save(s) completed successfully during shutdown drain.", pendingCount));
+        }
+        if (!pendingSaves.isEmpty()) {
+            plugin.log(Level.WARNING, String.format(
+                    "%d save(s) did not complete before shutdown.", pendingSaves.size()));
+        }
     }
 
     /**

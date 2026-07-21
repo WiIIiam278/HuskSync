@@ -239,12 +239,22 @@ public class FabricHuskSync implements DedicatedServerModInitializer, HuskSync, 
         // Handle shutdown
         this.disabling = true;
 
-        // Close the event listener / data syncer
+        // Await pending saves and save all online players (blocking)
+        if (this.eventListener != null) {
+            this.eventListener.handlePluginDisable();
+        }
+
+        // Clear checkout keys and cancel syncer
         if (this.dataSyncer != null) {
             this.dataSyncer.terminate();
         }
-        if (this.eventListener != null) {
-            this.eventListener.handlePluginDisable();
+
+        // Close database and Redis connections
+        if (this.database != null) {
+            this.database.terminate();
+        }
+        if (this.redisManager != null) {
+            this.redisManager.terminate();
         }
 
         // Cancel tasks, close audiences

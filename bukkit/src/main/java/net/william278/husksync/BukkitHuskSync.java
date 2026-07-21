@@ -236,15 +236,25 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
         // Handle shutdown
         this.disabling = true;
 
-        // Close the event listener / data syncer
-        if (this.dataSyncer != null) {
-            this.dataSyncer.terminate();
-        }
+        // Await pending saves and save all online players (blocking)
         if (this.eventListener != null) {
             this.eventListener.handlePluginDisable();
         }
 
-        // Unregister API and cancel tasks
+        // Clear checkout keys and cancel syncer
+        if (this.dataSyncer != null) {
+            this.dataSyncer.terminate();
+        }
+
+        // Close database and Redis connections
+        if (this.database != null) {
+            this.database.terminate();
+        }
+        if (this.redisManager != null) {
+            this.redisManager.terminate();
+        }
+
+        // Unregister API and cancel tasks (nothing left in-flight by this point)
         BukkitHuskSyncAPI.unregister();
         this.cancelTasks();
 

@@ -24,6 +24,8 @@ import net.william278.husksync.data.DataSnapshot;
 import net.william278.husksync.user.OnlineUser;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.concurrent.CompletableFuture;
+
 /**
  * A data syncer which applies a network delay before checking the presence of user data
  */
@@ -58,7 +60,7 @@ public class DelayDataSyncer extends DataSyncer {
 
     @Override
     public void syncSaveUserData(@NotNull OnlineUser onlineUser) {
-        plugin.runAsync(() -> {
+        final CompletableFuture<Void> future = plugin.supplyAsync(() -> {
             getRedis().setUserServerSwitch(onlineUser);
             saveData(
                     onlineUser, onlineUser.createSnapshot(DataSnapshot.SaveCause.DISCONNECT),
@@ -67,7 +69,9 @@ public class DelayDataSyncer extends DataSyncer {
                         plugin.unlockPlayer(user.getUuid());
                     }
             );
+            return null;
         });
+        trackSave(onlineUser.getUuid(), future);
     }
 
 }

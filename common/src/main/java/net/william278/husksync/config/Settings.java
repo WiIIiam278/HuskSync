@@ -367,6 +367,10 @@ public class Settings {
         @Getter(AccessLevel.NONE)
         private Map<String, String> eventPriorities = EventListener.ListenerType.getDefaults();
 
+        @Comment({"Maximum time in seconds to wait for pending player saves to finish during shutdown",
+                "before forcefully closing connections (set to 0 for no limit — not recommended)."})
+        private int shutdownSaveTimeoutSeconds = 10;
+
         @Comment("Enable check-in petitions for data syncing (don't change this unless you know what you're doing)")
         private boolean checkinPetitions = false;
 

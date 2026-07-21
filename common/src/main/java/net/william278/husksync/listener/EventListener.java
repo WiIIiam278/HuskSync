@@ -25,7 +25,9 @@ import net.william278.husksync.data.DataSnapshot;
 import net.william278.husksync.user.OnlineUser;
 import org.jetbrains.annotations.NotNull;
 
+import java.time.Duration;
 import java.util.*;
+import java.util.logging.Level;
 
 import static net.william278.husksync.config.Settings.SynchronizationSettings.SaveOnDeathSettings;
 
@@ -61,19 +63,30 @@ public abstract class EventListener {
      * @param user The {@link OnlineUser} to handle
      */
     protected final void handlePlayerQuit(@NotNull OnlineUser user) {
-        // Check the user is a user, the plugin isn't disabling, then mark as disconnecting
-        if (user.isNpc() || plugin.isDisabling()) {
+        if (user.isNpc()) {
             return;
         }
         plugin.getDisconnectingPlayers().add(user.getUuid());
 
-        // Lock, then save their data if the user is unlocked
         if (!plugin.isLocked(user.getUuid())) {
             plugin.lockPlayer(user.getUuid());
-            plugin.getDataSyncer().syncSaveUserData(user);
+            if (plugin.isDisabling()) {
+                plugin.log(Level.INFO, String.format(
+                        "Saving data for %s synchronously during server shutdown",
+                        user.getName()));
+                plugin.getDataSyncer().saveCurrentUserData(user, DataSnapshot.SaveCause.SERVER_SHUTDOWN);
+                plugin.unlockPlayer(user.getUuid());
+            } else {
+                plugin.getDataSyncer().syncSaveUserData(user);
+            }
         } else {
-            plugin.debug(String.format("[%s] disconnected while locked - data will NOT be saved!",
-                    user.getName()));
+            final String message = String.format("[%s] disconnected while locked - data will NOT be saved!",
+                    user.getName());
+            if (plugin.isDisabling()) {
+                plugin.log(Level.WARNING, message);
+            } else {
+                plugin.debug(message);
+            }
         }
     }
 
@@ -114,20 +127,71 @@ public abstract class EventListener {
 
 
     /**
-     * Handle the plugin disabling
+     * Handle the plugin disabling.
+     * <p>
+     * Waits for in-flight async saves to complete, then saves all online players synchronously.
+     * Resource cleanup (DB/Redis) is handled by the platform {@code onDisable()} method.
      */
     public void handlePluginDisable() {
-        // Save for all online players.
+        // Await any pending async saves from players who disconnected before shutdown
+        plugin.getDataSyncer().awaitPendingSaves(Duration.ofSeconds(
+                plugin.getSettings().getSynchronization().getShutdownSaveTimeoutSeconds()
+        ));
+
+        // Save all online players that are not currently locked
+        final List<UUID> lockedPlayers = new ArrayList<>();
         plugin.getOnlineUsers().stream()
-                .filter(user -> !plugin.isLocked(user.getUuid()) && !user.isNpc())
+                .filter(user -> !user.isNpc())
                 .forEach(user -> {
-                    plugin.lockPlayer(user.getUuid());
-                    plugin.getDataSyncer().saveCurrentUserData(user, DataSnapshot.SaveCause.SERVER_SHUTDOWN);
+                    if (!plugin.isLocked(user.getUuid())) {
+                        plugin.lockPlayer(user.getUuid());
+                        try {
+                            plugin.getDataSyncer().saveCurrentUserData(user,
+                                    DataSnapshot.SaveCause.SERVER_SHUTDOWN);
+                        } catch (Exception e) {
+                            plugin.log(Level.WARNING, String.format(
+                                    "Failed to save data for %s during shutdown: %s",
+                                    user.getName(), e.getMessage()));
+                        }
+                    } else {
+                        lockedPlayers.add(user.getUuid());
+                    }
                 });
 
-        // Close outstanding connections
-        plugin.getDatabase().terminate();
-        plugin.getRedisManager().terminate();
+        // Retry locked players with a short spin-wait before giving up
+        if (!lockedPlayers.isEmpty()) {
+            plugin.log(Level.WARNING, String.format(
+                    "%d player(s) were locked during shutdown; retrying...", lockedPlayers.size()));
+            for (UUID uuid : lockedPlayers) {
+                for (int i = 0; i < 3; i++) {
+                    if (!plugin.isLocked(uuid)) {
+                        plugin.lockPlayer(uuid);
+                        plugin.getOnlineUser(uuid).ifPresent(user -> {
+                            try {
+                                plugin.getDataSyncer().saveCurrentUserData(user,
+                                        DataSnapshot.SaveCause.SERVER_SHUTDOWN);
+                            } catch (Exception e) {
+                                plugin.log(Level.WARNING, String.format(
+                                        "Failed to save data for %s during locked-player retry: %s",
+                                        user.getName(), e.getMessage()));
+                            }
+                        });
+                        break;
+                    }
+                    try {
+                        Thread.sleep(50);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        break;
+                    }
+                }
+                if (plugin.isLocked(uuid)) {
+                    plugin.log(Level.WARNING, String.format(
+                            "Player %s was still locked during shutdown and could not be saved. Data may not have persisted!",
+                            uuid));
+                }
+            }
+        }
     }
 
     /**
