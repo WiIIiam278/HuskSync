@@ -1,0 +1,142 @@
+# MineDown formatting has been converted to MiniMessage
+# https://docs.advntr.dev/minimessage/index.html
+locales:
+  synchronization_complete: <color:#00fb9a>⏵ Dane zsynchronizowane!</color>
+  synchronization_failed: <color:#ff7e5e>⏵ Wystąpił błąd podczas synchronizacji twoich danych! Prosimy skontaktować się z administracją.</color>
+  inventory_viewer_menu_title: <blackEkwipunek %1%
+  ender_chest_viewer_menu_title: <black>Ender Chest %1%
+  inventory_viewer_opened: <color:#00fb9a>Przeglądanie snapshota</color> <bold><color:#00fb9a>%1%</color></bold><color:#00fb9a> ekwipunku z ⌚ %2%</color>
+  ender_chest_viewer_opened: <color:#00fb9a>Przeglądanie snapshota</color> <bold><color:#00fb9a>%1%</color></bold><color:#00fb9a> Ender Chesta z ⌚ %2%</color>
+  data_update_complete: <color:#00fb9a>🔔 Twoje dane zostały zaktualizowane!</color>
+  data_update_failed: <color:#ff7e5e>🔔 Wystąpił błąd podczas aktualizacji twoich danych! Prosimy skontaktować się z administracją.</color>
+  user_registration_complete: <color:#00fb9a>⭐ Rejestrowanie użytkownika zakończone!</color>
+  data_manager_title: '<color:#00fb9a>Wyświetlanie snapshota danych użytkownika</color> <color:#00fb9a><hover:show_text:''<gray>UUID Wersji:
+
+    <dark_gray>%2%''>%1%</hover></color> <color:#00fb9a>dla</color> <bold><color:#00fb9a><hover:show_text:''<gray>UUID Gracza:
+
+    <dark_gray>%4%''>%3%</hover></color></bold><color:#00fb9a>:</color>'
+  data_manager_timestamp: '<hover:show_text:''<gray>Timestamp wersji:
+
+    <dark_gray>Kiedy dane zostały zapisane''>⌚ %1%</hover>'
+  data_manager_pinned: '<color:#d8ff2b><hover:show_text:''<gray>Przypięte:
+
+    <dark_gray>Ten snapshot danych użytkownika nie będzie automatycznie zastępowany nowym.''>※ Snapshot przypięty</hover></color>'
+  data_manager_cause: '<hover:show_text:''<gray>Powód zapisu:
+
+    <dark_gray>Co spowodowało zapis danych''>⚑ %1%</hover>'
+  data_manager_server: '<hover:show_text:''<gray>Serwer:
+
+    <dark_gray>Nazwa serwera na którym dane zostały zapisane''>☁ %1%</hover>'
+  data_manager_size: '<gradient:#62a9f5:#7ab8fa><hover:show_text:''<gray>Wielkość snapshota:
+
+    <dark_gray>Szacowany rozmiar pliku snapshota (w KiB)''>⏏ %1%</hover></gradient>\n'
+  data_manger_status: <red>%1%</red><gray>/</gray><red>%2%</red><gray>×</gray><red><hover:show_text:'<gray>Punkty życia'>❤</hover></red>   <yellow>%3%</yellow><gray>×</gray><yellow><hover:show_text:'<gray>Punkty głodu'>🍖</hover></yellow>   <green>ʟᴠ</green><gray>.</gray><green><hover:show_text:'<gray>Poziom XP'>%4%</hover></green>   <dark_aqua><hover:show_text:'<gray>Tryb gry'>🏹 %5%</hover></dark_aqua>
+  data_manager_advancements_statistics: '<gradient:#ffc43b:#f5c962><hover:show_text:''<gray>Postępy, jakie osiągnąłeś:
+
+    <dark_gray>%2%''>⭐ Postępy: %1%</hover></gradient>   <gradient:#62a9f5:#7ab8fa><hover:show_text:''<gray>Czas spędzony w grze
+
+    <dark_gray>⚠ Bazowane na statystykach z gry''>⌛ Czas gry: %3%ʜʀs</hover></gradient>\n'
+  data_manager_item_buttons: <gray>Zobacz:</gray> <gradient:#a17b5f:#f5b98c><click:run_command:'/inventory'><hover:show_text:'<gray>Kliknij, aby zobaczyć'>[🪣 Ekwipunek…]</hover></click></gradient>   <click:run_command:'/enderchest'><hover:show_text:'<gray>Kliknij, aby zobaczyć'>[⌀ Ender Chest…]</hover></click>
+  data_manager_management_buttons: '<gray>Zarządzaj:</gray> <color:#ff3300><click:suggest_command:''/husksync:userdata''><hover:show_text:''<gray>Kliknij, aby usunąć ten snapshot danych.
+
+    <dark_gray>Nie wpłynie to na aktualne dane użytkownika.
+
+    <color:#ff3300>&⚠ Tego nie da się cofnąć!''>[❌ Usuń…]</hover></click></color>   <color:#00fb9a><click:suggest_command:''/husksync:userdata''><hover:show_text:''<gray>Kliknij, aby przywrócić te dane użytkownika.
+
+    <dark_gray>Spowoduje to ustawienie danych użytkownika do stanu z tego snapshota.
+
+    <color:#ff3300>&⚠ Aktualne dane użytkownika %1% zostaną nadpisane!''>[⏪ Przywróć…]</hover></click></color>   <color:#d8ff2b><click:run_command:''/userdata''><hover:show_text:''<gray>Klinij, aby przypiąć lub odpiąć ten snapshot danych użytkownika
+
+    <dark_gray>Przypięte snapshoty danych nie będą automatycznie zastępowane nowymi''>[※ Przypnij/Odepnij…]</hover></click></color>'
+  data_manager_system_buttons: '<gray>System:</gray> <dark_gray><click:run_command:''/husksync:userdata''><hover:show_text:''<gray>Kliknij, aby zapisać ten dump snapshota użytkownika do pliku.
+
+    <dark_gray>Zapisy dumpa można znaleźć w ~/plugins/HuskSync/dumps/''>[⏷ Dump Pliku…]</hover></click></dark_gray>   <dark_gray><click:run_command:''/husksync:userdata''><hover:show_text:''<gray>Kliknij, aby zapisać ten dump snapshota użytkownika do serwisu mc-logs
+
+    <dark_gray>Otrzymasz adres URL zawierający te dane..''>[☂ Dump na Stronę…]</hover></click></dark_gray>'
+  data_manager_advancements_preview_remaining: i %1% więcej…
+  data_list_title: <color:#00fb9a>Snapshot danych %1%:</color> <color:#00fb9a>(%2%-%3% z</color> <bold><color:#00fb9a>%4%</color></bold><color:#00fb9a>)</color>\n
+  data_list_item: '<gray><click:run_command:''/userdata''><hover:show_text:''<gray>Snapshot Danych Użytkownika dla %2%
+
+    <dark_gray>⚡ %4%''>%1%</hover></click></gray> <color:#d8ff2b><click:run_command:''/userdata''><hover:show_text:''<gray>Przypięte:
+
+    <dark_gray>Przypięte snapshoty danych nie będą automatycznie zastępowane nowymi.''>%5%</hover></click></color> <gradient:#ffc43b:#f5c962><click:run_command:''/userdata''><hover:show_text:''<gray>Timestamp wersji:<gray>
+
+    <dark_gray>Kiedy dane zostały zapisane
+
+    <dark_gray>%7%''>%6%</hover></click></gradient>   <click:run_command:''/userdata''><hover:show_text:''<gray>Powód zapisu:
+
+    <dark_gray>Co spowodowało zapis danych''>⚑ %8%</hover></click>   <gradient:#62a9f5:#7ab8fa><click:run_command:''/userdata''><hover:show_text:''<gray>Wielkość snapshota:<gray>
+
+    <dark_gray>Szacowany rozmiar pliku snapshota (w KiB)''>⏏ %9%</hover></click></gradient>'
+  data_list_item_invalid: '<dark_gray><click:suggest_command:''/userdata''><hover:show_text:''<gray>Snapshot Danych Użytkownika dla %2%
+
+    <dark_gray>⚡ %4%''>%1%</hover></click></dark_gray> <dark_gray><click:suggest_command:''/userdata''><hover:show_text:''<gray>Przypięte:
+
+    <dark_gray>Przypięte snapshoty danych nie będą automatycznie zastępowane nowymi.''>%5%</hover></click></dark_gray> <strikethrough><gray><click:suggest_command:''/userdata''><hover:show_text:''<color:#ff3300>Nieprawidłowy Snapshot Danych
+
+    <color:#ff7e5e><red>Kliknij, aby usunąć
+
+
+    <gray>⚠ %10%''>%6%   ⚑ %8%   ⏏ %9%</hover></click></gray></strikethrough>'
+  data_saved: <color:#00fb9a>Pomyślnie zapisano aktualny snapshot danych użytkownika %1%.</color>
+  data_deleted: '<color:#00fb9a>❌ Pomyślnie usunięto snapshot danych użytkownika</color> <color:#00fb9a><hover:show_text:''<gray>UUID Wersji:
+
+    <dark_gray>%2%''>%1%</hover></color> <color:#00fb9a>dla</color> <color:#00fb9a><hover:show_text:''<gray>UUID Gracza:
+
+    <dark_gray>%4%''>%3%.</hover></color>'
+  data_restored: '<color:#00fb9a>⏪ Pomyślnie przywrócono</color> <color:#00fb9a><hover:show_text:''<gray>UUID Gracza:
+
+    <dark_gray>%2%''>%1%</hover></color><color:#00fb9a> aktualne dane użytkownika ze snapshota</color> <color:#00fb9a><hover:show_text:''<gray>UUID Wersji:
+
+    <dark_gray>%4%''>%3%.</hover></color>'
+  data_pinned: '<color:#00fb9a>※ Pomyślnie przypięto snapshot danych użytkownika</color> <color:#00fb9a><hover:show_text:''<gray>UUID Wersji:
+
+    <dark_gray>%2%''>%1%</hover></color> <color:#00fb9a>dla</color> <color:#00fb9a><hover:show_text:''<gray>UUID Gracza:
+
+    <dark_gray>%4%''>%3%.</hover></color>'
+  data_unpinned: '<color:#00fb9a>※ Pomyślnie odpięto snapshot danych użytkownika</color> <color:#00fb9a><hover:show_text:''<gray>UUID Wersji:
+
+    <dark_gray>%2%''>%1%</hover></color> <color:#00fb9a>dla</color> <color:#00fb9a><hover:show_text:''<gray>UUID Gracza:
+
+    <dark_gray>%4%''>%3%.</hover></color>'
+  data_dumped: <color:#00fb9a>☂ Pomyślnie zrobiono dump snapshota danych użytkownika %1% dla %2%. Kliknij, aby zobaczyć:</color>
+  list_footer: \n%1%<color:#00fb9a>Strona</color> <color:#00fb9a>%2%</color>/<color:#00fb9a>%3%</color>%4%   %5%
+  list_previous_page_button: '<white><click:run_command:''%2%''><hover:show_text:''<gray>Zobacz poprzednią stronę''>◀</hover></click></white> '
+  list_next_page_button: ' <white><click:run_command:''%2%''><hover:show_text:''<gray>Zobacz następną stronę''>▶</hover></click></white>'
+  list_page_jumpers: (%1%)
+  list_page_jumper_button: <click:run_command:'%2%'><hover:show_text:'<gray>Skocz do strony %1%'>%1%</hover></click>
+  list_page_jumper_current_page: <color:#00fb9a>%1%</color>
+  list_page_jumper_separator: ' '
+  list_page_jumper_group_separator: …
+  save_cause_disconnect: rozłączenie
+  save_cause_world_save: zapis świata
+  save_cause_death: śmierć
+  save_cause_server_shutdown: wyłączenie serwera
+  save_cause_save_command: komenda save
+  save_cause_dump_command: komenda dump
+  save_cause_inventory_command: komenda inventory
+  save_cause_enderchest_command: komenda enderchest
+  save_cause_backup_restore: przywrócenie backupa
+  save_cause_api: API
+  save_cause_mpdb_migration: migracja MPDB
+  save_cause_legacy_migration: migracja legacy
+  save_cause_converted_from_v2: przekonwertowano z v2
+  up_to_date: <bold><color:#00fb9a>HuskSync</color></bold> <color:#00fb9a>| Używasz najnowszej wersji HuskSync (v%1%).</color>
+  update_available: '<bold><color:#ff7e5e>HuskSync</color></bold> <color:#ff7e5e>| Nowa wersja HuskSync jest dostępna: v%1% (running: v%2%).</color>'
+  reload_complete: <bold><color:#00fb9a>HuskSync</color></bold> <color:#00fb9a>| Przeładowano plik konfiguracyjny oraz pliki wiadomości.</color>\n<color:#00fb9a>⚠ Upewnij się, że pliki konfiguracyjne są aktualne na wszystkich serwerach!</color>\n<italic><color:#00fb9a>Restart jest wymagany, aby zmiany w konfiguracji zaczęły obowiązywać.</color></italic>
+  system_status_header: <bold><color:#00fb9a>HuskSync</color></bold> <color:#00fb9a>| Raport o stanie systemu:</color>
+  system_dump_confirm: <bold><color:#00fb9a>HuskSync</color></bold> <color:#00fb9a>| Przygotować dump systemu? Obejmie to:</color>\n<gray>• Twoje najnowsze logi serwera oraz pliki konfiguracyjne HuskSync</gray>\n<gray>• Aktualne informacje o stanie systemu pluginów</gray>\n<gray>• Informacje o twojej Javie i silniku serwera Minecraft</gray>\n<gray>• Liste pozostałych aktualnie zainstalowanych pluginów</gray>\n<color:#00fb9a>Aby potwierdzić, użyj:</color> <italic><color:#00fb9a><click:run_command:'/husksync'><hover:show_text:'<gray>Kliknij, aby przygotować dump'>/husksync dump confirm</hover></click></color></italic>
+  system_dump_started: <bold><color:#00fb9a>HuskSync</color></bold> <color:#00fb9a>| Przygotowywanie dumpa statusu systemu, proszę czekać…</color>
+  system_dump_ready: <bold><color:#00fb9a>HuskSync</color></bold> <color:#00fb9a>| Przygotowano dump statusu systemu! Kliknij, aby zobaczyć:</color>
+  error_invalid_syntax: <color:#ff3300>Błąd:</color> <color:#ff7e5e>Nieprawidłowy syntax. Użycie:</color> <italic><color:#ff7e5e><click:suggest_command:'%1%'><hover:show_text:'<color:#ff7e5e><red>Kliknij, aby zasugerować'>%1%</hover></click></color></italic>
+  error_invalid_player: <color:#ff3300>Błąd:</color> <color:#ff7e5e>Nie udało się znaleźć gracza o tej nazwie.</color>
+  error_invalid_data: <color:#ff3300>Błąd:</color> <color:#ff7e5e>Nie udało się rozpakować danych użytkownika ponieważ snapshot jest nieprawidłowy lub uszkodzony.</color> <gray><hover:show_text:'<gray>⚠ %1%'>(Szczegóły…)</hover></gray>
+  error_no_permission: <color:#ff3300>Błąd:</color> <color:#ff7e5e>Nie masz uprawnień do wykonania tej komendy</color>
+  error_console_command_only: <color:#ff3300>Błąd:</color> <color:#ff7e5e>Ta komenda może zostać użyta wyłącznie przez konsole</color>
+  error_in_game_command_only: 'Błąd: Ta komenda może zostać użyta wyłącznie w grze.'
+  error_no_data_to_display: <color:#ff3300>Błąd:</color> <color:#ff7e5e>Nie znaleziono żadnych danych użytkownika do wyświetlenia.</color>
+  error_invalid_version_uuid: <color:#ff3300>Błąd:</color> <color:#ff7e5e>Nie znaleziono żadnych danych użytkownika dla tej UUID wersji.</color>
+  husksync_command_description: Zarządzaj pluginem HuskSync
+  userdata_command_description: Zobacz, zarządzaj oraz przywracaj dane użytkownika
+  inventory_command_description: Zobacz oraz edytuj ekwipunek gracza
+  enderchest_command_description: Zobacz oraz edytuj Ender Chest gracz
