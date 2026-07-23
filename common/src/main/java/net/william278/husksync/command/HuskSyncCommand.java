@@ -78,10 +78,16 @@ public class HuskSyncCommand extends PluginCommand {
                         Component.text("William278", primary)
                                 .hoverEvent(Component.text("Click to visit website", gray))
                                 .clickEvent(ClickEvent.openUrl("https://william278.net"))),
+                buildCredits("Maintainers",
+                        credit("DaUltraMarine", "Code")),
                 buildCredits("Contributors",
+                        credit("CatTeaA", "Code"),
                         credit("HarvelsX", "Code"),
                         credit("HookWoods", "Code"),
+                        credit("mfnalex", "Code"),
+                        credit("MrPippi", "Code"),
                         credit("Preva1l", "Code"),
+                        credit("quiquelhappy", "Code"),
                         credit("hanbings", "Code (Fabric porting)"),
                         credit("Stampede2011", "Code (Fabric mixins)"),
                         credit("VinerDream", "Code")),
