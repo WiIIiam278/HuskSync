@@ -59,6 +59,7 @@ jobs:
             paper
             paper
             paper
+            paper
           distro-descriptions: |
             Paper 1.21.10
             Paper 1.21.11
