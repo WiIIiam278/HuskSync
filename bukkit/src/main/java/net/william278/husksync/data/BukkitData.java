@@ -50,13 +50,13 @@ import org.jetbrains.annotations.Range;
 import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 import static net.william278.husksync.util.BukkitKeyedAdapter.*;
 
 public abstract class BukkitData implements Data {
-
     @Override
     public final void apply(@NotNull UserDataHolder dataHolder, @NotNull HuskSync plugin) throws IllegalStateException {
         this.apply((BukkitUser) dataHolder, (BukkitHuskSync) plugin);
@@ -298,6 +298,7 @@ public abstract class BukkitData implements Data {
     @AllArgsConstructor(access = AccessLevel.PRIVATE)
     @NoArgsConstructor(access = AccessLevel.PRIVATE)
     public static class Advancements extends BukkitData implements Data.Advancements {
+        public static final Set<UUID> SUPPRESS_ANNOUNCE = ConcurrentHashMap.newKeySet();
 
         private List<Advancement> completed;
 
@@ -360,6 +361,13 @@ public abstract class BukkitData implements Data {
 
                 // Award and revoke advancement criteria
                 final AdvancementProgress progress = player.getAdvancementProgress(advancement);
+                
+                if (!toAward.isEmpty()) {
+                    SUPPRESS_ANNOUNCE.add(player.getUniqueId());
+                    Bukkit.getScheduler().runTaskLater((BukkitHuskSync) plugin,
+                            () -> SUPPRESS_ANNOUNCE.remove(player.getUniqueId()), 5L);
+                }
+                
                 toAward.forEach(progress::awardCriteria);
                 toRevoke.forEach(progress::revokeCriteria);
 

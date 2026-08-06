@@ -46,6 +46,7 @@ import net.william278.husksync.database.MySqlDatabase;
 import net.william278.husksync.database.PostgresDatabase;
 import net.william278.husksync.event.BukkitEventDispatcher;
 import net.william278.husksync.hook.PlanHook;
+import net.william278.husksync.listener.BukkitAdvancementAnnounceMuter;
 import net.william278.husksync.listener.BukkitEventListener;
 import net.william278.husksync.listener.LockedHandler;
 import net.william278.husksync.maps.BukkitMapHandler;
@@ -215,6 +216,13 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
 
         // Register events
         initialize("events", (plugin) -> eventListener.onEnable());
+        
+     // Mute advancement re-announcement on sync
+        initialize("advancement announce muter", (plugin) -> {
+            if (isDependencyLoaded("ProtocolLib")) {
+                BukkitAdvancementAnnounceMuter.register(this);
+            }
+        });
 
         // Register plugin hooks
         initialize("hooks", (plugin) -> {
