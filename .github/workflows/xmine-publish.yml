@@ -1,0 +1,185 @@
+# Публикация нашей сборки HuskSync в свой Reposilite, раздел third-party -
+# тот же, откуда её фактически берёт XMineNode (plugins/common.yml, координата
+# ru.xmine.thirdparty:husksync). Сейчас там лежит зеркало апстримного релиза
+# (4.0.0-26.1.2), а не сборка форка - этот workflow публикует именно сборку
+# форка, под координатой, неотличимой ни от апстрима (4.0.0), ни от
+# уже лежащего зеркала (4.0.0-26.1.2).
+#
+# ЭТОТ РЕПОЗИТОРИЙ ПУБЛИЧНЫЙ, поэтому `runs-on` здесь - только раннеры GitHub
+# и никогда `self-hosted`. Правило записано в вики (infra/ci.md, «Граница
+# безопасности: только приватные репозитории»), и обе группы раннеров
+# организации имеют `allows_public_repositories=false`. Причина в том, что PR
+# из чужого форка исполняет workflow ИЗ САМОГО PR, то есть автор форка волен
+# дописать `runs-on: self-hosted` и получить исполнение своего кода на хосте,
+# где работает игровой сервер. У `XMineServer/Paper`, `LibertyBans` и
+# `SkinsRestorer` тот же комментарий и та же причина.
+#
+# Отсюда же остальные меры: триггера `pull_request` нет вовсе, push (когда он
+# появится - см. ниже) ограничен нашими ветками, а job не запускается в форках
+# самого форка.
+#
+# Секреты называются MAVEN_USERNAME / MAVEN_PASSWORD - так их завёл владелец
+# именно в этом репозитории (как в CoreProtect). В SkinsRestorer и LibertyBans
+# те же по смыслу секреты называются XMINE_MAVEN_USERNAME / XMINE_MAVEN_PASSWORD.
+# Расхождение не унифицировано умышленно: заводить третье имя ради
+# единообразия хуже, чем один раз проверить, как называется секрет в
+# конкретном репозитории. Здесь они, что немаловажно для абзаца ниже, УЖЕ
+# заведены владельцем.
+#
+# ⚠ Триггера `push: branches: ['xmine/**']`, который есть у LibertyBans и
+# SkinsRestorer, здесь СОЗНАТЕЛЬНО пока нет - только workflow_dispatch. Ветка
+# уже называется xmine/env-config (переименована в этом же коммите), секреты
+# уже на месте, и если бы push-триггер был здесь с самого начала, то ЭТОТ ЖЕ
+# коммит, добавляющий файл, сам вызвал бы первую публикацию: GitHub match'ит
+# `on.push.branches` по дереву запушенного коммита, а не по тому, что было
+# на ветке раньше. Проверено эмпирически прямо на этом репозитории:
+# пробный workflow с `on: push: branches: ['probe/**']`, запушенный на
+# другое имя, затем переименованный (POST .../branches/{b}/rename) на
+# `probe/x` - собственно rename, не push - тоже породил событие `push` и
+# запустил job. Значит, ни порядок «сначала пуш, потом рено переименование»,
+# ни наоборот, не спасают - разница только в том, что ловит паттерн.
+#
+# Публикация - решение владельца (см. задачу), а первая раскладка кода при
+# уже готовых секретах - тот самый момент, когда его нельзя было принять за
+# него молча. Добавить `push: branches: ['xmine/**']` - однострочная правка;
+# владелец делает её сам, когда решит, что настало время первой публикации
+# (или каждого следующего push). До этого запуск - только вручную,
+# `workflow_dispatch`, и тоже по решению владельца.
+
+name: XMine - publish HuskSync
+
+on:
+  workflow_dispatch:
+
+# Публикация не должна идти в два потока: параллельные сборки означали бы
+# гонку за то, чей билд-номер снапшота окажется последним в maven-metadata.xml.
+concurrency:
+  group: xmine-publish-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  # Версия - настоящий Maven SNAPSHOT, а не неизменяемая координата вида
+  # <апстрим>-xmine.N (как в LibertyBans 1.2.0-M1-xmine.1 или CoreProtect
+  # 24.0-xmine.1). Причина: первый прогон стенда идёт сразу на форке, и правки
+  # почти наверняка потребуются не один раз. SNAPSHOT можно перезаливать по
+  # тому же адресу; неизменяемую версию - нет, под неё пришлось бы поднимать N
+  # на каждую мелкую правку конфигурации.
+  #
+  # Число "1" в xmine.1 фиксирует НОМЕР НАШЕГО ФОРКА правки поверх апстримной
+  # 4.0.0, а не билд снапшота - билды снапшота нумерует сам Reposilite
+  # (versioning/snapshot/buildNumber в maven-metadata.xml). Когда правка
+  # перестанет быть черновой, релизная версия задаётся уже без -SNAPSHOT
+  # отдельным решением владельца - это не автоматизировано специально
+  # (см. xmine-versioning: версия - решение в момент релиза, не число в файле).
+  XMINE_VERSION: 4.0.0-xmine.1-SNAPSHOT
+  MAVEN_GROUP_PATH: ru/xmine/thirdparty
+  MAVEN_ARTIFACT: husksync
+  # Раздел `third-party` закрыт авторизацией: там лежат чужие бинарники,
+  # которые нельзя раздавать публично (ADR-0011). Наш форк едет туда же - он
+  # берёт апстримный код и не является нашим плагином.
+  MAVEN_SECTION: third-party
+
+jobs:
+  publish:
+    # Форки самого форка не должны пытаться публиковать в наш Reposilite.
+    if: github.repository == 'XMineServer/HuskSync'
+    runs-on: ubuntu-latest
+
+    env:
+      XMINE_MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
+      XMINE_MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
+      XMINE_MAVEN_URL: https://maven.xmine.world/third-party
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: JDK 25
+        uses: actions/setup-java@v4
+        with:
+          java-version: '25'
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Fail early without credentials
+        run: |
+          # Без учётки сборка дошла бы до конца (компиляция common + всех
+          # bukkit-версий, javadoc, shadowJar) и упала бы только на публикации.
+          # Дешевле проверить сразу.
+          set -eu
+          if [ -z "${XMINE_MAVEN_USERNAME:-}" ] || [ -z "${XMINE_MAVEN_PASSWORD:-}" ]; then
+            echo "::error::Secrets MAVEN_USERNAME / MAVEN_PASSWORD are not set"
+            exit 1
+          fi
+
+      - name: Test
+        # Только common: своя правка (подстановка env в config.yml) целиком там,
+        # и там же весь тестовый набор проекта (58 тестов на момент правки,
+        # без testcontainers и без Docker) - platform-модули (bukkit/fabric)
+        # тестов не имеют.
+        run: ./gradlew :common:test --stacktrace
+
+      - name: Build
+        # Нода тянет сборку Paper/Bukkit под 26.1.2 - именно ту версию
+        # зеркалирует сегодняшняя прод-координата husksync:4.0.0-26.1.2
+        # (см. XMineNode/plugins/common.yml). Остальные bukkit-модули
+        # (1.21.10, 1.21.11, 26.2) и fabric не публикуются - на проде их нет.
+        run: ./gradlew :bukkit:26.1.2:shadowJar --stacktrace
+
+      - name: Publish snapshot to Reposilite
+        # Не curl, в отличие от LibertyBans/CoreProtect: там версия неизменяемая
+        # и совпадает с именем файла один в один, а для SNAPSHOT сам Reposilite
+        # должен вести maven-metadata.xml (versioning/snapshot/timestamp и
+        # .../buildNumber) - без них XMineNode/build/fetch.py::resolve_maven не
+        # сможет собрать реальное имя файла husksync-4.0.0-xmine.1-<ts>-<N>.jar
+        # и упадёт с "maven-metadata.xml has no complete versioning/snapshot".
+        # Простой PUT jar-а по адресу версии эти метаданные не создаёт и не
+        # обновляет. Поэтому здесь настоящий `maven-publish` (публикация
+        # добавлена в bukkit/build.gradle, работает только для модуля 26.1.2)
+        # - Gradle сам запрашивает текущий maven-metadata.xml, считает
+        # следующий buildNumber и заливает и jar, и обновлённые метаданные.
+        run: |
+          ./gradlew :bukkit:26.1.2:publishXmineThirdPartyPublicationToXmineRepository \
+            -PxmineVersion="${XMINE_VERSION}" --stacktrace
+
+      - name: Verify metadata round-trip
+        # "Опубликовано" должно означать больше, чем "сервер ответил 2xx" -
+        # известный случай (known-issues.md) как раз про молчаливо
+        # перезаписанный third-party. Для SNAPSHOT sha256 незачем сверять: имя
+        # файла меняется при каждой публикации, совпадать с предыдущим он и не
+        # должен. Вместо этого читаем maven-metadata.xml обратно и проверяем,
+        # что buildNumber/timestamp на месте - то есть что именно наша
+        # публикация (а не старая, не полупустая) там лежит.
+        run: |
+          set -eu
+          BASE="${XMINE_MAVEN_URL}/${MAVEN_GROUP_PATH}/${MAVEN_ARTIFACT}/${XMINE_VERSION}"
+          curl --fail-with-body --silent --show-error \
+               --user "${XMINE_MAVEN_USERNAME}:${XMINE_MAVEN_PASSWORD}" \
+               -o /tmp/maven-metadata.xml "${BASE}/maven-metadata.xml"
+
+          TIMESTAMP="$(sed -n 's:.*<timestamp>\(.*\)</timestamp>.*:\1:p' /tmp/maven-metadata.xml)"
+          BUILD_NUMBER="$(sed -n 's:.*<buildNumber>\(.*\)</buildNumber>.*:\1:p' /tmp/maven-metadata.xml)"
+          if [ -z "$TIMESTAMP" ] || [ -z "$BUILD_NUMBER" ]; then
+            echo "::error::maven-metadata.xml has no complete versioning/snapshot - fetch.py on the node would fail the same way"
+            cat /tmp/maven-metadata.xml
+            exit 1
+          fi
+
+          JAR_NAME="${MAVEN_ARTIFACT}-${XMINE_VERSION%-SNAPSHOT}-${TIMESTAMP}-${BUILD_NUMBER}.jar"
+          {
+            echo "### Published"
+            echo '```'
+            echo "$(echo "${MAVEN_GROUP_PATH}" | tr '/' '.'):${MAVEN_ARTIFACT}:${XMINE_VERSION}"
+            echo "repo:     ${MAVEN_SECTION}"
+            echo "resolved: ${JAR_NAME}"
+            echo '```'
+            echo
+            echo "sha256 не публикуется: для SNAPSHOT имя файла меняется при"
+            echo "каждой публикации, пин по хешу в plugins/common.yml не применим"
+            echo "(см. fetch.py - для *-SNAPSHOT координат используется maven-metadata.xml,"
+            echo "а не прямой URL с sha256)."
+          } >> "$GITHUB_STEP_SUMMARY"

@@ -97,3 +97,64 @@ tasks {
         }
     }
 }
+
+// XMine start - публикация в свой Reposilite
+//
+// Этот build.gradle общий на все версии букита (1.21.10, 1.21.11, 26.2, 26.1.2 -
+// см. settings.gradle, buildFileName = '../build.gradle'), а нода тянет только
+// сборку под 26.1.2 (XMineNode/plugins/common.yml, координата
+// ru.xmine.thirdparty:husksync). Публиковать остальные версии незачем и не на чем
+// проверить - поэтому блок целиком под условием project.name == '26.1.2', а не в
+// корневом build.gradle, где такой развилки нет.
+//
+// Версия - настоящий maven-SNAPSHOT (xmine-publish.yml передаёт её через
+// -PxmineVersion), а не собственная неизменяемая координата вроде
+// LibertyBans/CoreProtect (<апстрим>-xmine.N): первый прогон стенда пойдёт на
+// форке и правки нужны будут не раз, а SNAPSHOT-версию можно перезаливать по тому
+// же адресу. Значение по умолчанию - для локального ./gradlew build без -P, чтобы
+// сборка не падала на конфигурации.
+if (project.name == '26.1.2') {
+    def xmineVersion = providers.gradleProperty('xmineVersion').getOrElse('0.0.0-xmine-local-SNAPSHOT')
+
+    publishing {
+        publications {
+            // Своя координата, не мешает апстримным mavenJavaBukkit_* публикациям
+            // (net.william278.husksync:husksync-bukkit) - у них нет настроенных
+            // repositories, поэтому publish-задачи для них даже не создаются
+            // (проверено: ./gradlew :bukkit:26.1.2:tasks --group publishing до этой
+            // правки показывает только publish/publishToMavenLocal без адреса).
+            xmineThirdParty(MavenPublication) {
+                groupId = 'ru.xmine.thirdparty'
+                artifactId = 'husksync'
+                version = xmineVersion
+
+                artifact(shadowJar) {
+                    // Задача уже собирает classifier '' (см. корневой build.gradle,
+                    // subprojects.shadowJar), но без явного null Gradle всё равно
+                    // может унаследовать классификатор из имени задачи - обнуляем,
+                    // чтобы в координате не оказалось лишнего суффикса.
+                    classifier = null
+                }
+            }
+        }
+
+        repositories {
+            maven {
+                name = 'xmine'
+                // third-party - тот самый закрытый раздел, откуда фактически берёт
+                // файл XMineNode (repo: third-party в plugins/common.yml).
+                url = uri(providers.environmentVariable('XMINE_MAVEN_URL')
+                        .getOrElse('https://maven.xmine.world/third-party'))
+                credentials {
+                    username = providers.environmentVariable('XMINE_MAVEN_USERNAME').orNull
+                    password = providers.environmentVariable('XMINE_MAVEN_PASSWORD').orNull
+                }
+            }
+        }
+    }
+
+    tasks.named('publishXmineThirdPartyPublicationToXmineRepository') {
+        dependsOn(shadowJar)
+    }
+}
+// XMine end - публикация в свой Reposilite
