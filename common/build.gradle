@@ -17,6 +17,13 @@ dependencies {
 
     compileOnlyApi 'net.william278.toilet:toilet-common:1.1.2'
 
+    // XMine start - подстановка переменных среды в конфиге
+    // Уже на рантайме: configlib-yaml тянет его как runtime-зависимость (2.7), а fabric
+    // дополнительно include'ит 3.0.1. Здесь только компиляция — версия артефакта не меняется,
+    // и берётся младшая из двух, чтобы нельзя было случайно использовать API, которого в ней нет.
+    compileOnly 'org.snakeyaml:snakeyaml-engine:2.7'
+    // XMine end - подстановка переменных среды в конфиге
+
     compileOnly 'net.william278.uniform:uniform-common:1.3.9'
     compileOnly 'com.mojang:brigadier:1.1.8'
     compileOnly 'org.projectlombok:lombok:1.18.42'
@@ -39,7 +46,11 @@ dependencies {
     testImplementation 'com.google.guava:guava:33.6.0-jre'
     testImplementation 'com.github.plan-player-analytics:Plan:5.6.2965'
     testImplementation 'net.kyori:adventure-text-minimessage:4.25.0'
+    // XMine - Settings ссылается на PluginCommand, а тот на uniform: без него класс конфига
+    // не загрузить в тесте. В main зависимость по-прежнему compileOnly, в jar не попадает.
+    testRuntimeOnly 'net.william278.uniform:uniform-common:1.3.9'
     testCompileOnly 'de.exlll:configlib-yaml:4.8.1'
+    testCompileOnly 'org.snakeyaml:snakeyaml-engine:2.7' // XMine - подстановка переменных среды в конфиге
     testCompileOnly 'org.jetbrains:annotations:26.1.0'
 
     annotationProcessor 'org.projectlombok:lombok:1.18.42'

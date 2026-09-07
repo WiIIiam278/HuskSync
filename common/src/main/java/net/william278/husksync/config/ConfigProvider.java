@@ -27,6 +27,8 @@ import de.exlll.configlib.YamlConfigurations;
 import net.william278.husksync.HuskSync;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.ByteArrayInputStream; // XMine - подстановка переменных среды в конфиге
+import java.io.IOException; // XMine - подстановка переменных среды в конфиге
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -68,11 +70,61 @@ public interface ConfigProvider {
      * @since 1.0
      */
     default void loadSettings() {
-        setSettings(YamlConfigurations.update(
+        setSettings(loadWithEnvironment( // XMine - подстановка переменных среды в конфиге
                 getConfigDirectory().resolve("config.yml"),
                 Settings.class,
                 YAML_CONFIGURATION_PROPERTIES.header(Settings.CONFIG_HEADER).build()
         ));
+    }
+
+    // XMine start - подстановка переменных среды в конфиге
+    /**
+     * Loads a configuration file, expanding the {@code ${NAME}} environment variable references in
+     * it - see {@link EnvironmentYaml} for how, and {@link EnvironmentSubstitutor} for why the
+     * syntax is what it is.
+     * <p>
+     * The path splits in two, and which branch is taken depends only on whether the file holds any
+     * references at all:
+     * <ul>
+     *     <li><b>It does not.</b> {@link YamlConfigurations#update} runs exactly as upstream calls
+     *     it: the file is read, then written back with any keys new to this version merged in.</li>
+     *     <li><b>It does.</b> The file is read through the expansion and <em>not</em> written back.
+     *     What the plugin holds after loading is the resolved value, so a write-back would replace
+     *     {@code password: "${DATABASE_PASSWORD}"} with the database password in plain text, in a
+     *     file that is otherwise safe to read - defeating the entire point. Losing the merge costs
+     *     XMine nothing: these configs ship inside the node image and are laid out afresh on every
+     *     start, so new keys arrive with the image, not at runtime.</li>
+     * </ul>
+     * A file that does not exist yet is created from the defaults either way; without that the
+     * plugin does not come up at all on a clean install.
+     *
+     * @param file       the configuration file
+     * @param type       the configuration class
+     * @param properties the ConfigLib properties to read it with
+     * @param <T>        the configuration type
+     * @return the loaded configuration
+     */
+    @NotNull
+    private static <T> T loadWithEnvironment(@NotNull Path file, @NotNull Class<T> type,
+                                             @NotNull YamlConfigurationProperties properties) {
+        if (Files.exists(file)) {
+            try {
+                final String expanded = EnvironmentYaml.expand(
+                        Files.readString(file, properties.getCharset()), System::getenv
+                );
+                if (expanded != null) {
+                    return new YamlConfigurationStore<>(type, properties).read(
+                            new ByteArrayInputStream(expanded.getBytes(properties.getCharset()))
+                    );
+                }
+            } catch (IOException e) {
+                // Fall through to upstream's path, which reports an unreadable file its own way.
+                // Note what does not happen here: nothing about the file's content is logged,
+                // because that content is where the secrets are.
+            }
+        }
+        return YamlConfigurations.update(file, type, properties);
+        // XMine end - подстановка переменных среды в конфиге
     }
 
     /**
