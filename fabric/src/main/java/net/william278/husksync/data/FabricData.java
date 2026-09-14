@@ -44,6 +44,7 @@ import net.minecraft.stat.StatType;
 import net.minecraft.stat.Stats;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
+import net.minecraft.world.GameRules;
 import net.william278.desertwell.util.ThrowingConsumer;
 import net.william278.husksync.FabricHuskSync;
 import net.william278.husksync.HuskSync;
@@ -350,50 +351,61 @@ public abstract class FabricData implements Data {
         public void apply(@NotNull FabricUser user, @NotNull FabricHuskSync plugin) throws IllegalStateException {
             final ServerPlayerEntity player = user.getPlayer();
             final MinecraftServer server = Objects.requireNonNull(player.getServer(), "Server is null");
-            plugin.runAsync(() -> forEachAdvancementEntry(server, advancementEntry -> {
-                final AdvancementProgress progress = player.getAdvancementTracker().getProgress(advancementEntry);
-                final Optional<Advancement> record = completed.stream()
-                        .filter(r -> r.getKey().equals(
-                                advancementEntry.id().asString()
-                        ))
-                        .findFirst();
-                if (record.isEmpty()) {
-                    return;
-                }
+            
+            // Vanilla advancement chat announcements are gated by the announceAdvancements game rule, so disable
+            // them for the duration of the award loop, restored in the finally block. This is atomic with respect
+            // to gameplay grants for ordinary players, as everything runs sequentially on the single server thread.
+            final GameRules gameRules = server.getGameRules();
+            final boolean silenced = gameRules.getBoolean(GameRules.ANNOUNCE_ADVANCEMENTS);
+            if (silenced) {
+                gameRules.get(GameRules.ANNOUNCE_ADVANCEMENTS).set(false, server);
+            }
+            try {
+                forEachAdvancementEntry(server, advancementEntry -> {
+                    final AdvancementProgress progress = player.getAdvancementTracker().getProgress(advancementEntry);
+                    final Optional<Advancement> record = completed.stream()
+                            .filter(r -> r.getKey().equals(
+                                    advancementEntry.id().asString()
+                            ))
+                            .findFirst();
+                    if (record.isEmpty()) {
+                        return;
+                    }
 
-                final Map<String, Date> criteria = record.get().getCompletedCriteria();
-                final List<String> awarded = Lists.newArrayList(progress.getObtainedCriteria());
-                this.setAdvancement(
-                        plugin, advancementEntry, player, user,
-                        criteria.keySet().stream().filter(key -> !awarded.contains(key)).toList(),
-                        awarded.stream().filter(key -> !criteria.containsKey(key)).toList()
-                );
-            }));
+                    final Map<String, Date> criteria = record.get().getCompletedCriteria();
+                    final List<String> awarded = Lists.newArrayList(progress.getObtainedCriteria());
+                    this.setAdvancement(
+                            advancementEntry, player,
+                            criteria.keySet().stream().filter(key -> !awarded.contains(key)).toList(),
+                            awarded.stream().filter(key -> !criteria.containsKey(key)).toList()
+                    );
+                });
+            } finally {
+                if (silenced) {
+                    gameRules.get(GameRules.ANNOUNCE_ADVANCEMENTS).set(true, server);
+                }
+            }
         }
 
-        private void setAdvancement(@NotNull FabricHuskSync plugin,
-                                    @NotNull net.minecraft.advancement.AdvancementEntry advancementEntry,
+        private void setAdvancement(@NotNull net.minecraft.advancement.AdvancementEntry advancementEntry,
                                     @NotNull ServerPlayerEntity player,
-                                    @NotNull FabricUser user,
                                     @NotNull List<String> toAward,
                                     @NotNull List<String> toRevoke) {
-            plugin.runSync(() -> {
-                // Track player exp level & progress
-                final int expLevel = player.experienceLevel;
-                final float expProgress = player.experienceProgress;
+            // Track player exp level & progress
+            final int expLevel = player.experienceLevel;
+            final float expProgress = player.experienceProgress;
 
-                // Award and revoke advancement criteria
-                final PlayerAdvancementTracker progress = player.getAdvancementTracker();
-                toAward.forEach(a -> progress.grantCriterion(advancementEntry, a));
-                toRevoke.forEach(r -> progress.revokeCriterion(advancementEntry, r));
+            // Award and revoke advancement criteria
+            final PlayerAdvancementTracker progress = player.getAdvancementTracker();
+            toAward.forEach(a -> progress.grantCriterion(advancementEntry, a));
+            toRevoke.forEach(r -> progress.revokeCriterion(advancementEntry, r));
 
-                // Restore player exp level & progress
-                if (!toAward.isEmpty()
-                        && (player.experienceLevel != expLevel || player.experienceProgress != expProgress)) {
-                    player.setExperienceLevel(expLevel);
-                    player.setExperiencePoints((int) (player.getNextLevelExperience() * expProgress));
-                }
-            });
+            // Restore player exp level & progress
+            if (!toAward.isEmpty()
+                    && (player.experienceLevel != expLevel || player.experienceProgress != expProgress)) {
+                player.setExperienceLevel(expLevel);
+                player.setExperiencePoints((int) (player.getNextLevelExperience() * expProgress));
+            }
         }
 
         // Performs a consuming function for every advancement entry registered on the server
