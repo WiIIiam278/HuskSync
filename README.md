@@ -48,10 +48,11 @@ HuskSync supports the following [compatible versions](https://william278.net/doc
 
 |    Minecraft    | Latest HuskSync | Java Version | Platforms     | Support Status                |
 |:---------------:|:---------------:|:------------:|:--------------|:------------------------------|
-|     26.2      |    _latest_     |      25      | Paper         | ✅ **Active Release**        |
-|     26.1.2    |    _latest_     |      25      | Paper         | ✅ **November 2026**         |
-|     1.21.11   |      4.0.0      |      21      | Paper         | 🗃️ Archived (August 2026)    |
-|     1.21.10   |      4.0.0      |      21      | Paper         | 🗃️ Archived (August 2026)    |
+|     26.3      |    _latest_     |      25      | Paper         | ✅ **Active Release**        |
+|     26.2      |       4.1.0     |      25      | Paper         | ✅ **December 2026**         |
+|     26.1.2    |       4.1.0     |      25      | Paper         | ✅ **December 2026**         |
+|     1.21.11   |      4.1.0      |      21      | Paper         | ✅ **December 2026**         |
+|     1.21.10   |      4.1.0      |      21      | Paper         | ✅ **December 2026**         |
 |    1.21.7/8   |      3.8.7      |      21      | Paper, Fabric | 🗃️ Archived (August 2026)    |
 |     1.21.6    |      3.8.5      |      21      | Paper         | 🗃️ Archived (July 2025)      |
 |     1.21.5    |      3.8.7      |      21      | Paper         | 🗃️ Archived (June 2026)      |

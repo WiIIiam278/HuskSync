@@ -53,9 +53,11 @@ jobs:
           distro-names: |
             paper-1.21.10
             paper-1.21.11
-            paper-26.2
             paper-26.1.2
+            paper-26.2
+            paper-26.3
           distro-groups: |
+            paper
             paper
             paper
             paper
@@ -63,10 +65,12 @@ jobs:
           distro-descriptions: |
             Paper 1.21.10
             Paper 1.21.11
-            Paper 26.2
             Paper 26.1.2
+            Paper 26.2
+            Paper 26.3
           files: |
             target/HuskSync-Bukkit-${{ env.version_name }}+mc.1.21.10.jar
             target/HuskSync-Bukkit-${{ env.version_name }}+mc.1.21.11.jar
-            target/HuskSync-Bukkit-${{ env.version_name }}+mc.26.2.jar
             target/HuskSync-Bukkit-${{ env.version_name }}+mc.26.1.2.jar
+            target/HuskSync-Bukkit-${{ env.version_name }}+mc.26.2.jar
+            target/HuskSync-Bukkit-${{ env.version_name }}+mc.26.3.jar
