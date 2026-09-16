@@ -120,6 +120,8 @@ public abstract class DataSyncer {
     @Blocking
     public void saveData(@NotNull User user, @NotNull DataSnapshot.Packed data,
                          @Nullable BiConsumer<User, DataSnapshot.Packed> after) {
+        plugin.debug(String.format("[%s] Saving data (save cause: %s, timestamp: %s, id: %s)",
+                user.getName(), data.getSaveCause(), data.getTimestamp(), data.getId()));
         if (!data.getSaveCause().fireDataSaveEvent()) {
             addSnapshotToDatabase(user, data, after);
             return;
