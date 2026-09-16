@@ -293,17 +293,46 @@ public class RedisManager extends JedisPubSub {
                 });
     }
 
-    // Set a user's data to Redis
+    // Set a user's data to Redis if the snapshot is newer than what's already cached
     @Blocking
     public void setUserData(@NotNull User user, @NotNull DataSnapshot.Packed data) {
         try (Jedis jedis = jedisPool.getResource()) {
-            jedis.setex(
-                    getKey(RedisKeyType.LATEST_SNAPSHOT, user.getUuid(), clusterId),
-                    RedisKeyType.TTL_1_YEAR,
-                    data.asBytes(plugin));
-            plugin.debug(String.format("[%s] Set %s key on Redis", user.getName(), RedisKeyType.LATEST_SNAPSHOT));
+            final byte[] key = getKey(RedisKeyType.LATEST_SNAPSHOT, user.getUuid(), clusterId);
+            final byte[] existingBytes = jedis.get(key);
+            if (existingBytes != null) {
+                final DataSnapshot.Packed existing = deserializeExistingSnapshot(user, existingBytes);
+                if (existing != null && existing.getTimestamp().isAfter(data.getTimestamp())) {
+                    plugin.log(Level.WARNING, String.format(
+                        "[%s] Discarded a stale %s write to Redis: incoming %s snapshot (%s)"
+                        + "would overwrite a newer %s snapshot (%s) that is already cached.",
+                        user.getName(), RedisKeyType.LATEST_SNAPSHOT, data.getSaveCause(),
+                        data.getTimestamp(), existing.getSaveCause(), existing.getTimestamp()));
+                    return;
+                }
+            }
+            jedis.setex(key, RedisKeyType.TTL_1_YEAR, data.asBytes(plugin));
+            plugin.debug(String.format("[%s] Set %s key on Redis (cause: %s, timestamp: %s)",
+                    user.getName(), RedisKeyType.LATEST_SNAPSHOT, data.getSaveCause(), data.getTimestamp()));
         } catch (Throwable e) {
             plugin.log(Level.SEVERE, "An exception occurred setting user data on Redis", e);
+        }
+    }
+
+    /**
+     * Deserialize the snapshot currently cached on Redis
+     *
+     * @param user          the user the cached data belongs to
+     * @param existingBytes the raw bytes read from the user's {@link RedisKeyType#LATEST_SNAPSHOT} key
+     * @return the deserialized snapshot, or {@code null} if it could not be read
+     */
+    @Nullable
+    private DataSnapshot.Packed deserializeExistingSnapshot(@NotNull User user, byte[] existingBytes) {
+        try {
+            return DataSnapshot.deserialize(plugin, existingBytes);
+        } catch (Throwable e) {
+            plugin.debug(String.format("[%s] Could not deserialize the existing %s key on Redis: %s",
+                user.getName(), RedisKeyType.LATEST_SNAPSHOT, e.getMessage()));
+            return null;
         }
     }
 
