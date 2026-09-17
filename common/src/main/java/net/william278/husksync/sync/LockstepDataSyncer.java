@@ -76,7 +76,7 @@ public class LockstepDataSyncer extends DataSyncer {
 
     @Override
     public void syncSaveUserData(@NotNull OnlineUser onlineUser) {
-        plugin.runAsync(() -> saveData(
+        runTrackedAsync(onlineUser, () -> saveData(
                 onlineUser, onlineUser.createSnapshot(DataSnapshot.SaveCause.DISCONNECT),
                 (user, data) -> {
                     getRedis().setUserData(user, data);

@@ -32,6 +32,12 @@ import org.jetbrains.annotations.Blocking;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
@@ -39,6 +45,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
 
 /**
  * Handles the synchronization of data when a player changes servers or logs in
@@ -51,6 +58,7 @@ public abstract class DataSyncer {
 
     protected final HuskSync plugin;
     private final long maxListenAttempts;
+    private final Map<CompletableFuture<Void>, User> pendingSaves = new ConcurrentHashMap<>();
 
     @ApiStatus.Internal
     protected DataSyncer(@NotNull HuskSync plugin) {
@@ -95,13 +103,16 @@ public abstract class DataSyncer {
     public abstract void syncSaveUserData(@NotNull OnlineUser user);
 
     /**
-     * Save a user's current data
+     * Save a user's current data, tracking the save so {@link #awaitPendingSaves} can wait for it to
+     * complete during shutdown rather than losing it if the plugin disables mid-save
      *
-     * @param onlineUser the user to save data of
+     * @param onlineUser the user to save data for
      * @param cause      the save cause
+     * @return A future which will complete once the save (and any resulting Redis write) has finished
+     * @since 4.1.0
      */
-    public void saveCurrentUserData(@NotNull OnlineUser onlineUser, @NotNull DataSnapshot.SaveCause cause) {
-        this.saveData(onlineUser, onlineUser.createSnapshot(cause), getRedis()::setUserData);
+    public CompletableFuture<Void> saveCurrentUserData(@NotNull OnlineUser onlineUser, @NotNull DataSnapshot.SaveCause cause) {
+        return runTrackedAsync(onlineUser, () -> saveData(onlineUser, onlineUser.createSnapshot(cause), getRedis()::setUserData));
     }
 
     /**
@@ -114,7 +125,7 @@ public abstract class DataSyncer {
      * @apiNote Data will not be saved if the {@link net.william278.husksync.event.DataSaveEvent} is canceled.
      * Note that this method can also edit the data before saving it.
      * @implNote Note that the {@link net.william278.husksync.event.DataSaveEvent} will <b>not</b> be fired if
-     * {@link DataSnapshot.SaveCause#fireDataSaveEvent()} is {@code false} (e.g., with the SERVER_SHUTDOWN cause).
+     * {@code fireDataSaveEvent()} is {@code false} (e.g., with the SERVER_SHUTDOWN cause).
      * @since 3.3.2
      */
     @Blocking
@@ -141,7 +152,7 @@ public abstract class DataSyncer {
      * @apiNote Data will not be saved if the {@link net.william278.husksync.event.DataSaveEvent} is canceled.
      * Note that this method can also edit the data before saving it.
      * @implNote Note that the {@link net.william278.husksync.event.DataSaveEvent} will <b>not</b> be fired if
-     * {@link DataSnapshot.SaveCause#fireDataSaveEvent()} is {@code false} (e.g., with the SERVER_SHUTDOWN cause).
+     * {@code fireDataSaveEvent()} is {@code false} (e.g., with the SERVER_SHUTDOWN cause).
      * @since 3.3.3
      */
     public void saveData(@NotNull User user, @NotNull DataSnapshot.Packed data) {
@@ -213,6 +224,63 @@ public abstract class DataSyncer {
         };
         task.set(plugin.getRepeatingTask(runnable, LISTEN_DELAY));
         task.get().run();
+    }
+
+    /**
+     * Run a task asynchronously and track it, along with the user it's saving data for, so
+     * {@link #awaitPendingSaves} can wait for completion and report which player failed if it does.
+     * Subclasses should use this instead of {@code plugin.runAsync()} for disconnect saves.
+     *
+     * @since 4.1.0
+     */
+    protected CompletableFuture<Void> runTrackedAsync(@NotNull User user, @NotNull Runnable task) {
+        final CompletableFuture<Void> future = new CompletableFuture<>();
+        plugin.runAsync(() -> {
+            try {
+                task.run();
+                future.complete(null);
+            } catch (Throwable t) {
+                plugin.log(Level.WARNING, "Failed to save disconnect data for player %s (%s): %s".formatted(
+                        user.getName(), user.getUuid(), t.getMessage()), t);
+                future.completeExceptionally(t);
+            }
+        });
+        pendingSaves.put(future, user);
+        future.whenComplete((v, t) -> pendingSaves.remove(future));
+        return future;
+    }
+
+    /**
+     * Wait for all pending disconnect saves to complete, up to the configured shutdown save timeout.
+     * Called during plugin shutdown before connections are closed.
+     *
+     * @implNote Runs on the main thread - keep the configured timeout below the server's watchdog timeout.
+     * @since 4.1.0
+     */
+    public void awaitPendingSaves() {
+        if (pendingSaves.isEmpty()) {
+            return;
+        }
+        final long timeoutMillis = plugin.getSettings().getSynchronization().getShutdownSaveTimeoutMilliseconds();
+        final Map<CompletableFuture<Void>, User> tracked = Map.copyOf(pendingSaves);
+        try {
+            CompletableFuture.allOf(tracked.keySet().toArray(CompletableFuture[]::new))
+                    .get(timeoutMillis, TimeUnit.MILLISECONDS);
+        } catch (TimeoutException e) {
+            final String unfinished = tracked.entrySet().stream()
+                    .filter(entry -> !entry.getKey().isDone())
+                    .map(entry -> "%s (%s)".formatted(entry.getValue().getName(), entry.getValue().getUuid()))
+                    .collect(Collectors.joining(", "));
+            plugin.log(Level.WARNING, ("Timed out during shutdown after %dms waiting for player saves to complete. "
+                    + "Data for the following player(s) could appear reverted the next time they join: %s").formatted(
+                    timeoutMillis, unfinished.isEmpty() ? "(unknown - completed just after timing out)" : unfinished));
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            plugin.log(Level.WARNING, "Interrupted during shutdown while waiting for player saves to complete; "
+                    + "some player data may not have been correctly saved to the database or Redis");
+        } catch (ExecutionException e) {
+            // Failures for pending saves are logged per player in runTrackedAsync()
+        }
     }
 
     @NotNull
