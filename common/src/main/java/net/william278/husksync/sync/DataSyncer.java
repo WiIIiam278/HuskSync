@@ -59,6 +59,9 @@ public abstract class DataSyncer {
     private static final long USER_LISTEN_ATTEMPTS = 16;
     private static final long USER_LISTEN_DELAY = 10;
 
+    private static final long MIN_SHUTDOWN_SAVE_TIMEOUT_MILLIS = 5000;
+    private static final long MAX_SHUTDOWN_SAVE_TIMEOUT_MILLIS = 50000;
+
     // Save causes whose failure around a restart can roll a player back and duplicate items:
     // the database write they perform is the only copy of a player's latest state once a
     // pre-restart Redis cache goes stale, so it is verified on write (#persistSnapshot)
@@ -354,7 +357,8 @@ public abstract class DataSyncer {
 
     /**
      * Wait for all pending disconnect saves to complete, up to the configured shutdown save timeout.
-     * Called during plugin shutdown before connections are closed.
+     * Kept between {@value #MIN_SHUTDOWN_SAVE_TIMEOUT_MILLIS}ms and {@value #MAX_SHUTDOWN_SAVE_TIMEOUT_MILLIS}ms)
+     * to leave budget within the server's watchdog. Called during plugin shutdown before connections are closed.
      *
      * @implNote Runs on the main thread - keep the configured timeout below the server's watchdog timeout.
      * @since 4.1.0
@@ -363,7 +367,9 @@ public abstract class DataSyncer {
         if (pendingSaves.isEmpty()) {
             return;
         }
-        final long timeoutMillis = plugin.getSettings().getSynchronization().getShutdownSaveTimeoutMilliseconds();
+        final long timeoutMillis = Math.min(MAX_SHUTDOWN_SAVE_TIMEOUT_MILLIS, Math.max(MIN_SHUTDOWN_SAVE_TIMEOUT_MILLIS,
+            plugin.getSettings().getSynchronization().getShutdownSaveTimeoutMilliseconds()
+        ));
         final Map<CompletableFuture<Void>, User> tracked = Map.copyOf(pendingSaves);
         try {
             CompletableFuture.allOf(tracked.keySet().toArray(CompletableFuture[]::new))
