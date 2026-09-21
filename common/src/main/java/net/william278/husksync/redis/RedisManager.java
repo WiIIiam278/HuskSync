@@ -314,9 +314,9 @@ public class RedisManager implements RedisPubSubListener<byte[], byte[]> {
      * Set a user's data to Redis, unless the snapshot already cached there is more recent
      *
      * @return {@code true} if Redis has a snapshot at least as new as {@code data} - either
-     * because the write succeeds, or a cached snapshot has a newer timestamp.{@code false}
+     * because the write succeeds, or a cached snapshot has a newer timestamp. {@code false}
      * if the write errors, meaning any cached key may now be stale compared to {@code data}
-     * @since 4.1.1
+     * @since 4.1.0
      */
     @Blocking
     public boolean setUserData(@NotNull User user, @NotNull DataSnapshot.Packed data) {

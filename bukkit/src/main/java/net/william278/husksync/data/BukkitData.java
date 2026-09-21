@@ -597,6 +597,9 @@ public abstract class BukkitData implements Data {
     @SuppressWarnings("UnstableApiUsage")
     public static class Attributes extends BukkitData implements Data.Attributes, Adaptable {
 
+        // Folia's entity scheduler (and Paper's Folia-compatible equivalent) never run tasks inline, even
+        // from the thread that already owns the entity. Recursing into it while blocked on its own future
+        // would therefore hang forever and trip the server watchdog. Cached as it's checked on every call.
         @Nullable
         private static final Method IS_OWNED_BY_CURRENT_REGION = findIsOwnedByCurrentRegionMethod();
 
@@ -733,6 +736,8 @@ public abstract class BukkitData implements Data {
 
         @Override
         public void apply(@NotNull BukkitUser user, @NotNull BukkitHuskSync plugin) throws IllegalStateException {
+            // The apply loop calling this already runs on the player's owning thread - scheduling again
+            // here would be the exact hang described above.
             if (isUserOnCallingThread(user.getPlayer())) {
                 applyAttributes(user, plugin);
                 return;

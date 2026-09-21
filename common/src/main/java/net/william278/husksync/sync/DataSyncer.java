@@ -62,12 +62,12 @@ public abstract class DataSyncer {
     // Save causes whose failure around a restart can roll a player back and duplicate items:
     // the database write they perform is the only copy of a player's latest state once a
     // pre-restart Redis cache goes stale, so it is verified on write (#persistSnapshot)
-    // and preferred on a stale-Redis rejoin (#applyNewestSnapshot).
+    // and preferred on a stale-Redis rejoin (#applyNewestSnapshotFromDB).
     private static final Set<String> SHUTDOWN_CRITICAL_CAUSES = Set.of(
             DataSnapshot.SaveCause.SERVER_SHUTDOWN.name(),
             DataSnapshot.SaveCause.DISCONNECT.name()
-        );
-        
+    );
+
     protected final HuskSync plugin;
     private final long maxListenAttempts;
     private final Map<CompletableFuture<Void>, User> pendingSaves = new ConcurrentHashMap<>();
@@ -151,8 +151,10 @@ public abstract class DataSyncer {
                          @Nullable BiConsumer<User, DataSnapshot.Packed> after) {
         plugin.debug(String.format("[%s] Saving data (save cause: %s, timestamp: %s, id: %s)",
                 user.getName(), data.getSaveCause(), data.getTimestamp(), data.getId()));
-        // While disabling, apply the write directly instead of routing through the DataSaveEvent dispatch,
-        // which prevents closing the db/Redis connections early and while the db write is still deferred 
+        // While disabling, write directly instead of routing through the (fire-and-forget) DataSaveEvent
+        // dispatch: that dispatch defers the actual write via further scheduled tasks, so the future
+        // returned by #runTrackedAsync would complete before the write happened, letting #awaitPendingSaves
+        // close the database/Redis connections too early.
         if (!data.getSaveCause().fireDataSaveEvent() || plugin.isDisabling()) {
             addSnapshotToDatabase(user, data, after);
             return;
@@ -191,7 +193,13 @@ public abstract class DataSyncer {
 
     // Writes a snapshot to the database. This write is verified and retried in case of a db error
     // during a DISCONNECT save made while the plugin is disabling, to prevent silently dropping a
-    // player's latest data, rolling them back and leading to duplicated items on their next login
+    // player's latest data, rolling them back and leading to duplicated items on their next login.
+    //
+    // N.B: a DISCONNECT save gets queued (via #runTrackedAsync) at quit time, when isDisabling() is
+    // usually still false, and only runs later on an async thread - so whether this code is reached
+    // depends on whether the queued save is still in flight by the time the plugin starts disabling,
+    // which is more likely the more that the async queue and shutdown are both under load (e.g. many
+    // players quitting at once, any database contention, or other plugins' onDisable() running first).
     @Blocking
     private void persistSnapshot(@NotNull User user, @NotNull DataSnapshot.Packed data) {
         final boolean verifyAndRetry = plugin.isDisabling()
@@ -242,9 +250,10 @@ public abstract class DataSyncer {
      * Apply the newest database snapshot for a user during sync, given a snapshot read from Redis.
      * <p>
      * On rejoin, the Redis {@code LATEST_SNAPSHOT} key is read and consumed before the database.
-     * If a shutdown/restart could not refresh that key's TTL (e.g. Redis was unreachable during
-     * the shutdown save), an older stale snapshot can survive and would otherwise be applied 
-     * over the newer, correct database snapshot - rolling the player back and duplicating items.
+     * That key has a long TTL, so if a shutdown/restart could not refresh it (e.g. Redis was
+     * unreachable during the shutdown save), an older stale snapshot can survive and would
+     * otherwise be applied over the newer, correct database snapshot - rolling the player back
+     * and duplicating items.
      * <p>
      * The Redis snapshot is only overridden when the database holds a strictly newer snapshot,
      * whose cause is shutdown-critical (DISCONNECT / SERVER_SHUTDOWN) - i.e. exactly the save
@@ -256,7 +265,7 @@ public abstract class DataSyncer {
      *
      * @param user      the user to apply data to
      * @param redisData the snapshot consumed from Redis
-     * @since 4.1.1
+     * @since 4.1.0
      */
     @ApiStatus.Internal
     protected void applyNewestSnapshotFromDB(@NotNull OnlineUser user, @NotNull DataSnapshot.Packed redisData) {
@@ -278,7 +287,7 @@ public abstract class DataSyncer {
         user.applySnapshot(redisData, DataSnapshot.UpdateCause.SYNCHRONIZED);
     }
 
-    // Whether a save cause must be reliabily persisted around a restart. A failed save with one of these
+    // Whether a save cause must be reliably persisted around a restart. A failed save with one of these
     // causes would likely result in player inventory rollback (and item duplication) on the next login.
     protected static boolean isShutdownCritical(@NotNull DataSnapshot.SaveCause cause) {
         return SHUTDOWN_CRITICAL_CAUSES.contains(cause.name());
