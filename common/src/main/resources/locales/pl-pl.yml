@@ -3,7 +3,7 @@
 locales:
   synchronization_complete: <color:#00fb9a>⏵ Dane zsynchronizowane!</color>
   synchronization_failed: <color:#ff7e5e>⏵ Wystąpił błąd podczas synchronizacji twoich danych! Prosimy skontaktować się z administracją.</color>
-  inventory_viewer_menu_title: <blackEkwipunek %1%
+  inventory_viewer_menu_title: <black>Ekwipunek %1%
   ender_chest_viewer_menu_title: <black>Ender Chest %1%
   inventory_viewer_opened: <color:#00fb9a>Przeglądanie snapshota</color> <bold><color:#00fb9a>%1%</color></bold><color:#00fb9a> ekwipunku z ⌚ %2%</color>
   ender_chest_viewer_opened: <color:#00fb9a>Przeglądanie snapshota</color> <bold><color:#00fb9a>%1%</color></bold><color:#00fb9a> Ender Chesta z ⌚ %2%</color>
