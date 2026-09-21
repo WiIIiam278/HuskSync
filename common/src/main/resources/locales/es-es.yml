@@ -1,5 +1,3 @@
-# MineDown formatting has been converted to MiniMessage
-# https://docs.advntr.dev/minimessage/index.html
 locales:
   synchronization_complete: <color:#00fb9a>⏵ ¡Datos sincronizados!</color>
   synchronization_failed: <color:#ff7e5e>⏵ Fallo al sincronizar los datos, por favor, contacte con un administrador.</color>
@@ -36,45 +34,45 @@ locales:
     <dark_gray>%2%''>⭐ Logros: %1%</hover></gradient>   <gradient:#62a9f5:#7ab8fa><hover:show_text:''<gray>In-game play time
 
     <dark_gray>⚠ Based on in-game statistics''>⌛ Tiempo de juego: %3%ʜʀs</hover></gradient>\n'
-  data_manager_item_buttons: <gray>View:</gray> <gradient:#a17b5f:#f5b98c><click:run_command:'/inventory'><hover:show_text:'<gray>Click para ver'>[🪣 Inventario…]</hover></click></gradient>   <click:run_command:'/enderchest'><hover:show_text:'<gray>Click para ver'>[⌀ Enderchest…]</hover></click>
-  data_manager_management_buttons: '<gray>Manage:</gray> <color:#ff3300><click:suggest_command:''/husksync:userdata''><hover:show_text:''<gray>Click para borrar la snapshot del usuario.
+  data_manager_item_buttons: <gray>View:</gray> <gradient:#a17b5f:#f5b98c><click:run_command:'/inventory %1% %2%'><hover:show_text:'<gray>Click para ver'>[🪣 Inventario…]</hover></click></gradient>   <click:run_command:'/enderchest %1% %2%'><hover:show_text:'<gray>Click para ver'>[⌀ Enderchest…]</hover></click>
+  data_manager_management_buttons: '<gray>Manage:</gray> <color:#ff3300><click:suggest_command:''/husksync:userdata delete %1% %2%''><hover:show_text:''<gray>Click para borrar la snapshot del usuario.
 
     <dark_gray>Esto no afectará a la informacion actual del jugador.
 
-    <color:#ff3300>&⚠ ¡Esto no se puede deshacer!''>[❌ Borrar…]</hover></click></color>   <color:#00fb9a><click:suggest_command:''/husksync:userdata''><hover:show_text:''<gray>Click para restaurar la informacion de este usuario.
+    <color:#ff3300>&⚠ ¡Esto no se puede deshacer!''>[❌ Borrar…]</hover></click></color>   <color:#00fb9a><click:suggest_command:''/husksync:userdata restore %1% %2%''><hover:show_text:''<gray>Click para restaurar la informacion de este usuario.
 
     <dark_gray>Esto hará que la informacion actual cambie por esta snapshot.
 
-    <color:#ff3300>&⚠ %1% la informacion actual será sustituida!''>[⏪ Restaurar…]</hover></click></color>   <color:#d8ff2b><click:run_command:''/userdata''><hover:show_text:''<gray>Click para anclar/desanclar esta snapshot
+    <color:#ff3300>&⚠ %1% la informacion actual será sustituida!''>[⏪ Restaurar…]</hover></click></color>   <color:#d8ff2b><click:run_command:''/userdata pin %1% %2%''><hover:show_text:''<gray>Click para anclar/desanclar esta snapshot
 
     <dark_gray>Las snapshot ancladas no seran rotadas automaticamente''>[※ Pin/Unpin…]</hover></click></color>'
-  data_manager_system_buttons: '<gray>System:</gray> <dark_gray><click:run_command:''/husksync:userdata''><hover:show_text:''<gray>Click to dump this raw user data snapshot to a file.
+  data_manager_system_buttons: '<gray>System:</gray> <dark_gray><click:run_command:''/husksync:userdata dump %1% %2% file''><hover:show_text:''<gray>Click to dump this raw user data snapshot to a file.
 
-    <dark_gray>Data dumps can be found in ~/plugins/HuskSync/dumps/''>[⏷ File Dump…]</hover></click></dark_gray>   <dark_gray><click:run_command:''/husksync:userdata''><hover:show_text:''<gray>Click to dump this raw user data snapshot to the mc-logs service
+    <dark_gray>Data dumps can be found in ~/plugins/HuskSync/dumps/''>[⏷ File Dump…]</hover></click></dark_gray>   <dark_gray><click:run_command:''/husksync:userdata dump %1% %2% web''><hover:show_text:''<gray>Click to dump this raw user data snapshot to the mc-logs service
 
     <dark_gray>You will be provided with a URL containing the data.''>[☂ Web Dump…]</hover></click></dark_gray>'
   data_manager_advancements_preview_remaining: y %1% más…
   data_list_title: <color:#00fb9a>%1%'s user data snapshots:</color> <color:#00fb9a>(%2%-%3% of</color> <bold><color:#00fb9a>%4%</color></bold><color:#00fb9a>)</color>\n
-  data_list_item: '<gray><click:run_command:''/userdata''><hover:show_text:''<gray>User Data Snapshot for %2%
+  data_list_item: '<gray><click:run_command:''/userdata view %2% %3%''><hover:show_text:''<gray>User Data Snapshot for %2%
 
-    <dark_gray>⚡ %4%''>%1%</hover></click></gray> <color:#d8ff2b><click:run_command:''/userdata''><hover:show_text:''<gray>Pinned:
+    <dark_gray>⚡ %4%''>%1%</hover></click></gray> <color:#d8ff2b><click:run_command:''/userdata view %2% %3%''><hover:show_text:''<gray>Pinned:
 
-    <dark_gray>Pinned snapshots won\''t be automatically rotated.''>%5%</hover></click></color> <gradient:#ffc43b:#f5c962><click:run_command:''/userdata''><hover:show_text:''<gray>Version timestamp:<gray>
+    <dark_gray>Pinned snapshots won\''t be automatically rotated.''>%5%</hover></click></color> <gradient:#ffc43b:#f5c962><click:run_command:''/userdata view %2% %3%''><hover:show_text:''<gray>Version timestamp:<gray>
 
     <dark_gray>When the data was saved
 
-    <dark_gray>%7%''>%6%</hover></click></gradient>   <click:run_command:''/userdata''><hover:show_text:''<gray>Save cause:
+    <dark_gray>%7%''>%6%</hover></click></gradient>   <click:run_command:''/userdata view %2% %3%''><hover:show_text:''<gray>Save cause:
 
-    <dark_gray>What caused the data to be saved''>⚑ %8%</hover></click>   <gradient:#62a9f5:#7ab8fa><click:run_command:''/userdata''><hover:show_text:''<gray>Snapshot size:<gray>
+    <dark_gray>What caused the data to be saved''>⚑ %8%</hover></click>   <gradient:#62a9f5:#7ab8fa><click:run_command:''/userdata view %2% %3%''><hover:show_text:''<gray>Snapshot size:<gray>
 
     <dark_gray>Estimated file size of the snapshot (in KiB)''>⏏ %9%</hover></click></gradient>'
-  data_list_item_invalid: '<dark_gray><click:suggest_command:''/userdata''><hover:show_text:''<gray>User Data Snapshot for %2%
+  data_list_item_invalid: '<dark_gray><click:suggest_command:''/userdata delete %2% %3%''><hover:show_text:''<gray>User Data Snapshot for %2%
 
-    <dark_gray>⚡ %4%''>%1%</hover></click></dark_gray> <dark_gray><click:suggest_command:''/userdata''><hover:show_text:''<gray>Pinned:
+    <dark_gray>⚡ %4%''>%1%</hover></click></dark_gray> <dark_gray><click:suggest_command:''/userdata delete %2% %3%''><hover:show_text:''<gray>Pinned:
 
-    <dark_gray>Pinned snapshots won\''t be automatically rotated.''>%5%</hover></click></dark_gray> <strikethrough><gray><click:suggest_command:''/userdata''><hover:show_text:''<color:#ff3300>&Invalid Data Snapshot
+    <dark_gray>Pinned snapshots won\''t be automatically rotated.''>%5%</hover></click></dark_gray> <strikethrough><gray><click:suggest_command:''/userdata delete %2% %3%''><hover:show_text:''<color:#ff3300>&Invalid Data Snapshot
 
-    <color:#ff7e5e><red>lick to delete
+    <color:#ff7e5e><red>Click to delete
 
 
     <gray>⚠ %10%''>%6%   ⚑ %8%   ⏏ %9%</hover></click></gray></strikethrough>'
@@ -125,10 +123,10 @@ locales:
   update_available: '<bold><color:#ff7e5e>HuskSync</color></bold> <color:#ff7e5e>| A new version of HuskSync is available: v%1% (running: v%2%).</color>'
   reload_complete: <bold><color:#00fb9a>HuskSync</color></bold> <color:#00fb9a>| Recargada la configuración y los archivos de lenguaje.</color>\n<color:#00fb9a>⚠ Ensure config files are up-to-date on all servers!</color>\n<italic><color:#00fb9a>A restart is needed for config changes to take effect.</color></italic>
   system_status_header: <bold><color:#00fb9a>HuskSync</color></bold> <color:#00fb9a>| System status report:</color>
-  system_dump_confirm: <bold><color:#00fb9a>HuskSync</color></bold> <color:#00fb9a>| Prepare a system dump? This will include:</color>\n<gray>• Your latest server logs and HuskSync config files</gray>\n<gray>• Current plugin system status information</gray>\n<gray>• Information about your Java & Minecraft server environment</gray>\n<gray>• A list of other currently installed plugins</gray>\n<color:#00fb9a>To confirm, use:</color> <italic><color:#00fb9a><click:run_command:'/husksync'><hover:show_text:'<gray>Click to prepare dump'>/husksync dump confirm</hover></click></color></italic>
+  system_dump_confirm: <bold><color:#00fb9a>HuskSync</color></bold> <color:#00fb9a>| Prepare a system dump? This will include:</color>\n<gray>• Your latest server logs and HuskSync config files</gray>\n<gray>• Current plugin system status information</gray>\n<gray>• Information about your Java & Minecraft server environment</gray>\n<gray>• A list of other currently installed plugins</gray>\n<color:#00fb9a>To confirm, use:</color> <italic><color:#00fb9a><click:run_command:'/husksync dump confirm'><hover:show_text:'<gray>Click to prepare dump'>/husksync dump confirm</hover></click></color></italic>
   system_dump_started: <bold><color:#00fb9a>HuskSync</color></bold> <color:#00fb9a>| Preparing system status dump, please wait…</color>
   system_dump_ready: <bold><color:#00fb9a>HuskSync</color></bold> <color:#00fb9a>| System status dump prepared! Click to view:</color>
-  error_invalid_syntax: <color:#ff3300>Error:</color> <color:#ff7e5e>Sintanxis incorrecta. Usa:</color> <italic><color:#ff7e5e><click:suggest_command:'%1%'><hover:show_text:'<color:#ff7e5e><red>lick to suggest'>%1%</hover></click></color></italic>
+  error_invalid_syntax: <color:#ff3300>Error:</color> <color:#ff7e5e>Sintanxis incorrecta. Usa:</color> <italic><color:#ff7e5e><click:suggest_command:'%1%'><hover:show_text:'<color:#ff7e5e><red>Click to suggest'>%1%</hover></click></color></italic>
   error_invalid_player: <color:#ff3300>Error:</color> <color:#ff7e5e>No se ha podido encontrar un jugador con ese nombre.</color>
   error_invalid_data: <color:#ff3300>Error:</color> <color:#ff7e5e>Failed to unpack user data as the snapshot is invalid or corrupt.</color> <gray><hover:show_text:'<gray>⚠ %1%'>(Details…)</hover></gray>
   error_no_permission: <color:#ff3300>Error:</color> <color:#ff7e5e>No tienes permisos para ejecutar este comando.</color>

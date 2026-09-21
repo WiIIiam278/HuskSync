@@ -31,6 +31,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 import java.util.StringJoiner;
 
@@ -101,8 +102,7 @@ public class DataSnapshotOverview {
                         .flatMap(statisticsData -> locales.getLocale("data_manager_advancements_statistics",
                                 Integer.toString(advancementData.getCompletedExcludingRecipes().size()),
                                 generateAdvancementPreview(advancementData.getCompletedExcludingRecipes(), locales),
-                                String.format("%.2f", (((statisticsData.getGenericStatistics().getOrDefault(
-                                        "minecraft:play_one_minute", 0)) / 20d) / 60d) / 60d))))
+                                getPlayTimeHours(statisticsData))))
                 .ifPresent(user::sendMessage);
 
         if (user.hasPermission("husksync.command.inventory.edit")
@@ -135,6 +135,15 @@ public class DataSnapshotOverview {
                     .orElse(String.format("+%s…", remaining)));
         }
         return joiner.toString();
+    }
+
+    // Bukkit stores unprefixed key (play_time), Fabric stores fully namespaced key (minecraft:play_time)
+    @NotNull
+    private String getPlayTimeHours(@NotNull Data.Statistics statistics) {
+        final Map<String, Integer> generic = statistics.getGenericStatistics();
+        final int ticks = generic.containsKey("play_time") ? generic.get("play_time")
+                : generic.getOrDefault("minecraft:play_time", 0);
+        return String.format("%.2f", ((ticks / 20d) / 60d) / 60d);
     }
 
 }
