@@ -266,6 +266,41 @@ public class PostgresDatabase extends Database {
 
     @Blocking
     @Override
+    public Optional<DataSnapshot.Packed> getLatestSnapshot(@NotNull User user, @NotNull Collection<String> saveCauses) {
+        if (saveCauses.isEmpty()) {
+            return Optional.empty();
+        }
+        final String placeholders = String.join(",", Collections.nCopies(saveCauses.size(), "?"));
+        try (Connection connection = getConnection()) {
+            try (PreparedStatement statement = connection.prepareStatement(formatStatementTables("""
+                    SELECT version_uuid, timestamp, data
+                    FROM %user_data_table%
+                    WHERE player_uuid=? AND save_cause IN (%causes%)
+                    ORDER BY timestamp DESC
+                    LIMIT 1;""".replace("%causes%", placeholders)))) {
+                statement.setObject(1, user.getUuid());
+                int index = 2;
+                for (String cause : saveCauses) {
+                    statement.setString(index++, cause);
+                }
+                final ResultSet resultSet = statement.executeQuery();
+                if (resultSet.next()) {
+                    final UUID versionUuid = (UUID) resultSet.getObject("version_uuid");
+                    final OffsetDateTime timestamp = OffsetDateTime.ofInstant(
+                            resultSet.getTimestamp("timestamp").toInstant(), TimeZone.getDefault().toZoneId()
+                    );
+                    final byte[] dataByteArray = resultSet.getBytes("data");
+                    return Optional.of(DataSnapshot.deserialize(plugin, dataByteArray, versionUuid, timestamp));
+                }
+            }
+        } catch (SQLException | DataAdapter.AdaptionException e) {
+            plugin.log(Level.SEVERE, "Failed to fetch a user's current user data from the database", e);
+        }
+        return Optional.empty();
+    }
+
+    @Blocking
+    @Override
     @NotNull
     public List<DataSnapshot.Packed> getAllSnapshots(@NotNull User user) {
         final List<DataSnapshot.Packed> retrievedData = Lists.newArrayList();
