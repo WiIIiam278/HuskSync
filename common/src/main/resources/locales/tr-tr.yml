@@ -119,14 +119,14 @@ locales:
   save_cause_mpdb_migration: MPDB migration
   save_cause_legacy_migration: legacy migration
   save_cause_converted_from_v2: v2 den dönüştürüldü
-  up_to_date: <bold><color:#00fb9a>HuskSync</color></bold> <color:#00fb9a>| HuskSync\'in en son sürümünü kullanıyorsunuz (v%1%).</color>
-  update_available: '<bold><color:#ff7e5e>HuskSync</color></bold> <color:#ff7e5e>| HuskSync\''in yeni bir sürümü mevcut: v%1% (kullanılan sürüm: v%2%).</color>'
+  up_to_date: <bold><color:#00fb9a>HuskSync</color></bold> <color:#00fb9a>| HuskSync'in en son sürümünü kullanıyorsunuz (v%1%).</color>
+  update_available: '<bold><color:#ff7e5e>HuskSync</color></bold> <color:#ff7e5e>| HuskSync''in yeni bir sürümü mevcut: v%1% (kullanılan sürüm: v%2%).</color>'
   reload_complete: <bold><color:#00fb9a>HuskSync</color></bold> <color:#00fb9a>| Yapılandırma ve mesaj dosyaları yeniden yüklendi.</color>\n<color:#00fb9a>⚠ Lütfen yapılandırma dosyalarının tüm sunucularda güncel olduğundan emin olun!</color>\n<italic><color:#00fb9a>Yapılandırma değişikliklerinin etkili olabilmesi için bir yeniden başlatma gereklidir.</color></italic>
   system_status_header: <bold><color:#00fb9a>HuskSync</color></bold> <color:#00fb9a>| Sistem durumu raporu:</color>
   system_dump_confirm: <bold><color:#00fb9a>HuskSync</color></bold> <color:#00fb9a>| Prepare a system dump? This will include:</color>\n<gray>• Your latest server logs and HuskSync config files</gray>\n<gray>• Current plugin system status information</gray>\n<gray>• Information about your Java & Minecraft server environment</gray>\n<gray>• A list of other currently installed plugins</gray>\n<color:#00fb9a>To confirm, use:</color> <italic><color:#00fb9a><click:run_command:'/husksync dump confirm'><hover:show_text:'<gray>Click to prepare dump'>/husksync dump confirm</hover></click></color></italic>
   system_dump_started: <bold><color:#00fb9a>HuskSync</color></bold> <color:#00fb9a>| Preparing system status dump, please wait…</color>
   system_dump_ready: <bold><color:#00fb9a>HuskSync</color></bold> <color:#00fb9a>| System status dump prepared! Click to view:</color>
-  error_invalid_syntax: <color:#ff3300>Hata:</color> <color:#ff7e5e>Yanlış sözdizimi. Kullanım:</color> <italic><color:#ff7e5e><hover:show_text:'<color:#ff7e5e>&Öneri için tıklayın Suggest_command=%1%'>%1%</hover></color></italic>
+  error_invalid_syntax: <color:#ff3300>Hata:</color> <color:#ff7e5e>Yanlış sözdizimi. Kullanım:</color> <italic><color:#ff7e5e><click:suggest_command:'%1%'><hover:show_text:'<color:#ff7e5e>&Öneri için tıklayın'>%1%</hover></click></color></italic>
   error_invalid_player: <color:#ff3300>Hata:</color> <color:#ff7e5e>Bu isimde bir oyuncu bulunamadı.</color>
   error_invalid_data: <color:#ff3300>Error:</color> <color:#ff7e5e>Failed to unpack user data as the snapshot is invalid or corrupt.</color> <gray><hover:show_text:'<gray>⚠ %1%'>(Details…)</hover></gray>
   error_no_permission: <color:#ff3300>Hata:</color> <color:#ff7e5e>Bu komutu gerçekleştirmek için izniniz yok</color>
