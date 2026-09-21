@@ -33,6 +33,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
@@ -53,9 +55,19 @@ import java.util.stream.Collectors;
  * @since 3.1
  */
 public abstract class DataSyncer {
-    private static final long BASE_LISTEN_ATTEMPTS = 16;
-    private static final long LISTEN_DELAY = 10;
+    private static final long SHUTDOWN_CRITICAL_DB_ATTEMPTS = 3;
+    private static final long USER_LISTEN_ATTEMPTS = 16;
+    private static final long USER_LISTEN_DELAY = 10;
 
+    // Save causes whose failure around a restart can roll a player back and duplicate items:
+    // the database write they perform is the only copy of a player's latest state once a
+    // pre-restart Redis cache goes stale, so it is verified on write (#persistSnapshot)
+    // and preferred on a stale-Redis rejoin (#applyNewestSnapshot).
+    private static final Set<String> SHUTDOWN_CRITICAL_CAUSES = Set.of(
+            DataSnapshot.SaveCause.SERVER_SHUTDOWN.name(),
+            DataSnapshot.SaveCause.DISCONNECT.name()
+        );
+        
     protected final HuskSync plugin;
     private final long maxListenAttempts;
     private final Map<CompletableFuture<Void>, User> pendingSaves = new ConcurrentHashMap<>();
@@ -112,7 +124,13 @@ public abstract class DataSyncer {
      * @since 4.1.0
      */
     public CompletableFuture<Void> saveCurrentUserData(@NotNull OnlineUser onlineUser, @NotNull DataSnapshot.SaveCause cause) {
-        return runTrackedAsync(onlineUser, () -> saveData(onlineUser, onlineUser.createSnapshot(cause), getRedis()::setUserData));
+        return runTrackedAsync(onlineUser, () -> saveData(onlineUser, onlineUser.createSnapshot(cause), (user, data) -> {
+            if (!getRedis().setUserData(user, data) && isShutdownCritical(data.getSaveCause())) {
+                // Fresh snapshot could not be confirmed on Redis, drop the stale LATEST_SNAPSHOT key. Next login
+                // uses the verified db snapshot instead of resurrecting pre-save data, to avoid duplicating items
+                getRedis().clearUserData(user);
+            }
+        }));
     }
 
     /**
@@ -133,7 +151,9 @@ public abstract class DataSyncer {
                          @Nullable BiConsumer<User, DataSnapshot.Packed> after) {
         plugin.debug(String.format("[%s] Saving data (save cause: %s, timestamp: %s, id: %s)",
                 user.getName(), data.getSaveCause(), data.getTimestamp(), data.getId()));
-        if (!data.getSaveCause().fireDataSaveEvent()) {
+        // While disabling, apply the write directly instead of routing through the DataSaveEvent dispatch,
+        // which prevents closing the db/Redis connections early and while the db write is still deferred 
+        if (!data.getSaveCause().fireDataSaveEvent() || plugin.isDisabling()) {
             addSnapshotToDatabase(user, data, after);
             return;
         }
@@ -163,17 +183,44 @@ public abstract class DataSyncer {
     @Blocking
     private void addSnapshotToDatabase(@NotNull User user, @NotNull DataSnapshot.Packed data,
                                        @Nullable BiConsumer<User, DataSnapshot.Packed> after) {
-        getDatabase().addSnapshot(user, data);
+        persistSnapshot(user, data);
         if (after != null) {
             after.accept(user, data);
         }
     }
 
+    // Writes a snapshot to the database. This write is verified and retried in case of a db error
+    // during a DISCONNECT save made while the plugin is disabling, to prevent silently dropping a
+    // player's latest data, rolling them back and leading to duplicated items on their next login
+    @Blocking
+    private void persistSnapshot(@NotNull User user, @NotNull DataSnapshot.Packed data) {
+        final boolean verifyAndRetry = plugin.isDisabling()
+                && DataSnapshot.SaveCause.DISCONNECT.name().equals(data.getSaveCause().name());
+        if (!verifyAndRetry) {
+            getDatabase().addSnapshot(user, data);
+            return;
+        }
+        for (int attempt = 1; attempt <= SHUTDOWN_CRITICAL_DB_ATTEMPTS; attempt++) {
+            final boolean alreadyPersisted = attempt > 1 && getDatabase().getSnapshot(user, data.getId()).isPresent();
+            if (!alreadyPersisted) {
+                getDatabase().addSnapshot(user, data);
+            }
+            if (alreadyPersisted || getDatabase().getSnapshot(user, data.getId()).isPresent()) {
+                return;
+            }
+            plugin.log(Level.WARNING, "Database save for %s (%s) unconfirmed on attempt %d/%d; retrying".formatted(
+                    user.getName(), data.getSaveCause().name(), attempt, SHUTDOWN_CRITICAL_DB_ATTEMPTS));
+        }
+        plugin.log(Level.SEVERE, ("Could not confirm %s's data reached the database after %d attempts "
+                + "(it may still have been written); check database health").formatted(
+                user.getName(), SHUTDOWN_CRITICAL_DB_ATTEMPTS));
+    }
+
     // Calculates the max attempts the system should listen for user data for based on the latency value
     private long getMaxListenAttempts() {
-        return BASE_LISTEN_ATTEMPTS + (
+        return USER_LISTEN_ATTEMPTS + (
                 (Math.max(100, plugin.getSettings().getSynchronization().getNetworkLatencyMilliseconds()) / 1000)
-                        * 20 / LISTEN_DELAY
+                        * 20 / USER_LISTEN_DELAY
         );
     }
 
@@ -189,6 +236,52 @@ public abstract class DataSyncer {
             plugin.log(Level.WARNING, "Failed to set %s's data from the database".formatted(user.getName()), e);
             user.completeSync(false, DataSnapshot.UpdateCause.SYNCHRONIZED, plugin);
         }
+    }
+
+    /**
+     * Apply the newest database snapshot for a user during sync, given a snapshot read from Redis.
+     * <p>
+     * On rejoin, the Redis {@code LATEST_SNAPSHOT} key is read and consumed before the database.
+     * If a shutdown/restart could not refresh that key's TTL (e.g. Redis was unreachable during
+     * the shutdown save), an older stale snapshot can survive and would otherwise be applied 
+     * over the newer, correct database snapshot - rolling the player back and duplicating items.
+     * <p>
+     * The Redis snapshot is only overridden when the database holds a strictly newer snapshot,
+     * whose cause is shutdown-critical (DISCONNECT / SERVER_SHUTDOWN) - i.e. exactly the save
+     * that a restart writes but may fail to push to Redis. In every other situation, the Redis
+     * snapshot is applied unchanged: a normal cross-server hand-off has the database and Redis
+     * snapshots as the same save (with an equal timestamp) since the leaving server writes the
+     * database before releasing its checkout, and a newer database snapshot from a non-shutdown
+     * cause (e.g. a DB-only DEATH) is ignored, so it can't be applied over a synced Redis state.
+     *
+     * @param user      the user to apply data to
+     * @param redisData the snapshot consumed from Redis
+     * @since 4.1.1
+     */
+    @ApiStatus.Internal
+    protected void applyNewestSnapshotFromDB(@NotNull OnlineUser user, @NotNull DataSnapshot.Packed redisData) {
+        try {
+            final Optional<DataSnapshot.Packed> dbData = getDatabase().getAllSnapshots(user).stream()
+                    .filter(snapshot -> isShutdownCritical(snapshot.getSaveCause()))
+                    .findFirst();
+            if (dbData.isPresent() && dbData.get().getTimestamp().isAfter(redisData.getTimestamp())) {
+                plugin.debug(("[%s] Applying newer database snapshot (%s, %s) over older Redis snapshot (%s) "
+                        + "to avoid a stale restart rollback").formatted(user.getName(), dbData.get().getTimestamp(),
+                        dbData.get().getSaveCause(), redisData.getTimestamp()));
+                user.applySnapshot(dbData.get(), DataSnapshot.UpdateCause.SYNCHRONIZED);
+                return;
+            }
+        } catch (Throwable e) {
+            plugin.log(Level.WARNING, "[%s] Failed to compare Redis and database snapshots; applying the Redis snapshot"
+                    .formatted(user.getName()), e);
+        }
+        user.applySnapshot(redisData, DataSnapshot.UpdateCause.SYNCHRONIZED);
+    }
+
+    // Whether a save cause must be reliabily persisted around a restart. A failed save with one of these
+    // causes would likely result in player inventory rollback (and item duplication) on the next login.
+    protected static boolean isShutdownCritical(@NotNull DataSnapshot.SaveCause cause) {
+        return SHUTDOWN_CRITICAL_CAUSES.contains(cause.name());
     }
 
     // Continuously listen for data from Redis
@@ -222,7 +315,7 @@ public abstract class DataSyncer {
             }
             processing.set(false);
         };
-        task.set(plugin.getRepeatingTask(runnable, LISTEN_DELAY));
+        task.set(plugin.getRepeatingTask(runnable, USER_LISTEN_DELAY));
         task.get().run();
     }
 
