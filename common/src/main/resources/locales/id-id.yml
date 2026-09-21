@@ -36,43 +36,43 @@ locales:
     <dark_gray>%2%''>⭐ Kemajuan: %1%</hover></gradient>   <gradient:#62a9f5:#7ab8fa><hover:show_text:''<gray>Waktu bermain dalam game
 
     <dark_gray>⚠ Statistik berdasarkan dalam game''>⌛ Waktu Bermain: %3%ʜʀs</hover></gradient>\n'
-  data_manager_item_buttons: <gray>Lihat:</gray> <gradient:#a17b5f:#f5b98c><click:run_command:'/inventory'><hover:show_text:'<gray>Klik untuk lihat'>[🪣 Inventaris…]</hover></click></gradient>   <click:run_command:'/enderchest'><hover:show_text:'<gray>Klik untuk lihat'>[⌀ Peti Ender…]</hover></click>
-  data_manager_management_buttons: '<gray>Kelola:</gray> <color:#ff3300><click:suggest_command:''/husksync:userdata''><hover:show_text:''<gray>Klik untuk menghapus cuplikan data pengguna ini.
+  data_manager_item_buttons: <gray>Lihat:</gray> <gradient:#a17b5f:#f5b98c><click:run_command:'/inventory %1% %2%'><hover:show_text:'<gray>Klik untuk lihat'>[🪣 Inventaris…]</hover></click></gradient>   <click:run_command:'/enderchest %1% %2%'><hover:show_text:'<gray>Klik untuk lihat'>[⌀ Peti Ender…]</hover></click>
+  data_manager_management_buttons: '<gray>Kelola:</gray> <color:#ff3300><click:suggest_command:''/husksync:userdata delete %1% %2%''><hover:show_text:''<gray>Klik untuk menghapus cuplikan data pengguna ini.
 
     <dark_gray>Ini tidak akan berdampak pada data pengguna saat ini.
 
-    <color:#ff3300>&⚠ Hal ini tidak dapat dibatalkan!''>[❌ Hapus…]</hover></click></color>   <color:#00fb9a><click:suggest_command:''/husksync:userdata''><hover:show_text:''<gray>Klik untuk memulihkan data pengguna ini.
+    <color:#ff3300>&⚠ Hal ini tidak dapat dibatalkan!''>[❌ Hapus…]</hover></click></color>   <color:#00fb9a><click:suggest_command:''/husksync:userdata restore %1% %2%''><hover:show_text:''<gray>Klik untuk memulihkan data pengguna ini.
 
     <dark_gray>Ini akan mengatur data pengguna ke cuplikan ini.
 
-    <color:#ff3300>&⚠ Data %1% saat ini akan ditimpa!''>[⏪ Pulihkan…]</hover></click></color>   <color:#d8ff2b><click:run_command:''/userdata''><hover:show_text:''<gray>Klik untuk menyematkan atau tidak cuplikan data pengguna ini
+    <color:#ff3300>&⚠ Data %1% saat ini akan ditimpa!''>[⏪ Pulihkan…]</hover></click></color>   <color:#d8ff2b><click:run_command:''/userdata pin %1% %2%''><hover:show_text:''<gray>Klik untuk menyematkan atau tidak cuplikan data pengguna ini
 
     <dark_gray>Cuplikan yang disematkan tidak akan diputar otomatis''>[※ Sematkan/Tidak disematkan…]</hover></click></color>'
-  data_manager_system_buttons: '<gray>Sistem:</gray> <dark_gray><click:run_command:''/husksync:userdata''><hover:show_text:''<gray>Klik untuk membuang cuplikan data mentah pengguna ini ke sebuah file.
+  data_manager_system_buttons: '<gray>Sistem:</gray> <dark_gray><click:run_command:''/husksync:userdata dump %1% %2% file''><hover:show_text:''<gray>Klik untuk membuang cuplikan data mentah pengguna ini ke sebuah file.
 
-    <dark_gray>Data yang dibuang dapat ditemukan di ~/plugins/HuskSync/dumps/''>[⏷ Pembuangan File…]</hover></click></dark_gray>   <dark_gray><click:run_command:''/husksync:userdata''><hover:show_text:''<gray>Klik untuk membuang cuplikan data mentah pengguna ini ke layanan mc-logs
+    <dark_gray>Data yang dibuang dapat ditemukan di ~/plugins/HuskSync/dumps/''>[⏷ Pembuangan File…]</hover></click></dark_gray>   <dark_gray><click:run_command:''/husksync:userdata dump %1% %2% web''><hover:show_text:''<gray>Klik untuk membuang cuplikan data mentah pengguna ini ke layanan mc-logs
 
     <dark_gray>Kamu akan diberikan URL yang berisi data.''>[☂ Pembuangan Web…]</hover></click></dark_gray>'
   data_manager_advancements_preview_remaining: dan %1% lagi…
   data_list_title: <color:#00fb9a>Cuplikan data %1%:</color> <color:#00fb9a>(%2%-%3% dari</color> <bold><color:#00fb9a>%4%</color></bold><color:#00fb9a>)</color>\n
-  data_list_item: '<gray><click:run_command:''/userdata''><hover:show_text:''<gray>Cuplikan data pengguna untuk %2%<dark_gray>⚡ %4%''>%1%</hover></click></gray> <color:#d8ff2b><click:run_command:''/userdata''><hover:show_text:''<gray>Disematkan:
+  data_list_item: '<gray><click:run_command:''/userdata view %2% %3%''><hover:show_text:''<gray>Cuplikan data pengguna untuk %2%<dark_gray>⚡ %4%''>%1%</hover></click></gray> <color:#d8ff2b><click:run_command:''/userdata view %2% %3%''><hover:show_text:''<gray>Disematkan:
 
-    <dark_gray>Cuplikan yang disematkan tidak akan dirotasi otomatis.''>%5%</hover></click></color> <gradient:#ffc43b:#f5c962><click:run_command:''/userdata''><hover:show_text:''<gray>Versi stampel waktu:<gray>
+    <dark_gray>Cuplikan yang disematkan tidak akan dirotasi otomatis.''>%5%</hover></click></color> <gradient:#ffc43b:#f5c962><click:run_command:''/userdata view %2% %3%''><hover:show_text:''<gray>Versi stampel waktu:<gray>
 
     <dark_gray>Saat data disimpan
 
-    <dark_gray>%7%''>%6%</hover></click></gradient>   <click:run_command:''/userdata''><hover:show_text:''<gray>Disimpan karena:
+    <dark_gray>%7%''>%6%</hover></click></gradient>   <click:run_command:''/userdata view %2% %3%''><hover:show_text:''<gray>Disimpan karena:
 
-    <dark_gray>Apa yang menyebabkan data disimpan''>⚑ %8%</hover></click>   <gradient:#62a9f5:#7ab8fa><click:run_command:''/userdata''><hover:show_text:''<gray>Ukuran cuplikan:<gray>
+    <dark_gray>Apa yang menyebabkan data disimpan''>⚑ %8%</hover></click>   <gradient:#62a9f5:#7ab8fa><click:run_command:''/userdata view %2% %3%''><hover:show_text:''<gray>Ukuran cuplikan:<gray>
 
     <dark_gray>Perkiraan ukuran file cuplikan (dalam KiB)''>⏏ %9%</hover></click></gradient>'
-  data_list_item_invalid: '<dark_gray><click:suggest_command:''/userdata''><hover:show_text:''<gray>User Data Snapshot for %2%
+  data_list_item_invalid: '<dark_gray><click:suggest_command:''/userdata delete %2% %3%''><hover:show_text:''<gray>User Data Snapshot for %2%
 
-    <dark_gray>⚡ %4%''>%1%</hover></click></dark_gray> <dark_gray><click:suggest_command:''/userdata''><hover:show_text:''<gray>Pinned:
+    <dark_gray>⚡ %4%''>%1%</hover></click></dark_gray> <dark_gray><click:suggest_command:''/userdata delete %2% %3%''><hover:show_text:''<gray>Pinned:
 
-    <dark_gray>Pinned snapshots won\''t be automatically rotated.''>%5%</hover></click></dark_gray> <strikethrough><gray><click:suggest_command:''/userdata''><hover:show_text:''<color:#ff3300>&Invalid Data Snapshot
+    <dark_gray>Pinned snapshots won\''t be automatically rotated.''>%5%</hover></click></dark_gray> <strikethrough><gray><click:suggest_command:''/userdata delete %2% %3%''><hover:show_text:''<color:#ff3300>&Invalid Data Snapshot
 
-    <color:#ff7e5e><red>lick to delete
+    <color:#ff7e5e><red>Click to delete
 
 
     <gray>⚠ %10%''>%6%   ⚑ %8%   ⏏ %9%</hover></click></gray></strikethrough>'
@@ -123,7 +123,7 @@ locales:
   update_available: '<bold><color:#ff7e5e>HuskSync</color></bold> <color:#ff7e5e>| Versi baru HuskSync tersedia: v%1% (menjalankan: v%2%).</color>'
   reload_complete: <bold><color:#00fb9a>HuskSync</color></bold> <color:#00fb9a>| Memuat ulang file konfigurasi dan pesan.</color>\n<color:#00fb9a>⚠ Pastikan file konfigurasi sudah diperbarui di semua server!</color>\n<italic><color:#00fb9a>Diperlukan pengaktifan ulang agar perubahan konfigurasi dapat diterapkan.</color></italic>
   system_status_header: <bold><color:#00fb9a>HuskSync</color></bold> <color:#00fb9a>| Laporan status sistem:</color>
-  system_dump_confirm: <bold><color:#00fb9a>HuskSync</color></bold> <color:#00fb9a>| Prepare a system dump? This will include:</color>\n<gray>• Your latest server logs and HuskSync config files</gray>\n<gray>• Current plugin system status information</gray>\n<gray>• Information about your Java & Minecraft server environment</gray>\n<gray>• A list of other currently installed plugins</gray>\n<color:#00fb9a>To confirm, use:</color> <italic><color:#00fb9a><click:run_command:'/husksync'><hover:show_text:'<gray>Click to prepare dump'>/husksync dump confirm</hover></click></color></italic>
+  system_dump_confirm: <bold><color:#00fb9a>HuskSync</color></bold> <color:#00fb9a>| Prepare a system dump? This will include:</color>\n<gray>• Your latest server logs and HuskSync config files</gray>\n<gray>• Current plugin system status information</gray>\n<gray>• Information about your Java & Minecraft server environment</gray>\n<gray>• A list of other currently installed plugins</gray>\n<color:#00fb9a>To confirm, use:</color> <italic><color:#00fb9a><click:run_command:'/husksync dump confirm'><hover:show_text:'<gray>Click to prepare dump'>/husksync dump confirm</hover></click></color></italic>
   system_dump_started: <bold><color:#00fb9a>HuskSync</color></bold> <color:#00fb9a>| Preparing system status dump, please wait…</color>
   system_dump_ready: <bold><color:#00fb9a>HuskSync</color></bold> <color:#00fb9a>| System status dump prepared! Click to view:</color>
   error_invalid_syntax: <color:#ff3300>Kesalahan:</color> <color:#ff7e5e>Sintaks salah. Penggunaan:</color> <italic><color:#ff7e5e><click:suggest_command:'%1%'><hover:show_text:'<color:#ff7e5e>&Klik untuk menyarankan'>%1%</hover></click></color></italic>

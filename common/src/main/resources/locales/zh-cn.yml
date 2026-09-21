@@ -36,41 +36,41 @@ locales:
     <dark_gray>%2%''>⭐ 进度: %1%</hover></gradient>   <gradient:#62a9f5:#7ab8fa><hover:show_text:''<gray>在游戏内游玩的时间
 
     <dark_gray>⚠ 基于游戏内的统计信息''>⌛ 游玩时间: %3%小时</hover></gradient>\n'
-  data_manager_item_buttons: <gray>查看:</gray> <gradient:#a17b5f:#f5b98c><click:run_command:'/inventory'><hover:show_text:'<gray>点击查看'>[🪣 背包…]</hover></click></gradient>   <click:run_command:'/enderchest'><hover:show_text:'<gray>点击查看'>[⌀ 末影箱…]</hover></click>
-  data_manager_management_buttons: '<gray>管理:</gray> <color:#ff3300><click:suggest_command:''/husksync:userdata''><hover:show_text:''<gray>点击删除此玩家数据备份.
+  data_manager_item_buttons: <gray>查看:</gray> <gradient:#a17b5f:#f5b98c><click:run_command:'/inventory %1% %2%'><hover:show_text:'<gray>点击查看'>[🪣 背包…]</hover></click></gradient>   <click:run_command:'/enderchest %1% %2%'><hover:show_text:'<gray>点击查看'>[⌀ 末影箱…]</hover></click>
+  data_manager_management_buttons: '<gray>管理:</gray> <color:#ff3300><click:suggest_command:''/husksync:userdata delete %1% %2%''><hover:show_text:''<gray>点击删除此玩家数据备份.
 
     <dark_gray>这不会影响用户的当前数据.
 
-    <color:#ff3300>&⚠ 此操作无法撤消!''>[❌ 删除…]</hover></click></color>   <color:#00fb9a><click:suggest_command:''/husksync:userdata''><hover:show_text:''<gray>点击还原此玩家数据.
+    <color:#ff3300>&⚠ 此操作无法撤消!''>[❌ 删除…]</hover></click></color>   <color:#00fb9a><click:suggest_command:''/husksync:userdata restore %1% %2%''><hover:show_text:''<gray>点击还原此玩家数据.
 
     <dark_gray>这将使用户的数据恢复到此备份.
 
-    <color:#ff3300>&⚠ %1%当前数据将被覆盖!''>[⏪ 恢复…]</hover></click></color>   <color:#d8ff2b><click:run_command:''/userdata''><hover:show_text:''<gray>点击置顶或取消置顶此玩家数据备份
+    <color:#ff3300>&⚠ %1%当前数据将被覆盖!''>[⏪ 恢复…]</hover></click></color>   <color:#d8ff2b><click:run_command:''/userdata pin %1% %2%''><hover:show_text:''<gray>点击置顶或取消置顶此玩家数据备份
 
     <dark_gray>已置顶的备份不会按照备份时间自动排序''>[※ 置顶/取消置顶…]</hover></click></color>'
-  data_manager_system_buttons: '<gray>系统:</gray> <dark_gray><click:run_command:''/husksync:userdata''><hover:show_text:''<gray>点击将此原始玩家数据备份转储到文件中.
+  data_manager_system_buttons: '<gray>系统:</gray> <dark_gray><click:run_command:''/husksync:userdata dump %1% %2% file''><hover:show_text:''<gray>点击将此原始玩家数据备份转储到文件中.
 
-    <dark_gray>数据转储可以在~/plugins/HuskSync/dumps/中找到''>[⏷ 文件转储…]</hover></click></dark_gray>   <dark_gray><click:run_command:''/husksync:userdata''><hover:show_text:''<gray>点击将此原始玩家数据备份转储到mc-logs服务中
+    <dark_gray>数据转储可以在~/plugins/HuskSync/dumps/中找到''>[⏷ 文件转储…]</hover></click></dark_gray>   <dark_gray><click:run_command:''/husksync:userdata dump %1% %2% web''><hover:show_text:''<gray>点击将此原始玩家数据备份转储到mc-logs服务中
 
     <dark_gray>你将获得包含数据的网址.''>[☂ 网络转储…]</hover></click></dark_gray>'
   data_manager_advancements_preview_remaining: 以及其他 %1%…
   data_list_title: <color:#00fb9a>%1%的玩家数据备份:</color> <color:#00fb9a>(%2%-%3% of</color> <bold><color:#00fb9a>%4%</color></bold><color:#00fb9a>)</color>\n
-  data_list_item: '<gray><click:run_command:''/userdata''><hover:show_text:''<gray>玩家数据备份 %2%<dark_gray>⚡ %4%''>%1%</hover></click></gray> <color:#d8ff2b><click:run_command:''/userdata''><hover:show_text:''<gray>已置顶:
+  data_list_item: '<gray><click:run_command:''/userdata view %2% %3%''><hover:show_text:''<gray>玩家数据备份 %2%<dark_gray>⚡ %4%''>%1%</hover></click></gray> <color:#d8ff2b><click:run_command:''/userdata view %2% %3%''><hover:show_text:''<gray>已置顶:
 
-    <dark_gray>已置顶的备份不会按照备份时间自动排序''>%5%</hover></click></color> <gradient:#ffc43b:#f5c962><click:run_command:''/userdata''><hover:show_text:''<gray>备份时间:<gray>
+    <dark_gray>已置顶的备份不会按照备份时间自动排序''>%5%</hover></click></color> <gradient:#ffc43b:#f5c962><click:run_command:''/userdata view %2% %3%''><hover:show_text:''<gray>备份时间:<gray>
 
     <dark_gray>数据保存时间
 
-    <dark_gray>%7%''>%6%</hover></click></gradient>   <click:run_command:''/userdata''><hover:show_text:''<gray>保存原因:
+    <dark_gray>%7%''>%6%</hover></click></gradient>   <click:run_command:''/userdata view %2% %3%''><hover:show_text:''<gray>保存原因:
 
-    <dark_gray>导致数据保存的原因''>⚑ %8%</hover></click>   <gradient:#62a9f5:#7ab8fa><click:run_command:''/userdata''><hover:show_text:''<gray>备份大小:<gray>
+    <dark_gray>导致数据保存的原因''>⚑ %8%</hover></click>   <gradient:#62a9f5:#7ab8fa><click:run_command:''/userdata view %2% %3%''><hover:show_text:''<gray>备份大小:<gray>
 
     <dark_gray>预计备份文件大小(以KiB为单位)''>⏏ %9%</hover></click></gradient>'
-  data_list_item_invalid: '<dark_gray><click:suggest_command:''/userdata''><hover:show_text:''<gray>%2%的用户数据快照
+  data_list_item_invalid: '<dark_gray><click:suggest_command:''/userdata delete %2% %3%''><hover:show_text:''<gray>%2%的用户数据快照
 
-    <dark_gray>⚡ %4%''>%1%</hover></click></dark_gray> <dark_gray><click:suggest_command:''/userdata''><hover:show_text:''<gray>置顶:
+    <dark_gray>⚡ %4%''>%1%</hover></click></dark_gray> <dark_gray><click:suggest_command:''/userdata delete %2% %3%''><hover:show_text:''<gray>置顶:
 
-    <dark_gray>已置顶的快照不会自动排序.''>%5%</hover></click></dark_gray> <strikethrough><gray><click:suggest_command:''/userdata''><hover:show_text:''<color:#ff3300>&无效的快照数据
+    <dark_gray>已置顶的快照不会自动排序.''>%5%</hover></click></dark_gray> <strikethrough><gray><click:suggest_command:''/userdata delete %2% %3%''><hover:show_text:''<color:#ff3300>&无效的快照数据
 
     <color:#ff7e5e>&点击删除
 
@@ -123,7 +123,7 @@ locales:
   update_available: <bold><color:#ff7e5e>HuskSync</color></bold> <color:#ff7e5e>| 检测到HuskSync有新版本可以更新了:v%1%(当前版本:v%2%).</color>
   reload_complete: <bold><color:#00fb9a>HuskSync</color></bold> <color:#00fb9a>| 重新加载配置和消息文件完成.</color>\n<color:#00fb9a>⚠ 确保在所有服务器上更新配置文件!</color>\n<italic><color:#00fb9a>需要重新启动才能使配置更改生效.</color></italic>
   system_status_header: <bold><color:#00fb9a>HuskSync</color></bold> <color:#00fb9a>| 系统状态报告:</color>
-  system_dump_confirm: <bold><color:#00fb9a>HuskSync</color></bold> <color:#00fb9a>| 准备系统转储? 这将包括:</color>\n<gray>• 您最新的服务器日志和 HuskSync 配置文件</gray>\n<gray>• 当前插件系统状态信息</gray>\n<gray>• 有关您的 Java 和 Minecraft 服务器环境的信息</gray>\n<gray>• 其他当前安装的插件列表</gray>\n<color:#00fb9a>要确认, 请执行命令:</color> <italic><color:#00fb9a><click:run_command:'/husksync'><hover:show_text:'<gray>点击以准备转储'>/husksync dump confirm</hover></click></color></italic>
+  system_dump_confirm: <bold><color:#00fb9a>HuskSync</color></bold> <color:#00fb9a>| 准备系统转储? 这将包括:</color>\n<gray>• 您最新的服务器日志和 HuskSync 配置文件</gray>\n<gray>• 当前插件系统状态信息</gray>\n<gray>• 有关您的 Java 和 Minecraft 服务器环境的信息</gray>\n<gray>• 其他当前安装的插件列表</gray>\n<color:#00fb9a>要确认, 请执行命令:</color> <italic><color:#00fb9a><click:run_command:'/husksync dump confirm'><hover:show_text:'<gray>点击以准备转储'>/husksync dump confirm</hover></click></color></italic>
   system_dump_started: <bold><color:#00fb9a>HuskSync</color></bold> <color:#00fb9a>| 正在准备系统状态转储，请稍候...</color>
   system_dump_ready: <bold><color:#00fb9a>HuskSync</color></bold> <color:#00fb9a>| 系统状态转储已完成! 点击查看:</color>
   error_invalid_syntax: <color:#ff3300>错误:</color> <color:#ff7e5e>语法错误.用法:</color> <italic><color:#ff7e5e><click:suggest_command:'%1%'><hover:show_text:'<color:#ff7e5e>&点击建议'>%1%</hover></click></color></italic>

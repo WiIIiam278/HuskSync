@@ -36,43 +36,43 @@ locales:
     <dark_gray>%2%''>⭐ Gelişmeler: %1%</hover></gradient>   <gradient:#62a9f5:#7ab8fa><hover:show_text:''<gray>Oyunda geçen süre
 
     <dark_gray>⚠ Oyun içi istatistiklere dayanır''>⌛ Oynama Süresi: %3%s</hover></gradient>\n'
-  data_manager_item_buttons: <gray>Görünüm:</gray> <gradient:#a17b5f:#f5b98c><click:run_command:'/inventory'><hover:show_text:'<gray>Görüntülemek için tıklayın'>[🪣 Envanter…]</hover></click></gradient>   <click:run_command:'/enderchest'><hover:show_text:'<gray>Görüntülemek için tıklayın'>[⌀ Ender Sandığı…]</hover></click>
-  data_manager_management_buttons: '<gray>Yönet:</gray> <color:#ff3300><click:suggest_command:''/husksync:userdata''><hover:show_text:''<gray>Bu kullanıcı veri anlığını silmek için tıklayın.
+  data_manager_item_buttons: <gray>Görünüm:</gray> <gradient:#a17b5f:#f5b98c><click:run_command:'/inventory %1% %2%'><hover:show_text:'<gray>Görüntülemek için tıklayın'>[🪣 Envanter…]</hover></click></gradient>   <click:run_command:'/enderchest %1% %2%'><hover:show_text:'<gray>Görüntülemek için tıklayın'>[⌀ Ender Sandığı…]</hover></click>
+  data_manager_management_buttons: '<gray>Yönet:</gray> <color:#ff3300><click:suggest_command:''/husksync:userdata delete %1% %2%''><hover:show_text:''<gray>Bu kullanıcı veri anlığını silmek için tıklayın.
 
     <dark_gray>Bu, kullanıcının mevcut verilerini etkilemez.
 
-    <color:#ff3300>&⚠ Geri alınamaz!''>[❌ Sil…]</hover></click></color>   <color:#00fb9a><click:suggest_command:''/husksync:userdata''><hover:show_text:''<gray>Bu kullanıcı verisini geri yüklemek için tıklayın.
+    <color:#ff3300>&⚠ Geri alınamaz!''>[❌ Sil…]</hover></click></color>   <color:#00fb9a><click:suggest_command:''/husksync:userdata restore %1% %2%''><hover:show_text:''<gray>Bu kullanıcı verisini geri yüklemek için tıklayın.
 
     <dark_gray>Bu, kullanıcının verisini bu anlığa ayarlar.
 
-    <color:#ff3300>&⚠ %1%\''nın mevcut verisi üzerine yazılacak!''>[⏪ Geri Yükle…]</hover></click></color>   <color:#d8ff2b><click:run_command:''/userdata''><hover:show_text:''<gray>Bu kullanıcı veri anlığını sabitlemek veya çözmek için tıklayın
+    <color:#ff3300>&⚠ %1%\''nın mevcut verisi üzerine yazılacak!''>[⏪ Geri Yükle…]</hover></click></color>   <color:#d8ff2b><click:run_command:''/userdata pin %1% %2%''><hover:show_text:''<gray>Bu kullanıcı veri anlığını sabitlemek veya çözmek için tıklayın
 
     <dark_gray>Sabitlenmiş anlıklar otomatik olarak döndürülmez''>[※ Sabitle/Çöz…]</hover></click></color>'
-  data_manager_system_buttons: '<gray>Sistem:</gray> <dark_gray><click:run_command:''/husksync:userdata''><hover:show_text:''<gray>Bu ham kullanıcı veri anlığını bir dosyaya dökmek için tıklayın.
+  data_manager_system_buttons: '<gray>Sistem:</gray> <dark_gray><click:run_command:''/husksync:userdata dump %1% %2% file''><hover:show_text:''<gray>Bu ham kullanıcı veri anlığını bir dosyaya dökmek için tıklayın.
 
-    <dark_gray>Veri dökümleri ~/plugins/HuskSync/dumps/ klasöründe bulunabilir.''>[⏷ Dosya Dök…]</hover></click></dark_gray>   <dark_gray><click:run_command:''/husksync:userdata''><hover:show_text:''<gray>Bu ham kullanıcı veri anlığını mc-logs servisine dökme için tıklayın
+    <dark_gray>Veri dökümleri ~/plugins/HuskSync/dumps/ klasöründe bulunabilir.''>[⏷ Dosya Dök…]</hover></click></dark_gray>   <dark_gray><click:run_command:''/husksync:userdata dump %1% %2% web''><hover:show_text:''<gray>Bu ham kullanıcı veri anlığını mc-logs servisine dökme için tıklayın
 
     <dark_gray>Verileri içeren bir URL ile sağlanacaksınız.''>[☂ Web Dök…]</hover></click></dark_gray>'
   data_manager_advancements_preview_remaining: ve %1% daha fazla…
   data_list_title: <color:#00fb9a>%1%'ın kullanıcı veri anlıkları:</color> <color:#00fb9a>(%2%-%3% /</color> <bold><color:#00fb9a>%4%</color></bold><color:#00fb9a>)</color>\n
-  data_list_item: '<gray><click:run_command:''/userdata''><hover:show_text:''<gray>Oyuncu Veri Anlığı %2% için %3%<dark_gray>⚡ %4%''>%1%</hover></click></gray> <color:#d8ff2b><click:run_command:''/userdata''><hover:show_text:''<gray>Sabitlendi:
+  data_list_item: '<gray><click:run_command:''/userdata view %2% %3%''><hover:show_text:''<gray>Oyuncu Veri Anlığı %2% için %3%<dark_gray>⚡ %4%''>%1%</hover></click></gray> <color:#d8ff2b><click:run_command:''/userdata view %2% %3%''><hover:show_text:''<gray>Sabitlendi:
 
-    <dark_gray>Sabitlenmiş anlıklar otomatik olarak döndürülmez.''>%5%</hover></click></color> <gradient:#ffc43b:#f5c962><click:run_command:''/userdata''><hover:show_text:''<gray>Versiyon zaman damgası:<gray>
+    <dark_gray>Sabitlenmiş anlıklar otomatik olarak döndürülmez.''>%5%</hover></click></color> <gradient:#ffc43b:#f5c962><click:run_command:''/userdata view %2% %3%''><hover:show_text:''<gray>Versiyon zaman damgası:<gray>
 
     <dark_gray>Verinin ne zaman kaydedildiği
 
-    <dark_gray>%7%''>%6%</hover></click></gradient>   <click:run_command:''/userdata''><hover:show_text:''<gray>Kaydetme sebebi:
+    <dark_gray>%7%''>%6%</hover></click></gradient>   <click:run_command:''/userdata view %2% %3%''><hover:show_text:''<gray>Kaydetme sebebi:
 
-    <dark_gray>Verinin kaydedilme nedeni''>⚑ %8%</hover></click>   <gradient:#62a9f5:#7ab8fa><click:run_command:''/userdata''><hover:show_text:''<gray>Anlık boyutu:<gray>
+    <dark_gray>Verinin kaydedilme nedeni''>⚑ %8%</hover></click>   <gradient:#62a9f5:#7ab8fa><click:run_command:''/userdata view %2% %3%''><hover:show_text:''<gray>Anlık boyutu:<gray>
 
     <dark_gray>Anlının tahmini dosya boyutu (KiB cinsinden)''>⏏ %9%</hover></click></gradient>'
-  data_list_item_invalid: '<dark_gray><click:suggest_command:''/userdata''><hover:show_text:''<gray>User Data Snapshot for %2%
+  data_list_item_invalid: '<dark_gray><click:suggest_command:''/userdata delete %2% %3%''><hover:show_text:''<gray>User Data Snapshot for %2%
 
-    <dark_gray>⚡ %4%''>%1%</hover></click></dark_gray> <dark_gray><click:suggest_command:''/userdata''><hover:show_text:''<gray>Pinned:
+    <dark_gray>⚡ %4%''>%1%</hover></click></dark_gray> <dark_gray><click:suggest_command:''/userdata delete %2% %3%''><hover:show_text:''<gray>Pinned:
 
-    <dark_gray>Pinned snapshots won\''t be automatically rotated.''>%5%</hover></click></dark_gray> <strikethrough><gray><click:suggest_command:''/userdata''><hover:show_text:''<color:#ff3300>&Invalid Data Snapshot
+    <dark_gray>Pinned snapshots won\''t be automatically rotated.''>%5%</hover></click></dark_gray> <strikethrough><gray><click:suggest_command:''/userdata delete %2% %3%''><hover:show_text:''<color:#ff3300>&Invalid Data Snapshot
 
-    <color:#ff7e5e><red>lick to delete
+    <color:#ff7e5e><red>Click to delete
 
 
     <gray>⚠ %10%''>%6%   ⚑ %8%   ⏏ %9%</hover></click></gray></strikethrough>'
@@ -123,7 +123,7 @@ locales:
   update_available: '<bold><color:#ff7e5e>HuskSync</color></bold> <color:#ff7e5e>| HuskSync\''in yeni bir sürümü mevcut: v%1% (kullanılan sürüm: v%2%).</color>'
   reload_complete: <bold><color:#00fb9a>HuskSync</color></bold> <color:#00fb9a>| Yapılandırma ve mesaj dosyaları yeniden yüklendi.</color>\n<color:#00fb9a>⚠ Lütfen yapılandırma dosyalarının tüm sunucularda güncel olduğundan emin olun!</color>\n<italic><color:#00fb9a>Yapılandırma değişikliklerinin etkili olabilmesi için bir yeniden başlatma gereklidir.</color></italic>
   system_status_header: <bold><color:#00fb9a>HuskSync</color></bold> <color:#00fb9a>| Sistem durumu raporu:</color>
-  system_dump_confirm: <bold><color:#00fb9a>HuskSync</color></bold> <color:#00fb9a>| Prepare a system dump? This will include:</color>\n<gray>• Your latest server logs and HuskSync config files</gray>\n<gray>• Current plugin system status information</gray>\n<gray>• Information about your Java & Minecraft server environment</gray>\n<gray>• A list of other currently installed plugins</gray>\n<color:#00fb9a>To confirm, use:</color> <italic><color:#00fb9a><click:run_command:'/husksync'><hover:show_text:'<gray>Click to prepare dump'>/husksync dump confirm</hover></click></color></italic>
+  system_dump_confirm: <bold><color:#00fb9a>HuskSync</color></bold> <color:#00fb9a>| Prepare a system dump? This will include:</color>\n<gray>• Your latest server logs and HuskSync config files</gray>\n<gray>• Current plugin system status information</gray>\n<gray>• Information about your Java & Minecraft server environment</gray>\n<gray>• A list of other currently installed plugins</gray>\n<color:#00fb9a>To confirm, use:</color> <italic><color:#00fb9a><click:run_command:'/husksync dump confirm'><hover:show_text:'<gray>Click to prepare dump'>/husksync dump confirm</hover></click></color></italic>
   system_dump_started: <bold><color:#00fb9a>HuskSync</color></bold> <color:#00fb9a>| Preparing system status dump, please wait…</color>
   system_dump_ready: <bold><color:#00fb9a>HuskSync</color></bold> <color:#00fb9a>| System status dump prepared! Click to view:</color>
   error_invalid_syntax: <color:#ff3300>Hata:</color> <color:#ff7e5e>Yanlış sözdizimi. Kullanım:</color> <italic><color:#ff7e5e><hover:show_text:'<color:#ff7e5e>&Öneri için tıklayın Suggest_command=%1%'>%1%</hover></color></italic>

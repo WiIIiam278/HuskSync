@@ -36,41 +36,41 @@ locales:
     <dark_gray>%2%''>⭐ 進捗: %1%</hover></gradient>   <gradient:#62a9f5:#7ab8fa><hover:show_text:''<gray>ゲーム内のプレイ時間
 
     <dark_gray>⚠ ゲーム内の統計に基づく''>⌛ プレイ時間: %3%ʜʀs</hover></gradient>\n'
-  data_manager_item_buttons: <gray>表示:</gray> <gradient:#a17b5f:#f5b98c><click:run_command:'/husksync:inventory'><hover:show_text:'<gray>クリックで表示'>[🪣 インベントリ…]</hover></click></gradient>   <click:run_command:'/husksync:enderchest'><hover:show_text:'<gray>クリックで表示'>[⌀ エンダーチェスト…]</hover></click>
-  data_manager_management_buttons: '<gray>管理:</gray> <color:#ff3300><click:suggest_command:''/husksync:userdata''><hover:show_text:''<gray>クリックでこのユーザーデータのスナップショットを消去します。
+  data_manager_item_buttons: <gray>表示:</gray> <gradient:#a17b5f:#f5b98c><click:run_command:'/husksync:inventory %1% %2%'><hover:show_text:'<gray>クリックで表示'>[🪣 インベントリ…]</hover></click></gradient>   <click:run_command:'/husksync:enderchest %1% %2%'><hover:show_text:'<gray>クリックで表示'>[⌀ エンダーチェスト…]</hover></click>
+  data_manager_management_buttons: '<gray>管理:</gray> <color:#ff3300><click:suggest_command:''/husksync:userdata delete %1% %2%''><hover:show_text:''<gray>クリックでこのユーザーデータのスナップショットを消去します。
 
     <dark_gray>これはユーザーの現在のデータには影響しません。
 
-    <color:#ff3300>&⚠ この操作は元に戻せません！''>[❌ 消去…]</hover></click></color>   <color:#00fb9a><click:suggest_command:''/husksync:userdata''><hover:show_text:''<gray>クリックでこのユーザーデータを復元します。
+    <color:#ff3300>&⚠ この操作は元に戻せません！''>[❌ 消去…]</hover></click></color>   <color:#00fb9a><click:suggest_command:''/husksync:userdata restore %1% %2%''><hover:show_text:''<gray>クリックでこのユーザーデータを復元します。
 
     <dark_gray>これにより、ユーザーデータはこのスナップショットに設定されます。
 
-    <color:#ff3300>&⚠ %1% の現在のデータは上書きされます！''>[⏪ 復元…]</hover></click></color>   <color:#d8ff2b><click:run_command:''/userdata''><hover:show_text:''<gray>クリックでこのユーザーデータのスナップショットをピン留め、若しくはピンを外します。
+    <color:#ff3300>&⚠ %1% の現在のデータは上書きされます！''>[⏪ 復元…]</hover></click></color>   <color:#d8ff2b><click:run_command:''/userdata pin %1% %2%''><hover:show_text:''<gray>クリックでこのユーザーデータのスナップショットをピン留め、若しくはピンを外します。
 
     <dark_gray>ピン留めされたスナップショットは自動的にローテーションしません。''>[※ ピン留め/ピン外し…]</hover></click></color>'
-  data_manager_system_buttons: '<gray>システム:</gray> <dark_gray><click:run_command:''/husksync:userdata''><hover:show_text:''<gray>クリックで未加工のユーザーデータスナップショットをダンプファイルにします。
+  data_manager_system_buttons: '<gray>システム:</gray> <dark_gray><click:run_command:''/husksync:userdata dump %1% %2% file''><hover:show_text:''<gray>クリックで未加工のユーザーデータスナップショットをダンプファイルにします。
 
-    <dark_gray>データダンプの場所は ~/plugins/HuskSync/dumps/ です''>[⏷ ファイルダンプ…]</hover></click></dark_gray>   <dark_gray><click:run_command:''/husksync:userdata''><hover:show_text:''<gray>クリックでユーザーデータスナップショットをmc-logsサービスにダンプします。
+    <dark_gray>データダンプの場所は ~/plugins/HuskSync/dumps/ です''>[⏷ ファイルダンプ…]</hover></click></dark_gray>   <dark_gray><click:run_command:''/husksync:userdata dump %1% %2% web''><hover:show_text:''<gray>クリックでユーザーデータスナップショットをmc-logsサービスにダンプします。
 
     <dark_gray>データを含むURLが提供されます。''>[☂ Webダンプ…]</hover></click></dark_gray>'
   data_manager_advancements_preview_remaining: さらに %1% 件…
   data_list_title: <color:#00fb9a>%1% のユーザーデータスナップショット:</color> <bold><color:#00fb9a>(%4%件中</color></bold> <color:#00fb9a>%2%-%3%件</color><color:#00fb9a>)</color>\n
-  data_list_item: '<gray><click:run_command:''/husksync:userdata''><hover:show_text:''<gray>%2% のユーザーデータスナップショット<dark_gray>⚡ %4%''>%1%</hover></click></gray> <color:#d8ff2b><click:run_command:''/husksync:userdata''><hover:show_text:''<gray>ピン留め:
+  data_list_item: '<gray><click:run_command:''/husksync:userdata view %2% %3%''><hover:show_text:''<gray>%2% のユーザーデータスナップショット<dark_gray>⚡ %4%''>%1%</hover></click></gray> <color:#d8ff2b><click:run_command:''/husksync:userdata view %2% %3%''><hover:show_text:''<gray>ピン留め:
 
-    <dark_gray>ピン留めされたスナップショットは自動的にローテーションしません。''>%5%</hover></click></color> <gradient:#ffc43b:#f5c962><click:run_command:''/userdata''><hover:show_text:''<gray>バージョンタイムスタンプ:<gray>
+    <dark_gray>ピン留めされたスナップショットは自動的にローテーションしません。''>%5%</hover></click></color> <gradient:#ffc43b:#f5c962><click:run_command:''/userdata view %2% %3%''><hover:show_text:''<gray>バージョンタイムスタンプ:<gray>
 
     <dark_gray>データの保存時期
 
-    <dark_gray>%7%''>%6%</hover></click></gradient>   <click:run_command:''/userdata''><hover:show_text:''<gray>保存理由:
+    <dark_gray>%7%''>%6%</hover></click></gradient>   <click:run_command:''/userdata view %2% %3%''><hover:show_text:''<gray>保存理由:
 
-    <dark_gray>データが保存された理由''>⚑ %8%</hover></click>   <gradient:#62a9f5:#7ab8fa><click:run_command:''/userdata''><hover:show_text:''<gray>スナップショットサイズ:<gray>
+    <dark_gray>データが保存された理由''>⚑ %8%</hover></click>   <gradient:#62a9f5:#7ab8fa><click:run_command:''/userdata view %2% %3%''><hover:show_text:''<gray>スナップショットサイズ:<gray>
 
     <dark_gray>スナップショットの推定ファイルサイズ (単位:KiB)''>⏏ %9%</hover></click></gradient>'
-  data_list_item_invalid: '<dark_gray><click:suggest_command:''/userdata''><hover:show_text:''<gray>%2% のユーザーデータスナップショット
+  data_list_item_invalid: '<dark_gray><click:suggest_command:''/userdata delete %2% %3%''><hover:show_text:''<gray>%2% のユーザーデータスナップショット
 
-    <dark_gray>⚡ %4%''>%1%</hover></click></dark_gray> <dark_gray><click:suggest_command:''/userdata''><hover:show_text:''<gray>ピン留め:
+    <dark_gray>⚡ %4%''>%1%</hover></click></dark_gray> <dark_gray><click:suggest_command:''/userdata delete %2% %3%''><hover:show_text:''<gray>ピン留め:
 
-    <dark_gray>ピン留めされたスナップショットは自動的にローテーションしません。''>%5%</hover></click></dark_gray> <strikethrough><gray><click:suggest_command:''/userdata''><hover:show_text:''<color:#ff3300>&無効なデータのスナップショット
+    <dark_gray>ピン留めされたスナップショットは自動的にローテーションしません。''>%5%</hover></click></dark_gray> <strikethrough><gray><click:suggest_command:''/userdata delete %2% %3%''><hover:show_text:''<color:#ff3300>&無効なデータのスナップショット
 
     <color:#ff7e5e>&クリックで消去
 
@@ -123,7 +123,7 @@ locales:
   update_available: '<bold><color:#ff7e5e>HuskSync</color></bold> <color:#ff7e5e>| HuskSyncの新バージョンが利用可能になりました: v%1% (実行中: v%2%).</color>'
   reload_complete: <bold><color:#00fb9a>HuskSync</color></bold> <color:#00fb9a>| 設定ファイルとメッセージファイルを再読み込みしました。</color>\n<color:#00fb9a>⚠ すべてのサーバーで設定ファイルが最新であることを確認してください！</color>\n<italic><color:#00fb9a>設定の変更を有効にするには再起動が必要です。</color></italic>
   system_status_header: <bold><color:#00fb9a>HuskSync</color></bold> <color:#00fb9a>| システムステータスレポート:</color>
-  system_dump_confirm: <bold><color:#00fb9a>HuskSync</color></bold> <color:#00fb9a>| システムダンプを作成しますか？ 含まれる内容:</color>\n<gray>• 最新のサーバーログと HuskSync の設定ファイル</gray>\n<gray>• 現在のプラグインシステムの状態</gray>\n<gray>• Java と Minecraft サーバー環境の情報</gray>\n<gray>• 現在インストールされている他のプラグイン一覧</gray>\n<color:#00fb9a>確認するには、次を実行してください:</color> <italic><color:#00fb9a><click:run_command:'/husksync'><hover:show_text:'<gray>クリックでダンプを準備'>/husksync dump confirm</hover></click></color></italic>
+  system_dump_confirm: <bold><color:#00fb9a>HuskSync</color></bold> <color:#00fb9a>| システムダンプを作成しますか？ 含まれる内容:</color>\n<gray>• 最新のサーバーログと HuskSync の設定ファイル</gray>\n<gray>• 現在のプラグインシステムの状態</gray>\n<gray>• Java と Minecraft サーバー環境の情報</gray>\n<gray>• 現在インストールされている他のプラグイン一覧</gray>\n<color:#00fb9a>確認するには、次を実行してください:</color> <italic><color:#00fb9a><click:run_command:'/husksync dump confirm'><hover:show_text:'<gray>クリックでダンプを準備'>/husksync dump confirm</hover></click></color></italic>
   system_dump_started: <bold><color:#00fb9a>HuskSync</color></bold> <color:#00fb9a>| システムステータスダンプを準備中です。お待ちください…</color>
   system_dump_ready: <bold><color:#00fb9a>HuskSync</color></bold> <color:#00fb9a>| システムステータスダンプが準備できました！クリックで表示:</color>
   error_invalid_syntax: <color:#ff3300>エラー:</color> <color:#ff7e5e>構文が正しくありません。使用法:</color> <italic><color:#ff7e5e><click:suggest_command:'%1%'><hover:show_text:'<color:#ff7e5e>&クリックでサジェスト'>%1%</hover></click></color></italic>
