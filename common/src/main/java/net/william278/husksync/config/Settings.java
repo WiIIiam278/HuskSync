@@ -307,7 +307,7 @@ public class Settings {
         private int networkLatencyMilliseconds = 500;
 
         @Comment({"How long to wait for player saves to finish during server shutdown before closing the database connections",
-                "Must be set to a value between 5000-50000ms, to not consume the server watchdog timeout (typically 60000ms)."})
+                "Should be set to a value between 5000-50000ms, to not consume the server watchdog timeout (typically 60000ms)."})
         private int shutdownSaveTimeoutMilliseconds = 5000;
 
         @Comment({"Which data types to synchronize.", "Docs: https://william278.net/docs/husksync/sync-features"})
