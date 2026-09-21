@@ -56,6 +56,7 @@ import java.util.stream.Collectors;
  */
 public abstract class DataSyncer {
     private static final long SHUTDOWN_CRITICAL_DB_ATTEMPTS = 3;
+    private static final long SHUTDOWN_CRITICAL_DB_RETRY_BACKOFF_MILLIS = 250;
     private static final long USER_LISTEN_ATTEMPTS = 16;
     private static final long USER_LISTEN_DELAY = 10;
 
@@ -214,13 +215,24 @@ public abstract class DataSyncer {
         for (int attempt = 1; attempt <= SHUTDOWN_CRITICAL_DB_ATTEMPTS; attempt++) {
             final boolean alreadyPersisted = attempt > 1 && getDatabase().getSnapshot(user, data.getId()).isPresent();
             if (!alreadyPersisted) {
-                getDatabase().addSnapshot(user, data);
+                // Only the first attempt runs a normal #addSnapshot and rotates out a previous backup
+                if (attempt == 1) {
+                    getDatabase().addSnapshot(user, data);
+                } else {
+                    getDatabase().addSnapshotWithoutRotation(user, data);
+                }
             }
             if (alreadyPersisted || getDatabase().getSnapshot(user, data.getId()).isPresent()) {
                 return;
             }
             plugin.log(Level.WARNING, "Database save for %s (%s) unconfirmed on attempt %d/%d; retrying".formatted(
                     user.getName(), data.getSaveCause().name(), attempt, SHUTDOWN_CRITICAL_DB_ATTEMPTS));
+            if (attempt < SHUTDOWN_CRITICAL_DB_ATTEMPTS) {
+                try {
+                    Thread.sleep(SHUTDOWN_CRITICAL_DB_RETRY_BACKOFF_MILLIS);
+                } catch (InterruptedException ignored) {
+                }
+            }
         }
         plugin.log(Level.SEVERE, ("Could not confirm %s's data reached the database after %d attempts "
                 + "(it may still have been written); check database health").formatted(
@@ -273,9 +285,7 @@ public abstract class DataSyncer {
     @ApiStatus.Internal
     protected void applyNewestSnapshotFromDB(@NotNull OnlineUser user, @NotNull DataSnapshot.Packed redisData) {
         try {
-            final Optional<DataSnapshot.Packed> dbData = getDatabase().getAllSnapshots(user).stream()
-                    .filter(snapshot -> isShutdownCritical(snapshot.getSaveCause()))
-                    .findFirst();
+            final Optional<DataSnapshot.Packed> dbData = getDatabase().getLatestSnapshot(user, SHUTDOWN_CRITICAL_CAUSES);
             if (dbData.isPresent() && dbData.get().getTimestamp().isAfter(redisData.getTimestamp())) {
                 plugin.debug(("[%s] Applying newer database snapshot (%s, %s) over older Redis snapshot (%s) "
                         + "to avoid a stale restart rollback").formatted(user.getName(), dbData.get().getTimestamp(),

@@ -130,6 +130,17 @@ public abstract class Database {
     public abstract Optional<DataSnapshot.Packed> getLatestSnapshot(@NotNull User user);
 
     /**
+     * Get the latest data snapshot for a user whose save cause is one of the given causes.
+     *
+     * @param user       The user to get data for
+     * @param saveCauses The {@link DataSnapshot.SaveCause} names to match
+     * @return an optional containing the {@link DataSnapshot}, if a match exists, or an empty optional if not
+     * @since 4.1.0
+     */
+    @Blocking
+    public abstract Optional<DataSnapshot.Packed> getLatestSnapshot(@NotNull User user, @NotNull Collection<String> saveCauses);
+
+    /**
      * Get all {@link DataSnapshot} entries for a user from the database.
      *
      * @param user The user to get data for
@@ -199,6 +210,23 @@ public abstract class Database {
         }
         this.createSnapshot(user, snapshot);
         this.rotateSnapshots(user);
+    }
+
+    /**
+     * Create a snapshot in the database, without rotating out a previous backup or pruning old snapshots first.
+     * <p>
+     * Intended for retrying a write that could not be confirmed after a call to {@link #addSnapshot}: that
+     * method's rotation steps have already run for this snapshot, so simply calling it again on retry would
+     * repeat them and could delete further, unrelated backups without ever confirming a successful write.
+     *
+     * @param user     The user to add data for
+     * @param snapshot The {@link DataSnapshot} to set.
+     * @see #addSnapshot(User, DataSnapshot.Packed)
+     * @since 4.1.0
+     */
+    @Blocking
+    public void addSnapshotWithoutRotation(@NotNull User user, @NotNull DataSnapshot.Packed snapshot) {
+        this.createSnapshot(user, snapshot);
     }
 
     /**
