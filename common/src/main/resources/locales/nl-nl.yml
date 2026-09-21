@@ -1,5 +1,3 @@
-# MineDown formatting has been converted to MiniMessage
-# https://docs.advntr.dev/minimessage/index.html
 locales:
   synchronization_complete: <color:#00fb9a>⏵ Data gesynchroniseerd!</color>
   synchronization_failed: <color:#ff7e5e>⏵ Synchroniseren van jouw gegevens is niet gelukt! Neem contact op met een beheerder.</color>

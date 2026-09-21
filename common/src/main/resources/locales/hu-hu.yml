@@ -1,5 +1,3 @@
-# MineDown formatting has been converted to MiniMessage
-# https://docs.advntr.dev/minimessage/index.html
 locales:
   synchronization_complete: <color:#00fb9a>⏵ Adatok szinkronizálva!</color>
   synchronization_failed: <color:#ff7e5e>⏵ Nem sikerült szinkronizálni az adataidat! Kérj segítséget egy adminisztrátortól.</color>

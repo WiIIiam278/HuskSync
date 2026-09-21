@@ -1,5 +1,3 @@
-# MineDown formatting has been converted to MiniMessage
-# https://docs.advntr.dev/minimessage/index.html
 locales:
   synchronization_complete: <color:#00fb9a>⏵資料已同步!</color>
   synchronization_failed: <color:#ff7e5e>⏵ 無法同步您的資料! 請聯繫管理員</color>
