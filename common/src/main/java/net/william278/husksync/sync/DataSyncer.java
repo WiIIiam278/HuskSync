@@ -366,7 +366,7 @@ public abstract class DataSyncer {
     }
 
     /**
-     * Wait for all pending disconnect saves to complete, up to the configured {@value #SHUTDOWN_SAVE_TIMEOUT_MILLIS}.
+     * Wait for all pending disconnect saves to complete, up to the configured shutdown save timeout value.
      * Clamped between {@value #MIN_SHUTDOWN_SAVE_TIMEOUT_MILLIS}ms and {@value #MAX_SHUTDOWN_SAVE_TIMEOUT_MILLIS}ms
      * to leave headroom within the server's watchdog. Called during plugin shutdown before connections are closed.
      *
