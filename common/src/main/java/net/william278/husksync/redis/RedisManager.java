@@ -310,10 +310,17 @@ public class RedisManager implements RedisPubSubListener<byte[], byte[]> {
                 });
     }
 
-    // Set a user's data to Redis if the snapshot is newer than what's already cached
+    /**
+     * Set a user's data to Redis, unless the snapshot already cached there is more recent
+     *
+     * @return {@code true} if Redis has a snapshot at least as new as {@code data} - either
+     * because the write succeeds, or a cached snapshot has a newer timestamp. {@code false}
+     * if the write errors, meaning any cached key may now be stale compared to {@code data}
+     * @since 4.1.0
+     */
     @Blocking
-    public void setUserData(@NotNull User user, @NotNull DataSnapshot.Packed data) {
-        tryExecute(connection -> {
+    public boolean setUserData(@NotNull User user, @NotNull DataSnapshot.Packed data) {
+        return tryExecute(connection -> {
             final byte[] key = getKey(RedisKeyType.LATEST_SNAPSHOT, user.getUuid(), clusterId);
             final byte[] existingBytes = connection.sync().get(key);
             if (existingBytes != null) {
@@ -324,14 +331,14 @@ public class RedisManager implements RedisPubSubListener<byte[], byte[]> {
                         + "would overwrite a newer %s snapshot (%s) that is already cached.",
                         user.getName(), RedisKeyType.LATEST_SNAPSHOT, data.getSaveCause(),
                         data.getTimestamp(), existing.getSaveCause(), existing.getTimestamp()));
-                    return null;
+                    return true;
                 }
             }
             connection.sync().setex(key, RedisKeyType.TTL_1_YEAR, data.asBytes(plugin));
             plugin.debug(String.format("[%s] Set %s key on Redis (cause: %s, timestamp: %s)",
                     user.getName(), RedisKeyType.LATEST_SNAPSHOT, data.getSaveCause(), data.getTimestamp()));
-            return null;
-        }, (t) -> null, "An exception occurred setting user data on Redis",
+            return true;
+        }, (t) -> false, "An exception occurred setting user data on Redis",
         plugin.getSettings().getRedis().getCredentials().getMaxRetries());
     }
 

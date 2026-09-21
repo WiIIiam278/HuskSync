@@ -65,7 +65,7 @@ public class LockstepDataSyncer extends DataSyncer {
             final Optional<DataSnapshot.Packed> redisData = getRedis().getUserData(user);
             if (redisData.isPresent()) {
                 plugin.debug(String.format("[%s] Applying data from Redis cache", user.getName()));
-                user.applySnapshot(redisData.get(), DataSnapshot.UpdateCause.SYNCHRONIZED);
+                this.applyNewestSnapshotFromDB(user, redisData.get());
             } else {
                 plugin.debug(String.format("[%s] no Redis data; loading from database", user.getName()));
                 this.setUserFromDatabase(user);
@@ -79,7 +79,11 @@ public class LockstepDataSyncer extends DataSyncer {
         runTrackedAsync(onlineUser, () -> saveData(
                 onlineUser, onlineUser.createSnapshot(DataSnapshot.SaveCause.DISCONNECT),
                 (user, data) -> {
-                    getRedis().setUserData(user, data);
+                    if (!getRedis().setUserData(user, data)) {
+                        // Cached Redis snapshot may be stale, so clear the LATEST_SNAPSHOT key
+                        // Next login uses a database snapshot, see applyNewestSnapshotFromDB()
+                        getRedis().clearUserData(user);
+                    }
                     getRedis().setUserCheckedOut(user, false);
                     plugin.unlockPlayer(user.getUuid());
                 }

@@ -213,6 +213,32 @@ public class MongoDbDatabase extends Database {
 
     @Blocking
     @Override
+    public Optional<DataSnapshot.Packed> getLatestSnapshot(@NotNull User user, @NotNull Collection<String> saveCauses) {
+        if (saveCauses.isEmpty()) {
+            return Optional.empty();
+        }
+        try {
+            Document filter = new Document("player_uuid", user.getUuid())
+                    .append("save_cause", new Document("$in", new ArrayList<>(saveCauses)));
+            Document sort = new Document("timestamp", -1); // -1 = Descending
+            FindIterable<Document> iterable = mongoCollectionHelper.getCollection(userDataTable).find(filter).sort(sort);
+            Document doc = iterable.first();
+            if (doc != null) {
+                final UUID versionUuid = doc.get("version_uuid", UUID.class);
+                final OffsetDateTime timestamp = OffsetDateTime.ofInstant(Instant.ofEpochMilli((long) doc.get("timestamp")), TimeZone.getDefault().toZoneId());
+                final Binary bin = doc.get("data", Binary.class);
+                final byte[] dataByteArray = bin.getData();
+                return Optional.of(DataSnapshot.deserialize(plugin, dataByteArray, versionUuid, timestamp));
+            }
+            return Optional.empty();
+        } catch (MongoException e) {
+            plugin.log(Level.SEVERE, "Failed to get latest snapshot from the database", e);
+            return Optional.empty();
+        }
+    }
+
+    @Blocking
+    @Override
     @NotNull
     public List<DataSnapshot.Packed> getAllSnapshots(@NotNull User user) {
         try {

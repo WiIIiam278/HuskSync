@@ -47,7 +47,7 @@ public class DelayDataSyncer extends DataSyncer {
                     this.listenForRedisData(
                             user,
                             () -> getRedis().getUserData(user).map(data -> {
-                                user.applySnapshot(data, DataSnapshot.UpdateCause.SYNCHRONIZED);
+                                this.applyNewestSnapshotFromDB(user, data);
                                 return true;
                             }).orElse(false)
                     );
@@ -63,7 +63,11 @@ public class DelayDataSyncer extends DataSyncer {
             saveData(
                     onlineUser, onlineUser.createSnapshot(DataSnapshot.SaveCause.DISCONNECT),
                     (user, data) -> {
-                        getRedis().setUserData(user, data);
+                        if (!getRedis().setUserData(user, data)) {
+                            // Cached Redis snapshot may be stale, so clear the LATEST_SNAPSHOT key
+                            // Next login uses a database snapshot, see applyNewestSnapshotFromDB()
+                            getRedis().clearUserData(user);
+                        }
                         plugin.unlockPlayer(user.getUuid());
                     }
             );
