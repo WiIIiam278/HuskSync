@@ -19,10 +19,12 @@ jobs:
         with:
           java-version: '25'
           distribution: 'temurin'
-      - name: 'Build with Gradle 🏗️'
-        uses: gradle/gradle-build-action@v3
+      - name: 'Set up Gradle 📦'
+        uses: gradle/actions/setup-gradle@v6.3.0
         with:
-          arguments: test
+          cache-read-only: ${{ github.ref != 'refs/heads/master' }}
+      - name: 'Build with Gradle 🏗️'
+        run: ./gradlew test --build-cache
       - name: 'Publish Test Report 📊'
         uses: mikepenz/action-junit-report@v6
         if: success() || failure() # Continue on failure
