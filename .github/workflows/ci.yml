@@ -5,7 +5,7 @@ on:
     branches: [ 'master' ]
     paths-ignore:
       - 'docs/**'
-      - 'workflows/**'
+      - '.github/workflows/**'
       - 'README.md'
 
 permissions:

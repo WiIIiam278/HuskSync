@@ -5,7 +5,7 @@ on:
     branches: [ 'master' ]
     paths:
       - 'docs/**'
-      - 'workflows/**'
+      - '.github/workflows/**'
     tags-ignore:
       - '*'
 
