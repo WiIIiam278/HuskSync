@@ -30,6 +30,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.server.MapInitializeEvent;
 import org.bukkit.event.world.WorldSaveEvent;
 import org.bukkit.inventory.ItemStack;
@@ -42,6 +43,7 @@ public class BukkitEventListener extends EventListener implements BukkitJoinEven
         BukkitDeathEventListener, Listener {
 
     protected LockedHandler lockedHandler;
+    private volatile boolean lateQuitListenerRegistered;
 
     public BukkitEventListener(@NotNull BukkitHuskSync plugin) {
         super(plugin);
@@ -54,6 +56,22 @@ public class BukkitEventListener extends EventListener implements BukkitJoinEven
     public void onEnable() {
         getPlugin().getServer().getPluginManager().registerEvents(this, getPlugin());
         lockedHandler.onEnable();
+        registerLateQuitListener();
+    }
+
+    // Register a "late quit" listener on the next tick, after other plugins have registered their listeners
+    protected final void registerLateQuitListener() {
+        getPlugin().runSync(() -> {
+            getPlugin().getServer().getPluginManager().registerEvent(PlayerQuitEvent.class, new Listener() {
+            }, EventPriority.MONITOR, (listener, event) -> handlePlayerQuitMonitor(
+                    BukkitUser.adapt(((PlayerQuitEvent) event).getPlayer(), getPlugin())), getPlugin(), true);
+            lateQuitListenerRegistered = true;
+        });
+    }
+
+    @Override
+    public boolean isLateQuitListenerRegistered() {
+        return lateQuitListenerRegistered;
     }
 
     public void handlePluginDisable() {
