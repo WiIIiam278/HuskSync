@@ -374,6 +374,12 @@ public class Settings {
         @Comment("Enable check-in petitions for data syncing (don't change this unless you know what you're doing)")
         private boolean checkinPetitions = false;
 
+        @Comment({"Workaround for PvP plugins that kill players on quit as a combat logging punishment. These plugins " +
+                "often kill players without respawning them locally, so their local playerdata is stuck mid-death.",
+                "Leave this disabled unless your players die twice, or not at all, when returning to a server they",
+                "combat-logged out of. Works on Bukkit/Paper only, has no effect on Fabric."})
+        private boolean respawnAtDisconnectIfDead = false;
+
         public boolean doAutoPin(@NotNull DataSnapshot.SaveCause cause) {
             return autoPinnedSaveCauses.contains(cause.name());
         }
