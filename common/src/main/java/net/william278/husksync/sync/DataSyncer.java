@@ -32,6 +32,8 @@ import org.jetbrains.annotations.Blocking;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.time.Duration;
+import java.time.OffsetDateTime;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -62,6 +64,18 @@ public abstract class DataSyncer {
 
     private static final long MIN_SHUTDOWN_SAVE_TIMEOUT_MILLIS = 5000;
     private static final long MAX_SHUTDOWN_SAVE_TIMEOUT_MILLIS = 50000;
+
+    // The only thing that can make a cached Redis LATEST_SNAPSHOT key untrustworthy is a shutdown/
+    // restart whose save failed to reach Redis (see SHUTDOWN_CRITICAL_CAUSES below) - a write from
+    // an ordinary, healthy quit is never stale, however long it then sits in Redis before someone
+    // reconnects. So this isn't "how long might a player take to reconnect" (that's unbounded - could
+    // be minutes), it's "how long could it possibly take a server to go down, restart and be rejoined"
+    // - a full JVM stop/start/world-load/plugin-enable cycle can't realistically complete in under a
+    // minute, so a key younger than this cannot be a post-restart leftover; it can only be the write
+    // from the live quit that just happened. Used to skip the (blocking) database staleness check in
+    // #applyNewestSnapshotFromDB for that common case, where it would otherwise always run a wasted
+    // read comparing a snapshot against itself.
+    private static final long REDIS_SNAPSHOT_STALE_THRESHOLD_SECONDS = 5;
 
     // Save causes whose failure around a restart can roll a player back and duplicate items:
     // the database write they perform is the only copy of a player's latest state once a
@@ -277,6 +291,12 @@ public abstract class DataSyncer {
      * snapshots as the same save (with an equal timestamp) since the leaving server writes the
      * database before releasing its checkout, and a newer database snapshot from a non-shutdown
      * cause (e.g. a DB-only DEATH) is ignored, so it can't be applied over a synced Redis state.
+     * <p>
+     * The database is only actually queried if the Redis snapshot is old enough that a restart could
+     * plausibly have happened since it was written (see {@link #REDIS_SNAPSHOT_STALE_THRESHOLD_SECONDS}
+     * for why that's the relevant bar, not simply "how long ago did the player quit"); a snapshot
+     * younger than that cannot be a stale leftover, so it's applied directly, without the extra
+     * blocking database round trip.
      *
      * @param user      the user to apply data to
      * @param redisData the snapshot consumed from Redis
@@ -284,6 +304,16 @@ public abstract class DataSyncer {
      */
     @ApiStatus.Internal
     protected void applyNewestSnapshotFromDB(@NotNull OnlineUser user, @NotNull DataSnapshot.Packed redisData) {
+        // Too young to have been written before a restart could plausibly have happened and completed -
+        // see REDIS_SNAPSHOT_STALE_THRESHOLD_SECONDS. Skips the blocking database comparison without
+        // weakening the SHUTDOWN_CRITICAL_CAUSES protection below: a snapshot that failed to reach Redis
+        // during a real shutdown/restart is only ever discovered by a rejoin *after* that restart, by
+        // which point it's unavoidably past this bar.
+        if (Duration.between(redisData.getTimestamp(), OffsetDateTime.now()).toSeconds()
+                < REDIS_SNAPSHOT_STALE_THRESHOLD_SECONDS) {
+            user.applySnapshot(redisData, DataSnapshot.UpdateCause.SYNCHRONIZED);
+            return;
+        }
         try {
             final Optional<DataSnapshot.Packed> dbData = getDatabase().getLatestSnapshot(user, SHUTDOWN_CRITICAL_CAUSES);
             if (dbData.isPresent() && dbData.get().getTimestamp().isAfter(redisData.getTimestamp())) {

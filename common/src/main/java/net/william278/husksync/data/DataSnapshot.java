@@ -998,6 +998,20 @@ public class DataSnapshot {
             if (registry == null) registry = new HashMap<>();
             return registry.values().toArray(new SaveCause[0]);
         }
+
+        /**
+         * Get the name of this save cause, for use when logging or string-formatting it directly.
+         * <p>
+         * Without this override it falls back to a default {@link Object#toString()} representation
+         * instead of the save cause's name.
+         *
+         * @return the cause name
+         */
+        @NotNull
+        @Override
+        public String toString() {
+            return name();
+        }
     }
 
     /**
@@ -1113,6 +1127,20 @@ public class DataSnapshot {
             return new UpdateCause[]{
                     SYNCHRONIZED, NEW_USER, UPDATED
             };
+        }
+
+        /**
+         * Get the name of this update cause, for use when logging or string-formatting it directly.
+         * <p>
+         * Without this override, doing so would fall back to the default {@link Object#toString()}
+         * representation instead of the update cause's name.
+         *
+         * @return the cause name
+         */
+        @NotNull
+        @Override
+        public String toString() {
+            return name();
         }
     }
 }
