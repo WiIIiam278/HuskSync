@@ -26,7 +26,6 @@ import net.william278.husksync.database.Database;
 import net.william278.husksync.redis.RedisManager;
 import net.william278.husksync.user.OnlineUser;
 import net.william278.husksync.user.User;
-import net.william278.husksync.util.Task;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Blocking;
 import org.jetbrains.annotations.NotNull;
@@ -42,9 +41,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -59,8 +55,10 @@ import java.util.stream.Collectors;
 public abstract class DataSyncer {
     private static final long SHUTDOWN_CRITICAL_DB_ATTEMPTS = 3;
     private static final long SHUTDOWN_CRITICAL_DB_RETRY_BACKOFF_MILLIS = 250;
+    
     private static final long USER_LISTEN_ATTEMPTS = 16;
     private static final long USER_LISTEN_DELAY = 10;
+    private static final long MAX_LISTEN_TICKS = USER_LISTEN_ATTEMPTS * USER_LISTEN_DELAY;
 
     private static final long MIN_SHUTDOWN_SAVE_TIMEOUT_MILLIS = 5000;
     private static final long MAX_SHUTDOWN_SAVE_TIMEOUT_MILLIS = 50000;
@@ -87,13 +85,11 @@ public abstract class DataSyncer {
     );
 
     protected final HuskSync plugin;
-    private final long maxListenAttempts;
     private final Map<CompletableFuture<Void>, User> pendingSaves = new ConcurrentHashMap<>();
 
     @ApiStatus.Internal
     protected DataSyncer(@NotNull HuskSync plugin) {
         this.plugin = plugin;
-        this.maxListenAttempts = getMaxListenAttempts();
     }
 
     /**
@@ -253,14 +249,6 @@ public abstract class DataSyncer {
                 user.getName(), SHUTDOWN_CRITICAL_DB_ATTEMPTS));
     }
 
-    // Calculates the max attempts the system should listen for user data for based on the latency value
-    private long getMaxListenAttempts() {
-        return USER_LISTEN_ATTEMPTS + (
-                (Math.max(100, plugin.getSettings().getSynchronization().getNetworkLatencyMilliseconds()) / 1000)
-                        * 20 / USER_LISTEN_DELAY
-        );
-    }
-
     // Set a user's data from the database, or set them as a new user
     @ApiStatus.Internal
     protected void setUserFromDatabase(@NotNull OnlineUser user) {
@@ -339,36 +327,32 @@ public abstract class DataSyncer {
     // Continuously listen for data from Redis
     @ApiStatus.Internal
     protected void listenForRedisData(@NotNull OnlineUser user, @NotNull Supplier<Boolean> completionSupplier) {
-        final AtomicLong timesRun = new AtomicLong(0L);
-        final AtomicReference<Task.Repeating> task = new AtomicReference<>();
-        final AtomicBoolean processing = new AtomicBoolean(false);
-        final Runnable runnable = () -> {
+        pollForRedisData(user, completionSupplier, 0L, 0L, 1L);
+    }
+
+    // Polls once, then reschedules with a doubling delay (capped at USER_LISTEN_DELAY) if no data is found.
+    private void pollForRedisData(@NotNull OnlineUser user, @NotNull Supplier<Boolean> completionSupplier,
+                                  long elapsedTicks, long delayTicks, long attempt) {
+        plugin.runAsyncDelayed(() -> {
             if (user.cannotApplySnapshot()) {
-                task.get().cancel();
-                return;
-            }
-            // Ensure only one task is running at a time
-            if (processing.getAndSet(true)) {
                 return;
             }
 
-            // Timeout if the plugin is disabling or the max attempts have been reached
-            if (plugin.isDisabling() || timesRun.getAndIncrement() > maxListenAttempts) {
-                task.get().cancel();
+            // Timeout if plugin is disabling or the max number of ticks to wait has been reached
+            final long ticksSoFar = elapsedTicks + delayTicks;
+            if (plugin.isDisabling() || ticksSoFar > MAX_LISTEN_TICKS) {
                 plugin.debug(String.format("[%s] Redis timed out after %s attempts; setting from database",
-                        user.getName(), timesRun.get()));
+                        user.getName(), attempt));
                 setUserFromDatabase(user);
                 return;
             }
 
-            // Fire the completion supplier
-            if (completionSupplier.get()) {
-                task.get().cancel();
+            // If completion supplier hasn't found any data, poll again with a doubling delay
+            if (!completionSupplier.get()) {
+                pollForRedisData(user, completionSupplier, ticksSoFar,
+                        delayTicks == 0 ? 1 : Math.min(USER_LISTEN_DELAY, delayTicks * 2), attempt + 1);
             }
-            processing.set(false);
-        };
-        task.set(plugin.getRepeatingTask(runnable, USER_LISTEN_DELAY));
-        task.get().run();
+        }, delayTicks);
     }
 
     /**
