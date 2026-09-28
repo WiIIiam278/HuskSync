@@ -56,7 +56,7 @@ public abstract class DataSyncer {
     private static final long SHUTDOWN_CRITICAL_DB_ATTEMPTS = 3;
     private static final long SHUTDOWN_CRITICAL_DB_RETRY_BACKOFF_MILLIS = 250;
     
-    private static final long USER_LISTEN_ATTEMPTS = 16;
+    private static final long USER_LISTEN_ATTEMPTS = 20;
     private static final long USER_LISTEN_DELAY = 10;
     private static final long MAX_LISTEN_TICKS = USER_LISTEN_ATTEMPTS * USER_LISTEN_DELAY;
 
@@ -327,12 +327,12 @@ public abstract class DataSyncer {
     // Continuously listen for data from Redis
     @ApiStatus.Internal
     protected void listenForRedisData(@NotNull OnlineUser user, @NotNull Supplier<Boolean> completionSupplier) {
-        pollForRedisData(user, completionSupplier, 0L, 0L, 1L);
+        pollForRedisData(user, completionSupplier, 0L, 0L, 0L, 1L);
     }
 
-    // Polls once, then reschedules with a doubling delay (capped at USER_LISTEN_DELAY) if no data is found.
+    // Polls once, then reschedules with a growing delay (capped at USER_LISTEN_DELAY) if no data is found.
     private void pollForRedisData(@NotNull OnlineUser user, @NotNull Supplier<Boolean> completionSupplier,
-                                  long elapsedTicks, long delayTicks, long attempt) {
+                                  long elapsedTicks, long previousDelayTicks, long delayTicks, long attempt) {
         plugin.runAsyncDelayed(() -> {
             if (user.cannotApplySnapshot()) {
                 return;
@@ -347,10 +347,11 @@ public abstract class DataSyncer {
                 return;
             }
 
-            // If completion supplier hasn't found any data, poll again with a doubling delay
+            // If unable to find any data thus far, poll again with a growing Fibonacci delay to slowly back off
             if (!completionSupplier.get()) {
-                pollForRedisData(user, completionSupplier, ticksSoFar,
-                        delayTicks == 0 ? 1 : Math.min(USER_LISTEN_DELAY, delayTicks * 2), attempt + 1);
+                final long nextDelayTicks = delayTicks == 0 ? 1 : 
+                    Math.min(USER_LISTEN_DELAY, previousDelayTicks + delayTicks);
+                pollForRedisData(user, completionSupplier, ticksSoFar, delayTicks, nextDelayTicks, attempt + 1);
             }
         }, delayTicks);
     }
