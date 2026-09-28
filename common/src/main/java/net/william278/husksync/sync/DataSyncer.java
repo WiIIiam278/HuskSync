@@ -56,9 +56,6 @@ public abstract class DataSyncer {
     private static final long SHUTDOWN_CRITICAL_DB_ATTEMPTS = 3;
     private static final long SHUTDOWN_CRITICAL_DB_RETRY_BACKOFF_MILLIS = 250;
     
-    private static final long USER_LISTEN_ATTEMPTS = 20;
-    private static final long USER_LISTEN_DELAY = 10;
-    private static final long MAX_LISTEN_TICKS = USER_LISTEN_ATTEMPTS * USER_LISTEN_DELAY;
 
     private static final long MIN_SHUTDOWN_SAVE_TIMEOUT_MILLIS = 5000;
     private static final long MAX_SHUTDOWN_SAVE_TIMEOUT_MILLIS = 50000;
@@ -74,6 +71,7 @@ public abstract class DataSyncer {
     // #applyNewestSnapshotFromDB for that common case, where it would otherwise always run a wasted
     // read comparing a snapshot against itself.
     private static final long REDIS_SNAPSHOT_STALE_THRESHOLD_SECONDS = 5;
+    private static final long REDIS_SNAPSHOT_MAX_POLL_TICKS = 20 * REDIS_SNAPSHOT_STALE_THRESHOLD_SECONDS;
 
     // Save causes whose failure around a restart can roll a player back and duplicate items:
     // the database write they perform is the only copy of a player's latest state once a
@@ -340,17 +338,17 @@ public abstract class DataSyncer {
 
             // Timeout if plugin is disabling or the max number of ticks to wait has been reached
             final long ticksSoFar = elapsedTicks + delayTicks;
-            if (plugin.isDisabling() || ticksSoFar > MAX_LISTEN_TICKS) {
+            if (plugin.isDisabling() || ticksSoFar > REDIS_SNAPSHOT_MAX_POLL_TICKS) {
                 plugin.debug(String.format("[%s] Redis timed out after %s attempts; setting from database",
                         user.getName(), attempt));
                 setUserFromDatabase(user);
                 return;
             }
 
-            // If unable to find any data thus far, poll again with a growing Fibonacci delay to slowly back off
+            // If unable to find Redis data thus far, poll again with a growing Fibonacci delay to slowly back off
             if (!completionSupplier.get()) {
                 final long nextDelayTicks = delayTicks == 0 ? 1 : 
-                    Math.min(USER_LISTEN_DELAY, previousDelayTicks + delayTicks);
+                    Math.min(REDIS_SNAPSHOT_MAX_POLL_TICKS, previousDelayTicks + delayTicks);
                 pollForRedisData(user, completionSupplier, ticksSoFar, delayTicks, nextDelayTicks, attempt + 1);
             }
         }, delayTicks);
