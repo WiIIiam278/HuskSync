@@ -65,7 +65,7 @@ public class LockstepDataSyncer extends DataSyncer {
             final Optional<DataSnapshot.Packed> redisData = getRedis().getUserData(user);
             if (redisData.isPresent()) {
                 plugin.debug(String.format("[%s] Applying data from Redis cache", user.getName()));
-                this.applyNewestSnapshotFromDB(user, redisData.get());
+                this.applyLatestSnapshot(user, redisData.get());
             } else {
                 plugin.debug(String.format("[%s] no Redis data; loading from database", user.getName()));
                 this.setUserFromDatabase(user);

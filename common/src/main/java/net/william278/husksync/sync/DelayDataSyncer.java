@@ -47,7 +47,7 @@ public class DelayDataSyncer extends DataSyncer {
                     this.listenForRedisData(
                             user,
                             () -> getRedis().getUserData(user).map(data -> {
-                                this.applyNewestSnapshotFromDB(user, data);
+                                this.applyLatestSnapshot(user, data);
                                 return true;
                             }).orElse(false)
                     );
