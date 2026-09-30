@@ -62,7 +62,7 @@ public abstract class DataSyncer {
     private static final long MIN_SHUTDOWN_SAVE_TIMEOUT_MILLIS = 5000;
     private static final long MAX_SHUTDOWN_SAVE_TIMEOUT_MILLIS = 50000;
 
-    // How fresh a Redis snapshot must be to skip staleness checks in #applyNewestSnapshotFromDB
+    // How fresh a Redis snapshot must be to skip staleness checks in #applyLatestSnapshot
     private static final long REDIS_SNAPSHOT_STALE_THRESHOLD_SECONDS = 5;
     // Maximum tick backoff between poll attempts in #pollForRedisData
     private static final long REDIS_SNAPSHOT_MAX_POLL_TICK_DELAY = 10;
@@ -251,8 +251,8 @@ public abstract class DataSyncer {
     /**
      * Apply the latest snapshot data, either from Redis or the database, for a user during sync.
      * <p>
-     * Fresh Redis snapshots are applied immediately, the database is only queried if a restart could plausibly
-     * have happened since a Redis snapshot was written (see {@link #REDIS_SNAPSHOT_STALE_THRESHOLD_SECONDS}).
+     * Fresh Redis snapshots are applied immediately, database only gets queried if a snapshot is older than
+     * {@link #REDIS_SNAPSHOT_STALE_THRESHOLD_SECONDS} and not likely to be transferring from another server.
      * <p>
      * If the Redis snapshot is stale, the database snapshot then gets evaluated, to check if it has a newer,
      * shutdown-critical snapshot - i.e. any save that a server shutdown could have failed to save to Redis.
@@ -266,10 +266,10 @@ public abstract class DataSyncer {
      */
     @ApiStatus.Internal
     protected void applyLatestSnapshot(@NotNull OnlineUser user, @NotNull DataSnapshot.Packed redisData) {
-        // Apply any fresh Redis snapshot, server restarts should not have happened since it was written
+        // Apply any fresh Redis snapshot directly, timestamp means player has just transferred servers
         if (Duration.between(redisData.getTimestamp(), OffsetDateTime.now()).toSeconds()
                 < REDIS_SNAPSHOT_STALE_THRESHOLD_SECONDS) {
-            user.applySnapshot(redisData, DataSnapshot.UpdateCause.SYNCHRONIZED);
+            applyRedisSnapshot(user, redisData);
             return;
         }
         try {
@@ -286,7 +286,17 @@ public abstract class DataSyncer {
             plugin.log(Level.WARNING, "[%s] Failed to compare Redis and database snapshots; applying the Redis snapshot"
                     .formatted(user.getName()), e);
         }
-        user.applySnapshot(redisData, DataSnapshot.UpdateCause.SYNCHRONIZED);
+        applyRedisSnapshot(user, redisData);
+    }
+
+    // Applies a Redis snapshot, failing the sync gracefully rather than propagating out of the poll chain
+    private void applyRedisSnapshot(@NotNull OnlineUser user, @NotNull DataSnapshot.Packed redisData) {
+        try {
+            user.applySnapshot(redisData, DataSnapshot.UpdateCause.SYNCHRONIZED);
+        } catch (Throwable e) {
+            plugin.log(Level.WARNING, "[%s] Failed to apply Redis snapshot".formatted(user.getName()), e);
+            user.completeSync(false, DataSnapshot.UpdateCause.SYNCHRONIZED, plugin);
+        }
     }
 
     // Whether a save cause must be reliably persisted around a restart. A failed save with one of these
@@ -301,7 +311,7 @@ public abstract class DataSyncer {
         pollForRedisData(user, completionSupplier, 0L, 0L, 0L, 1L);
     }
 
-    // Polls once, then reschedules with a growing delay (capped at USER_LISTEN_DELAY) if no data is found.
+    // Polls once, then reschedules with a growing delay (capped at REDIS_SNAPSHOT_MAX_POLL_TICK_DELAY) if no data is found.
     private void pollForRedisData(@NotNull OnlineUser user, @NotNull Supplier<Boolean> completionSupplier,
                                   long elapsedTicks, long previousTickDelay, long currentTickDelay, long attempt) {
         plugin.runAsyncDelayed(() -> {

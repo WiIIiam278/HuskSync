@@ -65,7 +65,7 @@ public class DelayDataSyncer extends DataSyncer {
                     (user, data) -> {
                         if (!getRedis().setUserData(user, data)) {
                             // Cached Redis snapshot may be stale, so clear the LATEST_SNAPSHOT key
-                            // Next login uses a database snapshot, see applyNewestSnapshotFromDB()
+                            // Next login uses a database snapshot, see applyLatestSnapshot()
                             getRedis().clearUserData(user);
                         }
                         plugin.unlockPlayer(user.getUuid());
