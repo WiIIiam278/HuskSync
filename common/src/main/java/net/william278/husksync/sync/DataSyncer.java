@@ -311,7 +311,7 @@ public abstract class DataSyncer {
         pollForRedisData(user, completionSupplier, 0L, 0L, 0L, 1L);
     }
 
-    // Polls once, rescheduling with a growing delay (capped at REDIS_SNAPSHOT_MAX_POLL_TICKS) if data isn't found.
+    // Polls for data, rescheduling with a growing delay if not found (capped at REDIS_SNAPSHOT_MAX_POLL_TICK_DELAY).
     private void pollForRedisData(@NotNull OnlineUser user, @NotNull Supplier<Boolean> completionSupplier,
                                   long elapsedTicks, long previousTickDelay, long currentTickDelay, long attempt) {
         plugin.runAsyncDelayed(() -> {
