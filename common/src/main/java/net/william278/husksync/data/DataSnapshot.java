@@ -1000,10 +1000,9 @@ public class DataSnapshot {
         }
 
         /**
-         * Get the name of this save cause, for use when logging or string-formatting it directly.
+         * Get the name of this save cause, for logging or string-formatting.
          * <p>
-         * Without this override it falls back to a default {@link Object#toString()} representation
-         * instead of the save cause's name.
+         * Without this override it falls back to a default {@link Object#toString()} representation.
          *
          * @return the cause name
          */
@@ -1130,10 +1129,9 @@ public class DataSnapshot {
         }
 
         /**
-         * Get the name of this update cause, for use when logging or string-formatting it directly.
+         * Get the name of this update cause, for logging or string-formatting.
          * <p>
-         * Without this override, doing so would fall back to the default {@link Object#toString()}
-         * representation instead of the update cause's name.
+         * Without this override it falls back to the default {@link Object#toString()} representation.
          *
          * @return the cause name
          */
