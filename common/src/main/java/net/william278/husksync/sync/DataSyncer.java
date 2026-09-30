@@ -289,7 +289,7 @@ public abstract class DataSyncer {
         applyRedisSnapshot(user, redisData);
     }
 
-    // Applies a Redis snapshot, failing the sync gracefully rather than propagating out of the poll chain
+    // Applies a Redis snapshot, failing the sync gracefully if it cannot be applied
     private void applyRedisSnapshot(@NotNull OnlineUser user, @NotNull DataSnapshot.Packed redisData) {
         try {
             user.applySnapshot(redisData, DataSnapshot.UpdateCause.SYNCHRONIZED);
@@ -311,7 +311,7 @@ public abstract class DataSyncer {
         pollForRedisData(user, completionSupplier, 0L, 0L, 0L, 1L);
     }
 
-    // Polls once, then reschedules with a growing delay (capped at REDIS_SNAPSHOT_MAX_POLL_TICK_DELAY) if no data is found.
+    // Polls once, rescheduling with a growing delay (capped at REDIS_SNAPSHOT_MAX_POLL_TICKS) if data isn't found.
     private void pollForRedisData(@NotNull OnlineUser user, @NotNull Supplier<Boolean> completionSupplier,
                                   long elapsedTicks, long previousTickDelay, long currentTickDelay, long attempt) {
         plugin.runAsyncDelayed(() -> {
