@@ -69,7 +69,7 @@ public abstract class DataSyncer {
     // How long to poll before falling back to the database. Must be kept equal to the staleness threshold
     private static final long REDIS_SNAPSHOT_MAX_POLL_TICKS = 20 * REDIS_SNAPSHOT_STALE_THRESHOLD_SECONDS;
 
-    // Save cause triggered by shutdown, which if not written correctly may cause rollbacks and duplication.
+    // Save causes triggered by shutdown which if not written correctly may cause rollbacks and duplication.
     // Preferred over a Redis snapshot older than REDIS_SNAPSHOT_STALE_THRESHOLD_SECONDS upon player rejoin.
     private static final Set<String> SHUTDOWN_CRITICAL_CAUSES = Set.of(
             DataSnapshot.SaveCause.SERVER_SHUTDOWN.name(),
@@ -197,7 +197,7 @@ public abstract class DataSyncer {
         }
     }
 
-    // Writes a snapshot to the database, verifying and retrying on db errors for saves while the plugin is disabling.
+    // Writes a snapshot to the database, verifying and retrying DISCONNECT snapshots while the plugin is disabling.
     // A failed write here would likely result in player inventory rollback (and item duplication) on the next login.
     @Blocking
     private void persistSnapshot(@NotNull User user, @NotNull DataSnapshot.Packed data) {
@@ -252,9 +252,9 @@ public abstract class DataSyncer {
      * Apply the latest snapshot data, either from Redis or the database, for a user during sync.
      * <p>
      * Fresh Redis snapshots are applied immediately, database only gets queried if a snapshot is older than
-     * {@link #REDIS_SNAPSHOT_STALE_THRESHOLD_SECONDS} and not likely to be transferring from another server.
+     * {@link #REDIS_SNAPSHOT_STALE_THRESHOLD_SECONDS}, after which the Redis snapshot gets assumed as stale.
      * <p>
-     * If the Redis snapshot is stale, the database snapshot then gets evaluated, to check if it has a newer,
+     * If the Redis snapshot is stale, then the database snapshot gets evaluated, to check if it has a newer,
      * shutdown-critical snapshot - i.e. any save that a server shutdown could have failed to save to Redis.
      * <p>
      * Otherwise, the Redis snapshot is applied as-is. A normal sync should have matching database and Redis
@@ -266,7 +266,7 @@ public abstract class DataSyncer {
      */
     @ApiStatus.Internal
     protected void applyLatestSnapshot(@NotNull OnlineUser user, @NotNull DataSnapshot.Packed redisData) {
-        // Apply any fresh Redis snapshot directly, timestamp means player has just transferred servers
+        // Apply any fresh Redis snapshot directly, no database snapshot comparison
         if (Duration.between(redisData.getTimestamp(), OffsetDateTime.now()).toSeconds()
                 < REDIS_SNAPSHOT_STALE_THRESHOLD_SECONDS) {
             applyRedisSnapshot(user, redisData);
