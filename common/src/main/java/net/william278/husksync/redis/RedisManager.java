@@ -324,6 +324,7 @@ public class RedisManager implements RedisPubSubListener<byte[], byte[]> {
             final byte[] key = getKey(RedisKeyType.LATEST_SNAPSHOT, user.getUuid(), clusterId);
             final byte[] existingBytes = connection.sync().get(key);
             if (existingBytes != null) {
+                // If the existing Redis snapshot is newer than this snapshot, discard the write
                 final DataSnapshot.Packed existing = deserializeExistingSnapshot(user, existingBytes);
                 if (existing != null && existing.getTimestamp().isAfter(data.getTimestamp())) {
                     plugin.log(Level.WARNING, String.format(

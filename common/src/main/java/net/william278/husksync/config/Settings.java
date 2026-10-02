@@ -302,8 +302,7 @@ public class Settings {
         @Comment("Persist maps locked in a Cartography Table to let them be viewed on any server")
         private boolean persistLockedMaps = true;
 
-        @Comment("If using the DELAY sync method, how long should this server listen for Redis key data updates before "
-                 + "pulling data from the database instead (i.e., if the user did not change servers).")
+        @Comment("How long to wait with the DELAY sync method before checking Redis for data. Not used by the LOCKSTEP sync method.")
         private int networkLatencyMilliseconds = 500;
 
         @Comment({"How long to wait for player saves to finish during server shutdown before closing the database connections",

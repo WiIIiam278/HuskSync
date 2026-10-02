@@ -26,12 +26,13 @@ import net.william278.husksync.database.Database;
 import net.william278.husksync.redis.RedisManager;
 import net.william278.husksync.user.OnlineUser;
 import net.william278.husksync.user.User;
-import net.william278.husksync.util.Task;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Blocking;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.time.Duration;
+import java.time.OffsetDateTime;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -40,9 +41,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -55,31 +53,35 @@ import java.util.stream.Collectors;
  * @since 3.1
  */
 public abstract class DataSyncer {
+
+    // Bounds on retries for DISCONNECT save database writes while the plugin is disabling
     private static final long SHUTDOWN_CRITICAL_DB_ATTEMPTS = 3;
     private static final long SHUTDOWN_CRITICAL_DB_RETRY_BACKOFF_MILLIS = 250;
-    private static final long USER_LISTEN_ATTEMPTS = 16;
-    private static final long USER_LISTEN_DELAY = 10;
 
+    // Bounds on the configurable shutdown save timeout to prevent exceeding a typical 60s server watchdog
     private static final long MIN_SHUTDOWN_SAVE_TIMEOUT_MILLIS = 5000;
     private static final long MAX_SHUTDOWN_SAVE_TIMEOUT_MILLIS = 50000;
 
-    // Save causes whose failure around a restart can roll a player back and duplicate items:
-    // the database write they perform is the only copy of a player's latest state once a
-    // pre-restart Redis cache goes stale, so it is verified on write (#persistSnapshot)
-    // and preferred on a stale-Redis rejoin (#applyNewestSnapshotFromDB).
+    // How fresh a Redis snapshot must be to skip staleness checks in #applyLatestSnapshot
+    private static final long REDIS_SNAPSHOT_STALE_THRESHOLD_SECONDS = 5;
+    // Maximum tick backoff between poll attempts in #pollForRedisData
+    private static final long REDIS_SNAPSHOT_MAX_POLL_TICK_DELAY = 10;
+    // How long to poll before falling back to the database. Must be kept equal to the staleness threshold
+    private static final long REDIS_SNAPSHOT_MAX_POLL_TICKS = 20 * REDIS_SNAPSHOT_STALE_THRESHOLD_SECONDS;
+
+    // Save causes triggered by shutdown which if not written correctly may cause rollbacks and duplication.
+    // Preferred over a Redis snapshot older than REDIS_SNAPSHOT_STALE_THRESHOLD_SECONDS upon player rejoin.
     private static final Set<String> SHUTDOWN_CRITICAL_CAUSES = Set.of(
             DataSnapshot.SaveCause.SERVER_SHUTDOWN.name(),
             DataSnapshot.SaveCause.DISCONNECT.name()
     );
 
     protected final HuskSync plugin;
-    private final long maxListenAttempts;
     private final Map<CompletableFuture<Void>, User> pendingSaves = new ConcurrentHashMap<>();
 
     @ApiStatus.Internal
     protected DataSyncer(@NotNull HuskSync plugin) {
         this.plugin = plugin;
-        this.maxListenAttempts = getMaxListenAttempts();
     }
 
     /**
@@ -195,15 +197,8 @@ public abstract class DataSyncer {
         }
     }
 
-    // Writes a snapshot to the database. This write is verified and retried in case of a db error
-    // during a DISCONNECT save made while the plugin is disabling, to prevent silently dropping a
-    // player's latest data, rolling them back and leading to duplicated items on their next login.
-    //
-    // N.B: a DISCONNECT save gets queued (via #runTrackedAsync) at quit time, when isDisabling() is
-    // usually still false, and only runs later on an async thread - so whether this code is reached
-    // depends on whether the queued save is still in flight by the time the plugin starts disabling,
-    // which is more likely the more that the async queue and shutdown are both under load (e.g. many
-    // players quitting at once, any database contention, or other plugins' onDisable() running first).
+    // Writes a snapshot to the database, verifying and retrying DISCONNECT snapshots while the plugin is disabling.
+    // A failed write here would likely result in player inventory rollback (and item duplication) on the next login.
     @Blocking
     private void persistSnapshot(@NotNull User user, @NotNull DataSnapshot.Packed data) {
         final boolean verifyAndRetry = plugin.isDisabling()
@@ -239,14 +234,6 @@ public abstract class DataSyncer {
                 user.getName(), SHUTDOWN_CRITICAL_DB_ATTEMPTS));
     }
 
-    // Calculates the max attempts the system should listen for user data for based on the latency value
-    private long getMaxListenAttempts() {
-        return USER_LISTEN_ATTEMPTS + (
-                (Math.max(100, plugin.getSettings().getSynchronization().getNetworkLatencyMilliseconds()) / 1000)
-                        * 20 / USER_LISTEN_DELAY
-        );
-    }
-
     // Set a user's data from the database, or set them as a new user
     @ApiStatus.Internal
     protected void setUserFromDatabase(@NotNull OnlineUser user) {
@@ -262,29 +249,31 @@ public abstract class DataSyncer {
     }
 
     /**
-     * Apply the newest database snapshot for a user during sync, given a snapshot read from Redis.
+     * Apply the latest snapshot data, either from Redis or the database, for a user during sync.
      * <p>
-     * On rejoin, the Redis {@code LATEST_SNAPSHOT} key is read and consumed before the database.
-     * That key has a long TTL, so if a shutdown/restart could not refresh it (e.g. Redis was
-     * unreachable during the shutdown save), an older stale snapshot can survive and would
-     * otherwise be applied over the newer, correct database snapshot - rolling the player back
-     * and duplicating items.
+     * Fresh Redis snapshots are applied immediately, database only gets queried if a snapshot is older than
+     * {@link #REDIS_SNAPSHOT_STALE_THRESHOLD_SECONDS}, after which the Redis snapshot gets assumed as stale.
      * <p>
-     * The Redis snapshot is only overridden when the database holds a strictly newer snapshot,
-     * whose cause is shutdown-critical (DISCONNECT / SERVER_SHUTDOWN) - i.e. exactly the save
-     * that a restart writes but may fail to push to Redis. In every other situation, the Redis
-     * snapshot is applied unchanged: a normal cross-server hand-off has the database and Redis
-     * snapshots as the same save (with an equal timestamp) since the leaving server writes the
-     * database before releasing its checkout, and a newer database snapshot from a non-shutdown
-     * cause (e.g. a DB-only DEATH) is ignored, so it can't be applied over a synced Redis state.
+     * If the Redis snapshot is stale, then the database snapshot gets evaluated, to check if it has a newer,
+     * shutdown-critical snapshot - i.e. any save that a server shutdown could have failed to save to Redis.
+     * <p>
+     * Otherwise, the Redis snapshot is applied as-is. A normal sync should have matching database and Redis
+     * snapshots, and newer database snapshots from a non-shutdown cause (e.g. a DB-only DEATH) are ignored.
      *
      * @param user      the user to apply data to
      * @param redisData the snapshot consumed from Redis
      * @since 4.1.0
      */
     @ApiStatus.Internal
-    protected void applyNewestSnapshotFromDB(@NotNull OnlineUser user, @NotNull DataSnapshot.Packed redisData) {
+    protected void applyLatestSnapshot(@NotNull OnlineUser user, @NotNull DataSnapshot.Packed redisData) {
+        // Apply any fresh Redis snapshot directly, no database snapshot comparison
+        if (Duration.between(redisData.getTimestamp(), OffsetDateTime.now()).toSeconds()
+                < REDIS_SNAPSHOT_STALE_THRESHOLD_SECONDS) {
+            applyRedisSnapshot(user, redisData);
+            return;
+        }
         try {
+            // Check if the database has a shutdown-critical snapshot with a newer timestamp than the Redis snapshot
             final Optional<DataSnapshot.Packed> dbData = getDatabase().getLatestSnapshot(user, SHUTDOWN_CRITICAL_CAUSES);
             if (dbData.isPresent() && dbData.get().getTimestamp().isAfter(redisData.getTimestamp())) {
                 plugin.debug(("[%s] Applying newer database snapshot (%s, %s) over older Redis snapshot (%s) "
@@ -297,7 +286,17 @@ public abstract class DataSyncer {
             plugin.log(Level.WARNING, "[%s] Failed to compare Redis and database snapshots; applying the Redis snapshot"
                     .formatted(user.getName()), e);
         }
-        user.applySnapshot(redisData, DataSnapshot.UpdateCause.SYNCHRONIZED);
+        applyRedisSnapshot(user, redisData);
+    }
+
+    // Applies a Redis snapshot, failing the sync gracefully if it cannot be applied
+    private void applyRedisSnapshot(@NotNull OnlineUser user, @NotNull DataSnapshot.Packed redisData) {
+        try {
+            user.applySnapshot(redisData, DataSnapshot.UpdateCause.SYNCHRONIZED);
+        } catch (Throwable e) {
+            plugin.log(Level.WARNING, "[%s] Failed to apply Redis snapshot".formatted(user.getName()), e);
+            user.completeSync(false, DataSnapshot.UpdateCause.SYNCHRONIZED, plugin);
+        }
     }
 
     // Whether a save cause must be reliably persisted around a restart. A failed save with one of these
@@ -309,36 +308,33 @@ public abstract class DataSyncer {
     // Continuously listen for data from Redis
     @ApiStatus.Internal
     protected void listenForRedisData(@NotNull OnlineUser user, @NotNull Supplier<Boolean> completionSupplier) {
-        final AtomicLong timesRun = new AtomicLong(0L);
-        final AtomicReference<Task.Repeating> task = new AtomicReference<>();
-        final AtomicBoolean processing = new AtomicBoolean(false);
-        final Runnable runnable = () -> {
+        pollForRedisData(user, completionSupplier, 0L, 0L, 0L, 1L);
+    }
+
+    // Polls for data, rescheduling with a growing delay if not found (capped at REDIS_SNAPSHOT_MAX_POLL_TICK_DELAY).
+    private void pollForRedisData(@NotNull OnlineUser user, @NotNull Supplier<Boolean> completionSupplier,
+                                  long elapsedTicks, long previousTickDelay, long currentTickDelay, long attempt) {
+        plugin.runAsyncDelayed(() -> {
             if (user.cannotApplySnapshot()) {
-                task.get().cancel();
-                return;
-            }
-            // Ensure only one task is running at a time
-            if (processing.getAndSet(true)) {
                 return;
             }
 
-            // Timeout if the plugin is disabling or the max attempts have been reached
-            if (plugin.isDisabling() || timesRun.getAndIncrement() > maxListenAttempts) {
-                task.get().cancel();
+            // Timeout if plugin is disabling or the max number of ticks to wait has been reached
+            final long ticksSoFar = elapsedTicks + currentTickDelay;
+            if (plugin.isDisabling() || ticksSoFar > REDIS_SNAPSHOT_MAX_POLL_TICKS) {
                 plugin.debug(String.format("[%s] Redis timed out after %s attempts; setting from database",
-                        user.getName(), timesRun.get()));
+                        user.getName(), attempt));
                 setUserFromDatabase(user);
                 return;
             }
 
-            // Fire the completion supplier
-            if (completionSupplier.get()) {
-                task.get().cancel();
+            // If unable to find Redis data thus far, poll again with a growing Fibonacci delay to slowly back off
+            if (!completionSupplier.get()) {
+                final long nextDelayTicks = currentTickDelay == 0 ? 1 : 
+                    Math.min(REDIS_SNAPSHOT_MAX_POLL_TICK_DELAY, previousTickDelay + currentTickDelay);
+                pollForRedisData(user, completionSupplier, ticksSoFar, currentTickDelay, nextDelayTicks, attempt + 1);
             }
-            processing.set(false);
-        };
-        task.set(plugin.getRepeatingTask(runnable, USER_LISTEN_DELAY));
-        task.get().run();
+        }, currentTickDelay);
     }
 
     /**
@@ -432,6 +428,4 @@ public abstract class DataSyncer {
         }
 
     }
-
-
 }
