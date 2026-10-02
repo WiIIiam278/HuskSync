@@ -55,6 +55,29 @@ public abstract class OnlineUser extends User implements CommandUser, UserDataHo
 
     public abstract boolean hasDisconnected();
 
+    /**
+     * Get if the player is currently dead (i.e. health at or below zero) and awaiting respawn
+     *
+     * @return {@code true} if the player is dead; {@code false} otherwise
+     * @since 4.1.0
+     */
+    public abstract boolean isDead();
+
+    /**
+     * Force this player to respawn immediately if they are {@link #isDead() dead}, bypassing the need for them
+     * to click respawn client-side.
+     * <p>
+     * This is primarily intended as a workaround for PvP/anti-combat-logout plugins that kill a player as part of
+     * their quit handling (see {@code respawnAtDisconnectIfDead} in the config), or if a player disconnects from
+     * the server and reconnects to a hub world instead upon rejoining. As the player is not able to respawn locally
+     * before they disconnect, the server's own local playerdata is left mid-death until they reconnect here again,
+     * which will then immediately show the death screen before HuskSync has a chance to apply their latest data.
+     *
+     * @since 4.1.0
+     */
+    public void respawn() {
+    }
+
     // Users cannot have snapshots applied if they have disconnected!
     @Override
     public boolean cannotApplySnapshot() {

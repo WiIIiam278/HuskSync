@@ -99,6 +99,20 @@ public class BukkitUser extends OnlineUser implements BukkitUserDataHolder {
     }
 
     @Override
+    @SuppressWarnings("deprecation")
+    public void respawn() {
+        if (!isDead()) {
+            return;
+        }
+        try {
+            player.spigot().respawn();
+            plugin.debug("[%s] respawnAtDisconnectIfDead: called player.spigot().respawn()".formatted(player.getName()));
+        } catch (Throwable e) {
+            plugin.log(Level.WARNING, "Failed to respawn %s at disconnect".formatted(player.getName()), e);
+        }
+    }
+
+    @Override
     public boolean isLocked() {
         return plugin.getLockedPlayers().contains(player.getUniqueId());
     }

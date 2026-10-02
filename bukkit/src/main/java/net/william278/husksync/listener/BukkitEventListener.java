@@ -81,6 +81,11 @@ public class BukkitEventListener extends EventListener implements BukkitJoinEven
     }
 
     @Override
+    public void markDisconnecting(@NotNull BukkitUser bukkitUser) {
+        super.markDisconnecting(bukkitUser);
+    }
+
+    @Override
     public void handlePlayerQuit(@NotNull BukkitUser bukkitUser) {
         final Player player = bukkitUser.getPlayer();
         final ItemStack itemOnCursor = player.getItemOnCursor();
@@ -90,6 +95,25 @@ public class BukkitEventListener extends EventListener implements BukkitJoinEven
             plugin.debug("Dropped " + itemOnCursor + " for " + player.getName() + " on quit");
         }
         super.handlePlayerQuit(bukkitUser);
+    }
+
+    /**
+     * Backstop for a player dying while already mid-disconnect (per {@link #markDisconnecting}) - see {@link
+     * EventListener#forceRespawnIfDeadMidQuit} for why this is needed specifically for a PvP/anti-combat-logout
+     * plugin that, like CombatLogX, kills the player at Bukkit's {@code MONITOR} priority itself.
+     * <p>
+     * No-op when {@code respawnAtDisconnectIfDead} is disabled, or when the death isn't mid-quit (an
+     * ordinary death - not logged, since it's hit on every normal death once the setting is on).
+     *
+     * @since 4.1.0
+     */
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onPlayerDeathRespawnWorkaround(@NotNull PlayerDeathEvent event) {
+        final Player player = event.getEntity();
+        if (!plugin.getDisconnectingPlayers().contains(player.getUniqueId())) {
+            return;
+        }
+        forceRespawnIfDeadMidQuit(BukkitUser.adapt(player, plugin));
     }
 
     @Override
