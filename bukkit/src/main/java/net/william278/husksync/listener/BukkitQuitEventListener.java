@@ -34,7 +34,7 @@ public interface BukkitQuitEventListener extends Listener {
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     default void onPlayerQuitHighest(@NotNull PlayerQuitEvent event) {
         if (handleEvent(EventListener.ListenerType.QUIT_LISTENER, EventListener.Priority.HIGHEST)
-                && !isRespawnAtDisconnectIfDeadEnabled()) {
+                && !isQuitSaveDeferredToLateListener()) {
             handlePlayerQuit(BukkitUser.adapt(event.getPlayer(), getPlugin()));
         }
     }
@@ -42,7 +42,7 @@ public interface BukkitQuitEventListener extends Listener {
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     default void onPlayerQuit(@NotNull PlayerQuitEvent event) {
         if (handleEvent(EventListener.ListenerType.QUIT_LISTENER, EventListener.Priority.NORMAL)
-                && !isRespawnAtDisconnectIfDeadEnabled()) {
+                && !isQuitSaveDeferredToLateListener()) {
             handlePlayerQuit(BukkitUser.adapt(event.getPlayer(), getPlugin()));
         }
     }
@@ -50,7 +50,7 @@ public interface BukkitQuitEventListener extends Listener {
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     default void onPlayerQuitLowest(@NotNull PlayerQuitEvent event) {
         if (handleEvent(EventListener.ListenerType.QUIT_LISTENER, EventListener.Priority.LOWEST)
-                && !isRespawnAtDisconnectIfDeadEnabled()) {
+                && !isQuitSaveDeferredToLateListener()) {
             handlePlayerQuit(BukkitUser.adapt(event.getPlayer(), getPlugin()));
         }
     }
@@ -67,7 +67,7 @@ public interface BukkitQuitEventListener extends Listener {
      * Marks a user as disconnecting as early as possible (LOWEST priority, always - not gated behind the
      * configurable {@link EventListener.ListenerType#QUIT_LISTENER} priority), so that the disconnect-save's
      * {@code PlayerDeathEvent} backstop (see {@code EventListener#forceRespawnIfDeadMidQuit}) can reliably
-     * recognise a kill that happens later in the same quit, no matter what priority the killing plugin uses.
+     * recognise a death that happens later in the same quit, no matter what priority the killing reason has.
      *
      * @since 4.1.0
      */
@@ -78,28 +78,21 @@ public interface BukkitQuitEventListener extends Listener {
         }
     }
 
-    /**
-     * While {@code respawnAtDisconnectIfDead} is enabled, this - not {@link #onPlayerQuitHighest}/{@link
-     * #onPlayerQuit}/{@link #onPlayerQuitLowest}, which skip firing in that case - is what actually locks and
-     * saves the disconnecting player. Running at Bukkit's {@code MONITOR} priority, the last tier there is,
-     * guarantees it fires after every other plugin's own {@code PlayerQuitEvent} handler regardless of what
-     * priority they use or what order plugins load in - so a kill-on-quit plugin like PvPManager (which doesn't
-     * itself use {@code MONITOR}) is reliably seen as already dead here with no admin configuration needed.
-     * A plugin that (like CombatLogX) kills at {@code MONITOR} itself is the one case Bukkit's priority tiers
-     * can't order against; see {@code EventListener#forceRespawnIfDeadMidQuit} for how that's still handled.
-     *
-     * @since 4.1.0
-     */
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    default void onPlayerQuitRespawnWorkaround(@NotNull PlayerQuitEvent event) {
-        if (isRespawnAtDisconnectIfDeadEnabled()) {
-            handlePlayerQuit(BukkitUser.adapt(event.getPlayer(), getPlugin()));
-        }
-    }
-
     private boolean isRespawnAtDisconnectIfDeadEnabled() {
         return getPlugin().getSettings().getSynchronization().isRespawnAtDisconnectIfDead();
     }
+
+    /**
+     * Whether the normal, configurable-priority quit handlers above should leave the disconnect-save
+     * to {@link BukkitRespawnWorkaroundQuitListener} instead. Only true once that listener has been 
+     * registered, so there's never a window where neither saves (e.g. the tick between HuskSync
+     * enabling and the late listener registering, if HuskSync is loaded after server startup).
+     */
+    private boolean isQuitSaveDeferredToLateListener() {
+        return isRespawnAtDisconnectIfDeadEnabled() && isRespawnWorkaroundQuitListenerRegistered();
+    }
+
+    boolean isRespawnWorkaroundQuitListenerRegistered();
 
     void markDisconnecting(@NotNull BukkitUser player);
 

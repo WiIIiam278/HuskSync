@@ -28,6 +28,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Level;
 
 import static net.william278.husksync.config.Settings.SynchronizationSettings.SaveOnDeathSettings;
 
@@ -97,13 +98,12 @@ public abstract class EventListener {
     /**
      * Lock a user and dispatch their disconnect-save, unless they're already locked.
      * <p>
-     * While {@code respawnAtDisconnectIfDead} is enabled, this is only ever called once per quit - from
-     * {@code onPlayerQuitRespawnWorkaround} at Bukkit's {@code MONITOR} priority instead of from the normal,
-     * configurable {@link ListenerType#QUIT_LISTENER} priority - specifically so it runs after any
-     * PvP/anti-combat-logout plugin's own kill-on-quit listener, whatever priority that uses (with one
-     * exception: a killer that itself uses {@code MONITOR}, which {@link #forceRespawnIfDeadMidQuit} backstops
-     * separately - see there for why). The {@code isLocked()} check below is therefore mostly a defensive
-     * guard against unrelated double-fires (e.g. plugin reloads), not a race this method is expected to lose.
+     * While {@code respawnAtDisconnectIfDead} is enabled, this is only ever called once per quit - from the
+     * Bukkit platform's late-registered {@code MONITOR} quit listener instead of from the normal, configurable
+     * {@link ListenerType#QUIT_LISTENER} priority - specifically so it runs after any PvP/anti-combat-logout
+     * plugin's own kill-on-quit listener, including one that itself uses {@code MONITOR} (a plugin registering
+     * its listener later still is backstopped by {@link #forceRespawnIfDeadMidQuit}). The {@code isLocked()}
+     * check below also catches users who quit before their join-sync finished.
      * <p>
      * If the workaround is enabled and the user is still dead at this point, this captures their (dead)
      * snapshot before saving, then forces a local respawn - the snapshot must be captured first, since
@@ -116,6 +116,7 @@ public abstract class EventListener {
         if (plugin.isLocked(user.getUuid())) {
             plugin.debug(String.format("[%s] disconnected while locked - data will NOT be saved!",
                     user.getName()));
+            respawnLockedAtDisconnectIfDead(user);
             return;
         }
         plugin.lockPlayer(user.getUuid());
@@ -126,20 +127,18 @@ public abstract class EventListener {
     }
 
     /**
-     * Workaround for PvP/anti-combat-logout plugins (e.g., CombatLogX or PvPManager's "kill on quit" punishment)
-     * that kill a player as part of quit handling, but never give them the chance to respawn locally before they
-     * disconnect. Left alone, this server's own local player data would stay stuck mid-death, so reconnecting
-     * to *this* server later shows the death screen again.
+     * Workaround for players disconnecting while dead - whether because they quit from the death screen without
+     * clicking respawn, or because a PvP/anti-combat-logout plugin (e.g., CombatLogX or PvPManager's "kill on
+     * quit" punishment) killed them as part of quit handling. Left alone, this server's own local player data
+     * would stay stuck mid-death, so returning to *this* server later, even with an alive synced snapshot from
+     * another server, leaves them stuck on the death screen.
      * <p>
      * Called from {@link #lockAndSaveOnQuit}, right before that method's own disconnect-save, so this is the
-     * primary path: by the time it runs (Bukkit {@code MONITOR} priority), any kill applied at a lower priority
-     * has already happened. If enabled and the user is still dead at this point, this captures their (dead)
-     * snapshot now, then forces a local respawn immediately - the snapshot must be captured first, since
-     * respawning would otherwise cause a snapshot built afterward to incorrectly reflect them as alive.
-     * <p>
-     * If a same-tier {@code MONITOR} killer's kill hasn't happened yet when this runs, {@link
-     * #forceRespawnIfDeadMidQuit} will already have handled the respawn once that kill's {@code
-     * PlayerDeathEvent} fires - see that method for why the two don't conflict.
+     * primary path: by the time it runs (a late-registered Bukkit {@code MONITOR} listener), any kill applied by
+     * another plugin's quit listener has normally already happened. If enabled and the user is still dead at this
+     * point, this captures their (dead) snapshot now, then forces a local respawn immediately - the snapshot must
+     * be captured first, since respawning would otherwise cause a snapshot built afterward to incorrectly reflect
+     * them as alive.
      *
      * @param user the user who is disconnecting
      * @return the pre-respawn snapshot to save, or {@code null} if the workaround did not apply
@@ -158,32 +157,42 @@ public abstract class EventListener {
                 "[%s] respawnAtDisconnectIfDead: dead at disconnect - capturing snapshot before forcing local respawn",
                 user.getName()));
         final DataSnapshot.Packed snapshot = user.createSnapshot(DataSnapshot.SaveCause.DISCONNECT);
-        user.respawn();
-        plugin.debug(String.format(
-                "[%s] respawnAtDisconnectIfDead: forced local respawn (still dead afterward: %s)",
-                user.getName(), user.isDead()));
+        forceLocalRespawn(user, "disconnect-save");
         return snapshot;
     }
 
     /**
+     * Variant of {@link #respawnAtDisconnectIfDead} for a user who disconnects while still locked (e.g. before
+     * their data finished applying on join), so no disconnect-save happens. Their local player data would still
+     * be saved mid-death, so respawn them anyway; nothing is sent to the network either way.
+     *
+     * @param user the user who is disconnecting while locked
+     */
+    private void respawnLockedAtDisconnectIfDead(@NotNull OnlineUser user) {
+        if (!plugin.getSettings().getSynchronization().isRespawnAtDisconnectIfDead() || !user.isDead()) {
+            return;
+        }
+        plugin.debug(String.format("[%s] respawnAtDisconnectIfDead: dead at disconnect while locked - forcing "
+                + "local respawn (no snapshot is saved)", user.getName()));
+        forceLocalRespawn(user, "disconnect while locked");
+    }
+
+    /**
      * Backstop for {@link #respawnAtDisconnectIfDead}, for a PvP/anti-combat-logout plugin that kills the player
-     * at Bukkit's {@code MONITOR} priority itself (e.g. CombatLogX) - the same tier {@code
-     * onPlayerQuitRespawnWorkaround} uses for {@link #lockAndSaveOnQuit}. Same-tier ordering between two
-     * different plugins' listeners isn't guaranteed by Bukkit, so that kill may fire before or after the
-     * disconnect-save's own dead-check.
+     * after HuskSync's disconnect-save has already run. HuskSync's {@code MONITOR} quit listener is registered
+     * late so that this shouldn't normally happen, but a plugin that registers its own {@code MONITOR} quit
+     * listener even later (e.g. one loaded or reloaded at runtime) can still kill after it.
      * <p>
-     * Reacting to the {@code PlayerDeathEvent} the kill itself causes sidesteps the ordering problem entirely:
-     * the kill is what causes this event to fire, so by the time this runs, the kill has necessarily already
-     * happened, regardless of listener priority or plugin load order. This deliberately does <b>not</b> check
-     * {@code isLocked()} the way {@link #lockAndSaveOnQuit} does - fixing the player's local (mid-death) state
-     * doesn't need to wait its turn the way the one-shot network save does, and calling this after {@link
-     * #respawnAtDisconnectIfDead} already ran is harmless, since {@link OnlineUser#respawn()} is a no-op once
-     * they're no longer dead.
-     * <p>
-     * One known gap: if this runs first (i.e. the disconnect-save's own {@code MONITOR} handler hasn't fired
-     * yet), the player's local data still ends up correctly respawned, but the network-synced snapshot taken
-     * moments later will reflect them as alive again rather than reflecting this kill - the same as it would
-     * without this workaround at all. Only the local "stuck mid-death" corruption is guaranteed fixed here.
+     * This runs from inside the killing {@code PlayerDeathEvent} - i.e. mid-way through the server's own death
+     * handling - so it only acts when it has to:
+     * <ul>
+     *     <li>If the user is <b>not</b> yet locked, the disconnect-save is still to come and will see the user
+     *     dead, saving the dead snapshot and respawning them outside of the death handling. Nothing is done here.
+     *     </li>
+     *     <li>If the user is already locked, either the disconnect-save already ran (and saved them alive), or
+     *     they were locked before quitting and no save will happen. Either way nothing else will fix their
+     *     local state, so they're respawned here. The network snapshot won't reflect this death.</li>
+     * </ul>
      *
      * @param user the user who died while already disconnecting
      * @since 4.1.0
@@ -192,13 +201,30 @@ public abstract class EventListener {
         if (!plugin.getSettings().getSynchronization().isRespawnAtDisconnectIfDead() || !user.isDead()) {
             return;
         }
-        plugin.debug(String.format(
-                "[%s] respawnAtDisconnectIfDead: dead mid-quit (PlayerDeathEvent backstop) - forcing local respawn",
-                user.getName()));
+        if (!plugin.isLocked(user.getUuid())) {
+            plugin.debug(String.format("[%s] respawnAtDisconnectIfDead: died mid-quit before the disconnect-save "
+                    + "ran - leaving the respawn to the disconnect-save", user.getName()));
+            return;
+        }
+        plugin.log(Level.WARNING, String.format("[%s] respawnAtDisconnectIfDead: killed mid-quit after the "
+                + "disconnect-save already ran - respawning from inside PlayerDeathEvent (backstop). This death "
+                + "will not be reflected in synced data. Enable debug logging to see which plugin's listener runs "
+                + "after HuskSync's.", user.getName()));
+        forceLocalRespawn(user, "PlayerDeathEvent backstop");
+    }
+
+    // Respawn a dead user locally, warning if they're still dead afterward (i.e. the respawn did nothing)
+    private void forceLocalRespawn(@NotNull OnlineUser user, @NotNull String source) {
         user.respawn();
-        plugin.debug(String.format(
-                "[%s] respawnAtDisconnectIfDead: backstop forced local respawn (still dead afterward: %s)",
-                user.getName(), user.isDead()));
+        if (user.isDead()) {
+            plugin.log(Level.WARNING, String.format("[%s] respawnAtDisconnectIfDead: forced local respawn (%s) "
+                    + "failed - still dead afterward. Their local player data on this server will be saved "
+                    + "mid-death, and they may get stuck on the death screen when they next join it.",
+                    user.getName(), source));
+            return;
+        }
+        plugin.debug(String.format("[%s] respawnAtDisconnectIfDead: forced local respawn (%s) succeeded",
+                user.getName(), source));
     }
 
     /**

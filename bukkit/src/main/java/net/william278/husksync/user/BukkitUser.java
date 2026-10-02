@@ -27,6 +27,7 @@ import net.william278.husksync.HuskSync;
 import net.william278.husksync.data.BukkitData;
 import net.william278.husksync.data.BukkitUserDataHolder;
 import net.william278.husksync.data.Data;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.ApiStatus;
@@ -104,12 +105,29 @@ public class BukkitUser extends OnlineUser implements BukkitUserDataHolder {
         if (!isDead()) {
             return;
         }
+        if (!player.isOnline()) {
+            // Paper's spigot().respawn() silently does nothing for a player who is no longer online
+            plugin.log(Level.WARNING, "[%s] respawnAtDisconnectIfDead: can't respawn, player is no longer online"
+                    .formatted(player.getName()));
+            return;
+        }
+        final String before = describeLocation();
         try {
             player.spigot().respawn();
-            plugin.debug("[%s] respawnAtDisconnectIfDead: called player.spigot().respawn()".formatted(player.getName()));
         } catch (Throwable e) {
-            plugin.log(Level.WARNING, "Failed to respawn %s at disconnect".formatted(player.getName()), e);
+            plugin.log(Level.WARNING, "[%s] respawnAtDisconnectIfDead: player.spigot().respawn() threw"
+                    .formatted(player.getName()), e);
+            return;
         }
+        plugin.debug("[%s] respawnAtDisconnectIfDead: called player.spigot().respawn() (health=%s, location %s -> %s)"
+                .formatted(player.getName(), player.getHealth(), before, describeLocation()));
+    }
+
+    @NotNull
+    private String describeLocation() {
+        final Location loc = player.getLocation();
+        return "%s(%.1f, %.1f, %.1f)".formatted(
+                loc.getWorld() == null ? "?" : loc.getWorld().getName(), loc.getX(), loc.getY(), loc.getZ());
     }
 
     @Override

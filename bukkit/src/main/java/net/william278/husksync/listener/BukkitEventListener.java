@@ -42,6 +42,7 @@ public class BukkitEventListener extends EventListener implements BukkitJoinEven
         BukkitDeathEventListener, Listener {
 
     protected LockedHandler lockedHandler;
+    private volatile boolean respawnWorkaroundQuitListenerRegistered;
 
     public BukkitEventListener(@NotNull BukkitHuskSync plugin) {
         super(plugin);
@@ -54,6 +55,24 @@ public class BukkitEventListener extends EventListener implements BukkitJoinEven
     public void onEnable() {
         getPlugin().getServer().getPluginManager().registerEvents(this, getPlugin());
         lockedHandler.onEnable();
+        scheduleRespawnWorkaroundQuitListener();
+    }
+
+    /**
+     * Register {@link BukkitRespawnWorkaroundQuitListener} on the first tick after enabling - by which point every
+     * plugin loaded at startup has registered its own listeners - so its {@code MONITOR} quit handler runs after
+     * theirs. Until then, the configurable-priority quit handlers keep saving as normal.
+     */
+    protected final void scheduleRespawnWorkaroundQuitListener() {
+        getPlugin().runSync(() -> {
+            new BukkitRespawnWorkaroundQuitListener(getPlugin(), this).register();
+            respawnWorkaroundQuitListenerRegistered = true;
+        });
+    }
+
+    @Override
+    public boolean isRespawnWorkaroundQuitListenerRegistered() {
+        return respawnWorkaroundQuitListenerRegistered;
     }
 
     public void handlePluginDisable() {
@@ -103,16 +122,22 @@ public class BukkitEventListener extends EventListener implements BukkitJoinEven
      * plugin that, like CombatLogX, kills the player at Bukkit's {@code MONITOR} priority itself.
      * <p>
      * No-op when {@code respawnAtDisconnectIfDead} is disabled, or when the death isn't mid-quit (an
-     * ordinary death - not logged, since it's hit on every normal death once the setting is on).
+     * ordinary death - not logged, since it's hit on every normal death once the setting is on). Note this runs
+     * from inside {@code ServerPlayer#die()}, so {@link EventListener#forceRespawnIfDeadMidQuit} only respawns
+     * here when the disconnect-save has already run and can't do it itself.
      *
      * @since 4.1.0
      */
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPlayerDeathRespawnWorkaround(@NotNull PlayerDeathEvent event) {
         final Player player = event.getEntity();
-        if (!plugin.getDisconnectingPlayers().contains(player.getUniqueId())) {
+        if (!plugin.getSettings().getSynchronization().isRespawnAtDisconnectIfDead()
+                || !plugin.getDisconnectingPlayers().contains(player.getUniqueId())) {
             return;
         }
+        plugin.debug("[%s] respawnAtDisconnectIfDead: PlayerDeathEvent while disconnecting (health=%s, cause=%s)"
+                .formatted(player.getName(), player.getHealth(), player.getLastDamageCause() == null
+                        ? "unknown" : player.getLastDamageCause().getCause()));
         forceRespawnIfDeadMidQuit(BukkitUser.adapt(player, plugin));
     }
 

@@ -821,6 +821,15 @@ public abstract class BukkitData implements Data {
             }
             final Player player = user.getPlayer();
 
+            // Detect the "stuck on the death screen" case: this server's local player data was saved mid-death,
+            // but the incoming snapshot is alive. Setting health alone doesn't clear the native dead state.
+            if (player.getHealth() <= 0 && health > 0) {
+                plugin.log(Level.WARNING, ("[%s] Applying (%s) health to the player who is dead in this "
+                        + "server's local player data (respawn_at_disconnect_if_dead: %s)").formatted(
+                        player.getName(), health,
+                        plugin.getSettings().getSynchronization().isRespawnAtDisconnectIfDead()));
+            }
+
             // Set health
             try {
                 player.setHealth(Math.min(health, player.getMaxHealth()));
