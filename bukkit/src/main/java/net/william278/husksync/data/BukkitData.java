@@ -825,9 +825,9 @@ public abstract class BukkitData implements Data {
             // but the incoming snapshot is alive. Setting health alone doesn't clear the native dead state.
             if (player.getHealth() <= 0 && health > 0) {
                 plugin.log(Level.WARNING, ("[%s] Applying (%s) health to the player who is dead in this "
-                        + "server's local player data (respawn_at_disconnect_if_dead: %s)").formatted(
+                        + "server's local player data (clear_death_state_on_disconnect: %s)").formatted(
                         player.getName(), health,
-                        plugin.getSettings().getSynchronization().isRespawnAtDisconnectIfDead()));
+                        plugin.getSettings().getSynchronization().isClearDeathStateOnDisconnect()));
             }
 
             // Set health

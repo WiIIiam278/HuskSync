@@ -101,26 +101,23 @@ public class BukkitUser extends OnlineUser implements BukkitUserDataHolder {
 
     @Override
     @SuppressWarnings("deprecation")
-    public void respawn() {
+    public void clearLocalDeathState() {
         if (!isDead()) {
             return;
         }
-        if (!player.isOnline()) {
-            // Paper's spigot().respawn() silently does nothing for a player who is no longer online
-            plugin.log(Level.WARNING, "[%s] respawnAtDisconnectIfDead: can't respawn, player is no longer online"
-                    .formatted(player.getName()));
-            return;
-        }
-        final String before = describeLocation();
+        // Paper's player.spigot().respawn() can't be used here: it does nothing once the connection has closed,
+        // which it already has during PlayerQuitEvent. Restoring health is enough for the player file to be saved
+        // alive - the same as the respawn would have done (Paper resets health to max on respawn).
+        final double before = player.getHealth();
         try {
-            player.spigot().respawn();
+            player.setHealth(player.getMaxHealth());
         } catch (Throwable e) {
-            plugin.log(Level.WARNING, "[%s] respawnAtDisconnectIfDead: player.spigot().respawn() threw"
+            plugin.log(Level.WARNING, "[%s] clearDeathStateOnDisconnect: failed to restore health"
                     .formatted(player.getName()), e);
             return;
         }
-        plugin.debug("[%s] respawnAtDisconnectIfDead: called player.spigot().respawn() (health=%s, location %s -> %s)"
-                .formatted(player.getName(), player.getHealth(), before, describeLocation()));
+        plugin.debug("[%s] clearDeathStateOnDisconnect: restored health %s -> %s at %s"
+                .formatted(player.getName(), before, player.getHealth(), describeLocation()));
     }
 
     @NotNull

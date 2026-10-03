@@ -66,33 +66,33 @@ public interface BukkitQuitEventListener extends Listener {
     /**
      * Marks a user as disconnecting as early as possible (LOWEST priority, always - not gated behind the
      * configurable {@link EventListener.ListenerType#QUIT_LISTENER} priority), so that the disconnect-save's
-     * {@code PlayerDeathEvent} backstop (see {@code EventListener#forceRespawnIfDeadMidQuit}) can reliably
+     * {@code PlayerDeathEvent} backstop (see {@code EventListener#clearDeathStateIfKilledMidQuit}) can reliably
      * recognise a death that happens later in the same quit, no matter what priority the killing reason has.
      *
      * @since 4.1.0
      */
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     default void onPlayerQuitMarkDisconnecting(@NotNull PlayerQuitEvent event) {
-        if (isRespawnAtDisconnectIfDeadEnabled()) {
+        if (isClearDeathStateOnDisconnectEnabled()) {
             markDisconnecting(BukkitUser.adapt(event.getPlayer(), getPlugin()));
         }
     }
 
-    private boolean isRespawnAtDisconnectIfDeadEnabled() {
-        return getPlugin().getSettings().getSynchronization().isRespawnAtDisconnectIfDead();
+    private boolean isClearDeathStateOnDisconnectEnabled() {
+        return getPlugin().getSettings().getSynchronization().isClearDeathStateOnDisconnect();
     }
 
     /**
      * Whether the normal, configurable-priority quit handlers above should leave the disconnect-save
-     * to {@link BukkitRespawnWorkaroundQuitListener} instead. Only true once that listener has been 
+     * to {@link BukkitClearDeathStateQuitListener} instead. Only true once that listener has been 
      * registered, so there's never a window where neither saves (e.g. the tick between HuskSync
      * enabling and the late listener registering, if HuskSync is loaded after server startup).
      */
     private boolean isQuitSaveDeferredToLateListener() {
-        return isRespawnAtDisconnectIfDeadEnabled() && isRespawnWorkaroundQuitListenerRegistered();
+        return isClearDeathStateOnDisconnectEnabled() && isClearDeathStateQuitListenerRegistered();
     }
 
-    boolean isRespawnWorkaroundQuitListenerRegistered();
+    boolean isClearDeathStateQuitListenerRegistered();
 
     void markDisconnecting(@NotNull BukkitUser player);
 

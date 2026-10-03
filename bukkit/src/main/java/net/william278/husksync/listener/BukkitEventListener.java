@@ -42,7 +42,7 @@ public class BukkitEventListener extends EventListener implements BukkitJoinEven
         BukkitDeathEventListener, Listener {
 
     protected LockedHandler lockedHandler;
-    private volatile boolean respawnWorkaroundQuitListenerRegistered;
+    private volatile boolean clearDeathStateQuitListenerRegistered;
 
     public BukkitEventListener(@NotNull BukkitHuskSync plugin) {
         super(plugin);
@@ -55,24 +55,24 @@ public class BukkitEventListener extends EventListener implements BukkitJoinEven
     public void onEnable() {
         getPlugin().getServer().getPluginManager().registerEvents(this, getPlugin());
         lockedHandler.onEnable();
-        scheduleRespawnWorkaroundQuitListener();
+        scheduleClearDeathStateQuitListener();
     }
 
     /**
-     * Register {@link BukkitRespawnWorkaroundQuitListener} on the first tick after enabling - by which point every
+     * Register {@link BukkitClearDeathStateQuitListener} on the first tick after enabling - by which point every
      * plugin loaded at startup has registered its own listeners - so its {@code MONITOR} quit handler runs after
      * theirs. Until then, the configurable-priority quit handlers keep saving as normal.
      */
-    protected final void scheduleRespawnWorkaroundQuitListener() {
+    protected final void scheduleClearDeathStateQuitListener() {
         getPlugin().runSync(() -> {
-            new BukkitRespawnWorkaroundQuitListener(getPlugin(), this).register();
-            respawnWorkaroundQuitListenerRegistered = true;
+            new BukkitClearDeathStateQuitListener(getPlugin(), this).register();
+            clearDeathStateQuitListenerRegistered = true;
         });
     }
 
     @Override
-    public boolean isRespawnWorkaroundQuitListenerRegistered() {
-        return respawnWorkaroundQuitListenerRegistered;
+    public boolean isClearDeathStateQuitListenerRegistered() {
+        return clearDeathStateQuitListenerRegistered;
     }
 
     public void handlePluginDisable() {
@@ -118,27 +118,27 @@ public class BukkitEventListener extends EventListener implements BukkitJoinEven
 
     /**
      * Backstop for a player dying while already mid-disconnect (per {@link #markDisconnecting}) - see {@link
-     * EventListener#forceRespawnIfDeadMidQuit} for why this is needed specifically for a PvP/anti-combat-logout
+     * EventListener#clearDeathStateIfKilledMidQuit} for why this is needed specifically for a PvP/anti-combat-logout
      * plugin that, like CombatLogX, kills the player at Bukkit's {@code MONITOR} priority itself.
      * <p>
-     * No-op when {@code respawnAtDisconnectIfDead} is disabled, or when the death isn't mid-quit (an
+     * No-op when {@code clearDeathStateOnDisconnect} is disabled, or when the death isn't mid-quit (an
      * ordinary death - not logged, since it's hit on every normal death once the setting is on). Note this runs
-     * from inside {@code ServerPlayer#die()}, so {@link EventListener#forceRespawnIfDeadMidQuit} only respawns
-     * here when the disconnect-save has already run and can't do it itself.
+     * from inside {@code ServerPlayer#die()}, so {@link EventListener#clearDeathStateIfKilledMidQuit} only restores
+     * health here when the disconnect-save has already run and can't do it itself.
      *
      * @since 4.1.0
      */
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    public void onPlayerDeathRespawnWorkaround(@NotNull PlayerDeathEvent event) {
+    public void onPlayerDeathClearDeathStateBackstop(@NotNull PlayerDeathEvent event) {
         final Player player = event.getEntity();
-        if (!plugin.getSettings().getSynchronization().isRespawnAtDisconnectIfDead()
+        if (!plugin.getSettings().getSynchronization().isClearDeathStateOnDisconnect()
                 || !plugin.getDisconnectingPlayers().contains(player.getUniqueId())) {
             return;
         }
-        plugin.debug("[%s] respawnAtDisconnectIfDead: PlayerDeathEvent while disconnecting (health=%s, cause=%s)"
+        plugin.debug("[%s] clearDeathStateOnDisconnect: PlayerDeathEvent while disconnecting (health=%s, cause=%s)"
                 .formatted(player.getName(), player.getHealth(), player.getLastDamageCause() == null
                         ? "unknown" : player.getLastDamageCause().getCause()));
-        forceRespawnIfDeadMidQuit(BukkitUser.adapt(player, plugin));
+        clearDeathStateIfKilledMidQuit(BukkitUser.adapt(player, plugin));
     }
 
     @Override

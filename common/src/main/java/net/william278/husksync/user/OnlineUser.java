@@ -64,18 +64,21 @@ public abstract class OnlineUser extends User implements CommandUser, UserDataHo
     public abstract boolean isDead();
 
     /**
-     * Force this player to respawn immediately if they are {@link #isDead() dead}, bypassing the need for them
-     * to click respawn client-side.
+     * If this player is {@link #isDead() dead}, restore their health so that this server's own local player data
+     * is saved alive rather than mid-death when they disconnect.
      * <p>
-     * This is primarily intended as a workaround for PvP/anti-combat-logout plugins that kill a player as part of
-     * their quit handling (see {@code respawnAtDisconnectIfDead} in the config), or if a player disconnects from
-     * the server and reconnects to a hub world instead upon rejoining. As the player is not able to respawn locally
-     * before they disconnect, the server's own local playerdata is left mid-death until they reconnect here again,
-     * which will then immediately show the death screen before HuskSync has a chance to apply their latest data.
+     * This is the {@code clearDeathStateOnDisconnect} workaround for players who disconnect while dead (whether they
+     * quit from the death screen, or a PvP/anti-combat-logout plugin killed them on quit). Left alone, the server
+     * saves their local player data with zero health, so when they next join this server - even with an alive
+     * synced snapshot from elsewhere - they load dead and get stuck on the death screen.
+     * <p>
+     * This deliberately does not perform a real respawn: the server refuses to respawn a player whose connection
+     * has already closed (as it has during a quit), and would fire respawn events for a player who is leaving.
+     * Only the saved health matters here, since the player's synced data is reapplied when they next join.
      *
      * @since 4.1.0
      */
-    public void respawn() {
+    public void clearLocalDeathState() {
     }
 
     // Users cannot have snapshots applied if they have disconnected!
