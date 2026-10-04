@@ -121,7 +121,7 @@ public class BukkitEventListener extends EventListener implements BukkitJoinEven
      * EventListener#clearDeathStateIfKilledMidQuit} for why this is needed specifically for a PvP/anti-combat-logout
      * plugin that, like CombatLogX, kills the player at Bukkit's {@code MONITOR} priority itself.
      * <p>
-     * No-op when {@code clearDeathStateOnDisconnect} is disabled, or when the death isn't mid-quit (an
+     * No-op when {@code ClearPlayerDeathOnDisconnect} is disabled, or when the death isn't mid-quit (an
      * ordinary death - not logged, since it's hit on every normal death once the setting is on). Note this runs
      * from inside {@code ServerPlayer#die()}, so {@link EventListener#clearDeathStateIfKilledMidQuit} only restores
      * health here when the disconnect-save has already run and can't do it itself.
@@ -131,11 +131,11 @@ public class BukkitEventListener extends EventListener implements BukkitJoinEven
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPlayerDeathClearDeathStateBackstop(@NotNull PlayerDeathEvent event) {
         final Player player = event.getEntity();
-        if (!plugin.getSettings().getSynchronization().isClearDeathStateOnDisconnect()
+        if (!plugin.getSettings().getSynchronization().isClearPlayerDeathOnDisconnect()
                 || !plugin.getDisconnectingPlayers().contains(player.getUniqueId())) {
             return;
         }
-        plugin.debug("[%s] clearDeathStateOnDisconnect: PlayerDeathEvent while disconnecting (health=%s, cause=%s)"
+        plugin.debug("[%s] ClearPlayerDeathOnDisconnect: PlayerDeathEvent while disconnecting (health=%s, cause=%s)"
                 .formatted(player.getName(), player.getHealth(), player.getLastDamageCause() == null
                         ? "unknown" : player.getLastDamageCause().getCause()));
         clearDeathStateIfKilledMidQuit(BukkitUser.adapt(player, plugin));

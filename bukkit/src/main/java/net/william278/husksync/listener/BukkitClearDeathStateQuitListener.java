@@ -35,7 +35,7 @@ import java.util.Set;
 import java.util.logging.Level;
 
 /**
- * While {@code clearDeathStateOnDisconnect} is enabled, this - not the configurable-priority handlers in {@link
+ * While {@code ClearPlayerDeathOnDisconnect} is enabled, this - not the configurable-priority handlers in {@link
  * BukkitQuitEventListener}, which stand aside in that case - is what actually locks and saves the disconnecting
  * player.
  * <p>
@@ -63,18 +63,18 @@ public class BukkitClearDeathStateQuitListener implements Listener {
 
     void register() {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
-        if (!plugin.getSettings().getSynchronization().isClearDeathStateOnDisconnect()) {
+        if (!plugin.getSettings().getSynchronization().isClearPlayerDeathOnDisconnect()) {
             return;
         }
-        plugin.log(Level.INFO, "clearDeathStateOnDisconnect is enabled: disconnect-saves now run from a late "
+        plugin.log(Level.INFO, "ClearPlayerDeathOnDisconnect is enabled: disconnect-saves now run from a late "
                 + "MONITOR PlayerQuitEvent listener (configured quit_listener priority is ignored)");
-        plugin.debug("clearDeathStateOnDisconnect: MONITOR PlayerQuitEvent listener order: "
+        plugin.debug("ClearPlayerDeathOnDisconnect: MONITOR PlayerQuitEvent listener order: "
                 + describeMonitorQuitListeners());
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPlayerQuit(@NotNull PlayerQuitEvent event) {
-        if (!plugin.getSettings().getSynchronization().isClearDeathStateOnDisconnect()) {
+        if (!plugin.getSettings().getSynchronization().isClearPlayerDeathOnDisconnect()) {
             return;
         }
         checkForLaterMonitorListeners(event.getPlayer().getName());
@@ -92,11 +92,11 @@ public class BukkitClearDeathStateQuitListener implements Listener {
         if (later.isEmpty()) {
             return;
         }
-        plugin.debug(("[%s] clearDeathStateOnDisconnect: MONITOR PlayerQuitEvent listeners running AFTER the "
+        plugin.debug(("[%s] ClearPlayerDeathOnDisconnect: MONITOR PlayerQuitEvent listeners running AFTER the "
                 + "disconnect-save: %s").formatted(playerName, later));
         for (String name : later) {
             if (warnedLaterPlugins.add(name)) {
-                plugin.log(Level.WARNING, ("clearDeathStateOnDisconnect: %s has a MONITOR PlayerQuitEvent listener "
+                plugin.log(Level.WARNING, ("ClearPlayerDeathOnDisconnect: %s has a MONITOR PlayerQuitEvent listener "
                         + "that runs after HuskSync's disconnect-save (was it loaded or reloaded at runtime?). If it "
                         + "kills players on quit, those deaths fall back to the PlayerDeathEvent backstop and won't "
                         + "be reflected in synced data, which can duplicate the player's dropped items. Restart the server to restore listener order.")

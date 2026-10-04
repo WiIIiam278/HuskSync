@@ -92,13 +92,13 @@ public abstract class EventListener {
         }
         plugin.getDisconnectingPlayers().add(user.getUuid());
         plugin.debug(String.format(
-                "[%s] clearDeathStateOnDisconnect: marked as disconnecting early (quit in progress)", user.getName()));
+                "[%s] ClearPlayerDeathOnDisconnect: marked as disconnecting early (quit in progress)", user.getName()));
     }
 
     /**
      * Lock a user and dispatch their disconnect-save, unless they're already locked.
      * <p>
-     * While {@code clearDeathStateOnDisconnect} is enabled, this is only ever called once per quit - from the
+     * While {@code ClearPlayerDeathOnDisconnect} is enabled, this is only ever called once per quit - from the
      * Bukkit platform's late-registered {@code MONITOR} quit listener instead of from the normal, configurable
      * {@link ListenerType#QUIT_LISTENER} priority - specifically so it runs after any PvP/anti-combat-logout
      * plugin's own kill-on-quit listener, including one that itself uses {@code MONITOR} (a plugin registering
@@ -120,7 +120,7 @@ public abstract class EventListener {
             return;
         }
         plugin.lockPlayer(user.getUuid());
-        final DataSnapshot.Packed precomputedSnapshot = clearDeathStateOnDisconnect(user);
+        final DataSnapshot.Packed precomputedSnapshot = ClearPlayerDeathOnDisconnect(user);
         plugin.debug(String.format("[%s] lockAndSaveOnQuit: locked, dispatching disconnect-save (precomputed "
                 + "dead snapshot: %s)", user.getName(), precomputedSnapshot != null));
         plugin.getDataSyncer().syncSaveUserData(user, precomputedSnapshot);
@@ -144,17 +144,17 @@ public abstract class EventListener {
      * @return the dead snapshot to save, or {@code null} if the workaround did not apply
      */
     @Nullable
-    private DataSnapshot.Packed clearDeathStateOnDisconnect(@NotNull OnlineUser user) {
-        if (!plugin.getSettings().getSynchronization().isClearDeathStateOnDisconnect()) {
+    private DataSnapshot.Packed ClearPlayerDeathOnDisconnect(@NotNull OnlineUser user) {
+        if (!plugin.getSettings().getSynchronization().isClearPlayerDeathOnDisconnect()) {
             return null;
         }
         if (!user.isDead()) {
             plugin.debug(String.format(
-                    "[%s] clearDeathStateOnDisconnect: not dead at disconnect, nothing to do", user.getName()));
+                    "[%s] ClearPlayerDeathOnDisconnect: not dead at disconnect, nothing to do", user.getName()));
             return null;
         }
         plugin.debug(String.format(
-                "[%s] clearDeathStateOnDisconnect: dead at disconnect - capturing snapshot before clearing local death state",
+                "[%s] ClearPlayerDeathOnDisconnect: dead at disconnect - capturing snapshot before clearing local death state",
                 user.getName()));
         final DataSnapshot.Packed snapshot = user.createSnapshot(DataSnapshot.SaveCause.DISCONNECT);
         clearLocalDeathState(user, "disconnect-save");
@@ -162,23 +162,23 @@ public abstract class EventListener {
     }
 
     /**
-     * Variant of {@link #clearDeathStateOnDisconnect} for a user who disconnects while still locked (e.g. before
+     * Variant of {@link #ClearPlayerDeathOnDisconnect} for a user who disconnects while still locked (e.g. before
      * their data finished applying on join), so no disconnect-save happens. Their local player data would still
      * be saved mid-death, so clear that anyway; nothing is sent to the network either way.
      *
      * @param user the user who is disconnecting while locked
      */
     private void clearLockedDeathStateOnDisconnect(@NotNull OnlineUser user) {
-        if (!plugin.getSettings().getSynchronization().isClearDeathStateOnDisconnect() || !user.isDead()) {
+        if (!plugin.getSettings().getSynchronization().isClearPlayerDeathOnDisconnect() || !user.isDead()) {
             return;
         }
-        plugin.debug(String.format("[%s] clearDeathStateOnDisconnect: dead at disconnect while locked - clearing "
+        plugin.debug(String.format("[%s] ClearPlayerDeathOnDisconnect: dead at disconnect while locked - clearing "
                 + "local death state (no snapshot is saved)", user.getName()));
         clearLocalDeathState(user, "disconnect while locked");
     }
 
     /**
-     * Backstop for {@link #clearDeathStateOnDisconnect}, for a PvP/anti-combat-logout plugin that kills the player
+     * Backstop for {@link #ClearPlayerDeathOnDisconnect}, for a PvP/anti-combat-logout plugin that kills the player
      * after HuskSync's disconnect-save has already run. HuskSync's {@code MONITOR} quit listener is registered
      * late so that this shouldn't normally happen, but a plugin that registers its own {@code MONITOR} quit
      * listener even later (e.g. one loaded or reloaded at runtime) can still kill after it.
@@ -199,15 +199,15 @@ public abstract class EventListener {
      * @since 4.1.0
      */
     protected final void clearDeathStateIfKilledMidQuit(@NotNull OnlineUser user) {
-        if (!plugin.getSettings().getSynchronization().isClearDeathStateOnDisconnect() || !user.isDead()) {
+        if (!plugin.getSettings().getSynchronization().isClearPlayerDeathOnDisconnect() || !user.isDead()) {
             return;
         }
         if (!plugin.isLocked(user.getUuid())) {
-            plugin.debug(String.format("[%s] clearDeathStateOnDisconnect: died mid-quit before the disconnect-save "
+            plugin.debug(String.format("[%s] ClearPlayerDeathOnDisconnect: died mid-quit before the disconnect-save "
                     + "ran - leaving it to the disconnect-save", user.getName()));
             return;
         }
-        plugin.log(Level.WARNING, String.format("[%s] clearDeathStateOnDisconnect: killed mid-quit after the "
+        plugin.log(Level.WARNING, String.format("[%s] ClearPlayerDeathOnDisconnect: killed mid-quit after the "
                 + "disconnect-save already ran - restoring health from inside PlayerDeathEvent (backstop). Their synced "
                 + "data was already saved alive, so this death won't be reflected in it and any items dropped by "
                 + "this death are likely DUPLICATED. Enable debug logging to see which plugin's listener runs "
@@ -219,13 +219,13 @@ public abstract class EventListener {
     private void clearLocalDeathState(@NotNull OnlineUser user, @NotNull String source) {
         user.clearLocalDeathState();
         if (user.isDead()) {
-            plugin.log(Level.WARNING, String.format("[%s] clearDeathStateOnDisconnect: clearing local death state "
+            plugin.log(Level.WARNING, String.format("[%s] ClearPlayerDeathOnDisconnect: clearing local death state "
                     + "(%s) failed - still dead afterward. Their local player data on this server will be saved "
                     + "mid-death, and they may get stuck on the death screen when they next join it.",
                     user.getName(), source));
             return;
         }
-        plugin.debug(String.format("[%s] clearDeathStateOnDisconnect: cleared local death state (%s)",
+        plugin.debug(String.format("[%s] ClearPlayerDeathOnDisconnect: cleared local death state (%s)",
                 user.getName(), source));
     }
 

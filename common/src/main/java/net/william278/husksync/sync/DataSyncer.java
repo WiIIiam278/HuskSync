@@ -134,7 +134,7 @@ public abstract class DataSyncer {
      * Called when a user's data should be serialized and saved as part of a synchronization process, optionally
      * using an already-captured snapshot instead of building a fresh one from the user's current (live) state.
      * <p>
-     * This is used by the {@code clearDeathStateOnDisconnect} workaround setting, which must capture the user's
+     * This is used by the {@code ClearPlayerDeathOnDisconnect} workaround setting, which must capture the user's
      * (dead) snapshot before clearing their local death state - otherwise the snapshot built afterward would
      * incorrectly reflect them as alive. The default implementation ignores {@code precomputedSnapshot} and
      * defers to {@link #syncSaveUserData(OnlineUser)}; the built-in LOCKSTEP and DELAY modes override this to

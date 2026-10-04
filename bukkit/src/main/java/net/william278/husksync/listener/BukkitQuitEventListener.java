@@ -73,13 +73,13 @@ public interface BukkitQuitEventListener extends Listener {
      */
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     default void onPlayerQuitMarkDisconnecting(@NotNull PlayerQuitEvent event) {
-        if (isClearDeathStateOnDisconnectEnabled()) {
+        if (isClearPlayerDeathOnDisconnectEnabled()) {
             markDisconnecting(BukkitUser.adapt(event.getPlayer(), getPlugin()));
         }
     }
 
-    private boolean isClearDeathStateOnDisconnectEnabled() {
-        return getPlugin().getSettings().getSynchronization().isClearDeathStateOnDisconnect();
+    private boolean isClearPlayerDeathOnDisconnectEnabled() {
+        return getPlugin().getSettings().getSynchronization().isClearPlayerDeathOnDisconnect();
     }
 
     /**
@@ -89,7 +89,7 @@ public interface BukkitQuitEventListener extends Listener {
      * enabling and the late listener registering, if HuskSync is loaded after server startup).
      */
     private boolean isQuitSaveDeferredToLateListener() {
-        return isClearDeathStateOnDisconnectEnabled() && isClearDeathStateQuitListenerRegistered();
+        return isClearPlayerDeathOnDisconnectEnabled() && isClearDeathStateQuitListenerRegistered();
     }
 
     boolean isClearDeathStateQuitListenerRegistered();

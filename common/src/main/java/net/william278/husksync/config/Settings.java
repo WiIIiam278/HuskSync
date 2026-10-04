@@ -376,7 +376,7 @@ public class Settings {
         @Comment({"Workaround for servers experiencing \"double deaths\" i.e. players that disconnect while " +
             "dead and rejoin onto a different server such as a hub/lobby, and PvP/combat-log plugins that " +
             "kill players as they disconnect or quit. Works on Bukkit/Paper only, has no effect on Fabric."})
-        private boolean clearDeathStateOnDisconnect = false;
+        private boolean clearPlayerDeathOnDisconnect = false;
 
         public boolean doAutoPin(@NotNull DataSnapshot.SaveCause cause) {
             return autoPinnedSaveCauses.contains(cause.name());

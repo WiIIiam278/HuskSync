@@ -112,11 +112,11 @@ public class BukkitUser extends OnlineUser implements BukkitUserDataHolder {
         try {
             player.setHealth(player.getMaxHealth());
         } catch (Throwable e) {
-            plugin.log(Level.WARNING, "[%s] clearDeathStateOnDisconnect: failed to restore health"
+            plugin.log(Level.WARNING, "[%s] ClearPlayerDeathOnDisconnect: failed to restore health"
                     .formatted(player.getName()), e);
             return;
         }
-        plugin.debug("[%s] clearDeathStateOnDisconnect: restored health %s -> %s at %s"
+        plugin.debug("[%s] ClearPlayerDeathOnDisconnect: restored health %s -> %s at %s"
                 .formatted(player.getName(), before, player.getHealth(), describeLocation()));
     }
 

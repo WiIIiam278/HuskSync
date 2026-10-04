@@ -67,7 +67,7 @@ public abstract class OnlineUser extends User implements CommandUser, UserDataHo
      * If this player is {@link #isDead() dead}, restore their health so that this server's own local player data
      * is saved alive rather than mid-death when they disconnect.
      * <p>
-     * This is the {@code clearDeathStateOnDisconnect} workaround for players who disconnect while dead (whether they
+     * This is the {@code ClearPlayerDeathOnDisconnect} workaround for players who disconnect while dead (whether they
      * quit from the death screen, or a PvP/anti-combat-logout plugin killed them on quit). Left alone, the server
      * saves their local player data with zero health, so when they next join this server - even with an alive
      * synced snapshot from elsewhere - they load dead and get stuck on the death screen.
