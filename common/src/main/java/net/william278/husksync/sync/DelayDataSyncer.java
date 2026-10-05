@@ -58,20 +58,21 @@ public class DelayDataSyncer extends DataSyncer {
 
     @Override
     public void syncSaveUserData(@NotNull OnlineUser onlineUser) {
-        runTrackedAsync(onlineUser, () -> {
-            getRedis().setUserServerSwitch(onlineUser);
-            saveData(
-                    onlineUser, onlineUser.createSnapshot(DataSnapshot.SaveCause.DISCONNECT),
-                    (user, data) -> {
-                        if (!getRedis().setUserData(user, data)) {
-                            // Cached Redis snapshot may be stale, so clear the LATEST_SNAPSHOT key
-                            // Next login uses a database snapshot, see applyLatestSnapshot()
-                            getRedis().clearUserData(user);
-                        }
-                        plugin.unlockPlayer(user.getUuid());
+        // Tell the next server the player joins to wait for this save to reach Redis
+        // Set separately to the save, so a slow Redis write can't hold up the save
+        runTrackedAsync(onlineUser, () -> getRedis().setUserServerSwitch(onlineUser));
+
+        takeSnapshotAndSave(
+                onlineUser, DataSnapshot.SaveCause.DISCONNECT,
+                (user, data) -> {
+                    if (!getRedis().setUserData(user, data)) {
+                        // Cached Redis snapshot may be stale, so clear the LATEST_SNAPSHOT key
+                        // Next login uses a database snapshot, see applyLatestSnapshot()
+                        getRedis().clearUserData(user);
                     }
-            );
-        });
+                    plugin.unlockPlayer(user.getUuid());
+                }
+        );
     }
 
 }

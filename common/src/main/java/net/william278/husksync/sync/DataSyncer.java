@@ -39,6 +39,8 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.BiConsumer;
@@ -78,6 +80,15 @@ public abstract class DataSyncer {
 
     protected final HuskSync plugin;
     private final Map<CompletableFuture<Void>, User> pendingSaves = new ConcurrentHashMap<>();
+
+    // Runs any tracked saves immediately, so that saves made as the server stops can still complete.
+    // Bukkit's scheduler risks data loss if the server stops before starting tasks on the next tick.
+    private final ExecutorService saveExecutor = Executors.newCachedThreadPool(runnable -> {
+        final Thread thread = new Thread(runnable, "HuskSync Save Thread");
+        // Shutdown waits for saves (#awaitPendingSaves), but a stuck one mustn't keep the JVM alive
+        thread.setDaemon(true);
+        return thread;
+    });
 
     @ApiStatus.Internal
     protected DataSyncer(@NotNull HuskSync plugin) {
@@ -121,8 +132,11 @@ public abstract class DataSyncer {
     public abstract void syncSaveUserData(@NotNull OnlineUser user);
 
     /**
-     * Save a user's current data, tracking the save so {@link #awaitPendingSaves} can wait for it to
-     * complete during shutdown rather than losing it if the plugin disables mid-save
+     * Save a user's current data, tracking the save so that {@link #awaitPendingSaves} can wait
+     * for it to complete during shutdown, rather than losing it if the plugin disables mid-save
+     * <p>
+     * Disconnect and shutdown saves take their snapshot on the calling thread, so they aren't
+     * lost if the server stops straight afterwards, in {@link #takeSnapshotAndSave}.
      *
      * @param onlineUser the user to save data for
      * @param cause      the save cause
@@ -130,13 +144,68 @@ public abstract class DataSyncer {
      * @since 4.1.0
      */
     public CompletableFuture<Void> saveCurrentUserData(@NotNull OnlineUser onlineUser, @NotNull DataSnapshot.SaveCause cause) {
-        return runTrackedAsync(onlineUser, () -> saveData(onlineUser, onlineUser.createSnapshot(cause), (user, data) -> {
+        final BiConsumer<User, DataSnapshot.Packed> after = (user, data) -> {
             if (!getRedis().setUserData(user, data) && isShutdownCritical(data.getSaveCause())) {
-                // Fresh snapshot could not be confirmed on Redis, drop the stale LATEST_SNAPSHOT key. Next login
-                // uses the verified db snapshot instead of resurrecting pre-save data, to avoid duplicating items
+                // Fresh snapshot couldn't be confirmed on Redis, drop the stale LATEST_SNAPSHOT key
                 getRedis().clearUserData(user);
+                // Next login uses the verified database snapshot, to avoid any item duplication
             }
-        }));
+        };
+        // Disconnect and shutdown saves can happen as the server stops, so take user snapshot on this thread now
+        if (isShutdownCritical(cause)) {
+            return takeSnapshotAndSave(onlineUser, cause, after);
+        }
+        // Any other saves can take their snapshot on the HuskSync save thread, as before
+        return runTrackedAsync(onlineUser, () -> saveData(onlineUser, onlineUser.createSnapshot(cause), after));
+    }
+
+    /**
+     * Save a user's current data so it isn't lost if a server stops after, e.g. a player disconnecting as
+     * part of a restart. Stopping servers may not tick again, so this save doesn't depend on a tick to run.
+     * <p>
+     * The snapshot is taken and the {@link net.william278.husksync.event.DataSaveEvent} fired immediately on the
+     * calling thread, e.g. during the player's quit event. The database and Redis writes start immediately on a
+     * HuskSync thread.
+     * <p>
+     * Server shutdowns will wait for these writes, up to the configured timeout, before closing connections.
+     * When called from a thread other than the server thread, the event can't be fired immediately, so it's fired on
+     * a later server tick instead, and the save waits for it.
+     *
+     * @param onlineUser the user to save data for
+     * @param cause      the save cause
+     * @param after      a consumer to run once the snapshot is saved, or {@code null}
+     * @return A future which completes once the snapshot is saved and {@code after} has run, or immediately if the
+     * DataSaveEvent is cancelled
+     * @since 4.1.0
+     */
+    // TODO - consider making these various 'save' method names and their flow clearer for future maintainers
+    protected CompletableFuture<Void> takeSnapshotAndSave(@NotNull OnlineUser onlineUser,
+                                                          @NotNull DataSnapshot.SaveCause cause,
+                                                          @Nullable BiConsumer<User, DataSnapshot.Packed> after) {
+        final DataSnapshot.Packed data;
+        final boolean eventFired;
+        final boolean cancelled;
+        try {
+            data = onlineUser.createSnapshot(cause);
+            eventFired = shouldFireDataSaveEvent(data) && plugin.isEventThread();
+            cancelled = eventFired && plugin.fireIsCancelled(plugin.getDataSaveEvent(onlineUser, data));
+        } catch (Throwable t) {
+            plugin.log(Level.WARNING, "Failed to save %s data for player %s (%s): %s".formatted(
+                    cause.name(), onlineUser.getName(), onlineUser.getUuid(), t.getMessage()), t);
+            return CompletableFuture.failedFuture(t);
+        }
+        if (cancelled) {
+            return CompletableFuture.completedFuture(null);
+        }
+        // If the event was fired above, just write the snapshot. Otherwise, saveData() writes it straight away when no
+        // event is due (e.g. shutdown saves), or first dispatches an event that couldn't be fired on the calling thread
+        return runTrackedAsync(onlineUser, () -> {
+            if (eventFired) {
+                addSnapshotToDatabase(onlineUser, data, after);
+            } else {
+                saveData(onlineUser, data, after); // saveData() will fire the event, if it should be fired
+            }
+        });
     }
 
     /**
@@ -155,13 +224,7 @@ public abstract class DataSyncer {
     @Blocking
     public void saveData(@NotNull User user, @NotNull DataSnapshot.Packed data,
                          @Nullable BiConsumer<User, DataSnapshot.Packed> after) {
-        plugin.debug(String.format("[%s] Saving data (save cause: %s, timestamp: %s, id: %s)",
-                user.getName(), data.getSaveCause(), data.getTimestamp(), data.getId()));
-        // While disabling, write directly instead of routing through the (fire-and-forget) DataSaveEvent
-        // dispatch: that dispatch defers the actual write via further scheduled tasks, so the future
-        // returned by #runTrackedAsync would complete before the write happened, letting #awaitPendingSaves
-        // close the database/Redis connections too early.
-        if (!data.getSaveCause().fireDataSaveEvent() || plugin.isDisabling()) {
+        if (!shouldFireDataSaveEvent(data)) {
             addSnapshotToDatabase(user, data, after);
             return;
         }
@@ -169,6 +232,12 @@ public abstract class DataSyncer {
                 plugin.getDataSaveEvent(user, data),
                 (event) -> addSnapshotToDatabase(user, data, after)
         );
+    }
+
+    // Whether to fire a DataSaveEvent before saving. Not true while disabling, as the event and the write would get
+    // dispatched via the Bukkit scheduler, which servers stopping may not run  #awaitPendingSaves wouldn't wait for.
+    private boolean shouldFireDataSaveEvent(@NotNull DataSnapshot.Packed data) {
+        return data.getSaveCause().fireDataSaveEvent() && !plugin.isDisabling();
     }
 
     /**
@@ -191,14 +260,16 @@ public abstract class DataSyncer {
     @Blocking
     private void addSnapshotToDatabase(@NotNull User user, @NotNull DataSnapshot.Packed data,
                                        @Nullable BiConsumer<User, DataSnapshot.Packed> after) {
+        plugin.debug(String.format("[%s] Saving data (save cause: %s, timestamp: %s, id: %s)",
+                user.getName(), data.getSaveCause(), data.getTimestamp(), data.getId()));
         persistSnapshot(user, data);
         if (after != null) {
             after.accept(user, data);
         }
     }
 
-    // Writes a snapshot to the database, verifying and retrying DISCONNECT snapshots while the plugin is disabling.
-    // A failed write here would likely result in player inventory rollback (and item duplication) on the next login.
+    // Writes a snapshot to the database, verifying and retrying DISCONNECT snapshots while disabling the plugin.
+    // Any failed write will likely result in player inventory rollback (and item duplication) on the next login.
     @Blocking
     private void persistSnapshot(@NotNull User user, @NotNull DataSnapshot.Packed data) {
         final boolean verifyAndRetry = plugin.isDisabling()
@@ -338,20 +409,24 @@ public abstract class DataSyncer {
     }
 
     /**
-     * Run a task asynchronously and track it, along with the user it's saving data for, so
-     * {@link #awaitPendingSaves} can wait for completion and report which player failed if it does.
-     * Subclasses should use this instead of {@code plugin.runAsync()} for disconnect saves.
-     *
+     * Runs a save task on a HuskSync thread, tracked along with the user it's saving data for.
+     * {@link #awaitPendingSaves} waits for this save task during shutdown.
+     * <p>
+     * Taking a snapshot has to wait for the server thread, and may not finish if the server is stopping. 
+     * For disconnect and shutdown saves, use {@link #takeSnapshotAndSave} as it takes the snapshot first,
+     * and only uses this method for the database and Redis writes.
+     * 
      * @since 4.1.0
      */
+    // TODO - consider making these various 'save' method names and their flow clearer for future maintainers
     protected CompletableFuture<Void> runTrackedAsync(@NotNull User user, @NotNull Runnable task) {
         final CompletableFuture<Void> future = new CompletableFuture<>();
-        plugin.runAsync(() -> {
+        saveExecutor.execute(() -> {
             try {
                 task.run();
                 future.complete(null);
             } catch (Throwable t) {
-                plugin.log(Level.WARNING, "Failed to save disconnect data for player %s (%s): %s".formatted(
+                plugin.log(Level.WARNING, "Failed to save data for player %s (%s): %s".formatted(
                         user.getName(), user.getUuid(), t.getMessage()), t);
                 future.completeExceptionally(t);
             }

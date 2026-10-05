@@ -93,6 +93,11 @@ public class BukkitEventListener extends EventListener implements BukkitJoinEven
     }
 
     @Override
+    public void saveOnPlayerQuit(@NotNull BukkitUser bukkitUser) {
+        super.saveOnPlayerQuit(bukkitUser);
+    }
+
+    @Override
     public void handlePlayerJoin(@NotNull BukkitUser bukkitUser) {
         super.handlePlayerJoin(bukkitUser);
     }

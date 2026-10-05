@@ -90,7 +90,9 @@ public class FabricEventListener extends EventListener implements LockedHandler 
 
     private void handlePlayerQuit(@NotNull ServerPlayNetworkHandler handler, @NotNull MinecraftServer server) {
         ((FabricHuskSync) plugin).getPlayerMap().remove(handler.player.getUuid());
-        handlePlayerQuit(FabricUser.adapt(handler.player, plugin));
+        final OnlineUser user = FabricUser.adapt(handler.player, plugin);
+        handlePlayerQuit(user); // mark disconnecting, lock, mark for saving
+        saveOnPlayerQuit(user); // take snapshot and save, if marked above
     }
 
     private void handleWorldSave(@NotNull ServerWorld world) {

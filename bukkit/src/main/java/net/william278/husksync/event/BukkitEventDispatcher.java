@@ -33,6 +33,11 @@ public interface BukkitEventDispatcher extends EventDispatcher {
         return event instanceof Cancellable cancellable && cancellable.isCancelled();
     }
 
+    @Override
+    default boolean isEventThread() {
+        return Bukkit.isPrimaryThread();
+    }
+
     @NotNull
     @Override
     default PreSyncEvent getPreSyncEvent(@NotNull OnlineUser user, @NotNull DataSnapshot.Packed data) {
