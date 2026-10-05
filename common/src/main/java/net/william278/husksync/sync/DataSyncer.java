@@ -235,7 +235,7 @@ public abstract class DataSyncer {
     }
 
     // Whether to fire a DataSaveEvent before saving. Not true while disabling, as the event and the write would get
-    // dispatched via the Bukkit scheduler, which servers stopping may not run  #awaitPendingSaves wouldn't wait for.
+    // dispatched via the Bukkit scheduler, which a stopping server may not run & #awaitPendingSaves won't wait for.
     private boolean shouldFireDataSaveEvent(@NotNull DataSnapshot.Packed data) {
         return data.getSaveCause().fireDataSaveEvent() && !plugin.isDisabling();
     }
