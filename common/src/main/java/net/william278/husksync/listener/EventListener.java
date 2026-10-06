@@ -141,9 +141,9 @@ public abstract class EventListener {
                 });
 
         // Wait for the in-progress async saves queued during shutdown:
-        // - PlayerQuitEvent saves for players who left just before the server stopped (e.g. proxy restarts)
-        // - The onDisable() saves (queued above)
-        // - WorldSaveEvent saves still in queue
+        // - DISCONNECT saves from players leaving before the server stopped, e.g. proxy restart
+        // - SERVER_SHUTDOWN saves queued above, for players still online
+        // - WORLD_SAVE saves still in queue
         // These saves run asynchronously and must complete before closing DB/Redis connections
         plugin.getDataSyncer().awaitPendingSaves();
     }

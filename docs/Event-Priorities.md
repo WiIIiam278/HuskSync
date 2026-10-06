@@ -1,6 +1,6 @@
 If you make use of plugins that perform logic with player items or statuses on the quit, join or death events, such as combat logging plugins, you may encounter issues with HuskSync caused by the event execution order.
 
-In the case of combat logging plugins, this can mean that HuskSync is listening to the event called when a player dies, joins or leaves before the combat logger can kill the player and handle their items. In other words, the player will be brought back to life and synchronized as though they didn't die, even though this can lead to item duplication.
+In the case of combat logging plugins, this can mean that HuskSync is listening to the event called when a player dies, joins or leaves before the combat logger can kill the player and handle their items. In other words, the player will be brought back to life and synchronized as though they didn't die, even though they did. This can lead to item duplication.
 
 HuskSync provides a way of customizing the event priorities—that is, the priorities at which HuskSync listens to event calls—to let you fix this issue.
 
