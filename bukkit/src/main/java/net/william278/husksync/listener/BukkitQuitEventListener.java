@@ -52,8 +52,9 @@ public interface BukkitQuitEventListener extends Listener {
         }
     }
 
-    // Runs after all other plugins have handled the quit, and potentially changed the player data.
-    // Runs regardless of the three priority checks above, which are configured via the config.yml.
+    // Runs after other plugins handle the quit and potentially change player
+    // data, apart from any other MONITOR handlers registered after this one.
+    // Runs regardless of listener type priorities configured via config.yml.
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     default void onPlayerQuitMonitor(@NotNull PlayerQuitEvent event) {
         saveOnPlayerQuit(BukkitUser.adapt(event.getPlayer(), getPlugin()));

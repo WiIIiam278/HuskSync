@@ -38,7 +38,7 @@ public abstract class EventListener {
     // The plugin instance
     protected final HuskSync plugin;
 
-    // Players to save once all other plugins have handled them quitting
+    // Players to save once other plugins have handled them quitting
     private final Set<UUID> quitSaves = ConcurrentHashMap.newKeySet();
 
     protected EventListener(@NotNull HuskSync plugin) {
@@ -82,7 +82,7 @@ public abstract class EventListener {
     }
 
     /**
-     * Save the data of a player who quit, once all other plugins have handled them quitting
+     * Save the data of a player who quit, once other plugins have handled them quitting
      *
      * @param user The {@link OnlineUser} who quit
      */

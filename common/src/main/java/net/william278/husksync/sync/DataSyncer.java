@@ -135,8 +135,8 @@ public abstract class DataSyncer {
      * Save a user's current data, tracking the save so that {@link #awaitPendingSaves} can wait
      * for it to complete during shutdown, rather than losing it if the plugin disables mid-save
      * <p>
-     * Disconnect and shutdown saves take their snapshot on the calling thread, so they aren't
-     * lost if the server stops straight afterwards, in {@link #takeSnapshotAndSave}.
+     * Disconnect and shutdown saves take their snapshot on the calling thread in ({@link
+     * #takeSnapshotAndSave}), so they aren't lost if the server stops straight afterwards.
      *
      * @param onlineUser the user to save data for
      * @param cause      the save cause
@@ -147,38 +147,38 @@ public abstract class DataSyncer {
         final BiConsumer<User, DataSnapshot.Packed> after = (user, data) -> {
             if (!getRedis().setUserData(user, data) && isShutdownCritical(data.getSaveCause())) {
                 // Fresh snapshot couldn't be confirmed on Redis, drop the stale LATEST_SNAPSHOT key
+                // Next login will use the verified database snapshot, to avoid any item duplication
                 getRedis().clearUserData(user);
-                // Next login uses the verified database snapshot, to avoid any item duplication
             }
         };
-        // Disconnect and shutdown saves can happen as the server stops, so take user snapshot on this thread now
+        // Disconnect and shutdown saves can happen as the server stops, so take the snapshot on this thread now
         if (isShutdownCritical(cause)) {
             return takeSnapshotAndSave(onlineUser, cause, after);
         }
-        // Any other saves can take their snapshot on the HuskSync save thread, as before
+        // Any other saves can take their snapshot on the HuskSync save thread
         return runTrackedAsync(onlineUser, () -> saveData(onlineUser, onlineUser.createSnapshot(cause), after));
     }
 
+    // TODO - consider making these various 'save' method names and their flow clearer for future maintainers
     /**
      * Save a user's current data so it isn't lost if a server stops after, e.g. a player disconnecting as
      * part of a restart. Stopping servers may not tick again, so this save doesn't depend on a tick to run.
      * <p>
-     * The snapshot is taken and the {@link net.william278.husksync.event.DataSaveEvent} fired immediately on the
-     * calling thread, e.g. during the player's quit event. The database and Redis writes start immediately on a
-     * HuskSync thread.
+     * The snapshot is taken and any {@link net.william278.husksync.event.DataSaveEvent} fired on the calling thread,
+     * e.g. during the player's quit event. The database and Redis writes start immediately on a HuskSync thread, and
+     * server shutdowns wait for them, up to the configured timeout, before closing connections.
      * <p>
-     * Server shutdowns will wait for these writes, up to the configured timeout, before closing connections.
      * When called from a thread other than the server thread, the event can't be fired immediately, so it's fired on
-     * a later server tick instead, and the save waits for it.
+     * a later server tick instead, followed by the writes. Shutdowns don't wait for these, so they may be lost if the
+     * server stops first.
      *
      * @param onlineUser the user to save data for
      * @param cause      the save cause
      * @param after      a consumer to run once the snapshot is saved, or {@code null}
-     * @return A future which completes once the snapshot is saved and {@code after} has run, or immediately if the
-     * DataSaveEvent is cancelled
+     * @return A future which completes once the snapshot is saved and {@code after} has run. If the DataSaveEvent is
+     * cancelled, it completes immediately, and if called off the server thread, once the event has been scheduled
      * @since 4.1.0
      */
-    // TODO - consider making these various 'save' method names and their flow clearer for future maintainers
     protected CompletableFuture<Void> takeSnapshotAndSave(@NotNull OnlineUser onlineUser,
                                                           @NotNull DataSnapshot.SaveCause cause,
                                                           @Nullable BiConsumer<User, DataSnapshot.Packed> after) {
@@ -234,8 +234,8 @@ public abstract class DataSyncer {
         );
     }
 
-    // Whether to fire a DataSaveEvent before saving. Not true while disabling, as the event and the write would get
-    // dispatched via the Bukkit scheduler, which a stopping server may not run & #awaitPendingSaves won't wait for.
+    // Whether to fire a DataSaveEvent before saving. False if the plugin is disabling, as the event and write would
+    // dispatch via the server scheduler, which a stopping server may not run and #awaitPendingSaves won't wait for.
     private boolean shouldFireDataSaveEvent(@NotNull DataSnapshot.Packed data) {
         return data.getSaveCause().fireDataSaveEvent() && !plugin.isDisabling();
     }
@@ -268,8 +268,8 @@ public abstract class DataSyncer {
         }
     }
 
-    // Writes a snapshot to the database, verifying and retrying DISCONNECT snapshots while disabling the plugin.
-    // Any failed write will likely result in player inventory rollback (and item duplication) on the next login.
+    // Writes a snapshot to the database, verifying and retrying DISCONNECT snapshots while the plugin is disabling.
+    // A failed write here would likely result in player inventory rollback (and item duplication) on the next login.
     @Blocking
     private void persistSnapshot(@NotNull User user, @NotNull DataSnapshot.Packed data) {
         final boolean verifyAndRetry = plugin.isDisabling()
@@ -408,17 +408,17 @@ public abstract class DataSyncer {
         }, currentTickDelay);
     }
 
+    // TODO - consider making these various 'save' method names and their flow clearer for future maintainers
     /**
      * Runs a save task on a HuskSync thread, tracked along with the user it's saving data for.
      * {@link #awaitPendingSaves} waits for this save task during shutdown.
      * <p>
-     * Taking a snapshot has to wait for the server thread, and may not finish if the server is stopping. 
+     * Taking a snapshot has to wait for the server thread, and may not finish if the server is stopping.
      * For disconnect and shutdown saves, use {@link #takeSnapshotAndSave} as it takes the snapshot first,
      * and only uses this method for the database and Redis writes.
-     * 
+     *
      * @since 4.1.0
      */
-    // TODO - consider making these various 'save' method names and their flow clearer for future maintainers
     protected CompletableFuture<Void> runTrackedAsync(@NotNull User user, @NotNull Runnable task) {
         final CompletableFuture<Void> future = new CompletableFuture<>();
         saveExecutor.execute(() -> {
