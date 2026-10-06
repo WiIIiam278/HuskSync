@@ -82,10 +82,9 @@ public abstract class DataSyncer {
     private final Map<CompletableFuture<Void>, User> pendingSaves = new ConcurrentHashMap<>();
 
     // Runs any tracked saves immediately, so that saves made as the server stops can still complete.
-    // Bukkit's scheduler risks data loss if the server stops before starting tasks on the next tick.
+    // Server scheduler risks data loss if the server stops before starting tasks on the next tick.
     private final ExecutorService saveExecutor = Executors.newCachedThreadPool(runnable -> {
         final Thread thread = new Thread(runnable, "HuskSync Save Thread");
-        // Shutdown waits for saves (#awaitPendingSaves), but a stuck one mustn't keep the JVM alive
         thread.setDaemon(true);
         return thread;
     });
