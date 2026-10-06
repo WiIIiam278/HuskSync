@@ -1,6 +1,6 @@
 If you make use of plugins that perform logic with player items or statuses on the quit, join or death events, such as combat logging plugins, you may encounter issues with HuskSync caused by the event execution order.
 
-In the case of combat logging plugins, this can mean that HuskSync is listening to the event called when a player dies, joins or leaves before the combat logger can kill the player and handle their items. In other words, the player will be brought back to life and synchronized as though they didn't die, even though. This can lead to item duplication.
+In the case of combat logging plugins, this can mean that HuskSync is listening to the event called when a player dies, joins or leaves before the combat logger can kill the player and handle their items. In other words, the player will be brought back to life and synchronized as though they didn't die, even though they did. This can lead to item duplication.
 
 HuskSync provides a way of customizing the event priorities—that is, the priorities at which HuskSync listens to event calls—to let you fix this issue.
 
@@ -21,7 +21,11 @@ To change the event execution priority for the join, death or quit listener, sim
 2. `NORMAL` (executed after all LOWEST listeners have finished processing)
 3. `HIGHEST` (executed after all NORMAL and LOWEST listeners have finished processing)
 
-Note that by default, HuskSync executes the join and quit events on the earliest listener priority (`LOWEST`). This is for synchronization performance reasons; in the case of the quit event listener, the earlier in the disconnect process HuskSync can save data, the better. This is because some plugins can be taxing on the tick cycle of the server, causing delays in data syncing which reduces the seamlessness of the system.
+Note that by default, HuskSync executes the join and quit events on the earliest listener priority (`LOWEST`). For the `join_listener` this is for synchronization performance reasons. For the `quit_listener` the priority sets when HuskSync locks the player.
+
+Once locked the player can't take damage, drop or pick up items, or interact with anything, and their death drops get cleared.
+
+Note that player data is saved at the end of the quit event (`MONITOR`), so that the save includes any changes other plugins make at the priorities above.
 
 ## Combat-loggers
-For those using combat logging plugins—the ones that kill players when they disconnect while in PvP—you should try changing the `quit_listener` to having a `NORMAL` or `HIGHEST` priority.
+For those using combat logging plugins—the ones that kill players when they disconnect while in PvP—you should try changing the `quit_listener` to having a `NORMAL` or `HIGHEST` priority. HuskSync should only lock a player after the combat logger has killed them, so that their items still drop. This may not work for any combat loggers that act at `MONITOR` priority.

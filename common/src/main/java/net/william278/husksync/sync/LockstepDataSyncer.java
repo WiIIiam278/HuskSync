@@ -76,8 +76,8 @@ public class LockstepDataSyncer extends DataSyncer {
 
     @Override
     public void syncSaveUserData(@NotNull OnlineUser onlineUser) {
-        runTrackedAsync(onlineUser, () -> saveData(
-                onlineUser, onlineUser.createSnapshot(DataSnapshot.SaveCause.DISCONNECT),
+        takeSnapshotAndSave(
+                onlineUser, DataSnapshot.SaveCause.DISCONNECT,
                 (user, data) -> {
                     if (!getRedis().setUserData(user, data)) {
                         // Cached Redis snapshot may be stale, so clear the LATEST_SNAPSHOT key
@@ -87,7 +87,7 @@ public class LockstepDataSyncer extends DataSyncer {
                     getRedis().setUserCheckedOut(user, false);
                     plugin.unlockPlayer(user.getUuid());
                 }
-        ));
+        );
     }
 
 }

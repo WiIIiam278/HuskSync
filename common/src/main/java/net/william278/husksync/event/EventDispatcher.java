@@ -57,6 +57,14 @@ public interface EventDispatcher {
      */
     <T extends Event> boolean fireIsCancelled(@NotNull T event);
 
+    /**
+     * Whether the calling thread is a server thread that events can be fired on synchronously.
+     *
+     * @return {@code true} if events can be fired on the calling thread
+     * @since 4.1.0
+     */
+    boolean isEventThread();
+
     @NotNull
     PreSyncEvent getPreSyncEvent(@NotNull OnlineUser user, @NotNull DataSnapshot.Packed userData);
 

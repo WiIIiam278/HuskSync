@@ -26,6 +26,7 @@ import net.william278.husksync.user.OnlineUser;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static net.william278.husksync.config.Settings.SynchronizationSettings.SaveOnDeathSettings;
 
@@ -36,6 +37,9 @@ public abstract class EventListener {
 
     // The plugin instance
     protected final HuskSync plugin;
+
+    // Players to save once other plugins have handled them quitting
+    private final Set<UUID> quitSaves = ConcurrentHashMap.newKeySet();
 
     protected EventListener(@NotNull HuskSync plugin) {
         this.plugin = plugin;
@@ -67,13 +71,24 @@ public abstract class EventListener {
         }
         plugin.getDisconnectingPlayers().add(user.getUuid());
 
-        // Lock, then save their data if the user is unlocked
+        // Lock, then mark their data to be saved if the user is unlocked
         if (!plugin.isLocked(user.getUuid())) {
             plugin.lockPlayer(user.getUuid());
-            plugin.getDataSyncer().syncSaveUserData(user);
+            quitSaves.add(user.getUuid());
         } else {
             plugin.debug(String.format("[%s] disconnected while locked - data will NOT be saved!",
                     user.getName()));
+        }
+    }
+
+    /**
+     * Save the data of a player who quit, once other plugins have handled them quitting
+     *
+     * @param user The {@link OnlineUser} who quit
+     */
+    protected final void saveOnPlayerQuit(@NotNull OnlineUser user) {
+        if (quitSaves.remove(user.getUuid())) {
+            plugin.getDataSyncer().syncSaveUserData(user);
         }
     }
 
@@ -126,9 +141,9 @@ public abstract class EventListener {
                 });
 
         // Wait for the in-progress async saves queued during shutdown:
-        // - PlayerQuitEvent saves (Paper kicks players before calling onDisable())
-        // - The onDisable() saves (queued above)
-        // - WorldSaveEvent saves still in queue
+        // - DISCONNECT saves for players leaving before the server stopped
+        // - SERVER_SHUTDOWN saves queued above, for players still online
+        // - WORLD_SAVE saves still in queue
         // These saves run asynchronously and must complete before closing DB/Redis connections
         plugin.getDataSyncer().awaitPendingSaves();
     }
