@@ -131,25 +131,6 @@ public abstract class DataSyncer {
     public abstract void syncSaveUserData(@NotNull OnlineUser user);
 
     /**
-     * Called when a user's data should be serialized and saved as part of a synchronization process, optionally
-     * using an already-captured snapshot instead of building a fresh one from the user's current (live) state.
-     * <p>
-     * This is used by the {@code ClearPlayerDeathOnDisconnect} workaround setting, which must capture the user's
-     * (dead) snapshot before clearing their local death state - otherwise the snapshot built afterward would
-     * incorrectly reflect them as alive. The default implementation ignores {@code precomputedSnapshot} and
-     * defers to {@link #syncSaveUserData(OnlineUser)}; the built-in LOCKSTEP and DELAY modes override this to
-     * actually use it.
-     *
-     * @param user                the user to save
-     * @param precomputedSnapshot a snapshot to save instead of building one from the user's live state, or
-     *                            {@code null} to build one as normal
-     * @since 4.1.0
-     */
-    public void syncSaveUserData(@NotNull OnlineUser user, @Nullable DataSnapshot.Packed precomputedSnapshot) {
-        syncSaveUserData(user);
-    }
-
-    /**
      * Save a user's current data, tracking the save so that {@link #awaitPendingSaves} can wait
      * for it to complete during shutdown, rather than losing it if the plugin disables mid-save
      * <p>

@@ -27,7 +27,6 @@ import net.william278.husksync.HuskSync;
 import net.william278.husksync.data.BukkitData;
 import net.william278.husksync.data.BukkitUserDataHolder;
 import net.william278.husksync.data.Data;
-import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.ApiStatus;
@@ -105,26 +104,13 @@ public class BukkitUser extends OnlineUser implements BukkitUserDataHolder {
         if (!isDead()) {
             return;
         }
-        // Paper's player.spigot().respawn() can't be used here: it does nothing once the connection has closed,
-        // which it already has during PlayerQuitEvent. Restoring health is enough for the player file to be saved
-        // alive - the same as the respawn would have done (Paper resets health to max on respawn).
-        final double before = player.getHealth();
+        // spigot().respawn() does nothing once the player's connection has closed
         try {
             player.setHealth(player.getMaxHealth());
+            plugin.debug("[%s] Restored health to %s".formatted(player.getName(), player.getHealth()));
         } catch (Throwable e) {
-            plugin.log(Level.WARNING, "[%s] ClearPlayerDeathOnDisconnect: failed to restore health"
-                    .formatted(player.getName()), e);
-            return;
+            plugin.log(Level.WARNING, "Error restoring %s's health".formatted(player.getName()), e);
         }
-        plugin.debug("[%s] ClearPlayerDeathOnDisconnect: restored health %s -> %s at %s"
-                .formatted(player.getName(), before, player.getHealth(), describeLocation()));
-    }
-
-    @NotNull
-    private String describeLocation() {
-        final Location loc = player.getLocation();
-        return "%s(%.1f, %.1f, %.1f)".formatted(
-                loc.getWorld() == null ? "?" : loc.getWorld().getName(), loc.getX(), loc.getY(), loc.getZ());
     }
 
     @Override

@@ -50,6 +50,13 @@ public interface BukkitDeathEventListener extends Listener {
         }
     }
 
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    default void onPlayerDeathMonitor(@NotNull PlayerDeathEvent event) {
+        if (handleEvent(EventListener.ListenerType.DEATH_LISTENER, EventListener.Priority.MONITOR)) {
+            handlePlayerDeath(event);
+        }
+    }
+
     void handlePlayerDeath(@NotNull PlayerDeathEvent player);
 
 }

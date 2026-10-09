@@ -366,17 +366,13 @@ public class Settings {
 
         }
 
-        @Comment("Event priorities for listeners (HIGHEST, NORMAL, LOWEST). Change if you encounter plugin conflicts")
+        @Comment({"Event priorities for listeners (HIGHEST, NORMAL, LOWEST, MONITOR). Change if you encounter plugin conflicts",
+                "MONITOR is not recommended, only use it for plugins that need HuskSync to run after them, e.g. combat loggers"})
         @Getter(AccessLevel.NONE)
         private Map<String, String> eventPriorities = EventListener.ListenerType.getDefaults();
 
         @Comment("Enable check-in petitions for data syncing (don't change this unless you know what you're doing)")
         private boolean checkinPetitions = false;
-
-        @Comment({"Workaround for servers experiencing \"double deaths\" i.e. players that disconnect while " +
-            "dead and rejoin onto a different server such as a hub/lobby, and PvP/combat-log plugins that " +
-            "kill players as they disconnect or quit. Works on Bukkit/Paper only, has no effect on Fabric."})
-        private boolean clearPlayerDeathOnDisconnect = false;
 
         public boolean doAutoPin(@NotNull DataSnapshot.SaveCause cause) {
             return autoPinnedSaveCauses.contains(cause.name());

@@ -159,8 +159,7 @@ synchronization:
     # Which attribute modifiers should not be saved when syncing users. Supports wildcard matching.
     # (e.g. ['minecraft:effect.speed', 'minecraft:effect.*'])
     ignored_modifiers: ['minecraft:effect.*', 'minecraft:creative_mode_*']
-  # Event priorities for listeners (HIGHEST, NORMAL, LOWEST). Change if you encounter plugin conflicts
-  event_priorities:
+  # Event priorities for listeners (HIGHEST, NORMAL, LOWEST, MONITOR). Change if you encounter plugin conflicts. MONITOR is not recommended, only use it for plugins that need HuskSync to run after them.
     quit_listener: LOWEST
     join_listener: LOWEST
     death_listener: NORMAL

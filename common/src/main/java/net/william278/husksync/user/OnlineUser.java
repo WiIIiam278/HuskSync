@@ -64,17 +64,11 @@ public abstract class OnlineUser extends User implements CommandUser, UserDataHo
     public abstract boolean isDead();
 
     /**
-     * If this player is {@link #isDead() dead}, restore their health so that this server's own local player data
-     * is saved alive rather than mid-death when they disconnect.
+     * If this player is {@link #isDead() dead}, restore their health so that this server saves its own player data
+     * for them alive when they quit. Otherwise, they'd load dead when they next join this server, and get stuck on
+     * the death screen even with alive synced data.
      * <p>
-     * This is the {@code ClearPlayerDeathOnDisconnect} workaround for players who disconnect while dead (whether they
-     * quit from the death screen, or a PvP/anti-combat-logout plugin killed them on quit). Left alone, the server
-     * saves their local player data with zero health, so when they next join this server - even with an alive
-     * synced snapshot from elsewhere - they load dead and get stuck on the death screen.
-     * <p>
-     * This deliberately does not perform a real respawn: the server refuses to respawn a player whose connection
-     * has already closed (as it has during a quit), and would fire respawn events for a player who is leaving.
-     * Only the saved health matters here, since the player's synced data is reapplied when they next join.
+     * This isn't a real respawn, as the server won't respawn a player whose connection has closed.
      *
      * @since 4.1.0
      */

@@ -42,7 +42,7 @@ public class BukkitEventListener extends EventListener implements BukkitJoinEven
         BukkitDeathEventListener, Listener {
 
     protected LockedHandler lockedHandler;
-    private volatile boolean clearDeathStateQuitListenerRegistered;
+    private volatile boolean lateQuitListenerRegistered;
 
     public BukkitEventListener(@NotNull BukkitHuskSync plugin) {
         super(plugin);
@@ -55,24 +55,20 @@ public class BukkitEventListener extends EventListener implements BukkitJoinEven
     public void onEnable() {
         getPlugin().getServer().getPluginManager().registerEvents(this, getPlugin());
         lockedHandler.onEnable();
-        scheduleClearDeathStateQuitListener();
+        registerLateQuitListener();
     }
 
-    /**
-     * Register {@link BukkitClearDeathStateQuitListener} on the first tick after enabling - by which point every
-     * plugin loaded at startup has registered its own listeners - so its {@code MONITOR} quit handler runs after
-     * theirs. Until then, the configurable-priority quit handlers keep saving as normal.
-     */
-    protected final void scheduleClearDeathStateQuitListener() {
+    // Registered on the next tick, after other plugins have registered their listeners
+    protected final void registerLateQuitListener() {
         getPlugin().runSync(() -> {
-            new BukkitClearDeathStateQuitListener(getPlugin(), this).register();
-            clearDeathStateQuitListenerRegistered = true;
+            new BukkitLateQuitListener(getPlugin(), this).register();
+            lateQuitListenerRegistered = true;
         });
     }
 
     @Override
-    public boolean isClearDeathStateQuitListenerRegistered() {
-        return clearDeathStateQuitListenerRegistered;
+    public boolean isLateQuitListenerRegistered() {
+        return lateQuitListenerRegistered;
     }
 
     public void handlePluginDisable() {
@@ -100,11 +96,6 @@ public class BukkitEventListener extends EventListener implements BukkitJoinEven
     }
 
     @Override
-    public void markDisconnecting(@NotNull BukkitUser bukkitUser) {
-        super.markDisconnecting(bukkitUser);
-    }
-
-    @Override
     public void handlePlayerQuit(@NotNull BukkitUser bukkitUser) {
         final Player player = bukkitUser.getPlayer();
         final ItemStack itemOnCursor = player.getItemOnCursor();
@@ -116,29 +107,9 @@ public class BukkitEventListener extends EventListener implements BukkitJoinEven
         super.handlePlayerQuit(bukkitUser);
     }
 
-    /**
-     * Backstop for a player dying while already mid-disconnect (per {@link #markDisconnecting}) - see {@link
-     * EventListener#clearDeathStateIfKilledMidQuit} for why this is needed specifically for a PvP/anti-combat-logout
-     * plugin that, like CombatLogX, kills the player at Bukkit's {@code MONITOR} priority itself.
-     * <p>
-     * No-op when {@code ClearPlayerDeathOnDisconnect} is disabled, or when the death isn't mid-quit (an
-     * ordinary death - not logged, since it's hit on every normal death once the setting is on). Note this runs
-     * from inside {@code ServerPlayer#die()}, so {@link EventListener#clearDeathStateIfKilledMidQuit} only restores
-     * health here when the disconnect-save has already run and can't do it itself.
-     *
-     * @since 4.1.0
-     */
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    public void onPlayerDeathClearDeathStateBackstop(@NotNull PlayerDeathEvent event) {
-        final Player player = event.getEntity();
-        if (!plugin.getSettings().getSynchronization().isClearPlayerDeathOnDisconnect()
-                || !plugin.getDisconnectingPlayers().contains(player.getUniqueId())) {
-            return;
-        }
-        plugin.debug("[%s] ClearPlayerDeathOnDisconnect: PlayerDeathEvent while disconnecting (health=%s, cause=%s)"
-                .formatted(player.getName(), player.getHealth(), player.getLastDamageCause() == null
-                        ? "unknown" : player.getLastDamageCause().getCause()));
-        clearDeathStateIfKilledMidQuit(BukkitUser.adapt(player, plugin));
+    public void onPlayerDeathAfterQuitSave(@NotNull PlayerDeathEvent event) {
+        handlePlayerDeathAfterQuitSave(BukkitUser.adapt(event.getEntity(), plugin));
     }
 
     @Override

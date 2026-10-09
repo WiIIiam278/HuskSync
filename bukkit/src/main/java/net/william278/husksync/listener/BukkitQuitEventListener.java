@@ -33,68 +33,43 @@ public interface BukkitQuitEventListener extends Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     default void onPlayerQuitHighest(@NotNull PlayerQuitEvent event) {
-        if (handleEvent(EventListener.ListenerType.QUIT_LISTENER, EventListener.Priority.HIGHEST)
-                && !isQuitSaveDeferredToLateListener()) {
+        if (handleEvent(EventListener.ListenerType.QUIT_LISTENER, EventListener.Priority.HIGHEST)) {
             handlePlayerQuit(BukkitUser.adapt(event.getPlayer(), getPlugin()));
         }
     }
 
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     default void onPlayerQuit(@NotNull PlayerQuitEvent event) {
-        if (handleEvent(EventListener.ListenerType.QUIT_LISTENER, EventListener.Priority.NORMAL)
-                && !isQuitSaveDeferredToLateListener()) {
+        if (handleEvent(EventListener.ListenerType.QUIT_LISTENER, EventListener.Priority.NORMAL)) {
             handlePlayerQuit(BukkitUser.adapt(event.getPlayer(), getPlugin()));
         }
     }
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     default void onPlayerQuitLowest(@NotNull PlayerQuitEvent event) {
-        if (handleEvent(EventListener.ListenerType.QUIT_LISTENER, EventListener.Priority.LOWEST)
-                && !isQuitSaveDeferredToLateListener()) {
+        if (handleEvent(EventListener.ListenerType.QUIT_LISTENER, EventListener.Priority.LOWEST)) {
             handlePlayerQuit(BukkitUser.adapt(event.getPlayer(), getPlugin()));
         }
     }
 
-    // Runs after other plugins handle the quit and potentially change player
-    // data, apart from any other MONITOR handlers registered after this one.
-    // Runs regardless of listener type priorities configured via config.yml.
+    // Only handles quits until the late MONITOR listener is registered, see BukkitLateQuitListener
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     default void onPlayerQuitMonitor(@NotNull PlayerQuitEvent event) {
-        saveOnPlayerQuit(BukkitUser.adapt(event.getPlayer(), getPlugin()));
-    }
-
-    /**
-     * Marks a user as disconnecting as early as possible (LOWEST priority, always - not gated behind the
-     * configurable {@link EventListener.ListenerType#QUIT_LISTENER} priority), so that the disconnect-save's
-     * {@code PlayerDeathEvent} backstop (see {@code EventListener#clearDeathStateIfKilledMidQuit}) can reliably
-     * recognise a death that happens later in the same quit, no matter what priority the killing reason has.
-     *
-     * @since 4.1.0
-     */
-    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
-    default void onPlayerQuitMarkDisconnecting(@NotNull PlayerQuitEvent event) {
-        if (isClearPlayerDeathOnDisconnectEnabled()) {
-            markDisconnecting(BukkitUser.adapt(event.getPlayer(), getPlugin()));
+        if (!isLateQuitListenerRegistered()) {
+            handlePlayerQuitMonitor(BukkitUser.adapt(event.getPlayer(), getPlugin()));
         }
     }
 
-    private boolean isClearPlayerDeathOnDisconnectEnabled() {
-        return getPlugin().getSettings().getSynchronization().isClearPlayerDeathOnDisconnect();
+    // Runs after other plugins handle the quit and potentially change player data
+    // Runs regardless of listener type priorities configured via config.yml, unless set to MONITOR
+    default void handlePlayerQuitMonitor(@NotNull BukkitUser player) {
+        if (handleEvent(EventListener.ListenerType.QUIT_LISTENER, EventListener.Priority.MONITOR)) {
+            handlePlayerQuit(player);
+        }
+        saveOnPlayerQuit(player);
     }
 
-    /**
-     * Whether the normal, configurable-priority quit handlers above should leave the disconnect-save
-     * to {@link BukkitClearDeathStateQuitListener} instead. Only true once that listener has been 
-     * registered, so there's never a window where neither saves (e.g. the tick between HuskSync
-     * enabling and the late listener registering, if HuskSync is loaded after server startup).
-     */
-    private boolean isQuitSaveDeferredToLateListener() {
-        return isClearPlayerDeathOnDisconnectEnabled() && isClearDeathStateQuitListenerRegistered();
-    }
-
-    boolean isClearDeathStateQuitListenerRegistered();
-
-    void markDisconnecting(@NotNull BukkitUser player);
+    boolean isLateQuitListenerRegistered();
 
     void handlePlayerQuit(@NotNull BukkitUser player);
 

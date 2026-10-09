@@ -22,9 +22,9 @@ package net.william278.husksync.listener;
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.data.Data;
 import net.william278.husksync.data.DataSnapshot;
+import net.william278.husksync.data.Identifier;
 import net.william278.husksync.user.OnlineUser;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -43,6 +43,9 @@ public abstract class EventListener {
     // Players to save once other plugins have handled them quitting
     private final Set<UUID> quitSaves = ConcurrentHashMap.newKeySet();
 
+    // Players whose data was saved on quit, to catch them dying afterwards
+    private final Set<UUID> savedOnQuit = ConcurrentHashMap.newKeySet();
+
     protected EventListener(@NotNull HuskSync plugin) {
         this.plugin = plugin;
     }
@@ -54,6 +57,7 @@ public abstract class EventListener {
      */
     protected final void handlePlayerJoin(@NotNull OnlineUser user) {
         plugin.getDisconnectingPlayers().remove(user.getUuid());
+        savedOnQuit.remove(user.getUuid());
         if (user.isNpc()) {
             return;
         }
@@ -67,176 +71,79 @@ public abstract class EventListener {
      * @param user The {@link OnlineUser} to handle
      */
     protected final void handlePlayerQuit(@NotNull OnlineUser user) {
+        // Check the user is a user, the plugin isn't disabling, then mark as disconnecting
         if (user.isNpc() || plugin.isDisabling()) {
             return;
         }
         plugin.getDisconnectingPlayers().add(user.getUuid());
-        lockAndSaveOnQuit(user);
-    }
 
-    /**
-     * Mark a user as disconnecting as early as possible - as soon as {@code PlayerQuitEvent} starts firing,
-     * regardless of what priority {@link ListenerType#QUIT_LISTENER} is configured for.
-     * <p>
-     * This lets other code reliably tell that a quit is already in progress for a user - in particular,
-     * {@link #clearDeathStateIfKilledMidQuit}'s {@code PlayerDeathEvent} backstop uses this to recognise a kill that
-     * happens as part of the same quit (e.g. from a PvP/anti-combat-logout plugin), no matter what priority
-     * that plugin's own listener runs at.
-     *
-     * @param user the user who is disconnecting
-     * @since 4.1.0
-     */
-    protected final void markDisconnecting(@NotNull OnlineUser user) {
-        if (user.isNpc() || plugin.isDisabling()) {
-            return;
-        }
-        plugin.getDisconnectingPlayers().add(user.getUuid());
-        plugin.debug(String.format(
-                "[%s] ClearPlayerDeathOnDisconnect: marked as disconnecting early (quit in progress)", user.getName()));
-    }
-
-    /**
-     * Lock a user and dispatch their disconnect-save, unless they're already locked.
-     * <p>
-     * While {@code ClearPlayerDeathOnDisconnect} is enabled, this is only ever called once per quit - from the
-     * Bukkit platform's late-registered {@code MONITOR} quit listener instead of from the normal, configurable
-     * {@link ListenerType#QUIT_LISTENER} priority - specifically so it runs after any PvP/anti-combat-logout
-     * plugin's own kill-on-quit listener, including one that itself uses {@code MONITOR} (a plugin registering
-     * its listener later still is backstopped by {@link #clearDeathStateIfKilledMidQuit}). The {@code isLocked()}
-     * check below also catches users who quit before their join-sync finished.
-     * <p>
-     * If the workaround is enabled and the user is still dead at this point, this captures their (dead)
-     * snapshot before saving, then clears their local death state - the snapshot must be captured first, since
-     * one built afterward would incorrectly reflect them as alive.
-     *
-     * @param user the user who is disconnecting
-     * @since 4.1.0
-     */
-    protected final void lockAndSaveOnQuit(@NotNull OnlineUser user) {
-        if (plugin.isLocked(user.getUuid())) {
+        // Lock, then mark their data to be saved if the user is unlocked
+        if (!plugin.isLocked(user.getUuid())) {
+            plugin.lockPlayer(user.getUuid());
+            quitSaves.add(user.getUuid());
+        } else {
             plugin.debug(String.format("[%s] disconnected while locked - data will NOT be saved!",
                     user.getName()));
-            clearLockedDeathStateOnDisconnect(user);
-            return;
         }
-        plugin.lockPlayer(user.getUuid());
-        final DataSnapshot.Packed precomputedSnapshot = ClearPlayerDeathOnDisconnect(user);
-        plugin.debug(String.format("[%s] lockAndSaveOnQuit: locked, dispatching disconnect-save (precomputed "
-                + "dead snapshot: %s)", user.getName(), precomputedSnapshot != null));
-        plugin.getDataSyncer().syncSaveUserData(user, precomputedSnapshot);
-    }
-
-    /**
-     * Workaround for players disconnecting while dead - whether because they quit from the death screen without
-     * clicking respawn, or because a PvP/anti-combat-logout plugin (e.g., CombatLogX or PvPManager's "kill on
-     * quit" punishment) killed them as part of quit handling. Left alone, this server's own local player data
-     * would stay stuck mid-death, so returning to *this* server later, even with an alive synced snapshot from
-     * another server, leaves them stuck on the death screen.
-     * <p>
-     * Called from {@link #lockAndSaveOnQuit}, right before that method's own disconnect-save, so this is the
-     * primary path: by the time it runs (a late-registered Bukkit {@code MONITOR} listener), any kill applied by
-     * another plugin's quit listener has normally already happened. If enabled and the user is still dead at this
-     * point, this captures their (dead) snapshot now, then restores their local health (see {@link
-     * OnlineUser#clearLocalDeathState()}) before the server saves their player file - the snapshot must be captured
-     * first, since one built afterward would incorrectly reflect them as alive.
-     *
-     * @param user the user who is disconnecting
-     * @return the dead snapshot to save, or {@code null} if the workaround did not apply
-     */
-    @Nullable
-    private DataSnapshot.Packed ClearPlayerDeathOnDisconnect(@NotNull OnlineUser user) {
-        if (!plugin.getSettings().getSynchronization().isClearPlayerDeathOnDisconnect()) {
-            return null;
-        }
-        if (!user.isDead()) {
-            plugin.debug(String.format(
-                    "[%s] ClearPlayerDeathOnDisconnect: not dead at disconnect, nothing to do", user.getName()));
-            return null;
-        }
-        plugin.debug(String.format(
-                "[%s] ClearPlayerDeathOnDisconnect: dead at disconnect - capturing snapshot before clearing local death state",
-                user.getName()));
-        final DataSnapshot.Packed snapshot = user.createSnapshot(DataSnapshot.SaveCause.DISCONNECT);
-        clearLocalDeathState(user, "disconnect-save");
-        return snapshot;
-    }
-
-    /**
-     * Variant of {@link #ClearPlayerDeathOnDisconnect} for a user who disconnects while still locked (e.g. before
-     * their data finished applying on join), so no disconnect-save happens. Their local player data would still
-     * be saved mid-death, so clear that anyway; nothing is sent to the network either way.
-     *
-     * @param user the user who is disconnecting while locked
-     */
-    private void clearLockedDeathStateOnDisconnect(@NotNull OnlineUser user) {
-        if (!plugin.getSettings().getSynchronization().isClearPlayerDeathOnDisconnect() || !user.isDead()) {
-            return;
-        }
-        plugin.debug(String.format("[%s] ClearPlayerDeathOnDisconnect: dead at disconnect while locked - clearing "
-                + "local death state (no snapshot is saved)", user.getName()));
-        clearLocalDeathState(user, "disconnect while locked");
-    }
-
-    /**
-     * Backstop for {@link #ClearPlayerDeathOnDisconnect}, for a PvP/anti-combat-logout plugin that kills the player
-     * after HuskSync's disconnect-save has already run. HuskSync's {@code MONITOR} quit listener is registered
-     * late so that this shouldn't normally happen, but a plugin that registers its own {@code MONITOR} quit
-     * listener even later (e.g. one loaded or reloaded at runtime) can still kill after it.
-     * <p>
-     * This runs from inside the killing {@code PlayerDeathEvent} - i.e. mid-way through the server's own death
-     * handling - so it only acts when it has to:
-     * <ul>
-     *     <li>If the user is <b>not</b> yet locked, the disconnect-save is still to come and will see the user
-     *     dead, saving the dead snapshot and clearing their local death state. Nothing is done here.
-     *     </li>
-     *     <li>If the user is already locked, either the disconnect-save already ran (and saved them alive), or
-     *     they were locked before quitting and no save will happen. Either way nothing else will fix their
-     *     local state, so their health is restored here. The network snapshot won't reflect this death, so any
-     *     items it dropped are likely duplicated - hence this logs a warning.</li>
-     * </ul>
-     *
-     * @param user the user who died while already disconnecting
-     * @since 4.1.0
-     */
-    protected final void clearDeathStateIfKilledMidQuit(@NotNull OnlineUser user) {
-        if (!plugin.getSettings().getSynchronization().isClearPlayerDeathOnDisconnect() || !user.isDead()) {
-            return;
-        }
-        if (!plugin.isLocked(user.getUuid())) {
-            plugin.debug(String.format("[%s] ClearPlayerDeathOnDisconnect: died mid-quit before the disconnect-save "
-                    + "ran - leaving it to the disconnect-save", user.getName()));
-            return;
-        }
-        plugin.log(Level.WARNING, String.format("[%s] ClearPlayerDeathOnDisconnect: killed mid-quit after the "
-                + "disconnect-save already ran - restoring health from inside PlayerDeathEvent (backstop). Their synced "
-                + "data was already saved alive, so this death won't be reflected in it and any items dropped by "
-                + "this death are likely DUPLICATED. Enable debug logging to see which plugin's listener runs "
-                + "after HuskSync's.", user.getName()));
-        clearLocalDeathState(user, "PlayerDeathEvent backstop");
-    }
-
-    // Clear a dead user's local death state, warning if they're still dead afterward (i.e. it did nothing)
-    private void clearLocalDeathState(@NotNull OnlineUser user, @NotNull String source) {
-        user.clearLocalDeathState();
-        if (user.isDead()) {
-            plugin.log(Level.WARNING, String.format("[%s] ClearPlayerDeathOnDisconnect: clearing local death state "
-                    + "(%s) failed - still dead afterward. Their local player data on this server will be saved "
-                    + "mid-death, and they may get stuck on the death screen when they next join it.",
-                    user.getName(), source));
-            return;
-        }
-        plugin.debug(String.format("[%s] ClearPlayerDeathOnDisconnect: cleared local death state (%s)",
-                user.getName(), source));
     }
 
     /**
      * Save the data of a player who quit, once other plugins have handled them quitting
+     * <p>
+     * If the player is dead and health is synced, their death is cleared from this server's own player data after
+     * the snapshot is taken. Otherwise, rejoining this server later would kill them again, even with alive synced
+     * data.
      *
      * @param user The {@link OnlineUser} who quit
      */
     protected final void saveOnPlayerQuit(@NotNull OnlineUser user) {
+        if (user.isNpc()) {
+            return;
+        }
         if (quitSaves.remove(user.getUuid())) {
             plugin.getDataSyncer().syncSaveUserData(user);
+        }
+
+        // Any death after this is part of the same quit, so stop tracking them once it's finished
+        savedOnQuit.add(user.getUuid());
+        plugin.runSync(() -> savedOnQuit.remove(user.getUuid()));
+        clearLocalDeathState(user);
+    }
+
+    /**
+     * Handle a player dying while they quit, after their data was saved by {@link #saveOnPlayerQuit}, e.g. killed
+     * by a combat logging plugin that handles quits after HuskSync. They're locked by then, so the death drops
+     * nothing, but their saved data won't include the death either. Their local death state is cleared, as it
+     * would have been had they died before the save.
+     *
+     * @param user The {@link OnlineUser} who died
+     */
+    protected final void handlePlayerDeathAfterQuitSave(@NotNull OnlineUser user) {
+        if (!savedOnQuit.contains(user.getUuid()) || !user.isDead()) {
+            return;
+        }
+        plugin.log(Level.WARNING, String.format("[%s] was killed after their data was saved on quit, so their "
+                + "synced data won't include this death. Another plugin is handling quits after HuskSync, "
+                + "enable debug logging to see which.", user.getName()));
+        clearLocalDeathState(user);
+    }
+
+    /**
+     * Clears a player's death from the server's player data, so they don't die again when they next join
+     * <p>
+     * Must be cleared after health is synced, otherwise the death isn't saved and the player would skip respawning
+     *
+     * @param user the {@link OnlineUser} to clear a death for
+     */
+    private void clearLocalDeathState(@NotNull OnlineUser user) {
+        if (!user.isDead() || !plugin.getSettings().getSynchronization().isFeatureEnabled(Identifier.HEALTH)) {
+            return;
+        }
+        plugin.debug(String.format("[%s] left while dead, clearing their local death state", user.getName()));
+        user.clearLocalDeathState();
+        if (user.isDead()) {
+            plugin.log(Level.WARNING, String.format("[%s] failed to clear local death state, they may be stuck on "
+                    + "the death screen when they next join this server", user.getName()));
         }
     }
 
@@ -280,13 +187,18 @@ public abstract class EventListener {
      * Handle the plugin disabling
      */
     public void handlePluginDisable() {
-        // Save for all online players that haven't been processed by PlayerQuitEvent yet.
+        // Save all online players that haven't been processed by PlayerQuitEvent yet
         plugin.getOnlineUsers().stream()
                 .filter(user -> !plugin.isLocked(user.getUuid()) && !user.isNpc())
                 .forEach(user -> {
                     plugin.lockPlayer(user.getUuid());
                     plugin.getDataSyncer().saveCurrentUserData(user, DataSnapshot.SaveCause.SERVER_SHUTDOWN);
                 });
+
+        // Clear any in-limbo deaths, as players are saved by the server after plugins disable
+        plugin.getOnlineUsers().stream()
+                .filter(user -> !user.isNpc())
+                .forEach(this::clearLocalDeathState);
 
         // Wait for the in-progress async saves queued during shutdown:
         // - DISCONNECT saves for players leaving before the server stopped
@@ -320,7 +232,14 @@ public abstract class EventListener {
         /**
          * Listens and processes the event execution first
          */
-        LOWEST
+        LOWEST,
+        /**
+         * Listens and processes the event execution last, after all other priorities. Not recommended, as other
+         * plugins may only expect to observe the event here, and won't see any changes HuskSync makes
+         *
+         * @since 4.1.0
+         */
+        MONITOR
     }
 
     /**
