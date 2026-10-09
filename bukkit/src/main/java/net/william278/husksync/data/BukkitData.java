@@ -821,12 +821,6 @@ public abstract class BukkitData implements Data {
             }
             final Player player = user.getPlayer();
 
-            // Setting health doesn't revive a player who joined dead, they'll be stuck on the death screen
-            if (player.getHealth() <= 0 && health > 0) {
-                plugin.log(Level.WARNING, ("%s joined dead in this server's player data, so may be stuck on "
-                        + "the death screen").formatted(player.getName()));
-            }
-
             // Set health
             try {
                 player.setHealth(Math.min(health, player.getMaxHealth()));

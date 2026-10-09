@@ -99,21 +99,6 @@ public class BukkitUser extends OnlineUser implements BukkitUserDataHolder {
     }
 
     @Override
-    @SuppressWarnings("deprecation")
-    public void clearLocalDeathState() {
-        if (!isDead()) {
-            return;
-        }
-        // spigot().respawn() does nothing once the player's connection has closed
-        try {
-            player.setHealth(player.getMaxHealth());
-            plugin.debug("[%s] Restored health to %s".formatted(player.getName(), player.getHealth()));
-        } catch (Throwable e) {
-            plugin.log(Level.WARNING, "Error restoring %s's health".formatted(player.getName()), e);
-        }
-    }
-
-    @Override
     public boolean isLocked() {
         return plugin.getLockedPlayers().contains(player.getUniqueId());
     }

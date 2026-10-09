@@ -22,13 +22,11 @@ package net.william278.husksync.listener;
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.data.Data;
 import net.william278.husksync.data.DataSnapshot;
-import net.william278.husksync.data.Identifier;
 import net.william278.husksync.user.OnlineUser;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.logging.Level;
 
 import static net.william278.husksync.config.Settings.SynchronizationSettings.SaveOnDeathSettings;
 
@@ -43,9 +41,6 @@ public abstract class EventListener {
     // Players to save once other plugins have handled them quitting
     private final Set<UUID> quitSaves = ConcurrentHashMap.newKeySet();
 
-    // Players whose data was saved on quit, to catch them dying afterwards
-    private final Set<UUID> savedOnQuit = ConcurrentHashMap.newKeySet();
-
     protected EventListener(@NotNull HuskSync plugin) {
         this.plugin = plugin;
     }
@@ -57,7 +52,6 @@ public abstract class EventListener {
      */
     protected final void handlePlayerJoin(@NotNull OnlineUser user) {
         plugin.getDisconnectingPlayers().remove(user.getUuid());
-        savedOnQuit.remove(user.getUuid());
         if (user.isNpc()) {
             return;
         }
@@ -89,61 +83,12 @@ public abstract class EventListener {
 
     /**
      * Save the data of a player who quit, once other plugins have handled them quitting
-     * <p>
-     * If the player is dead and health is synced, their death is cleared from this server's own player data after
-     * the snapshot is taken. Otherwise, rejoining this server later would kill them again, even with alive synced
-     * data.
      *
      * @param user The {@link OnlineUser} who quit
      */
     protected final void saveOnPlayerQuit(@NotNull OnlineUser user) {
-        if (user.isNpc()) {
-            return;
-        }
         if (quitSaves.remove(user.getUuid())) {
             plugin.getDataSyncer().syncSaveUserData(user);
-        }
-
-        // Any death after this is part of the same quit, so stop tracking them once it's finished
-        savedOnQuit.add(user.getUuid());
-        plugin.runSync(() -> savedOnQuit.remove(user.getUuid()));
-        clearLocalDeathState(user);
-    }
-
-    /**
-     * Handle a player dying while they quit, after their data was saved by {@link #saveOnPlayerQuit}, e.g. killed
-     * by a combat logging plugin that handles quits after HuskSync. They're locked by then, so the death drops
-     * nothing, but their saved data won't include the death either. Their local death state is cleared, as it
-     * would have been had they died before the save.
-     *
-     * @param user The {@link OnlineUser} who died
-     */
-    protected final void handlePlayerDeathAfterQuitSave(@NotNull OnlineUser user) {
-        if (!savedOnQuit.contains(user.getUuid()) || !user.isDead()) {
-            return;
-        }
-        plugin.log(Level.WARNING, String.format("[%s] was killed after their data was saved on quit, so their "
-                + "synced data won't include this death. Another plugin is handling quits after HuskSync, "
-                + "enable debug logging to see which.", user.getName()));
-        clearLocalDeathState(user);
-    }
-
-    /**
-     * Clears a player's death from the server's player data, so they don't die again when they next join
-     * <p>
-     * Must be cleared after health is synced, otherwise the death isn't saved and the player would skip respawning
-     *
-     * @param user the {@link OnlineUser} to clear a death for
-     */
-    private void clearLocalDeathState(@NotNull OnlineUser user) {
-        if (!user.isDead() || !plugin.getSettings().getSynchronization().isFeatureEnabled(Identifier.HEALTH)) {
-            return;
-        }
-        plugin.debug(String.format("[%s] left while dead, clearing their local death state", user.getName()));
-        user.clearLocalDeathState();
-        if (user.isDead()) {
-            plugin.log(Level.WARNING, String.format("[%s] failed to clear local death state, they may be stuck on "
-                    + "the death screen when they next join this server", user.getName()));
         }
     }
 
@@ -187,18 +132,13 @@ public abstract class EventListener {
      * Handle the plugin disabling
      */
     public void handlePluginDisable() {
-        // Save all online players that haven't been processed by PlayerQuitEvent yet
+        // Save for all online players that haven't been processed by PlayerQuitEvent yet.
         plugin.getOnlineUsers().stream()
                 .filter(user -> !plugin.isLocked(user.getUuid()) && !user.isNpc())
                 .forEach(user -> {
                     plugin.lockPlayer(user.getUuid());
                     plugin.getDataSyncer().saveCurrentUserData(user, DataSnapshot.SaveCause.SERVER_SHUTDOWN);
                 });
-
-        // Clear any in-limbo deaths, as players are saved by the server after plugins disable
-        plugin.getOnlineUsers().stream()
-                .filter(user -> !user.isNpc())
-                .forEach(this::clearLocalDeathState);
 
         // Wait for the in-progress async saves queued during shutdown:
         // - DISCONNECT saves for players leaving before the server stopped

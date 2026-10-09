@@ -55,26 +55,6 @@ public abstract class OnlineUser extends User implements CommandUser, UserDataHo
 
     public abstract boolean hasDisconnected();
 
-    /**
-     * Get if the player is currently dead (i.e. health at or below zero) and awaiting respawn
-     *
-     * @return {@code true} if the player is dead; {@code false} otherwise
-     * @since 4.1.0
-     */
-    public abstract boolean isDead();
-
-    /**
-     * If this player is {@link #isDead() dead}, restore their health so that this server saves its own player data
-     * for them alive when they quit. Otherwise, they'd load dead when they next join this server, and get stuck on
-     * the death screen even with alive synced data.
-     * <p>
-     * This isn't a real respawn, as the server won't respawn a player whose connection has closed.
-     *
-     * @since 4.1.0
-     */
-    public void clearLocalDeathState() {
-    }
-
     // Users cannot have snapshots applied if they have disconnected!
     @Override
     public boolean cannotApplySnapshot() {

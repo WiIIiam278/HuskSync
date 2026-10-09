@@ -107,11 +107,6 @@ public class BukkitEventListener extends EventListener implements BukkitJoinEven
         super.handlePlayerQuit(bukkitUser);
     }
 
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    public void onPlayerDeathAfterQuitSave(@NotNull PlayerDeathEvent event) {
-        handlePlayerDeathAfterQuitSave(BukkitUser.adapt(event.getEntity(), plugin));
-    }
-
     @Override
     public void saveOnPlayerQuit(@NotNull BukkitUser bukkitUser) {
         super.saveOnPlayerQuit(bukkitUser);

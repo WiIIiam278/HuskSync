@@ -126,6 +126,18 @@ public interface UserDataHolder extends DataHolder {
             }
 
             try {
+                // Players who joined dead in this server's own player data must respawn before their data is
+                // applied, as setting their health won't revive them, leaving them stuck on the death screen
+                if (isDead() && Identifier.HEALTH.isEnabled()
+                        && unpacked.getHealth().filter(health -> health.getHealth() > 0).isPresent()) {
+                    plugin.debug(String.format("[%s] Respawning, as they joined dead", getUsername()));
+                    respawn();
+                    if (isDead()) {
+                        plugin.log(Level.WARNING, String.format("Failed to respawn %s, who joined dead, so they may "
+                                + "be stuck on the death screen", getUsername()));
+                    }
+                }
+
                 for (Map.Entry<Identifier, Data> entry : unpacked.getSortedIterable()) {
                     final Identifier identifier = entry.getKey();
                     if (!identifier.isEnabled()) {
@@ -212,6 +224,11 @@ public interface UserDataHolder extends DataHolder {
 
     @NotNull
     Map<Identifier, Data> getCustomDataStore();
+
+    boolean isDead();
+
+    default void respawn() {
+    }
 
     @NotNull
     @ApiStatus.Internal
