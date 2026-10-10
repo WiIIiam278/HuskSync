@@ -33,7 +33,7 @@ Note that player data is saved at the end of the quit event (`MONITOR`), so that
 ## Players quitting while dead
 If a player is dead when they quit, either because they closed the game on the death screen or because a plugin killed them as they left, the server saves its own player data for them as dead. HuskSync saves their data as dead too, so they'll respawn on the next server they join.
 
-When they later return to the server they quit, they'll load dead from that server's player data. If their synced data shows they're alive, HuskSync respawns them before applying it, so they don't get stuck on the death screen or die again.
+When they later return to the server they quit, they'll load dead from that server's player data. HuskSync respawns them as they join, before applying their synced data, so they don't get stuck on the death screen or die again.
 
 This only happens when health is synced via `synchronization.features.health` in the `config.yml` file, and only on Bukkit/Paper.
 

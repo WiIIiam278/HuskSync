@@ -22,11 +22,13 @@ package net.william278.husksync.listener;
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.data.Data;
 import net.william278.husksync.data.DataSnapshot;
+import net.william278.husksync.data.Identifier;
 import net.william278.husksync.user.OnlineUser;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Level;
 
 import static net.william278.husksync.config.Settings.SynchronizationSettings.SaveOnDeathSettings;
 
@@ -54,6 +56,17 @@ public abstract class EventListener {
         plugin.getDisconnectingPlayers().remove(user.getUuid());
         if (user.isNpc()) {
             return;
+        }
+
+        // Players who joined dead in this server's own player data must respawn, as setting their health
+        // won't revive them, leaving them stuck on the death screen. Respawn now, before other plugins move them
+        if (user.isDead() && Identifier.HEALTH.isEnabled()) {
+            plugin.debug(String.format("[%s] Respawning, as they joined dead", user.getName()));
+            user.respawn();
+            if (user.isDead()) {
+                plugin.log(Level.WARNING, String.format("Failed to respawn %s, who joined dead, so they may be "
+                        + "stuck on the death screen", user.getName()));
+            }
         }
         plugin.lockPlayer(user.getUuid());
         plugin.getDataSyncer().syncApplyUserData(user);
