@@ -52,6 +52,13 @@ public interface BukkitJoinEventListener extends Listener {
         }
     }
 
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    default void onPlayerJoinMonitor(@NotNull PlayerJoinEvent event) {
+        if (handleEvent(EventListener.ListenerType.JOIN_LISTENER, EventListener.Priority.MONITOR)) {
+            handlePlayerJoin(BukkitUser.adapt(event.getPlayer(), getPlugin()));
+        }
+    }
+
     void handlePlayerJoin(@NotNull BukkitUser player);
 
     @NotNull

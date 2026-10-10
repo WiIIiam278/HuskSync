@@ -366,7 +366,8 @@ public class Settings {
 
         }
 
-        @Comment("Event priorities for listeners (HIGHEST, NORMAL, LOWEST). Change if you encounter plugin conflicts")
+        @Comment({"Event priorities for listeners (HIGHEST, NORMAL, LOWEST, MONITOR). Change if you encounter plugin conflicts",
+                "MONITOR is not recommended, only use it for plugins that need HuskSync to run after them, e.g. combat loggers"})
         @Getter(AccessLevel.NONE)
         private Map<String, String> eventPriorities = EventListener.ListenerType.getDefaults();
 

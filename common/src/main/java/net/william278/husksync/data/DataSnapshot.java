@@ -401,9 +401,9 @@ public class DataSnapshot {
                                     entry.getKey(), entry.getValue(), getMinecraftVersion()));
                         } catch (Throwable e) {
                             plugin.log(Level.WARNING,
-                                    "Failed to deserialize %s data for snapshot %s; skipping it. "
+                                    ("Failed to deserialize %s data for snapshot %s; skipping it. "
                                             + "The data may contain invalid values (e.g. items with -Infinity NBT attributes). "
-                                            + "The player will load without this data type for this session."
+                                            + "The player will load without this data type for this session.")
                                             .formatted(entry.getKey(), getId()), e);
                         }
                     });
