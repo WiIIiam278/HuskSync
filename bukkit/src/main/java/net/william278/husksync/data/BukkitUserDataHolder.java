@@ -156,6 +156,11 @@ public interface BukkitUserDataHolder extends UserDataHolder {
 
     boolean isDead();
 
+    @Override
+    default void respawn() {
+        getPlayer().spigot().respawn();
+    }
+
     @NotNull
     Player getPlayer();
 

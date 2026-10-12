@@ -48,6 +48,7 @@ public class PaperEventListener extends BukkitEventListener {
     public void onEnable() {
         getPlugin().getServer().getPluginManager().registerEvents(this, getPlugin());
         lockedHandler.onEnable();
+        registerLateQuitListener();
     }
 
     @Override
