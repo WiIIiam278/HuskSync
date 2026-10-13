@@ -58,15 +58,21 @@ public abstract class EventListener {
             return;
         }
 
-        // Players who joined dead in this server's own player data must respawn, as setting their health
-        // won't revive them, leaving them stuck on the death screen. Respawn now, before other plugins move them
+        // Players who joined dead in this server's own player data must respawn. Setting their health won't 
+        // revive them, leaving them stuck on the death screen. Respawn on next tick, as player isn't added
+        // to the world during the join event, but before their data is applied or other plugins alter them.
         if (user.isDead() && Identifier.HEALTH.isEnabled()) {
-            plugin.debug(String.format("[%s] Respawning, as they joined dead", user.getName()));
-            user.respawn();
-            if (user.isDead()) {
-                plugin.log(Level.WARNING, String.format("Failed to respawn %s, who joined dead, so they may be "
-                        + "stuck on the death screen", user.getName()));
-            }
+            plugin.runSync(() -> {
+                if (user.hasDisconnected()) {
+                    return;
+                }
+                plugin.debug(String.format("[%s] Respawning, as they joined dead", user.getName()));
+                user.respawn();
+                if (user.isDead()) {
+                    plugin.log(Level.WARNING, String.format("Failed to respawn %s, who joined dead, so they may be "
+                            + "stuck on the death screen", user.getName()));
+                }
+            }, user);
         }
         plugin.lockPlayer(user.getUuid());
         plugin.getDataSyncer().syncApplyUserData(user);
