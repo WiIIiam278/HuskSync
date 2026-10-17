@@ -216,40 +216,35 @@ public class UserDataCommand extends PluginCommand {
     @NotNull
     private CommandProvider view() {
         return (sub) -> {
-            sub.addSyntax((ctx) -> {
-                final User user = ctx.getArgument("username", User.class);
+            sub.addSyntax((ctx) -> executeWithUser(user(sub, ctx), ctx.getArgument("username", String.class), (user) -> {
                 final UUID version = ctx.getArgument("version", UUID.class);
                 viewSnapshot(user(sub, ctx), user, version);
-            }, user("username"), versionUuid());
-            sub.addSyntax((ctx) -> {
-                final User user = ctx.getArgument("username", User.class);
+            }), user("username"), versionUuid());
+            sub.addSyntax((ctx) -> executeWithUser(user(sub, ctx), ctx.getArgument("username", String.class), (user) -> {
                 viewLatestSnapshot(user(sub, ctx), user);
-            }, user("username"));
+            }), user("username"));
         };
     }
 
     @NotNull
     private CommandProvider list() {
         return (sub) -> {
-            sub.addSyntax((ctx) -> {
-                final User user = ctx.getArgument("username", User.class);
+            sub.addSyntax((ctx) -> executeWithUser(user(sub, ctx), ctx.getArgument("username", String.class), (user) -> {
                 listSnapshots(user(sub, ctx), user, 1);
-            }, user("username"));
-            sub.addSyntax((ctx) -> {
-                final User user = ctx.getArgument("username", User.class);
+            }), user("username"));
+            sub.addSyntax((ctx) -> executeWithUser(user(sub, ctx), ctx.getArgument("username", String.class), (user) -> {
                 final int page = ctx.getArgument("page", Integer.class);
                 listSnapshots(user(sub, ctx), user, page);
-            }, user("username"), BaseCommand.intNum("page", 1));
+            }), user("username"), BaseCommand.intNum("page", 1));
         };
     }
 
     @NotNull
     private CommandProvider delete() {
-        return (sub) -> sub.addSyntax((ctx) -> {
-            final User user = ctx.getArgument("username", User.class);
+        return (sub) -> sub.addSyntax((ctx) -> executeWithUser(user(sub, ctx), ctx.getArgument("username", String.class), (user) -> {
             final UUID version = ctx.getArgument("version", UUID.class);
             deleteSnapshot(user(sub, ctx), user, version);
-        }, user("username"), versionUuid());
+        }), user("username"), versionUuid());
     }
 
     @NotNull
@@ -262,29 +257,26 @@ public class UserDataCommand extends PluginCommand {
 
     @NotNull
     private CommandProvider restore() {
-        return (sub) -> sub.addSyntax((ctx) -> {
-            final User user = ctx.getArgument("username", User.class);
+        return (sub) -> sub.addSyntax((ctx) -> executeWithUser(user(sub, ctx), ctx.getArgument("username", String.class), (user) -> {
             final UUID version = ctx.getArgument("version", UUID.class);
             restoreSnapshot(user(sub, ctx), user, version);
-        }, user("username"), versionUuid());
+        }), user("username"), versionUuid());
     }
 
     @NotNull
     private CommandProvider pin() {
-        return (sub) -> sub.addSyntax((ctx) -> {
-            final User user = ctx.getArgument("username", User.class);
+        return (sub) -> sub.addSyntax((ctx) -> executeWithUser(user(sub, ctx), ctx.getArgument("username", String.class), (user) -> {
             final UUID version = ctx.getArgument("version", UUID.class);
             pinSnapshot(user(sub, ctx), user, version);
-        }, user("username"), versionUuid());
+        }), user("username"), versionUuid());
     }
 
     @NotNull
     private CommandProvider dump() {
         return (sub) -> {
             sub.addSyntax((ctx) -> {
-                final User user = ctx.getArgument("username", User.class);
                 final CommandUser executor = user(sub, ctx);
-                plugin.getRedisManager()
+                executeWithUser(executor, ctx.getArgument("username", String.class), (user) -> plugin.getRedisManager()
                         .getOnlineUserData(UUID.randomUUID(), user, DataSnapshot.SaveCause.DUMP_COMMAND)
                         .thenAccept((data) -> data
                                 .or(() -> plugin.getDatabase().getLatestSnapshot(user))
@@ -292,14 +284,13 @@ public class UserDataCommand extends PluginCommand {
                                         (s) -> dumpSnapshot(executor, user, s, DumpType.WEB),
                                         () -> plugin.getLocales().getLocale("error_no_data_to_display")
                                                 .ifPresent(executor::sendMessage)
-                                ));
+                                )));
             }, user("username"));
-            sub.addSyntax((ctx) -> {
-                final User user = ctx.getArgument("username", User.class);
+            sub.addSyntax((ctx) -> executeWithUser(user(sub, ctx), ctx.getArgument("username", String.class), (user) -> {
                 final UUID version = ctx.getArgument("version", UUID.class);
                 final DumpType type = ctx.getArgument("type", DumpType.class);
                 dumpSnapshot(user(sub, ctx), user, version, type);
-            }, user("username"), versionUuid(), dumpType());
+            }), user("username"), versionUuid(), dumpType());
         };
     }
 

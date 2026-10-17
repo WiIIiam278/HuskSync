@@ -45,7 +45,7 @@ public abstract class ItemsCommand extends PluginCommand {
     @Override
     public void provide(@NotNull BaseCommand<?> command) {
         command.addSyntax((ctx) -> {
-            final User user = ctx.getArgument("username", User.class);
+            final String username = ctx.getArgument("username", String.class);
             final UUID version = ctx.getArgument("version", UUID.class);
             final CommandUser executor = user(command, ctx);
             if (!(executor instanceof OnlineUser online)) {
@@ -53,17 +53,17 @@ public abstract class ItemsCommand extends PluginCommand {
                         .ifPresent(executor::sendMessage);
                 return;
             }
-            this.showSnapshotItems(online, user, version);
+            executeWithUser(online, username, u -> this.showSnapshotItems(online, u, version));
         }, user("username"), versionUuid());
         command.addSyntax((ctx) -> {
-            final User user = ctx.getArgument("username", User.class);
+            final String username = ctx.getArgument("username", String.class);
             final CommandUser executor = user(command, ctx);
             if (!(executor instanceof OnlineUser online)) {
                 plugin.getLocales().getLocale("error_in_game_command_only")
                         .ifPresent(executor::sendMessage);
                 return;
             }
-            this.showLatestItems(online, user);
+            executeWithUser(online, username, u -> this.showLatestItems(online, u));
         }, user("username"));
     }
 
