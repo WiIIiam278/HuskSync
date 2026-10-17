@@ -1,71 +1,140 @@
 locales:
-  synchronization_complete: '[⏵ Adatok szinkronizálva!](#00fb9a)'
-  synchronization_failed: '[⏵ Nem sikerült szinkronizálni az adataidat! Kérj segítséget egy adminisztrátortól.](#ff7e5e)'
-  inventory_viewer_menu_title: '&0%1% eszköztára'
-  ender_chest_viewer_menu_title: '&0%1% enderládája'
-  inventory_viewer_opened: '[Pillanatkép megnyitva](#00fb9a) [%1%](#00fb9a bold)[ eszköztáráról, időpont: ⌚ %2%](#00fb9a)'
-  ender_chest_viewer_opened: '[Pillanatkép megnyitva](#00fb9a) [%1%](#00fb9a bold)[ enderládájáról, időpont: ⌚ %2%](#00fb9a)'
-  data_update_complete: '[🔔 Adataid frissítve!](#00fb9a)'
-  data_update_failed: '[🔔 Nem sikerült frissíteni az adataidat! Kérj segítséget egy adminisztrátortól.](#ff7e5e)'
-  user_registration_complete: '[⭐ Felhasználó regisztrálva!](#00fb9a)'
-  data_manager_title: '[Játékosadat-pillanatkép megnyitva](#00fb9a) [%1%](#00fb9a show_text=&7Verzió UUID:\n&8%2%) [ehhez:](#00fb9a) [%3%](#00fb9a bold show_text=&7Játékos UUID:\n&8%4%)[:](#00fb9a)'
-  data_manager_timestamp: '[⌚ %1%](#ffc43b-#f5c962 show_text=&7Verzió időbélyege:\n&8Ekkor mentődtek az adatok)'
-  data_manager_pinned: '[※ Pillanatkép kitűzve](#d8ff2b show_text=&7Kitűzve:\n&8Ezt a játékosadat-pillanatképet az automatikus rotálás nem törli.)'
-  data_manager_cause: '[⚑ %1%](#23a825-#36f539 show_text=&7Mentés oka:\n&8Mi indította el az adatok mentését)'
-  data_manager_server: '[☁ %1%](#ff87b3-#f5538e show_text=&7Szerver:\n&8A szerver neve, ahol az adatok mentődtek)'
-  data_manager_size: '[⏏ %1%](color=#62a9f5-#7ab8fa show_text=&7Pillanatkép mérete:\n&8Becsült fájlméret (KiB))\n'
-  data_manger_status: '[%1%](red)[/](gray)[%2%](red)[×](gray)[❤](red show_text=&7Életerő pontok)   [%3%](yellow)[×](gray)[🍖](yellow show_text=&7Éhségpontok)   [ʟᴠ](green)[.](gray)[%4%](green show_text=&7XP-szint)   [🏹 %5%](dark_aqua show_text=&7Játékmód)'
-  data_manager_advancements_statistics: '[⭐ Előrehaladások: %1%](color=#ffc43b-#f5c962 show_text=&7Előrehaladások, amelyekben van haladásod:\n&8%2%)   [⌛ Játékidő: %3%ʜʀs](color=#62a9f5-#7ab8fa show_text=&7Játékon belüli játékidő\n&8⚠ Játékon belüli statisztikák alapján)\n'
-  data_manager_item_buttons: '[Megnyitás:](gray) [[🪣 Eszköztár…]](color=#a17b5f-#f5b98c show_text=&7Kattints a megnyitáshoz run_command=/inventory %1% %2%)   [[⌀ Enderláda…]](#b649c4-#d254ff show_text=&7Kattints a megnyitáshoz run_command=/enderchest %1% %2%)'
-  data_manager_management_buttons: '[Kezelés:](gray) [[❌ Törlés…]](#ff3300 show_text=&7Kattints a játékosadat-pillanatkép törléséhez.\n&8Ez nem érinti a játékos jelenlegi adatait.\n&#ff3300&⚠ Ez nem vonható vissza! suggest_command=/husksync:userdata delete %1% %2%)   [[⏪ Visszaállítás…]](#00fb9a show_text=&7Kattints a játékosadatok visszaállításához.\n&8A játékos adatai erre a pillanatképre állnak vissza.\n&#ff3300&⚠ %1% jelenlegi adatai felülíródnak! suggest_command=/husksync:userdata restore %1% %2%)   [[※ Kitűzés/feloldás…]](#d8ff2b show_text=&7Kattints a játékosadat-pillanatkép kitűzéséhez vagy feloldásához\n&8A kitűzött pillanatképeket az automatikus rotálás nem törli run_command=/userdata pin %1% %2%)'
-  data_manager_system_buttons: '[Rendszer:](gray) [[⏷ Fájlkimentés…]](dark_gray show_text=&7Kattints a nyers játékosadat-pillanatkép fájlba mentéséhez.\n&8A kimentések itt találhatók: ~/plugins/HuskSync/dumps/ run_command=/husksync:userdata dump %1% %2% file)   [[☂ Webes kimentés…]](dark_gray show_text=&7Kattints a nyers játékosadat-pillanatkép mc-logs szolgáltatásba mentéséhez\n&8Kapsz egy URL-t, amely tartalmazza az adatokat. run_command=/husksync:userdata dump %1% %2% web)'
-  data_manager_advancements_preview_remaining: 'és még %1%…'
-  data_list_title: '[%1% játékosadat-pillanatképei:](#00fb9a) [(%2%-%3% /](#00fb9a) [%4%](#00fb9a bold)[)](#00fb9a)\n'
-  data_list_item: '[%1%](gray show_text=&7Játékosadat-pillanatkép ehhez: %2%\n&8⚡ %4% run_command=/userdata view %2% %3%) [%5%](#d8ff2b show_text=&7Kitűzve:\n&8A kitűzött pillanatképeket az automatikus rotálás nem törli. run_command=/userdata view %2% %3%) [%6%](color=#ffc43b-#f5c962 show_text=&7Verzió időbélyege:&7\n&8Ekkor mentődtek az adatok\n&8%7% run_command=/userdata view %2% %3%)   [⚑ %8%](#23a825-#36f539 show_text=&7Mentés oka:\n&8Mi indította el az adatok mentését run_command=/userdata view %2% %3%)   [⏏ %9%](color=#62a9f5-#7ab8fa show_text=&7Pillanatkép mérete:&7\n&8Becsült fájlméret (KiB) run_command=/userdata view %2% %3%)'
-  data_list_item_invalid: '[%1%](dark_gray show_text=&7Játékosadat-pillanatkép ehhez: %2%\n&8⚡ %4% suggest_command=/userdata delete %2% %3%) [%5%](dark_gray show_text=&7Kitűzve:\n&8A kitűzött pillanatképeket az automatikus rotálás nem törli. suggest_command=/userdata delete %2% %3%) [%6%   ⚑ %8%   ⏏ %9%](gray strikethrough show_text=&#ff3300&Érvénytelen adat-pillanatkép\n&#ff7e5e&Kattints a törléshez\n\n&7⚠ %10% suggest_command=/userdata delete %2% %3%)'
-  data_saved: '[%1% jelenlegi játékosadatairól pillanatkép mentve.](#00fb9a)'
-  data_deleted: '[❌ Játékosadat-pillanatkép törölve](#00fb9a) [%1%](#00fb9a show_text=&7Verzió UUID:\n&8%2%) [ehhez:](#00fb9a) [%3%.](#00fb9a show_text=&7Játékos UUID:\n&8%4%)'
-  data_restored: '[⏪](#00fb9a) [%1%](#00fb9a show_text=&7Játékos UUID:\n&8%2%)[ jelenlegi játékosadatai visszaállítva ebből a pillanatképből:](#00fb9a) [%3%.](#00fb9a show_text=&7Verzió UUID:\n&8%4%)'
-  data_pinned: '[※ Játékosadat-pillanatkép kitűzve](#00fb9a) [%1%](#00fb9a show_text=&7Verzió UUID:\n&8%2%) [ehhez:](#00fb9a) [%3%.](#00fb9a show_text=&7Játékos UUID:\n&8%4%)'
-  data_unpinned: '[※ Játékosadat-pillanatkép kitűzése feloldva](#00fb9a) [%1%](#00fb9a show_text=&7Verzió UUID:\n&8%2%) [ehhez:](#00fb9a) [%3%.](#00fb9a show_text=&7Játékos UUID:\n&8%4%)'
-  data_dumped: '[☂ %1% játékosadat-pillanatkép kimentve ehhez: %2%. Kattints a megnyitáshoz:](#00fb9a)'
-  list_footer: '\n%1%[Oldal](#00fb9a) [%2%](#00fb9a)/[%3%](#00fb9a)%4%   %5%'
-  list_previous_page_button: '[◀](white show_text=&7Előző oldal megnyitása run_command=%2% %1%) '
-  list_next_page_button: ' [▶](white show_text=&7Következő oldal megnyitása run_command=%2% %1%)'
-  list_page_jumpers: '(%1%)'
-  list_page_jumper_button: '[%1%](show_text=&7Ugrás erre az oldalra: %1% run_command=%2% %1%)'
-  list_page_jumper_current_page: '[%1%](#00fb9a)'
+  synchronization_complete: <color:#00fb9a>⏵ Adatok szinkronizálva!</color>
+  synchronization_failed: <color:#ff7e5e>⏵ Nem sikerült szinkronizálni az adataidat! Kérj segítséget egy adminisztrátortól.</color>
+  inventory_viewer_menu_title: <black>%1% eszköztára
+  ender_chest_viewer_menu_title: <black>%1% enderládája
+  inventory_viewer_opened: '<color:#00fb9a>Pillanatkép megnyitva</color> <bold><color:#00fb9a>%1%</color></bold><color:#00fb9a> eszköztáráról, időpont: ⌚ %2%</color>'
+  ender_chest_viewer_opened: '<color:#00fb9a>Pillanatkép megnyitva</color> <bold><color:#00fb9a>%1%</color></bold><color:#00fb9a> enderládájáról, időpont: ⌚ %2%</color>'
+  data_update_complete: <color:#00fb9a>🔔 Adataid frissítve!</color>
+  data_update_failed: <color:#ff7e5e>🔔 Nem sikerült frissíteni az adataidat! Kérj segítséget egy adminisztrátortól.</color>
+  user_registration_complete: <color:#00fb9a>⭐ Felhasználó regisztrálva!</color>
+  data_manager_title: '<color:#00fb9a>Játékosadat-pillanatkép megnyitva</color> <color:#00fb9a><hover:show_text:''<gray>Verzió UUID:
+
+    <dark_gray>%2%''>%1%</hover></color> <color:#00fb9a>ehhez:</color> <bold><color:#00fb9a><hover:show_text:''<gray>Játékos UUID:
+
+    <dark_gray>%4%''>%3%</hover></color></bold><color:#00fb9a>:</color>'
+  data_manager_timestamp: '<hover:show_text:''<gray>Verzió időbélyege:
+
+    <dark_gray>Ekkor mentődtek az adatok''>⌚ %1%</hover>'
+  data_manager_pinned: '<color:#d8ff2b><hover:show_text:''<gray>Kitűzve:
+
+    <dark_gray>Ezt a játékosadat-pillanatképet az automatikus rotálás nem törli.''>※ Pillanatkép kitűzve</hover></color>'
+  data_manager_cause: '<hover:show_text:''<gray>Mentés oka:
+
+    <dark_gray>Mi indította el az adatok mentését''>⚑ %1%</hover>'
+  data_manager_server: '<hover:show_text:''<gray>Szerver:
+
+    <dark_gray>A szerver neve, ahol az adatok mentődtek''>☁ %1%</hover>'
+  data_manager_size: '<gradient:#62a9f5:#7ab8fa><hover:show_text:''<gray>Pillanatkép mérete:
+
+    <dark_gray>Becsült fájlméret (KiB)''>⏏ %1%</hover></gradient>\n'
+  data_manger_status: <red>%1%</red><gray>/</gray><red>%2%</red><gray>×</gray><red><hover:show_text:'<gray>Életerő pontok'>❤</hover></red>   <yellow>%3%</yellow><gray>×</gray><yellow><hover:show_text:'<gray>Éhségpontok'>🍖</hover></yellow>   <green>ʟᴠ</green><gray>.</gray><green><hover:show_text:'<gray>XP-szint'>%4%</hover></green>   <dark_aqua><hover:show_text:'<gray>Játékmód'>🏹 %5%</hover></dark_aqua>
+  data_manager_advancements_statistics: '<gradient:#ffc43b:#f5c962><hover:show_text:''<gray>Előrehaladások, amelyekben van haladásod:
+
+    <dark_gray>%2%''>⭐ Előrehaladások: %1%</hover></gradient>   <gradient:#62a9f5:#7ab8fa><hover:show_text:''<gray>Játékon belüli játékidő
+
+    <dark_gray>⚠ Játékon belüli statisztikák alapján''>⌛ Játékidő: %3%ʜʀs</hover></gradient>\n'
+  data_manager_item_buttons: <gray>Megnyitás:</gray> <gradient:#a17b5f:#f5b98c><click:run_command:'/inventory %1% %2%'><hover:show_text:'<gray>Kattints a megnyitáshoz'>[🪣 Eszköztár…]</hover></click></gradient>   <click:run_command:'/enderchest %1% %2%'><hover:show_text:'<gray>Kattints a megnyitáshoz'>[⌀ Enderláda…]</hover></click>
+  data_manager_management_buttons: '<gray>Kezelés:</gray> <color:#ff3300><click:suggest_command:''/husksync:userdata delete %1% %2%''><hover:show_text:''<gray>Kattints a játékosadat-pillanatkép törléséhez.
+
+    <dark_gray>Ez nem érinti a játékos jelenlegi adatait.
+
+    <color:#ff3300>&⚠ Ez nem vonható vissza!''>[❌ Törlés…]</hover></click></color>   <color:#00fb9a><click:suggest_command:''/husksync:userdata restore %1% %2%''><hover:show_text:''<gray>Kattints a játékosadatok visszaállításához.
+
+    <dark_gray>A játékos adatai erre a pillanatképre állnak vissza.
+
+    <color:#ff3300>&⚠ %1% jelenlegi adatai felülíródnak!''>[⏪ Visszaállítás…]</hover></click></color>   <color:#d8ff2b><click:run_command:''/userdata pin %1% %2%''><hover:show_text:''<gray>Kattints a játékosadat-pillanatkép kitűzéséhez vagy feloldásához
+
+    <dark_gray>A kitűzött pillanatképeket az automatikus rotálás nem törli''>[※ Kitűzés/feloldás…]</hover></click></color>'
+  data_manager_system_buttons: '<gray>Rendszer:</gray> <dark_gray><click:run_command:''/husksync:userdata dump %1% %2% file''><hover:show_text:''<gray>Kattints a nyers játékosadat-pillanatkép fájlba mentéséhez.
+
+    <dark_gray>A kimentések itt találhatók: ~/plugins/HuskSync/dumps/''>[⏷ Fájlkimentés…]</hover></click></dark_gray>   <dark_gray><click:run_command:''/husksync:userdata dump %1% %2% web''><hover:show_text:''<gray>Kattints a nyers játékosadat-pillanatkép mc-logs szolgáltatásba mentéséhez
+
+    <dark_gray>Kapsz egy URL-t, amely tartalmazza az adatokat.''>[☂ Webes kimentés…]</hover></click></dark_gray>'
+  data_manager_advancements_preview_remaining: és még %1%…
+  data_list_title: <color:#00fb9a>%1% játékosadat-pillanatképei:</color> <color:#00fb9a>(%2%-%3% /</color> <bold><color:#00fb9a>%4%</color></bold><color:#00fb9a>)</color>\n
+  data_list_item: '<gray><click:run_command:''/userdata view %2% %3%''><hover:show_text:''<gray>Játékosadat-pillanatkép ehhez: %2%
+
+    <dark_gray>⚡ %4%''>%1%</hover></click></gray> <color:#d8ff2b><click:run_command:''/userdata view %2% %3%''><hover:show_text:''<gray>Kitűzve:
+
+    <dark_gray>A kitűzött pillanatképeket az automatikus rotálás nem törli.''>%5%</hover></click></color> <gradient:#ffc43b:#f5c962><click:run_command:''/userdata view %2% %3%''><hover:show_text:''<gray>Verzió időbélyege:<gray>
+
+    <dark_gray>Ekkor mentődtek az adatok
+
+    <dark_gray>%7%''>%6%</hover></click></gradient>   <click:run_command:''/userdata view %2% %3%''><hover:show_text:''<gray>Mentés oka:
+
+    <dark_gray>Mi indította el az adatok mentését''>⚑ %8%</hover></click>   <gradient:#62a9f5:#7ab8fa><click:run_command:''/userdata view %2% %3%''><hover:show_text:''<gray>Pillanatkép mérete:<gray>
+
+    <dark_gray>Becsült fájlméret (KiB)''>⏏ %9%</hover></click></gradient>'
+  data_list_item_invalid: '<dark_gray><click:suggest_command:''/userdata delete %2% %3%''><hover:show_text:''<gray>Játékosadat-pillanatkép ehhez: %2%
+
+    <dark_gray>⚡ %4%''>%1%</hover></click></dark_gray> <dark_gray><click:suggest_command:''/userdata delete %2% %3%''><hover:show_text:''<gray>Kitűzve:
+
+    <dark_gray>A kitűzött pillanatképeket az automatikus rotálás nem törli.''>%5%</hover></click></dark_gray> <strikethrough><gray><click:suggest_command:''/userdata delete %2% %3%''><hover:show_text:''<color:#ff3300>&Érvénytelen adat-pillanatkép
+
+    <color:#ff7e5e>&Kattints a törléshez
+
+
+    <gray>⚠ %10%''>%6%   ⚑ %8%   ⏏ %9%</hover></click></gray></strikethrough>'
+  data_saved: <color:#00fb9a>%1% jelenlegi játékosadatairól pillanatkép mentve.</color>
+  data_deleted: '<color:#00fb9a>❌ Játékosadat-pillanatkép törölve</color> <color:#00fb9a><hover:show_text:''<gray>Verzió UUID:
+
+    <dark_gray>%2%''>%1%</hover></color> <color:#00fb9a>ehhez:</color> <color:#00fb9a><hover:show_text:''<gray>Játékos UUID:
+
+    <dark_gray>%4%''>%3%.</hover></color>'
+  data_restored: '<color:#00fb9a>⏪</color> <color:#00fb9a><hover:show_text:''<gray>Játékos UUID:
+
+    <dark_gray>%2%''>%1%</hover></color><color:#00fb9a> jelenlegi játékosadatai visszaállítva ebből a pillanatképből:</color> <color:#00fb9a><hover:show_text:''<gray>Verzió UUID:
+
+    <dark_gray>%4%''>%3%.</hover></color>'
+  data_pinned: '<color:#00fb9a>※ Játékosadat-pillanatkép kitűzve</color> <color:#00fb9a><hover:show_text:''<gray>Verzió UUID:
+
+    <dark_gray>%2%''>%1%</hover></color> <color:#00fb9a>ehhez:</color> <color:#00fb9a><hover:show_text:''<gray>Játékos UUID:
+
+    <dark_gray>%4%''>%3%.</hover></color>'
+  data_unpinned: '<color:#00fb9a>※ Játékosadat-pillanatkép kitűzése feloldva</color> <color:#00fb9a><hover:show_text:''<gray>Verzió UUID:
+
+    <dark_gray>%2%''>%1%</hover></color> <color:#00fb9a>ehhez:</color> <color:#00fb9a><hover:show_text:''<gray>Játékos UUID:
+
+    <dark_gray>%4%''>%3%.</hover></color>'
+  data_dumped: '<color:#00fb9a>☂ %1% játékosadat-pillanatkép kimentve ehhez: %2%. Kattints a megnyitáshoz:</color>'
+  list_footer: \n%1%<color:#00fb9a>Oldal</color> <color:#00fb9a>%2%</color>/<color:#00fb9a>%3%</color>%4%   %5%
+  list_previous_page_button: '<white><click:run_command:''%2%''><hover:show_text:''<gray>Előző oldal megnyitása''>◀</hover></click></white> '
+  list_next_page_button: ' <white><click:run_command:''%2%''><hover:show_text:''<gray>Következő oldal megnyitása''>▶</hover></click></white>'
+  list_page_jumpers: (%1%)
+  list_page_jumper_button: '<click:run_command:''%2%''><hover:show_text:''<gray>Ugrás erre az oldalra: %1%''>%1%</hover></click>'
+  list_page_jumper_current_page: <color:#00fb9a>%1%</color>
   list_page_jumper_separator: ' '
-  list_page_jumper_group_separator: '…'
-  save_cause_disconnect: 'lecsatlakozás'
-  save_cause_world_save: 'világ mentése'
-  save_cause_death: 'halál'
-  save_cause_server_shutdown: 'szerver leállítása'
-  save_cause_save_command: 'mentési parancs'
-  save_cause_dump_command: 'kimentési parancs'
-  save_cause_inventory_command: 'eszköztár parancs'
-  save_cause_enderchest_command: 'enderláda parancs'
-  save_cause_backup_restore: 'biztonsági mentés visszaállítása'
-  save_cause_api: 'API'
-  save_cause_mpdb_migration: 'MPDB migráció'
-  save_cause_legacy_migration: 'régi rendszerből migrálás'
-  save_cause_converted_from_v2: 'v2-ből konvertálva'
-  up_to_date: '[HuskSync](#00fb9a bold) [| A HuskSync legfrissebb verzióját futtatod (v%1%).](#00fb9a)'
-  update_available: '[HuskSync](#ff7e5e bold) [| Új HuskSync verzió érhető el: v%1% (jelenlegi: v%2%).](#ff7e5e)'
-  reload_complete: '[HuskSync](#00fb9a bold) [| Konfiguráció és üzenetfájlok újratöltve.](#00fb9a)\n[⚠ Ellenőrizd, hogy minden szerveren naprakészek-e a konfigurációs fájlok!](#00fb9a)\n[A konfigurációs módosítások érvényesítéséhez újraindítás szükséges.](#00fb9a italic)'
-  system_status_header: '[HuskSync](#00fb9a bold) [| Rendszerállapot-jelentés:](#00fb9a)'
-  system_dump_confirm: '[HuskSync](#00fb9a bold) [| Előkészíted a rendszerkimentést? Ez tartalmazni fogja:](#00fb9a)\n[• A legutóbbi szervernaplókat és HuskSync konfigurációs fájlokat](gray)\n[• A plugin rendszerének jelenlegi állapotadatait](gray)\n[• A Java- és Minecraft-szerverkörnyezet adatait](gray)\n[• A jelenleg telepített többi plugin listáját](gray)\n[Megerősítéshez használd:](#00fb9a) [/husksync dump confirm](#00fb9a italic show_text=&7Kattints a kimentés előkészítéséhez run_command=/husksync dump confirm)'
-  system_dump_started: '[HuskSync](#00fb9a bold) [| Rendszerállapot-kimentés előkészítése, kérlek várj…](#00fb9a)'
-  system_dump_ready: '[HuskSync](#00fb9a bold) [| Rendszerállapot-kimentés elkészült! Kattints a megnyitáshoz:](#00fb9a)'
-  error_invalid_syntax: '[Hiba:](#ff3300) [Helytelen szintaxis. Használat:](#ff7e5e) [%1%](#ff7e5e italic show_text=&#ff7e5e&Kattints a javaslat beillesztéséhez suggest_command=%1%)'
-  error_invalid_player: '[Hiba:](#ff3300) [Nem található játékos ezzel a névvel.](#ff7e5e)'
-  error_invalid_data: '[Hiba:](#ff3300) [Nem sikerült kicsomagolni a játékosadatokat, mert a pillanatkép érvénytelen vagy sérült.](#ff7e5e) [(Részletek…)](gray show_text=&7⚠ %1%)'
-  error_no_permission: '[Hiba:](#ff3300) [Nincs jogosultságod a parancs futtatásához.](#ff7e5e)'
-  error_console_command_only: '[Hiba:](#ff3300) [Ez a parancs csak konzolból futtatható.](#ff7e5e)'
+  list_page_jumper_group_separator: …
+  save_cause_disconnect: lecsatlakozás
+  save_cause_world_save: világ mentése
+  save_cause_death: halál
+  save_cause_server_shutdown: szerver leállítása
+  save_cause_save_command: mentési parancs
+  save_cause_dump_command: kimentési parancs
+  save_cause_inventory_command: eszköztár parancs
+  save_cause_enderchest_command: enderláda parancs
+  save_cause_backup_restore: biztonsági mentés visszaállítása
+  save_cause_api: API
+  save_cause_mpdb_migration: MPDB migráció
+  save_cause_legacy_migration: régi rendszerből migrálás
+  save_cause_converted_from_v2: v2-ből konvertálva
+  up_to_date: <bold><color:#00fb9a>HuskSync</color></bold> <color:#00fb9a>| A HuskSync legfrissebb verzióját futtatod (v%1%).</color>
+  update_available: '<bold><color:#ff7e5e>HuskSync</color></bold> <color:#ff7e5e>| Új HuskSync verzió érhető el: v%1% (jelenlegi: v%2%).</color>'
+  reload_complete: <bold><color:#00fb9a>HuskSync</color></bold> <color:#00fb9a>| Konfiguráció és üzenetfájlok újratöltve.</color>\n<color:#00fb9a>⚠ Ellenőrizd, hogy minden szerveren naprakészek-e a konfigurációs fájlok!</color>\n<italic><color:#00fb9a>A konfigurációs módosítások érvényesítéséhez újraindítás szükséges.</color></italic>
+  system_status_header: <bold><color:#00fb9a>HuskSync</color></bold> <color:#00fb9a>| Rendszerállapot-jelentés:</color>
+  system_dump_confirm: <bold><color:#00fb9a>HuskSync</color></bold> <color:#00fb9a>| Előkészíted a rendszerkimentést? Ez tartalmazni fogja:</color>\n<gray>• A legutóbbi szervernaplókat és HuskSync konfigurációs fájlokat</gray>\n<gray>• A plugin rendszerének jelenlegi állapotadatait</gray>\n<gray>• A Java- és Minecraft-szerverkörnyezet adatait</gray>\n<gray>• A jelenleg telepített többi plugin listáját</gray>\n<color:#00fb9a>Megerősítéshez használd:</color> <italic><color:#00fb9a><click:run_command:'/husksync dump confirm'><hover:show_text:'<gray>Kattints a kimentés előkészítéséhez'>/husksync dump confirm</hover></click></color></italic>
+  system_dump_started: <bold><color:#00fb9a>HuskSync</color></bold> <color:#00fb9a>| Rendszerállapot-kimentés előkészítése, kérlek várj…</color>
+  system_dump_ready: <bold><color:#00fb9a>HuskSync</color></bold> <color:#00fb9a>| Rendszerállapot-kimentés elkészült! Kattints a megnyitáshoz:</color>
+  error_invalid_syntax: <color:#ff3300>Hiba:</color> <color:#ff7e5e>Helytelen szintaxis. Használat:</color> <italic><color:#ff7e5e><click:suggest_command:'%1%'><hover:show_text:'<color:#ff7e5e>&Kattints a javaslat beillesztéséhez'>%1%</hover></click></color></italic>
+  error_invalid_player: <color:#ff3300>Hiba:</color> <color:#ff7e5e>Nem található játékos ezzel a névvel.</color>
+  error_invalid_data: <color:#ff3300>Hiba:</color> <color:#ff7e5e>Nem sikerült kicsomagolni a játékosadatokat, mert a pillanatkép érvénytelen vagy sérült.</color> <gray><hover:show_text:'<gray>⚠ %1%'>(Részletek…)</hover></gray>
+  error_no_permission: <color:#ff3300>Hiba:</color> <color:#ff7e5e>Nincs jogosultságod a parancs futtatásához.</color>
+  error_console_command_only: <color:#ff3300>Hiba:</color> <color:#ff7e5e>Ez a parancs csak konzolból futtatható.</color>
   error_in_game_command_only: 'Hiba: Ez a parancs csak játékon belül használható.'
-  error_no_data_to_display: '[Hiba:](#ff3300) [Nincs megjeleníthető játékosadat.](#ff7e5e)'
-  error_invalid_version_uuid: '[Hiba:](#ff3300) [Nem található játékosadat ehhez a verzió UUID-hez.](#ff7e5e)'
-  husksync_command_description: 'HuskSync plugin kezelése'
-  userdata_command_description: 'Játékosadatok megtekintése, kezelése és visszaállítása'
-  inventory_command_description: 'Játékos eszköztárának megtekintése és szerkesztése'
-  enderchest_command_description: 'Játékos enderládájának megtekintése és szerkesztése'
+  error_no_data_to_display: <color:#ff3300>Hiba:</color> <color:#ff7e5e>Nincs megjeleníthető játékosadat.</color>
+  error_invalid_version_uuid: <color:#ff3300>Hiba:</color> <color:#ff7e5e>Nem található játékosadat ehhez a verzió UUID-hez.</color>
+  husksync_command_description: HuskSync plugin kezelése
+  userdata_command_description: Játékosadatok megtekintése, kezelése és visszaállítása
+  inventory_command_description: Játékos eszköztárának megtekintése és szerkesztése
+  enderchest_command_description: Játékos enderládájának megtekintése és szerkesztése

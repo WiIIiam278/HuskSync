@@ -19,7 +19,9 @@
 
 package net.william278.husksync.event;
 
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.ActionResult;
+import net.william278.husksync.FabricHuskSync;
 import net.william278.husksync.data.DataSnapshot;
 import net.william278.husksync.user.OnlineUser;
 import net.william278.husksync.user.User;
@@ -47,6 +49,12 @@ public interface FabricEventDispatcher extends EventDispatcher {
             getPlugin().log(Level.WARNING, "Failed to fire event (" + event.getClass().getName() + ")", e);
             return false;
         }
+    }
+
+    @Override
+    default boolean isEventThread() {
+        final MinecraftServer server = ((FabricHuskSync) getPlugin()).getMinecraftServer();
+        return server != null && server.isOnThread();
     }
 
     @NotNull

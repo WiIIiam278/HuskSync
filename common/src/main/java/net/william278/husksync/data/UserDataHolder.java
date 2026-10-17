@@ -213,6 +213,11 @@ public interface UserDataHolder extends DataHolder {
     @NotNull
     Map<Identifier, Data> getCustomDataStore();
 
+    boolean isDead();
+
+    default void respawn() {
+    }
+
     @NotNull
     @ApiStatus.Internal
     HuskSync getPlugin();

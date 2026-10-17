@@ -54,7 +54,7 @@ public class Locales {
     protected static final String DEFAULT_LOCALE = "en-gb";
 
     // Locale format version - increment to force re-extraction on format changes
-    public static final int LOCALE_FORMAT_VERSION = 3;
+    public static final int LOCALE_FORMAT_VERSION = 4;
 
     // The raw set of locales loaded from yaml
     Map<String, String> locales = Maps.newTreeMap();

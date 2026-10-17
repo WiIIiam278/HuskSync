@@ -302,12 +302,11 @@ public class Settings {
         @Comment("Persist maps locked in a Cartography Table to let them be viewed on any server")
         private boolean persistLockedMaps = true;
 
-        @Comment("If using the DELAY sync method, how long should this server listen for Redis key data updates before "
-                 + "pulling data from the database instead (i.e., if the user did not change servers).")
+        @Comment("How long to wait with the DELAY sync method before checking Redis for data. Not used by the LOCKSTEP sync method.")
         private int networkLatencyMilliseconds = 500;
 
         @Comment({"How long to wait for player saves to finish during server shutdown before closing the database connections",
-                "Keep this well below your watchdog timeout, or the server may kill the process mid-shutdown before this finishes."})
+                "Should be set to a value between 5000-50000ms, to not consume the server watchdog timeout (typically 60000ms)."})
         private int shutdownSaveTimeoutMilliseconds = 5000;
 
         @Comment({"Which data types to synchronize.", "Docs: https://william278.net/docs/husksync/sync-features"})
@@ -367,7 +366,8 @@ public class Settings {
 
         }
 
-        @Comment("Event priorities for listeners (HIGHEST, NORMAL, LOWEST). Change if you encounter plugin conflicts")
+        @Comment({"Event priorities for listeners (HIGHEST, NORMAL, LOWEST, MONITOR). Change if you encounter plugin conflicts",
+                "MONITOR is not recommended, only use it for plugins that need HuskSync to run after them, e.g. combat loggers"})
         @Getter(AccessLevel.NONE)
         private Map<String, String> eventPriorities = EventListener.ListenerType.getDefaults();
 
