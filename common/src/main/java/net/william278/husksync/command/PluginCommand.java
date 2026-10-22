@@ -19,8 +19,11 @@
 
 package net.william278.husksync.command;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.user.CommandUser;
 import net.william278.husksync.user.OnlineUser;
@@ -34,10 +37,26 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 public abstract class PluginCommand extends Command {
+
+    private static final Cache<String, Optional<User>> USER_CACHE = CacheBuilder.newBuilder()
+            .expireAfterWrite(1, TimeUnit.MINUTES)
+            .maximumSize(200)
+            .build();
+    private static final Cache<UUID, List<String>> SNAPSHOT_CACHE = CacheBuilder.newBuilder()
+            .expireAfterWrite(30, TimeUnit.SECONDS)
+            .maximumSize(100)
+            .build();
+    private static final Map<UUID, CompletableFuture<List<String>>> IN_FLIGHT_SNAPSHOTS = new ConcurrentHashMap<>();
 
     protected final HuskSync plugin;
 
@@ -92,16 +111,38 @@ public abstract class PluginCommand extends Command {
     }
 
     @NotNull
-    protected <S> ArgumentElement<S, User> user(@NotNull String name) {
-        return new ArgumentElement<>(name, reader -> {
-            final String username = reader.readString();
-            return plugin.getDatabase().getUserByName(username).orElseThrow(
-                    () -> CommandSyntaxException.BUILT_IN_EXCEPTIONS.dispatcherUnknownArgument().createWithContext(reader)
-            );
-        }, (context, builder) -> {
-            plugin.getOnlineUsers().forEach(u -> builder.suggest(u.getName()));
-            return builder.buildFuture();
-        });
+    protected <S> ArgumentElement<S, String> user(@NotNull String name) {
+        return new ArgumentElement<>(name, reader -> reader.readString(),
+                (context, builder) -> {
+                    plugin.getOnlineUsers().forEach(u -> builder.suggest(u.getName()));
+                    return builder.buildFuture();
+                });
+    }
+
+    protected void executeWithUser(@NotNull CommandUser executor, @NotNull String username,
+                                   @NotNull Consumer<User> action) {
+        plugin.runAsync(() -> findUser(username).ifPresentOrElse(
+                action,
+                () -> plugin.getLocales().getLocale("error_invalid_player").ifPresent(executor::sendMessage)
+        ));
+    }
+
+    protected Optional<User> findUser(@NotNull String username) {
+        final Optional<User> online = plugin.getOnlineUsers().stream()
+                .filter(u -> username.equalsIgnoreCase(u.getName()))
+                .map(u -> (User) u)
+                .findFirst();
+        if (online.isPresent()) {
+            return online;
+        }
+        final String key = username.toLowerCase();
+        final Optional<User> cached = USER_CACHE.getIfPresent(key);
+        if (cached != null) {
+            return cached;
+        }
+        final Optional<User> user = plugin.getDatabase().getUserByName(username);
+        USER_CACHE.put(key, user);
+        return user;
     }
 
     @NotNull
@@ -114,14 +155,55 @@ public abstract class PluginCommand extends Command {
             }
         }, (context, builder) -> {
             try {
-                plugin.getDatabase().getAllSnapshots(context.getArgument("username", User.class))
-                        .stream().sorted(Comparator.comparing(d -> d.getTimestamp().toEpochSecond()))
-                        .forEach(id -> builder.suggest(id.getId().toString()));
-                return builder.buildFuture();
-            } catch (IllegalArgumentException e) {
+                final String username = context.getArgument("username", String.class);
+                return getSnapshotSuggestions(username)
+                        .thenApply(ids -> {
+                            ids.forEach(builder::suggest);
+                            return builder.build();
+                        })
+                        .exceptionally(throwable -> builder.build());
+            } catch (IllegalArgumentException ignored) {
                 return builder.buildFuture();
             }
         });
+    }
+
+    @NotNull
+    private CompletableFuture<List<String>> getSnapshotSuggestions(@NotNull String username) {
+        final Optional<User> online = plugin.getOnlineUsers().stream()
+                .filter(u -> username.equalsIgnoreCase(u.getName()))
+                .map(u -> (User) u)
+                .findFirst();
+        if (online.isPresent()) {
+            return getSnapshotSuggestions(online.get());
+        }
+        final String key = username.toLowerCase();
+        final Optional<User> cached = USER_CACHE.getIfPresent(key);
+        if (cached != null) {
+            return cached.map(this::getSnapshotSuggestions)
+                    .orElseGet(() -> CompletableFuture.completedFuture(List.of()));
+        }
+        return plugin.supplyAsync(() -> findUser(username))
+                .thenCompose(user -> user.map(this::getSnapshotSuggestions)
+                        .orElseGet(() -> CompletableFuture.completedFuture(List.of())));
+    }
+
+    @NotNull
+    private CompletableFuture<List<String>> getSnapshotSuggestions(@NotNull User user) {
+        final UUID uuid = user.getUuid();
+        final List<String> cached = SNAPSHOT_CACHE.getIfPresent(uuid);
+        if (cached != null) {
+            return CompletableFuture.completedFuture(cached);
+        }
+        return IN_FLIGHT_SNAPSHOTS.computeIfAbsent(uuid, k -> plugin.supplyAsync(() -> plugin.getDatabase().getAllSnapshots(user))
+                .thenApply(snapshots -> snapshots.stream()
+                        .sorted(Comparator.comparing(d -> d.getTimestamp().toEpochSecond()))
+                        .map(snapshot -> snapshot.getId().toString())
+                        .toList())
+                .whenComplete((ids, throwable) -> {
+                    IN_FLIGHT_SNAPSHOTS.remove(uuid);
+                    SNAPSHOT_CACHE.put(uuid, ids != null ? ids : List.of());
+                }));
     }
 
     public enum Type {
