@@ -425,10 +425,19 @@ public abstract class BukkitData implements Data {
 
         @Override
         public void apply(@NotNull BukkitUser user, @NotNull BukkitHuskSync plugin) throws IllegalStateException {
+            org.bukkit.World target = Bukkit.getWorld(world.name());
+            if (target == null) {
+                target = Bukkit.getWorld(world.uuid());
+            }
+
+            // Skip location apply instead of failing a sync, so player isn't left locked
+            if (target == null) { 
+                plugin.log(Level.WARNING, "Skipped setting %s's location, as world %s isn't loaded"
+                        .formatted(user.getName(), world.name()));
+                return;
+            }
             try {
-                final org.bukkit.Location location = new org.bukkit.Location(
-                        Bukkit.getWorld(world.name()), x, y, z, yaw, pitch
-                );
+                final org.bukkit.Location location = new org.bukkit.Location(target, x, y, z, yaw, pitch);
                 user.getPlayer().teleport(location);
             } catch (Throwable e) {
                 throw new IllegalStateException("Failed to apply location", e);
