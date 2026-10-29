@@ -330,49 +330,47 @@ public abstract class BukkitData implements Data {
 
         @Override
         public void apply(@NotNull BukkitUser user, @NotNull BukkitHuskSync plugin) throws IllegalStateException {
-            plugin.runAsync(() -> forEachAdvancement(advancement -> {
-                final Player player = user.getPlayer();
+            // Set inline, so this is done before the sync completes and the player is unlocked
+            // (PaperEventListener clears advancement messages for locked players)
+            final Player player = user.getPlayer();
+            final Map<String, Advancement> records = completed.stream()
+                    .collect(Collectors.toMap(Advancement::getKey, r -> r, (a, b) -> a));
+            forEachAdvancement(advancement -> {
                 final AdvancementProgress progress = player.getAdvancementProgress(advancement);
-                final Optional<Advancement> record = completed.stream()
-                        .filter(r -> r.getKey().equals(advancement.getKey().toString()))
-                        .findFirst();
-                if (record.isEmpty()) {
-                    this.setAdvancement(plugin, advancement, player, user, List.of(), progress.getAwardedCriteria());
+                final Advancement record = records.get(advancement.getKey().toString());
+                if (record == null) {
+                    this.setAdvancement(advancement, player, List.of(), progress.getAwardedCriteria());
                     return;
                 }
 
-                final Map<String, Date> criteria = record.get().getCompletedCriteria();
+                final Map<String, Date> criteria = record.getCompletedCriteria();
                 this.setAdvancement(
-                        plugin, advancement, player, user,
+                        advancement, player,
                         criteria.keySet().stream().filter(key -> !progress.getAwardedCriteria().contains(key)).toList(),
                         progress.getAwardedCriteria().stream().filter(key -> !criteria.containsKey(key)).toList()
                 );
-            }));
+            });
         }
 
-        private void setAdvancement(@NotNull HuskSync plugin,
-                                    @NotNull org.bukkit.advancement.Advancement advancement,
+        private void setAdvancement(@NotNull org.bukkit.advancement.Advancement advancement,
                                     @NotNull Player player,
-                                    @NotNull BukkitUser user,
                                     @NotNull Collection<String> toAward,
                                     @NotNull Collection<String> toRevoke) {
-            plugin.runSync(() -> {
-                // Track player exp level & progress
-                final int expLevel = player.getLevel();
-                final float expProgress = player.getExp();
+            // Track player exp level & progress
+            final int expLevel = player.getLevel();
+            final float expProgress = player.getExp();
 
-                // Award and revoke advancement criteria
-                final AdvancementProgress progress = player.getAdvancementProgress(advancement);
-                toAward.forEach(progress::awardCriteria);
-                toRevoke.forEach(progress::revokeCriteria);
+            // Award and revoke advancement criteria
+            final AdvancementProgress progress = player.getAdvancementProgress(advancement);
+            toAward.forEach(progress::awardCriteria);
+            toRevoke.forEach(progress::revokeCriteria);
 
-                // Set player experience and level (prevent advancement awards applying twice), reset game rule
-                if (!toAward.isEmpty()
-                        && (player.getLevel() != expLevel || player.getExp() != expProgress)) {
-                    player.setLevel(expLevel);
-                    player.setExp(expProgress);
-                }
-            }, user);
+            // Set player experience and level (prevent advancement awards applying twice)
+            if (!toAward.isEmpty()
+                    && (player.getLevel() != expLevel || player.getExp() != expProgress)) {
+                player.setLevel(expLevel);
+                player.setExp(expProgress);
+            }
         }
 
         // Performs a consuming function for every advancement registered on the server
