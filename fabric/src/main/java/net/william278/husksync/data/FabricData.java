@@ -59,6 +59,7 @@ import org.jetbrains.annotations.Range;
 import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.*;
+import java.util.logging.Level;
 
 import static net.william278.husksync.util.FabricKeyedAdapter.*;
 
@@ -456,9 +457,16 @@ public abstract class FabricData implements Data {
 
             // Find world
             final String worldName = world.name();
-            final ServerWorld target = server.getWorld(server.getWorldRegistryKeys().stream()
+            final ServerWorld target = server.getWorldRegistryKeys().stream()
                     .filter(key -> key.getValue().equals(Identifier.tryParse(worldName))).findFirst()
-                    .orElseThrow(() -> new IllegalStateException("Invalid target world: %s".formatted(worldName))));
+                    .map(server::getWorld).orElse(null);
+
+            // Skip location apply instead of failing, so the player isn't left locked
+            if (target == null) {
+                plugin.log(Level.WARNING, "Skipped setting %s's location, as world %s isn't loaded"
+                        .formatted(user.getName(), worldName));
+                return;
+            }
 
             // Apply teleport
             try {
