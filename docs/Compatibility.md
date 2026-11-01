@@ -2,13 +2,17 @@ HuskSync supports the following versions of Minecraft. Since v3.7, you must down
 
 |    Minecraft    | Latest HuskSync | Java Version | Platforms     | Support Status                |
 |:---------------:|:---------------:|:------------:|:--------------|:------------------------------|
-|     1.21.10     |    _latest_     |      21      | Paper         | ✅ **Active Release**          |
-|    1.21.7/8     |    _latest_     |      21      | Paper, Fabric | ✅ **August 2026**             |
+|      26.3       |    _latest_     |      25      | Paper         | ✅ **Active Release**          |
+|      26.2       |      4.2.0      |      25      | Paper         | ✅ **December 2026**           |
+|     26.1.2      |      4.2.0      |      25      | Paper         | ✅ **December 2026**           |
+|     1.21.11     |      4.2.0      |      21      | Paper         | ✅ **December 2026**           |
+|     1.21.10     |      4.2.0      |      21      | Paper         | ✅ **December 2026**           |
+|    1.21.7/8     |      4.2.0      |      21      | Paper, Fabric | ✅ **December 2026**           |
 |     1.21.6      |      3.8.5      |      21      | Paper         | 🗃️ Archived (July 2025)      |
-|     1.21.5      |    _latest_     |      21      | Paper         | ✅ **February 2026** (Non-LTS) |
-|     1.21.4      |    _latest_     |      21      | Paper, Fabric | ✅ **February 2026** (Non-LTS) |
+|     1.21.5      |      4.2.0      |      21      | Paper, Fabric | ✅ **December 2026**           |
+|     1.21.4      |      4.2.0      |      21      | Paper, Fabric | ✅ **December 2026**           |
 |     1.21.3      |      3.7.1      |      21      | Paper, Fabric | 🗃️ Archived (December 2024)  |
-|     1.21.1      |    _latest_     |      21      | Paper, Fabric | ✅ **May 2026** (LTS)          |
+|     1.21.1      |      4.2.0      |      21      | Paper, Fabric | ✅ **December 2026**           |
 |     1.20.6      |      3.6.8      |      17      | Paper         | 🗃️ Archived (October 2024)   |
 |     1.20.4      |      3.6.8      |      17      | Paper         | 🗃️ Archived (July 2024)      |
 |     1.20.1      |      3.8.7      |      17      | Paper, Fabric | 🗃️ Archived (November 2024)  |
