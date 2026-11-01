@@ -49,16 +49,16 @@ HuskSync supports the following [compatible versions](https://william278.net/doc
 |    Minecraft    | Latest HuskSync | Java Version | Platforms     | Support Status                |
 |:---------------:|:---------------:|:------------:|:--------------|:------------------------------|
 |     26.3      |    _latest_     |      25      | Paper         | ✅ **Active Release**        |
-|     26.2      |       4.1.0     |      25      | Paper         | ✅ **December 2026**         |
-|     26.1.2    |       4.1.0     |      25      | Paper         | ✅ **December 2026**         |
-|     1.21.11   |      4.1.0      |      21      | Paper         | ✅ **December 2026**         |
-|     1.21.10   |      4.1.0      |      21      | Paper         | ✅ **December 2026**         |
-|    1.21.7/8   |      3.8.7      |      21      | Paper, Fabric | 🗃️ Archived (August 2026)    |
+|     26.2      |       4.2.0     |      25      | Paper         | ✅ **December 2026**         |
+|     26.1.2    |       4.2.0     |      25      | Paper         | ✅ **December 2026**         |
+|     1.21.11   |      4.2.0      |      21      | Paper         | ✅ **December 2026**         |
+|     1.21.10   |      4.2.0      |      21      | Paper         | ✅ **December 2026**         |
+|    1.21.7/8   |      4.2.0      |      21      | Paper, Fabric | ✅ **December 2026**         |
 |     1.21.6    |      3.8.5      |      21      | Paper         | 🗃️ Archived (July 2025)      |
-|     1.21.5    |      3.8.7      |      21      | Paper         | 🗃️ Archived (June 2026)      |
-|     1.21.4    |      3.8.7      |      21      | Paper, Fabric | 🗃️ Archived (June 2026)      |
+|     1.21.5    |      4.2.0      |      21      | Paper, Fabric | ✅ **December 2026**         |
+|     1.21.4    |      4.2.0      |      21      | Paper, Fabric | ✅ **December 2026**         |
 |     1.21.3    |      3.7.1      |      21      | Paper, Fabric | 🗃️ Archived (December 2024)  |
-|     1.21.1    |      3.8.7      |      21      | Paper, Fabric | 🗃️ Archived (June 2026)      |
+|     1.21.1    |      4.2.0      |      21      | Paper, Fabric | ✅ **December 2026**         |
 |     1.20.6    |      3.6.8      |      17      | Paper         | 🗃️ Archived (October 2024)   |
 |     1.20.4    |      3.6.8      |      17      | Paper         | 🗃️ Archived (July 2024)      |
 |     1.20.1    |      3.8.7      |      17      | Paper, Fabric | 🗃️ Archived (November 2024)  |
