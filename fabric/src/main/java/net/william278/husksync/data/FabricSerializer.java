@@ -174,7 +174,7 @@ public abstract class FabricSerializer {
                 //$$ itemList.forEach(element -> {
                 //$$     final NbtCompound compound = (NbtCompound) element;
                 //$$     final int i = compound.contains("Slot") ? compound.getInt("Slot") : -1;
-                //$$     if (i >= 0 && i < contents.length) {
+                //$$     if (isValidSlot(i, contents.length, compound, plugin)) {
                 //$$         contents[i] = decodeItem(compound, null, registryManager, plugin);
                 //$$     }
                 //$$ });
@@ -184,7 +184,7 @@ public abstract class FabricSerializer {
                 itemList.forEach(element -> {
                     final NbtCompound compound = (NbtCompound) element;
                     int i = compound.getInt("Slot", -1);
-                    if (i >= 0 && i < contents.length) {
+                    if (isValidSlot(i, contents.length, compound, plugin)) {
                         contents[i] = decodeItem(compound, null, registryManager, plugin);
                     }
                 });
@@ -219,7 +219,7 @@ public abstract class FabricSerializer {
                 itemList.add(entry);
             }
             if (!skipped.isEmpty()) {
-                plugin.debug("Skipped serializing items in array: %s".formatted(Arrays.toString(skipped.toArray())));
+                plugin.log(Level.WARNING, "Skipped serializing items in array: %s".formatted(Arrays.toString(skipped.toArray())));
             }
             container.put(ITEMS_TAG, itemList);
             return container;
@@ -237,11 +237,11 @@ public abstract class FabricSerializer {
             //$$ for (int i = 0; i < list.size(); i++) {
             //$$     // getCompound returns an empty compound (never null) for out-of-range or non-compound entries
             //$$     final NbtCompound compound = list.getCompound(i);
-            //$$     if (compound.isEmpty() || !compound.contains("Slot")) {
+            //$$     if (compound.isEmpty()) {
             //$$         continue;
             //$$     }
-            //$$     final int slot = compound.getInt("Slot");
-            //$$     if (slot >= 0 && slot < size) {
+            //$$     final int slot = compound.contains("Slot") ? compound.getInt("Slot") : -1;
+            //$$     if (isValidSlot(slot, size, compound, plugin)) {
             //$$         final ItemStack stack = decodeItem(compound, mcVersion, registryManager, plugin);
             //$$         if (stack != null) {
             //$$             itemStacks[slot] = stack;
@@ -260,7 +260,7 @@ public abstract class FabricSerializer {
                     continue;
                 }
                 final int slot = compound.getInt("Slot", -1);
-                if (slot >= 0 && slot < size) {
+                if (isValidSlot(slot, size, compound, plugin)) {
                     final ItemStack stack = decodeItem(compound, mcVersion, registryManager, plugin);
                     if (stack != null) {
                         itemStacks[slot] = stack;
@@ -283,6 +283,15 @@ public abstract class FabricSerializer {
                 plugin.log(Level.WARNING, "Skipping an item that couldn't be read (%s)".formatted(item), e);
                 return null;
             }
+        }
+
+        // Items with a missing or out-of-range slot are skipped (and logged) the same way
+        private boolean isValidSlot(int slot, int size, @NotNull NbtCompound item, @NotNull FabricHuskSync plugin) {
+            if (slot >= 0 && slot < size) {
+                return true;
+            }
+            plugin.log(Level.WARNING, "Skipping an item with a missing or out-of-range slot (%s)".formatted(item));
+            return false;
         }
 
         @NotNull
