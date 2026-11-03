@@ -276,15 +276,9 @@ public abstract class FabricSerializer {
         @Nullable
         private ItemStack decodeItem(@NotNull NbtCompound item, @Nullable Version upgradeFrom,
                                      @NotNull DynamicRegistryManager registryManager, @NotNull FabricHuskSync plugin) {
-            if (upgradeFrom != null) {
-                try {
-                    return decodeNbt(upgradeItemData(item, upgradeFrom, plugin), registryManager);
-                } catch (Throwable e) {
-                    plugin.debug("Failed to upgrade item from %s, reading it as-is (%s)".formatted(upgradeFrom, item), e);
-                }
-            }
             try {
-                return decodeNbt(item, registryManager);
+                final NbtCompound data = upgradeFrom != null ? upgradeItemData(item, upgradeFrom, plugin) : item;
+                return decodeNbt(data, registryManager);
             } catch (Throwable e) {
                 plugin.log(Level.WARNING, "Skipping an item that couldn't be read (%s)".formatted(item), e);
                 return null;
