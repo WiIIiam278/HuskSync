@@ -39,6 +39,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.logging.Level;
 
 import static net.william278.husksync.data.Data.Items.Inventory.*;
 
@@ -172,7 +173,10 @@ public abstract class FabricSerializer {
                 //$$ final NbtList itemList = tag.getList("items", NbtElement.COMPOUND_TYPE);
                 //$$ itemList.forEach(element -> {
                 //$$     final NbtCompound compound = (NbtCompound) element;
-                //$$     contents[compound.getInt("Slot")] = decodeNbt(element, registryManager);
+                //$$     final int i = compound.contains("Slot") ? compound.getInt("Slot") : -1;
+                //$$     if (i >= 0 && i < contents.length) {
+                //$$         contents[i] = decodeItem(compound, null, registryManager, plugin);
+                //$$     }
                 //$$ });
                 //#else
                 final ItemStack[] contents = new ItemStack[tag.getInt("size", 0)];
@@ -180,8 +184,8 @@ public abstract class FabricSerializer {
                 itemList.forEach(element -> {
                     final NbtCompound compound = (NbtCompound) element;
                     int i = compound.getInt("Slot", -1);
-                    if (i >= 0) {
-                        contents[i] = decodeNbt(element, registryManager);
+                    if (i >= 0 && i < contents.length) {
+                        contents[i] = decodeItem(compound, null, registryManager, plugin);
                     }
                 });
                 //#endif
@@ -230,13 +234,19 @@ public abstract class FabricSerializer {
             //$$ final ItemStack[] itemStacks = new ItemStack[size];
             //$$ final DynamicRegistryManager registryManager = plugin.getMinecraftServer().getRegistryManager();
             //$$ Arrays.fill(itemStacks, ItemStack.EMPTY);
-            //$$ for (int i = 0; i < size; i++) {
-            //$$     if (list.getCompound(i) == null) {
+            //$$ for (int i = 0; i < list.size(); i++) {
+            //$$     // getCompound returns an empty compound (never null) for out-of-range or non-compound entries
+            //$$     final NbtCompound compound = list.getCompound(i);
+            //$$     if (compound.isEmpty() || !compound.contains("Slot")) {
             //$$         continue;
             //$$     }
-            //$$     final NbtCompound compound = list.getCompound(i);
             //$$     final int slot = compound.getInt("Slot");
-            //$$     itemStacks[slot] = decodeNbt(upgradeItemData(list.getCompound(i), mcVersion, plugin), registryManager);
+            //$$     if (slot >= 0 && slot < size) {
+            //$$         final ItemStack stack = decodeItem(compound, mcVersion, registryManager, plugin);
+            //$$         if (stack != null) {
+            //$$             itemStacks[slot] = stack;
+            //$$         }
+            //$$     }
             //$$ }
             //#else
             final int size = items.getInt("size", 0);
@@ -250,12 +260,35 @@ public abstract class FabricSerializer {
                     continue;
                 }
                 final int slot = compound.getInt("Slot", -1);
-                if (slot >= 0) {
-                    itemStacks[slot] = decodeNbt(upgradeItemData(compound, mcVersion, plugin), registryManager);
+                if (slot >= 0 && slot < size) {
+                    final ItemStack stack = decodeItem(compound, mcVersion, registryManager, plugin);
+                    if (stack != null) {
+                        itemStacks[slot] = stack;
+                    }
                 }
             }
             //#endif
             return itemStacks;
+        }
+
+        // Decode one item, upgrading it first if it's from an older version. If it can't be read, it's skipped
+        // (and logged) rather than failing the whole inventory / ender chest
+        @Nullable
+        private ItemStack decodeItem(@NotNull NbtCompound item, @Nullable Version upgradeFrom,
+                                     @NotNull DynamicRegistryManager registryManager, @NotNull FabricHuskSync plugin) {
+            if (upgradeFrom != null) {
+                try {
+                    return decodeNbt(upgradeItemData(item, upgradeFrom, plugin), registryManager);
+                } catch (Throwable e) {
+                    plugin.debug("Failed to upgrade item from %s, reading it as-is (%s)".formatted(upgradeFrom, item), e);
+                }
+            }
+            try {
+                return decodeNbt(item, registryManager);
+            } catch (Throwable e) {
+                plugin.log(Level.WARNING, "Skipping an item that couldn't be read (%s)".formatted(item), e);
+                return null;
+            }
         }
 
         @NotNull
