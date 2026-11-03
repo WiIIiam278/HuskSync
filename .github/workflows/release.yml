@@ -83,7 +83,6 @@ jobs:
             Paper 26.1.2
             Paper 26.2
             Paper 26.3
-
           files: |
             target/HuskSync-Fabric-${{ github.event.release.tag_name }}+mc.1.21.1.jar
             target/HuskSync-Fabric-${{ github.event.release.tag_name }}+mc.1.21.4.jar
