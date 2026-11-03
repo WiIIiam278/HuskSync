@@ -215,6 +215,10 @@ public interface UserDataHolder extends DataHolder {
 
     boolean isDead();
 
+    default boolean canRespawn() {
+        return false;
+    }
+
     default void respawn() {
     }
 

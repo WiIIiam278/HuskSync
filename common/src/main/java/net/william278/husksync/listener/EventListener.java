@@ -61,7 +61,8 @@ public abstract class EventListener {
         // Players who joined dead in this server's own player data must respawn. Setting their health won't 
         // revive them, leaving them stuck on the death screen. Respawn on next tick, as player isn't added
         // to the world during the join event, but before their data is applied or other plugins alter them.
-        if (user.isDead() && Identifier.HEALTH.isEnabled()) {
+        // Skipped on Fabric that can't respawn users, where players respawn via the death screen.
+        if (user.isDead() && Identifier.HEALTH.isEnabled() && user.canRespawn()) {
             plugin.runSync(() -> {
                 if (user.hasDisconnected()) {
                     return;
