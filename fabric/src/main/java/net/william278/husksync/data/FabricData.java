@@ -27,7 +27,6 @@ import lombok.*;
 import net.minecraft.advancement.AdvancementProgress;
 import net.minecraft.advancement.PlayerAdvancementTracker;
 import net.minecraft.component.DataComponentTypes;
-import net.minecraft.entity.attribute.EntityAttribute;
 import net.minecraft.entity.attribute.EntityAttributeInstance;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
 import net.minecraft.entity.effect.StatusEffect;
@@ -284,7 +283,7 @@ public abstract class FabricData implements Data {
             final List<StatusEffect> effectsToRemove = new ArrayList<>(player.getActiveStatusEffects().keySet().stream()
                     .map(RegistryEntry::value).toList());
             effectsToRemove.forEach(effect -> player.removeStatusEffect(RegistryEntry.of(effect)));
-            getEffects().forEach(player::addStatusEffect);
+            effects.forEach(player::addStatusEffect);
         }
 
         @NotNull
@@ -319,7 +318,11 @@ public abstract class FabricData implements Data {
 
         @NotNull
         public static FabricData.Advancements adapt(@NotNull ServerPlayerEntity player) {
+            //#if MC>=12110
+            //$$ final MinecraftServer server = Objects.requireNonNull(player.getEntityWorld().getServer(), "Server is null");
+            //#else
             final MinecraftServer server = Objects.requireNonNull(player.getServer(), "Server is null");
+            //#endif
             final List<Advancement> advancements = Lists.newArrayList();
             forEachAdvancementEntry(server, advancementEntry -> {
                 final AdvancementProgress advancementProgress = player.getAdvancementTracker().getProgress(advancementEntry);
@@ -349,7 +352,11 @@ public abstract class FabricData implements Data {
         @Override
         public void apply(@NotNull FabricUser user, @NotNull FabricHuskSync plugin) throws IllegalStateException {
             final ServerPlayerEntity player = user.getPlayer();
+            //#if MC>=12110
+            //$$ final MinecraftServer server = Objects.requireNonNull(player.getEntityWorld().getServer(), "Server is null");
+            //#else
             final MinecraftServer server = Objects.requireNonNull(player.getServer(), "Server is null");
+            //#endif
             plugin.runAsync(() -> forEachAdvancementEntry(server, advancementEntry -> {
                 final AdvancementProgress progress = player.getAdvancementTracker().getProgress(advancementEntry);
                 final Optional<Advancement> record = completed.stream()
@@ -626,14 +633,14 @@ public abstract class FabricData implements Data {
             return new FabricData.Attributes(attributes);
         }
 
-        public Optional<Attribute> getAttribute(@NotNull EntityAttribute id) {
+        public Optional<Attribute> getAttribute(@NotNull net.minecraft.entity.attribute.EntityAttribute id) {
             return Optional.ofNullable(Registries.ATTRIBUTE.getId(id)).map(Identifier::toString)
                     .flatMap(key -> attributes.stream().filter(attribute -> attribute.name().equals(key)).findFirst());
         }
 
         @SuppressWarnings("unused")
         public Optional<Attribute> getAttribute(@NotNull String key) {
-            final EntityAttribute attribute = matchAttribute(key);
+            final net.minecraft.entity.attribute.EntityAttribute attribute = matchAttribute(key);
             if (attribute == null) {
                 return Optional.empty();
             }
