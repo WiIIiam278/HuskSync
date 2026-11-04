@@ -41,6 +41,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 
 import static net.william278.husksync.data.BukkitData.Items.Inventory.INVENTORY_SLOT_COUNT;
 import static net.william278.husksync.data.Data.Items.Inventory.HELD_ITEM_SLOT_TAG;
@@ -155,6 +156,7 @@ public class BukkitSerializer {
                     try {
                         upgraded = NBT.itemStackFromNBT(item);
                     } catch (Throwable e2) {
+                        getPlugin().log(Level.WARNING, "Skipping an item that couldn't be read (%s)".formatted(item), e2);
                         upgraded = new ItemStack(Material.AIR);
                     }
                 }

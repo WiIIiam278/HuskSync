@@ -32,7 +32,7 @@ import net.william278.desertwell.util.Version;
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.adapter.Adaptable;
 import net.william278.husksync.adapter.DataAdapter;
-import org.apache.commons.text.WordUtils;
+import net.william278.husksync.config.Locales;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -842,7 +842,7 @@ public class DataSnapshot {
          */
         @NotNull
         default String getDisplayName() {
-            return WordUtils.capitalizeFully(name().replaceAll("_", " "));
+            return Locales.capitalizeFully(name().replaceAll("_", " "));
         }
 
     }

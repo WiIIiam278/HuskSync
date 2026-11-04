@@ -10,9 +10,12 @@ pluginManagement {
     }
 
     plugins {
-        def egtVersion = "0.6.10"
+        def egtVersion = "0.7.3"
+        def loomVersion = "1.15.51"
         id("gg.essential.defaults") version egtVersion
+        id("gg.essential.multi-version") version egtVersion
         id("gg.essential.multi-version.root") version egtVersion
+        id("gg.essential.loom") version loomVersion
     }
 }
 

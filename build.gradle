@@ -3,7 +3,7 @@ import org.apache.tools.ant.filters.ReplaceTokens
 plugins {
     id 'com.gradleup.shadow' version '9.5.1'
     id 'net.neoforged.licenser' version '0.7.5' apply false
-    id 'dev.architectury.loom' version '1.9-SNAPSHOT' apply false
+    id 'gg.essential.loom' apply false
     id 'gg.essential.multi-version.root' apply false
     id 'org.ajoberstar.grgit' version '5.3.2'
     id 'maven-publish'
@@ -145,7 +145,8 @@ subprojects {
         version += "+mc.${project.name}"
 
         if (project.parent?.name?.equals('fabric')) {
-            apply plugin: 'dev.architectury.loom'
+            // Minecraft 26.1+ isn't obfuscated, Loom doesn't need to remap them
+            apply plugin: isUnobfuscated(project) ? 'gg.essential.loom-no-remap' : 'gg.essential.loom'
         }
     }
 
@@ -205,7 +206,7 @@ subprojects {
                         groupId = 'net.william278.husksync'
                         artifactId = 'husksync-fabric'
                         version = "$rootProject.version+$project.name"
-                        artifact remapJar
+                        artifact isUnobfuscated(project) ? jar : remapJar
                         artifact sourcesJar
                         artifact javadocJar
                     }
@@ -216,6 +217,19 @@ subprojects {
 
     jar.dependsOn shadowJar
     clean.delete "$rootDir/target"
+}
+
+// Every clean task deletes the shared target directory (and its project's generated sources), so run all of them
+// before any other task. Otherwise, parallel builds (e.g. `clean build`) can delete outputs other tasks just produced
+gradle.projectsEvaluated {
+    def cleanTasks = allprojects.collect { it.tasks.findByName('clean') }.findAll { it != null }
+    allprojects {
+        tasks.configureEach { task ->
+            if (!cleanTasks.contains(task)) {
+                task.mustRunAfter(cleanTasks)
+            }
+        }
+    }
 }
 
 logger.lifecycle("Building HuskSync ${version} by William278")
@@ -238,4 +252,9 @@ def versionMetadata() {
         return ''
     }
     return '-' + grgit.head().abbreviatedId
+}
+
+// Whether a project targets Minecraft 26.1 or newer, which is no longer obfuscated
+static boolean isUnobfuscated(Project project) {
+    return Integer.parseInt(project.name.split('\\.')[0]) >= 26
 }

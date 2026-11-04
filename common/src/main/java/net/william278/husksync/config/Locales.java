@@ -29,6 +29,7 @@ import net.william278.husksync.util.PaginatedList;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 
@@ -172,6 +173,25 @@ public class Locales {
         return string.replace("\\", "\\\\")
                 .replace("<", "\\<")
                 .replace(">", "\\>");
+    }
+
+    /**
+     * Capitalize the first letter of each whitespace-separated word and lowercase the rest
+     * (e.g. {@code SERVER SHUTDOWN} becomes {@code Server Shutdown})
+     *
+     * @param string The string to capitalize
+     * @return The capitalized string
+     * @since 4.2.0
+     */
+    @NotNull
+    public static String capitalizeFully(@NotNull String string) {
+        final StringBuilder builder = new StringBuilder(string.length());
+        boolean capitalizeNext = true;
+        for (final char character : string.toLowerCase(Locale.ROOT).toCharArray()) {
+            builder.append(capitalizeNext ? Character.toTitleCase(character) : character);
+            capitalizeNext = Character.isWhitespace(character);
+        }
+        return builder.toString();
     }
 
     /**

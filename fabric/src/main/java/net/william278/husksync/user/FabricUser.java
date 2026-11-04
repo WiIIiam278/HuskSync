@@ -20,7 +20,11 @@
 package net.william278.husksync.user;
 
 import eu.pb4.sgui.api.ClickType;
+//#if MC>=260100
+//$$ import eu.pb4.sgui.api.elements.GuiElement;
+//#else
 import eu.pb4.sgui.api.elements.GuiElementInterface;
+//#endif
 import eu.pb4.sgui.api.gui.SimpleGui;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.kyori.adventure.audience.Audience;
@@ -33,7 +37,11 @@ import net.kyori.adventure.platform.modcommon.MinecraftServerAudiences;
 import net.minecraft.item.ItemStack;
 import net.minecraft.screen.GenericContainerScreenHandler;
 import net.minecraft.screen.ScreenHandlerType;
+//#if MC>=260100
+//$$ import net.minecraft.world.inventory.ContainerInput;
+//#else
 import net.minecraft.screen.slot.SlotActionType;
+//#endif
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.william278.husksync.FabricHuskSync;
 import net.william278.husksync.HuskSync;
@@ -119,6 +127,27 @@ public class FabricUser extends OnlineUser implements FabricUserDataHolder {
             }
         }
 
+        //#if MC>=260100
+        //$$ @Override
+        //$$ public void onRemoved() {
+        //$$     final ItemStack[] contents = new ItemStack[size];
+        //$$     for (int i = 0; i < size; i++) {
+        //$$         contents[i] = this.getGuiElement(i) == null ? null : this.getGuiElement(i).getItemStack();
+        //$$     }
+        //$$     onClose.accept(FabricData.Items.ItemArray.adapt(contents));
+        //$$ }
+        //$$
+        //$$ @Override
+        //$$ public boolean onAnyClick(int index, @NotNull ClickType type, @NotNull ContainerInput action) {
+        //$$     return editable;
+        //$$ }
+        //$$
+        //$$ @Override
+        //$$ public boolean onClick(int index, @NotNull ClickType type, @NotNull ContainerInput action,
+        //$$                        @NotNull GuiElement element) {
+        //$$     return editable;
+        //$$ }
+        //#else
         @Override
         public void onClose() {
             final ItemStack[] contents = new ItemStack[size];
@@ -138,6 +167,7 @@ public class FabricUser extends OnlineUser implements FabricUserDataHolder {
                                @NotNull GuiElementInterface element) {
             return editable;
         }
+        //#endif
 
         @NotNull
         private static ScreenHandlerType<GenericContainerScreenHandler> getScreenHandler(int size) {
@@ -155,7 +185,11 @@ public class FabricUser extends OnlineUser implements FabricUserDataHolder {
         final boolean requiresOp = Boolean.TRUE.equals(
                 ((FabricHuskSync) plugin).getPermissions().getOrDefault(node, true)
         );
+        //#if MC>=12111
+        //$$ return Permissions.check(player, node, !requiresOp || player.getPermissions().hasPermission(net.minecraft.command.DefaultPermissions.ADMINS));
+        //#else
         return Permissions.check(player, node, !requiresOp || player.hasPermissionLevel(3));
+        //#endif
     }
 
     @Override

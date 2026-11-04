@@ -265,6 +265,10 @@ public class FabricHuskSync implements DedicatedServerModInitializer, HuskSync, 
     }
 
 
+    public MinecraftServer getMinecraftServer() {
+        return minecraftServer;
+    }
+
     @NotNull
     @Override
     public String getServerName() {

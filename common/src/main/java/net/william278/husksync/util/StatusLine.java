@@ -26,8 +26,8 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import net.william278.husksync.HuskSync;
+import net.william278.husksync.config.Locales;
 import net.william278.husksync.database.Database;
-import org.apache.commons.text.WordUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Function;
@@ -44,7 +44,7 @@ public enum StatusLine {
     JAVA_VENDOR(plugin -> Component.text(System.getProperty("java.vendor"))),
     SERVER_NAME(plugin -> Component.text(plugin.getServerName())),
     CLUSTER_ID(plugin -> Component.text(plugin.getSettings().getClusterId().isBlank() ? "None" : plugin.getSettings().getClusterId())),
-    SYNC_MODE(plugin -> Component.text(WordUtils.capitalizeFully(
+    SYNC_MODE(plugin -> Component.text(Locales.capitalizeFully(
             plugin.getSettings().getSynchronization().getMode().toString()
     ))),
     DELAY_LATENCY(plugin -> Component.text(
@@ -103,7 +103,7 @@ public enum StatusLine {
         return Component
                 .text("•").appendSpace()
                 .append(Component.text(
-                        WordUtils.capitalizeFully(name().replaceAll("_", " ")),
+                        Locales.capitalizeFully(name().replaceAll("_", " ")),
                         TextColor.color(0x848484)
                 ))
                 .append(Component.text(':')).append(Component.space().color(NamedTextColor.WHITE))
