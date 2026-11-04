@@ -145,7 +145,8 @@ subprojects {
         version += "+mc.${project.name}"
 
         if (project.parent?.name?.equals('fabric')) {
-            apply plugin: 'gg.essential.loom'
+            // Minecraft 26.1+ isn't obfuscated, Loom doesn't need to remap them
+            apply plugin: isUnobfuscated(project) ? 'gg.essential.loom-no-remap' : 'gg.essential.loom'
         }
     }
 
@@ -205,7 +206,7 @@ subprojects {
                         groupId = 'net.william278.husksync'
                         artifactId = 'husksync-fabric'
                         version = "$rootProject.version+$project.name"
-                        artifact remapJar
+                        artifact isUnobfuscated(project) ? jar : remapJar
                         artifact sourcesJar
                         artifact javadocJar
                     }
@@ -251,4 +252,9 @@ def versionMetadata() {
         return ''
     }
     return '-' + grgit.head().abbreviatedId
+}
+
+// Whether a project targets Minecraft 26.1 or newer, which is no longer obfuscated
+static boolean isUnobfuscated(Project project) {
+    return Integer.parseInt(project.name.split('\\.')[0]) >= 26
 }

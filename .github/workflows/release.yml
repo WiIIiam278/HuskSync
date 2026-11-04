@@ -46,6 +46,11 @@ jobs:
             fabric-1.21.4
             fabric-1.21.5
             fabric-1.21.8
+            fabric-1.21.10
+            fabric-1.21.11
+            fabric-26.1.2
+            fabric-26.2
+            fabric-26.3
             paper-1.21.1
             paper-1.21.4
             paper-1.21.5
@@ -56,6 +61,11 @@ jobs:
             paper-26.2
             paper-26.3
           distro-groups: |
+            fabric
+            fabric
+            fabric
+            fabric
+            fabric
             fabric
             fabric
             fabric
@@ -74,6 +84,11 @@ jobs:
             Fabric 1.21.4
             Fabric 1.21.5
             Fabric 1.21.8
+            Fabric 1.21.10
+            Fabric 1.21.11
+            Fabric 26.1.2
+            Fabric 26.2
+            Fabric 26.3
             Paper 1.21.1
             Paper 1.21.4
             Paper 1.21.5
@@ -88,6 +103,11 @@ jobs:
             target/HuskSync-Fabric-${{ github.event.release.tag_name }}+mc.1.21.4.jar
             target/HuskSync-Fabric-${{ github.event.release.tag_name }}+mc.1.21.5.jar
             target/HuskSync-Fabric-${{ github.event.release.tag_name }}+mc.1.21.8.jar
+            target/HuskSync-Fabric-${{ github.event.release.tag_name }}+mc.1.21.10.jar
+            target/HuskSync-Fabric-${{ github.event.release.tag_name }}+mc.1.21.11.jar
+            target/HuskSync-Fabric-${{ github.event.release.tag_name }}+mc.26.1.2.jar
+            target/HuskSync-Fabric-${{ github.event.release.tag_name }}+mc.26.2.jar
+            target/HuskSync-Fabric-${{ github.event.release.tag_name }}+mc.26.3.jar
             target/HuskSync-Bukkit-${{ github.event.release.tag_name }}+mc.1.21.1.jar
             target/HuskSync-Bukkit-${{ github.event.release.tag_name }}+mc.1.21.4.jar
             target/HuskSync-Bukkit-${{ github.event.release.tag_name }}+mc.1.21.5.jar
