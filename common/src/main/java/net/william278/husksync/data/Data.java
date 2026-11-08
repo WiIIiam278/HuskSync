@@ -318,7 +318,7 @@ public interface Data {
      */
     interface Attributes extends Data {
 
-        Key MAX_HEALTH_KEY = Key.key("generic.max_health");
+        Key MAX_HEALTH_KEY = Key.key("max_health");
 
         List<Attribute> getAttributes();
 
@@ -425,6 +425,7 @@ public interface Data {
 
         default double getMaxHealth() {
             return getAttribute(MAX_HEALTH_KEY)
+                    .or(() -> getAttribute(Key.key("generic.max_health"))) // Legacy attr name for 1.21.1 and below 
                     .map(Attribute::getValue)
                     .orElse(20.0);
         }
