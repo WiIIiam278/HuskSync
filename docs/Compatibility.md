@@ -6,7 +6,7 @@ HuskSync supports the following versions of Minecraft. Since v3.7, you must down
 |      26.2       |      4.2.0      |      25      | Paper, Fabric | ✅ **December 2026**           |
 |     26.1.2      |      4.2.0      |      25      | Paper, Fabric | ✅ **December 2026**           |
 |     1.21.11     |      4.2.0      |      21      | Paper, Fabric | ✅ **December 2026**           |
-|     1.21.10     |      4.2.0      |      21      | Paper, Fabric | ✅ **December 2026**           |
+|    1.21.9/10    |      4.2.0      |      21      | Paper, Fabric | ✅ **December 2026**           |
 |    1.21.7/8     |      4.2.0      |      21      | Paper, Fabric | ✅ **December 2026**           |
 |     1.21.6      |      3.8.5      |      21      | Paper         | 🗃️ Archived (July 2025)      |
 |     1.21.5      |      4.2.0      |      21      | Paper, Fabric | ✅ **December 2026**           |
