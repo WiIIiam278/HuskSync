@@ -41,23 +41,38 @@ public class PlayerEntityMixin {
     @Shadow
     PlayerInventory inventory;
 
+    @Unique
+    private boolean droppedInventory;
+
     // Runs once Curse of Vanishing items are gone, so the inventory holds exactly what is about to drop.
     // This is only reached when keepInventory is off, so no items are kept
     @Inject(method = "dropInventory", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/player/PlayerEntity;vanishCursedItems()V", shift = At.Shift.AFTER))
     protected void dropInventory(@NotNull CallbackInfo ci) {
+        droppedInventory = true;
         final PlayerEntity player = (PlayerEntity) (Object) this;
-        PlayerDeathDropsCallback.EVENT.invoker().drops((ServerPlayerEntity) player, new ItemStack[inventory.size()], getItemsToDrop());
+        PlayerDeathDropsCallback.EVENT.invoker().drops((ServerPlayerEntity) player, new ItemStack[inventory.size()], getInventoryContents());
+    }
+
+    // If the drop above wasn't reached, keepInventory is on, so nothing drops and the whole inventory is kept
+    @Inject(method = "dropInventory", at = @At("TAIL"))
+    protected void keepInventory(@NotNull CallbackInfo ci) {
+        if (droppedInventory) {
+            droppedInventory = false;
+            return;
+        }
+        final PlayerEntity player = (PlayerEntity) (Object) this;
+        PlayerDeathDropsCallback.EVENT.invoker().drops((ServerPlayerEntity) player, getInventoryContents(), new ItemStack[inventory.size()]);
     }
 
     @Unique
     @Nullable
-    private ItemStack @NotNull [] getItemsToDrop() {
-        final @Nullable ItemStack @NotNull [] toDrop = new ItemStack[inventory.size()];
+    private ItemStack @NotNull [] getInventoryContents() {
+        final @Nullable ItemStack @NotNull [] contents = new ItemStack[inventory.size()];
         for (int i = 0; i < inventory.size(); ++i) {
             final ItemStack itemStack = inventory.getStack(i);
-            toDrop[i] = itemStack.isEmpty() ? null : itemStack;
+            contents[i] = itemStack.isEmpty() ? null : itemStack;
         }
-        return toDrop;
+        return contents;
     }
 
 }
