@@ -59,7 +59,7 @@ public interface FabricTask extends Task {
     }
 
     class Async extends Task.Async implements FabricTask {
-        private CompletableFuture<Void> task;
+        private ScheduledFuture<?> task;
 
         protected Async(@NotNull HuskSync plugin, @NotNull Runnable runnable, long delayTicks) {
             super(plugin, runnable, delayTicks);
@@ -76,7 +76,7 @@ public interface FabricTask extends Task {
         @Override
         public void run() {
             if (!cancelled) {
-                this.task = CompletableFuture.runAsync(runnable, ASYNC_EXEC);
+                this.task = ASYNC_EXEC.schedule(runnable, delayTicks * 50, TimeUnit.MILLISECONDS);
             }
         }
     }
