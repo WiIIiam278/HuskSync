@@ -175,7 +175,7 @@ public abstract class FabricSerializer {
                 //$$     final NbtCompound compound = (NbtCompound) element;
                 //$$     final int i = compound.contains("Slot") ? compound.getInt("Slot") : -1;
                 //$$     if (isValidSlot(i, contents.length, compound, plugin)) {
-                //$$         contents[i] = decodeNbt(compound, registryManager);
+                //$$         contents[i] = decodeItem(compound, null, registryManager, plugin);
                 //$$     }
                 //$$ });
                 //#else
@@ -185,7 +185,7 @@ public abstract class FabricSerializer {
                     final NbtCompound compound = (NbtCompound) element;
                     int i = compound.getInt("Slot", -1);
                     if (isValidSlot(i, contents.length, compound, plugin)) {
-                        contents[i] = decodeNbt(compound, registryManager);
+                        contents[i] = decodeItem(compound, null, registryManager, plugin);
                     }
                 });
                 //#endif
@@ -271,13 +271,14 @@ public abstract class FabricSerializer {
             return itemStacks;
         }
 
-        // Upgrade and decode one item from an older version. If it can't be read, it's skipped (and logged)
-        // rather than failing the whole inventory / ender chest, matching Bukkit
+        // Decode one item, upgrading it first if it's from an older version. If it can't be read, it's skipped
+        // (and logged) rather than failing the whole inventory / ender chest
         @Nullable
-        private ItemStack decodeItem(@NotNull NbtCompound item, @NotNull Version upgradeFrom,
+        private ItemStack decodeItem(@NotNull NbtCompound item, @Nullable Version upgradeFrom,
                                      @NotNull DynamicRegistryManager registryManager, @NotNull FabricHuskSync plugin) {
             try {
-                return decodeNbt(upgradeItemData(item, upgradeFrom, plugin), registryManager);
+                final NbtCompound data = upgradeFrom != null ? upgradeItemData(item, upgradeFrom, plugin) : item;
+                return decodeNbt(data, registryManager);
             } catch (Throwable e) {
                 plugin.log(Level.WARNING, "Skipping an item that couldn't be read (%s)".formatted(item), e);
                 return null;
