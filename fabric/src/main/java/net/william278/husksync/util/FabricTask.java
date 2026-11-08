@@ -68,7 +68,7 @@ public interface FabricTask extends Task {
         @Override
         public void cancel() {
             if (task != null && !cancelled) {
-                task.cancel(true);
+                task.cancel(false);
             }
             super.cancel();
         }
