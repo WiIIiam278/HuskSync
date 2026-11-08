@@ -134,9 +134,14 @@ def edit_data_version_supplier(major, minor, patch, data_version):
     const_name = constant_name(major, minor, patch)
     version_label = f"{major}.{minor}" + (f".{patch}" if patch else "")
 
-    # 1. Add constant if not present
+    # Skip versions that already map to a data version, including in a grouped case (e.g. 26.1.2)
+    if re.search(rf'case [^\n]*"{re.escape(version_label)}"', content):
+        print(f"  '{version_label}' already maps to a data version, skipping")
+        return
+
+    # 1. Add constant if not present (existing lines may be indented with tabs or spaces)
     new_const = f"    int {const_name} = {data_version};"
-    if new_const in content:
+    if re.search(rf"\bint {const_name} = ", content):
         print(f"  Constant {const_name} already exists, skipping")
     else:
         const_pattern = r"(int VERSION\d+(?:_\d+)+ = \d+;)"
@@ -150,16 +155,13 @@ def edit_data_version_supplier(major, minor, patch, data_version):
 
     # 2. Add switch case before default
     new_case = f"case \"{version_label}\" -> {const_name};"
-    if new_case in content:
-        print(f"  Switch case for '{version_label}' already exists, skipping")
-    else:
-        default_match = re.search(r"(?m)^([ \t]*default -> .*; // Latest supported version)", content)
-        if not default_match:
-            print("Error: could not find default case in switch")
-            sys.exit(1)
-        insert_pos = default_match.start()
-        content = content[:insert_pos] + f"            {new_case}\n" + content[insert_pos:]
-        print(f"  Added switch case for '{version_label}'")
+    default_match = re.search(r"(?m)^([ \t]*default -> .*; // Latest supported version)", content)
+    if not default_match:
+        print("Error: could not find default case in switch")
+        sys.exit(1)
+    insert_pos = default_match.start()
+    content = content[:insert_pos] + f"            {new_case}\n" + content[insert_pos:]
+    print(f"  Added switch case for '{version_label}'")
 
     # 3. Update default to point to new constant
     default_pattern = r"(default -> )(\w+)(; // Latest supported version)"
