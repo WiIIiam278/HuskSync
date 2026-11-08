@@ -90,5 +90,9 @@ if (platform.unobfuscated) {
         archiveClassifier.set('')
     }
 
+    remapSourcesJar {
+        destinationDirectory.set(file("$rootDir/target/"))
+    }
+
     shadowJar.finalizedBy(remapJar)
 }
