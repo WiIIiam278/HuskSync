@@ -19,12 +19,9 @@
 
 package net.william278.husksync.mixins;
 
-import net.minecraft.enchantment.EnchantmentHelper;
-import net.minecraft.enchantment.Enchantments;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
-import net.minecraft.registry.tag.TagKey;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.william278.husksync.event.PlayerDeathDropsCallback;
 import org.jetbrains.annotations.NotNull;
@@ -44,25 +41,12 @@ public class PlayerEntityMixin {
     @Shadow
     PlayerInventory inventory;
 
-    @Inject(method = "dropInventory", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/player/PlayerEntity;vanishCursedItems()V"))
+    // Runs once Curse of Vanishing items are gone, so the inventory holds exactly what is about to drop.
+    // This is only reached when keepInventory is off, so no items are kept
+    @Inject(method = "dropInventory", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/player/PlayerEntity;vanishCursedItems()V", shift = At.Shift.AFTER))
     protected void dropInventory(@NotNull CallbackInfo ci) {
         final PlayerEntity player = (PlayerEntity) (Object) this;
-        PlayerDeathDropsCallback.EVENT.invoker().drops((ServerPlayerEntity) player, getItemsToKeep(), getItemsToDrop());
-    }
-
-    @Unique
-    @Nullable
-    private ItemStack @NotNull [] getItemsToKeep() {
-        final @Nullable ItemStack @NotNull [] toKeep = new ItemStack[inventory.size()];
-        for (int i = 0; i < inventory.size(); ++i) {
-            ItemStack itemStack = inventory.getStack(i);
-            if (!itemStack.isEmpty() && hasVanishingCurse(itemStack)) {
-                toKeep[i] = null;
-                continue;
-            }
-            toKeep[i] = itemStack;
-        }
-        return toKeep;
+        PlayerDeathDropsCallback.EVENT.invoker().drops((ServerPlayerEntity) player, new ItemStack[inventory.size()], getItemsToDrop());
     }
 
     @Unique
@@ -70,21 +54,10 @@ public class PlayerEntityMixin {
     private ItemStack @NotNull [] getItemsToDrop() {
         final @Nullable ItemStack @NotNull [] toDrop = new ItemStack[inventory.size()];
         for (int i = 0; i < inventory.size(); ++i) {
-            ItemStack itemStack = inventory.getStack(i);
-            if (!itemStack.isEmpty() && hasVanishingCurse(itemStack)) {
-                toDrop[i] = itemStack;
-                continue;
-            }
-            toDrop[i] = null;
+            final ItemStack itemStack = inventory.getStack(i);
+            toDrop[i] = itemStack.isEmpty() ? null : itemStack;
         }
         return toDrop;
-    }
-
-    @Unique
-    private boolean hasVanishingCurse(@NotNull ItemStack stack) {
-        return EnchantmentHelper.hasAnyEnchantmentsIn(
-                stack, TagKey.of(Enchantments.VANISHING_CURSE.getRegistryRef(), Enchantments.VANISHING_CURSE.getValue())
-        );
     }
 
 }
