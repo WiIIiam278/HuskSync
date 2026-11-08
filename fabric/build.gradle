@@ -64,6 +64,7 @@ processResources {
 }
 
 shadowJar {
+    from rootProject.file('LICENSE')
     configurations = [project.configurations.shadow]
     destinationDirectory.set(file("$projectDir/build/libs"))
 
