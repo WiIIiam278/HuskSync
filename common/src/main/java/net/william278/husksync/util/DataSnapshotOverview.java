@@ -122,11 +122,8 @@ public class DataSnapshotOverview {
     private String generateAdvancementPreview(@NotNull List<Data.Advancements.Advancement> advancementData, @NotNull Locales locales) {
         final StringJoiner joiner = new StringJoiner("\n");
         final int PREVIEW_SIZE = 8;
-        for (int i = 0; i < advancementData.size(); i++) {
+        for (int i = 0; i < Math.min(advancementData.size(), PREVIEW_SIZE); i++) {
             joiner.add(advancementData.get(i).getKey());
-            if (i >= PREVIEW_SIZE) {
-                break;
-            }
         }
         final int remaining = advancementData.size() - PREVIEW_SIZE;
         if (remaining > 0) {
