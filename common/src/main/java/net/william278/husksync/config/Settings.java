@@ -386,9 +386,9 @@ public class Settings {
         public EventListener.Priority getEventPriority(@NotNull EventListener.ListenerType type) {
             final String priority = eventPriorities.get(type.name().toLowerCase(Locale.ENGLISH));
             try {
-                return priority == null ? EventListener.Priority.NORMAL : EventListener.Priority.valueOf(priority);
+                return priority == null ? type.getDefaultPriority() : EventListener.Priority.valueOf(priority);
             } catch (IllegalArgumentException e) {
-                return EventListener.Priority.NORMAL;
+                return type.getDefaultPriority();
             }
         }
     }

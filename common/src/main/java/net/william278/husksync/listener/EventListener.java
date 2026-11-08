@@ -216,6 +216,11 @@ public abstract class EventListener {
         }
 
         @NotNull
+        public Priority getDefaultPriority() {
+            return defaultPriority;
+        }
+
+        @NotNull
         private Map.Entry<String, String> toEntry() {
             return Map.entry(name().toLowerCase(Locale.ENGLISH), defaultPriority.name());
         }
