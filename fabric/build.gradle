@@ -73,7 +73,7 @@ shadowJar {
     exclude '/mappings/*'
 }
 
-if (platform.unobfuscated) {
+if (project.unobfuscated) {
     // Loom doesn't remap unobfuscated Minecraft versions
     jar {
         destinationDirectory.set(file("$rootDir/target/"))
