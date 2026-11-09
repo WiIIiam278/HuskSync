@@ -318,7 +318,8 @@ public interface Data {
      */
     interface Attributes extends Data {
 
-        Key MAX_HEALTH_KEY = Key.key("generic.max_health");
+        Key MAX_HEALTH_KEY = Key.key("max_health");
+        Key LEGACY_MAX_HEALTH_KEY = Key.key("generic.max_health"); // 1.21.1 and below
 
         List<Attribute> getAttributes();
 
@@ -425,13 +426,17 @@ public interface Data {
 
         default double getMaxHealth() {
             return getAttribute(MAX_HEALTH_KEY)
+                    .or(() -> getAttribute(LEGACY_MAX_HEALTH_KEY))
                     .map(Attribute::getValue)
                     .orElse(20.0);
         }
 
         default void setMaxHealth(double maxHealth) {
+            // Keep legacy max health key if snapshot uses it, so it still applies on 1.21.1 and below
+            final Key key = getAttribute(LEGACY_MAX_HEALTH_KEY).isPresent() ? LEGACY_MAX_HEALTH_KEY : MAX_HEALTH_KEY;
             removeAttribute(MAX_HEALTH_KEY);
-            getAttributes().add(new Attribute(MAX_HEALTH_KEY.asString(), maxHealth, Sets.newHashSet()));
+            removeAttribute(LEGACY_MAX_HEALTH_KEY);
+            getAttributes().add(new Attribute(key.asString(), maxHealth, Sets.newHashSet()));
         }
 
     }

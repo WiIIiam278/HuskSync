@@ -83,7 +83,7 @@ public interface DataHolder {
     }
 
     default void setLocation(@NotNull Data.Location location) {
-        getData().put(Identifier.LOCATION, location);
+        setData(Identifier.LOCATION, location);
     }
 
     @NotNull
@@ -92,7 +92,7 @@ public interface DataHolder {
     }
 
     default void setStatistics(@NotNull Data.Statistics statistics) {
-        getData().put(Identifier.STATISTICS, statistics);
+        setData(Identifier.STATISTICS, statistics);
     }
 
     @NotNull
@@ -101,7 +101,7 @@ public interface DataHolder {
     }
 
     default void setHealth(@NotNull Data.Health health) {
-        getData().put(Identifier.HEALTH, health);
+        setData(Identifier.HEALTH, health);
     }
 
     @NotNull
@@ -110,7 +110,7 @@ public interface DataHolder {
     }
 
     default void setHunger(@NotNull Data.Hunger hunger) {
-        getData().put(Identifier.HUNGER, hunger);
+        setData(Identifier.HUNGER, hunger);
     }
 
     @NotNull
@@ -119,7 +119,7 @@ public interface DataHolder {
     }
 
     default void setAttributes(@NotNull Data.Attributes attributes) {
-        getData().put(Identifier.ATTRIBUTES, attributes);
+        setData(Identifier.ATTRIBUTES, attributes);
     }
 
     @NotNull
@@ -128,7 +128,7 @@ public interface DataHolder {
     }
 
     default void setExperience(@NotNull Data.Experience experience) {
-        getData().put(Identifier.EXPERIENCE, experience);
+        setData(Identifier.EXPERIENCE, experience);
     }
 
     @NotNull
@@ -137,7 +137,7 @@ public interface DataHolder {
     }
 
     default void setGameMode(@NotNull Data.GameMode gameMode) {
-        getData().put(Identifier.GAME_MODE, gameMode);
+        setData(Identifier.GAME_MODE, gameMode);
     }
 
     @NotNull
@@ -146,7 +146,7 @@ public interface DataHolder {
     }
 
     default void setFlightStatus(@NotNull Data.FlightStatus flightStatus) {
-        getData().put(Identifier.FLIGHT_STATUS, flightStatus);
+        setData(Identifier.FLIGHT_STATUS, flightStatus);
     }
 
     @NotNull
@@ -155,7 +155,7 @@ public interface DataHolder {
     }
 
     default void setPersistentData(@NotNull Data.PersistentData persistentData) {
-        getData().put(Identifier.PERSISTENT_DATA, persistentData);
+        setData(Identifier.PERSISTENT_DATA, persistentData);
     }
 
 }

@@ -20,9 +20,11 @@
 package net.william278.husksync;
 
 import net.kyori.adventure.audience.Audience;
+import net.kyori.adventure.platform.AudienceProvider;
 import net.william278.desertwell.util.Version;
 import net.william278.husksync.listener.BukkitEventListener;
 import net.william278.husksync.listener.PaperEventListener;
+import net.william278.husksync.util.PaperAudienceProvider;
 import net.william278.uniform.Uniform;
 import net.william278.uniform.paper.PaperUniform;
 import org.bukkit.entity.Player;
@@ -37,6 +39,12 @@ public class PaperHuskSync extends BukkitHuskSync {
     @Override
     protected BukkitEventListener createEventListener() {
         return new PaperEventListener(this);
+    }
+
+    @NotNull
+    @Override
+    protected AudienceProvider createAudiences() {
+        return new PaperAudienceProvider(getServer());
     }
 
     @NotNull

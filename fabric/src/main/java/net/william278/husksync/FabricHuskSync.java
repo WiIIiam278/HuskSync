@@ -265,6 +265,10 @@ public class FabricHuskSync implements DedicatedServerModInitializer, HuskSync, 
     }
 
 
+    public MinecraftServer getMinecraftServer() {
+        return minecraftServer;
+    }
+
     @NotNull
     @Override
     public String getServerName() {
@@ -273,7 +277,7 @@ public class FabricHuskSync implements DedicatedServerModInitializer, HuskSync, 
 
     @Override
     public boolean isDependencyLoaded(@NotNull String name) {
-        return FabricLoader.getInstance().isModLoaded(name);
+        return FabricLoader.getInstance().isModLoaded(name.toLowerCase(Locale.ENGLISH));
     }
 
     @Override

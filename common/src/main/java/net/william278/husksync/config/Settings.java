@@ -384,10 +384,11 @@ public class Settings {
 
         @NotNull
         public EventListener.Priority getEventPriority(@NotNull EventListener.ListenerType type) {
+            final String priority = eventPriorities.get(type.name().toLowerCase(Locale.ENGLISH));
             try {
-                return EventListener.Priority.valueOf(eventPriorities.get(type.name().toLowerCase(Locale.ENGLISH)));
+                return priority == null ? type.getDefaultPriority() : EventListener.Priority.valueOf(priority);
             } catch (IllegalArgumentException e) {
-                return EventListener.Priority.NORMAL;
+                return type.getDefaultPriority();
             }
         }
     }

@@ -23,6 +23,9 @@ import net.minecraft.entity.ItemEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.ActionResult;
+//#if MC>=260300
+//$$ import net.minecraft.util.Prediction;
+//#endif
 import net.william278.husksync.event.ItemDropCallback;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -32,9 +35,15 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(ServerPlayerEntity.class)
 public class ServerPlayerEntityMixin {
 
+    //#if MC>=260300
+    //$$ @Inject(method = "drop(Lnet/minecraft/world/item/ItemStack;ZLnet/minecraft/util/Prediction;)Lnet/minecraft/world/entity/item/ItemEntity;", at = @At("HEAD"), cancellable = true)
+    //$$ private void onPlayerDropItem(ItemStack stack, boolean dropAtFeet, Prediction prediction,
+    //$$                               final CallbackInfoReturnable<ItemEntity> ci) {
+    //#else
     @Inject(method = "dropItem", at = @At("HEAD"), cancellable = true)
     private void onPlayerDropItem(ItemStack stack, boolean dropAtFeet, boolean saveThrower,
                                   final CallbackInfoReturnable<ItemEntity> ci) {
+    //#endif
         final ServerPlayerEntity player = (ServerPlayerEntity) (Object) this;
         final ActionResult result = ItemDropCallback.EVENT.invoker().interact(player, stack);
 

@@ -64,8 +64,6 @@ shadowJar {
     }
 
     relocate 'org.apache.commons.io', 'net.william278.husksync.libraries.commons.io'
-    relocate 'org.apache.commons.text', 'net.william278.husksync.libraries.commons.text'
-    relocate 'org.apache.commons.lang3', 'net.william278.husksync.libraries.commons.lang3'
     relocate 'com.google.gson', 'net.william278.husksync.libraries.gson'
     relocate 'com.fatboyindustrial', 'net.william278.husksync.libraries'
     relocate 'org.jetbrains', 'net.william278.husksync.libraries'

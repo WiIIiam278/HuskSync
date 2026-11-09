@@ -102,8 +102,8 @@ def get_paper_api_version(version_str):
     return best[2]
 
 
-def constant_name(major, minor):
-    return f"VERSION{major}_{minor}"
+def constant_name(major, minor, patch):
+    return f"VERSION{major}_{minor}" + (f"_{patch}" if patch else "")
 
 
 def create_gradle_properties(version_str, api_version, numeric, version_range, paper_api):
@@ -122,7 +122,7 @@ def create_gradle_properties(version_str, api_version, numeric, version_range, p
     print(f"  Created {path}")
 
 
-def edit_data_version_supplier(major, minor, data_version):
+def edit_data_version_supplier(major, minor, patch, data_version):
     path = os.path.join(
         REPO_ROOT, "common/src/main/java/net/william278/husksync/util",
         "DataVersionSupplier.java"
@@ -130,12 +130,18 @@ def edit_data_version_supplier(major, minor, data_version):
     with open(path) as f:
         content = f.read()
 
-    const_name = constant_name(major, minor)
-    version_label = f"{major}.{minor}"
+    # Each Minecraft version, including patches, maps to a data version
+    const_name = constant_name(major, minor, patch)
+    version_label = f"{major}.{minor}" + (f".{patch}" if patch else "")
 
-    # 1. Add constant if not present
-    new_const = f"\tint {const_name} = {data_version};"
-    if new_const in content:
+    # Skip versions that already map to a data version, including in a grouped case (e.g. 26.1.2)
+    if re.search(rf'case [^\n]*"{re.escape(version_label)}"', content):
+        print(f"  '{version_label}' already maps to a data version, skipping")
+        return
+
+    # 1. Add constant if not present (existing lines may be indented with tabs or spaces)
+    new_const = f"    int {const_name} = {data_version};"
+    if re.search(rf"\bint {const_name} = ", content):
         print(f"  Constant {const_name} already exists, skipping")
     else:
         const_pattern = r"(int VERSION\d+(?:_\d+)+ = \d+;)"
@@ -149,16 +155,13 @@ def edit_data_version_supplier(major, minor, data_version):
 
     # 2. Add switch case before default
     new_case = f"case \"{version_label}\" -> {const_name};"
-    if new_case in content:
-        print(f"  Switch case for '{version_label}' already exists, skipping")
-    else:
-        default_match = re.search(r"(\t*default -> .*; // Latest supported version)", content)
-        if not default_match:
-            print("Error: could not find default case in switch")
-            sys.exit(1)
-        insert_pos = default_match.start()
-        content = content[:insert_pos] + f"\t\t\t{new_case}\n" + content[insert_pos:]
-        print(f"  Added switch case for '{version_label}'")
+    default_match = re.search(r"(?m)^([ \t]*default -> .*; // Latest supported version)", content)
+    if not default_match:
+        print("Error: could not find default case in switch")
+        sys.exit(1)
+    insert_pos = default_match.start()
+    content = content[:insert_pos] + f"            {new_case}\n" + content[insert_pos:]
+    print(f"  Added switch case for '{version_label}'")
 
     # 3. Update default to point to new constant
     default_pattern = r"(default -> )(\w+)(; // Latest supported version)"
@@ -287,7 +290,7 @@ def main():
     create_gradle_properties(version_str, api_version, numeric, version_range, paper_api)
 
     print("\n--- DataVersionSupplier.java ---")
-    edit_data_version_supplier(major, minor, data_version)
+    edit_data_version_supplier(major, minor, patch, data_version)
 
     print("\n--- CI workflow ---")
     update_workflow("ci.yml", version_str)
