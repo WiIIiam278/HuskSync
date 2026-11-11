@@ -321,6 +321,7 @@ public class DataSnapshot {
             this.pinned = data.isPinned();
             this.saveCause = data.getSaveCause().name();
             this.data = data.serializeData(plugin);
+            this.minecraftVersion = plugin.getMinecraftVersion().toStringWithoutMetadata();
         }
 
         /**
@@ -457,9 +458,10 @@ public class DataSnapshot {
         @NotNull
         @ApiStatus.Internal
         public DataSnapshot.Packed pack(@NotNull HuskSync plugin) {
+            // Serialized on this server, so it's labelled with this server's version (as in Packed#edit)
             return new DataSnapshot.Packed(
                     id, pinned, timestamp, saveCause, serverName, serializeData(plugin),
-                    getMinecraftVersion(), platformType, formatVersion
+                    plugin.getMinecraftVersion(), platformType, formatVersion
             );
         }
 
