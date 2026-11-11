@@ -20,6 +20,7 @@
 package net.william278.husksync.listener;
 
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
+import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.fabricmc.fabric.api.event.player.UseEntityCallback;
@@ -66,6 +67,7 @@ public class FabricEventListener extends EventListener implements LockedHandler 
     public void registerEvents() {
         ServerPlayConnectionEvents.JOIN.register(this::handlePlayerJoin);
         ServerPlayConnectionEvents.DISCONNECT.register(this::handlePlayerQuit);
+        ServerPlayerEvents.AFTER_RESPAWN.register(this::handlePlayerRespawn);
         WorldSaveCallback.EVENT.register(this::handleWorldSave);
         PlayerDeathDropsCallback.EVENT.register(this::handlePlayerDeathDrops);
 
@@ -93,6 +95,13 @@ public class FabricEventListener extends EventListener implements LockedHandler 
         final OnlineUser user = FabricUser.adapt(handler.player, plugin);
         handlePlayerQuit(user); // Mark disconnecting, lock, mark for saving
         saveOnPlayerQuit(user); // Take snapshot and save, if marked above
+    }
+
+    private void handlePlayerRespawn(@NotNull ServerPlayerEntity oldPlayer, @NotNull ServerPlayerEntity newPlayer,
+                                     boolean alive) {
+        ((FabricHuskSync) plugin).getPlayerMap().computeIfPresent(
+                newPlayer.getUuid(), (uuid, user) -> FabricUser.adapt(newPlayer, plugin)
+        );
     }
 
     private void handleWorldSave(@NotNull ServerWorld world) {
