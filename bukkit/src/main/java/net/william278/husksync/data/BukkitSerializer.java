@@ -191,7 +191,7 @@ public class BukkitSerializer {
                 throws NoSuchFieldException, IllegalAccessException {
             return DataFixerUtil.fixUpItemData(
                     tag,
-                    getPlugin().getDataVersion(mcVersion),
+                    Math.max(getPlugin().getDataVersion(mcVersion), tag.getInteger("DataVersion")),
                     DataFixerUtil.getCurrentVersion()
             );
         }
