@@ -26,6 +26,7 @@ import net.william278.husksync.data.Data;
 import net.william278.husksync.data.DataSnapshot;
 import net.william278.husksync.data.Identifier;
 import net.william278.husksync.data.Serializer;
+import net.william278.husksync.redis.RedisManager;
 import net.william278.husksync.sync.DataSyncer;
 import net.william278.husksync.user.OnlineUser;
 import net.william278.husksync.user.User;
@@ -157,8 +158,8 @@ public class HuskSyncAPI {
     /**
      * Set a user's current data.
      * <p>
-     * This will update the user's data in the database (creating a new snapshot) and send a data update,
-     * updating the user if they are online.
+     * This will update the user's data in the database (creating a new snapshot at the current time), replace
+     * their cached snapshot on Redis, and send a data update, updating the user if they are online.
      *
      * @param user The user to set the data of
      * @param data The data to set
@@ -166,18 +167,21 @@ public class HuskSyncAPI {
      */
     public void setCurrentData(@NotNull User user, @NotNull DataSnapshot data) {
         plugin.runAsync(() -> {
-            final DataSnapshot.Packed packed = data instanceof DataSnapshot.Unpacked unpacked
-                    ? unpacked.pack(plugin) : (DataSnapshot.Packed) data;
-            addSnapshot(user, packed);
-            plugin.getRedisManager().sendUserDataUpdate(user, packed);
+            final DataSnapshot.Packed packed = (data instanceof DataSnapshot.Unpacked unpacked
+                    ? unpacked.pack(plugin) : (DataSnapshot.Packed) data).copy();
+            final RedisManager redis = plugin.getRedisManager();
+            addSnapshot(user, packed, (u, s) -> {
+                redis.getUserData(u).ifPresent(d -> redis.setUserData(u, s));
+                redis.sendUserDataUpdate(u, s);
+            });
         });
     }
 
     /**
      * Edit a user's current data.
      * <p>
-     * This will update the user's data in the database (creating a new snapshot) and send a data update,
-     * updating the user if they are online.
+     * This will update the user's data in the database (creating a new snapshot with the {@code API} save cause),
+     * replace their cached snapshot on Redis, and send a data update, updating the user if they are online.
      *
      * @param user   The user to edit the data of
      * @param editor The editor function
@@ -187,6 +191,7 @@ public class HuskSyncAPI {
         getCurrentData(user).thenAccept(optional -> optional.ifPresent(data -> {
             editor.accept(data);
             data.setId(UUID.randomUUID());
+            data.setSaveCause(DataSnapshot.SaveCause.API);
             setCurrentData(user, data);
         }));
     }
