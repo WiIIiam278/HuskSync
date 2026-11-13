@@ -574,11 +574,7 @@ public interface BukkitMapHandler {
 
         @NotNull
         private String getDimension() {
-            return mapView.getWorld() != null ? switch (mapView.getWorld().getEnvironment()) {
-                case NETHER -> "minecraft:the_nether";
-                case THE_END -> "minecraft:the_end";
-                default -> "minecraft:overworld";
-            } : "minecraft:overworld";
+            return mapView.getWorld() != null ? mapView.getWorld().getKey().toString() : "minecraft:overworld";
         }
 
         /**
