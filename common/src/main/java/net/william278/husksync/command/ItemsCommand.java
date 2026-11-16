@@ -26,6 +26,7 @@ import net.william278.husksync.user.OnlineUser;
 import net.william278.husksync.user.User;
 import net.william278.uniform.BaseCommand;
 import net.william278.uniform.Permission;
+import org.jetbrains.annotations.Blocking;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -69,8 +70,7 @@ public abstract class ItemsCommand extends PluginCommand {
 
     // View (and edit) the latest user data
     private void showLatestItems(@NotNull OnlineUser viewer, @NotNull User user) {
-        plugin.getRedisManager().getOnlineUserData(user.getUuid(), user, saveCause).thenAccept(d -> d
-                .or(() -> plugin.getDatabase().getLatestSnapshot(user))
+        getLatestData(user)
                 .or(() -> {
                     plugin.getLocales().getLocale("error_no_data_to_display")
                             .ifPresent(viewer::sendMessage);
@@ -86,7 +86,14 @@ public abstract class ItemsCommand extends PluginCommand {
                 })
                 .ifPresent(snapshot -> this.showItems(
                         viewer, snapshot, user, viewer.hasPermission(getPermission("edit"))
-                )));
+                ));
+    }
+
+    // Get a snapshot of the latest user data
+    @Blocking
+    protected Optional<DataSnapshot.Packed> getLatestData(@NotNull User user) {
+        return plugin.getRedisManager().getOnlineUserData(UUID.randomUUID(), user, saveCause).join()
+                .or(() -> plugin.getDatabase().getLatestSnapshot(user));
     }
 
     // View a specific version of the user data
