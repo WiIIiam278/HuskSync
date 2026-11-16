@@ -74,7 +74,7 @@ public class EnderChestCommand extends ItemsCommand {
     // Creates a new snapshot with the updated enderChest
     @SuppressWarnings("DuplicatedCode")
     private void updateItems(@NotNull OnlineUser viewer, @NotNull Data.Items.Items items, @NotNull User holder) {
-        final Optional<DataSnapshot.Packed> latestData = plugin.getDatabase().getLatestSnapshot(holder);
+        final Optional<DataSnapshot.Packed> latestData = getLatestData(holder);
         if (latestData.isEmpty()) {
             plugin.getLocales().getLocale("error_no_data_to_display")
                     .ifPresent(viewer::sendMessage);
