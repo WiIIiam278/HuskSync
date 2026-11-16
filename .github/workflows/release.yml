@@ -34,7 +34,7 @@ jobs:
         with:
           report_paths: '**/build/test-results/test/TEST-*.xml'
       - name: 'Publish to William278.net 🚀'
-        uses: WiIIiam278/bones-publish-action@v1
+        uses: WiIIiam278/bones-publish-action@v2
         with:
           api-key: ${{ secrets.BONES_API_KEY }}
           project: 'husksync'
