@@ -24,7 +24,7 @@ jobs:
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/master' }}
       - name: 'Build with Gradle 🏗️'
-        run: ./gradlew test --build-cache
+        run: ./gradlew test checkPaperApis --build-cache
       - name: 'Publish Test Report 📊'
         uses: mikepenz/action-junit-report@v6
         if: success() || failure() # Continue on failure

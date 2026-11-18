@@ -106,13 +106,12 @@ def constant_name(major, minor, patch):
     return f"VERSION{major}_{minor}" + (f"_{patch}" if patch else "")
 
 
-def create_gradle_properties(version_str, api_version, numeric, version_range, paper_api):
+def create_gradle_properties(version_str, api_version, version_range, paper_api):
     dir_path = os.path.join(REPO_ROOT, "bukkit", version_str)
     os.makedirs(dir_path, exist_ok=True)
     path = os.path.join(dir_path, "gradle.properties")
     content = (
         f"minecraft_version_range={version_range}\n"
-        f"minecraft_version_numeric={numeric}\n"
         f"minecraft_api_version={api_version}\n"
         f"paper_api_version={paper_api}\n"
         f"java_version={JAVA_VERSION}\n"
@@ -272,11 +271,9 @@ def main():
     major, minor, patch = parse_version(version_str)
     api_version = f"{major}.{minor}"
     version_range = f">={version_str} <={version_str}"
-    numeric = major * 10000 + minor * 100 + patch
 
     print(f"  Version:        {version_str}")
     print(f"  API version:    {api_version}")
-    print(f"  Numeric:        {numeric}")
     print(f"  Version range:  {version_range}")
 
     print("\n--- Fetching data version ---")
@@ -287,7 +284,7 @@ def main():
     paper_api = get_paper_api_version(version_str)
 
     print("\n--- Bukkit gradle.properties ---")
-    create_gradle_properties(version_str, api_version, numeric, version_range, paper_api)
+    create_gradle_properties(version_str, api_version, version_range, paper_api)
 
     print("\n--- DataVersionSupplier.java ---")
     edit_data_version_supplier(major, minor, patch, data_version)

@@ -655,7 +655,7 @@ public abstract class BukkitData implements Data {
             final AttributeSettings settings = plugin.getSettings().getSynchronization().getAttributes();
             Registry.ATTRIBUTE.forEach(id -> {
                 final AttributeInstance instance = player.getAttribute(id);
-                if (settings.isIgnoredAttribute(id.getKey().toString()) || instance == null) {
+                if (settings.isIgnoredAttribute(getKey(id)) || instance == null) {
                     return; // We don't sync attributes not marked as to be synced
                 }
                 attributes.add(adapt(instance, settings));
@@ -664,7 +664,7 @@ public abstract class BukkitData implements Data {
         }
 
         public Optional<Attribute> getAttribute(@NotNull org.bukkit.attribute.Attribute id) {
-            return attributes.stream().filter(attribute -> attribute.name().equals(id.getKey().toString())).findFirst();
+            return attributes.stream().filter(attribute -> attribute.name().equals(getKey(id))).findFirst();
         }
 
         @SuppressWarnings("unused")
@@ -676,10 +676,17 @@ public abstract class BukkitData implements Data {
             return getAttribute(attribute);
         }
 
+        // Bukkit's Attribute was an enum before Minecraft 1.21.3 and has been an interface since, so calling its getKey()
+        // compiles differently against each, and the jar fails on the other. Calling it through Keyed works on both
+        @NotNull
+        private static String getKey(@NotNull Keyed attribute) {
+            return attribute.getKey().toString();
+        }
+
         @NotNull
         private static Attribute adapt(@NotNull AttributeInstance instance, @NotNull AttributeSettings settings) {
             return new Attribute(
-                    instance.getAttribute().getKey().toString(),
+                    getKey(instance.getAttribute()),
                     instance.getBaseValue(),
                     instance.getModifiers().stream()
                             .filter(modifier -> !settings.isIgnoredModifier(modifier.getName()))
@@ -725,7 +732,7 @@ public abstract class BukkitData implements Data {
         private void applyAttributes(@NotNull BukkitUser user, @NotNull HuskSync plugin) {
             final AttributeSettings settings = plugin.getSettings().getSynchronization().getAttributes();
             Registry.ATTRIBUTE.forEach(id -> {
-                if (settings.isIgnoredAttribute(id.getKey().toString())) {
+                if (settings.isIgnoredAttribute(getKey(id))) {
                     return;
                 }
                 applyAttribute(user.getPlayer().getAttribute(id), getAttribute(id).orElse(null));

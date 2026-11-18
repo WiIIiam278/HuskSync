@@ -61,7 +61,7 @@ publishing {
 
 allprojects {
     // Ignore parent projects (no jars)
-    if (project.name == 'fabric' || project.name == 'bukkit') {
+    if (project.name == 'fabric') {
         return
     }
     
@@ -119,7 +119,7 @@ allprojects {
 
 subprojects {
     // Ignore parent projects (no jars)
-    if (['fabric', 'bukkit'].contains(project.name)) {
+    if (project.name == 'fabric') {
         return
     }
 
@@ -133,8 +133,8 @@ subprojects {
     }
     base.archivesName = name
 
-    // Version-specific configuration
-    if (['fabric', 'bukkit'].contains(project.parent?.name)) {
+    // Version-specific configuration (Fabric builds a jar per Minecraft version; Bukkit's one jar supports them all)
+    if (project.parent?.name == 'fabric') {
         def javaVer = project.hasProperty('java_version') ? Integer.parseInt(project.java_version as String) : 25
         java {
             toolchain {
@@ -144,11 +144,9 @@ subprojects {
         compileJava.options.release.set javaVer
         version += "+mc.${project.name}"
 
-        if (project.parent?.name?.equals('fabric')) {
-            // Minecraft 26.1+ isn't obfuscated, Loom doesn't need to remap them
-            ext.unobfuscated = isUnobfuscated(project)
-            apply plugin: unobfuscated ? 'gg.essential.loom-no-remap' : 'gg.essential.loom'
-        }
+        // Minecraft 26.1+ isn't obfuscated, Loom doesn't need to remap them
+        ext.unobfuscated = isUnobfuscated(project)
+        apply plugin: unobfuscated ? 'gg.essential.loom-no-remap' : 'gg.essential.loom'
     }
 
     jar {
@@ -161,7 +159,7 @@ subprojects {
     }
 
     // API publishing
-    if (project.name == 'common' || ['fabric', 'bukkit'].contains(project.parent?.name)) {
+    if (['common', 'bukkit'].contains(project.name) || project.parent?.name == 'fabric') {
         java {
             withSourcesJar()
             withJavadocJar()
@@ -188,15 +186,21 @@ subprojects {
                 }
             }
 
-            if (project.parent?.name?.equals('bukkit')) {
+            // The one Bukkit jar is published under each Minecraft version it supports (each a folder in bukkit/), as
+            // each used to have its own jar
+            if (project.name == 'bukkit') {
+                def versionDirs = project.projectDir.listFiles((FileFilter) ((File file) ->
+                        file.isDirectory() && file.name ==~ /(\d+)\.(\d+)(\.(\d+))?/))
                 publications {
-                    "mavenJavaBukkit_${project.name.replace('.', '_')}"(MavenPublication) {
-                        groupId = 'net.william278.husksync'
-                        artifactId = 'husksync-bukkit'
-                        version = "$rootProject.version+$project.name"
-                        artifact shadowJar
-                        artifact sourcesJar
-                        artifact javadocJar
+                    versionDirs.each { dir ->
+                        "mavenJavaBukkit_${dir.name.replace('.', '_')}"(MavenPublication) {
+                            groupId = 'net.william278.husksync'
+                            artifactId = 'husksync-bukkit'
+                            version = "$rootProject.version+$dir.name"
+                            artifact shadowJar
+                            artifact sourcesJar
+                            artifact javadocJar
+                        }
                     }
                 }
             }

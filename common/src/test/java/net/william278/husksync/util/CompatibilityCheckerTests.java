@@ -46,6 +46,13 @@ public class CompatibilityCheckerTests {
             "1.21.7, '>=1.21.7 <=1.21.8', true",
             "1.21.8, '>=1.21.7 <=1.21.8', true",
             "1.21.5, '>=1.21.7 <=1.21.8', false",
+            "1.21.1, '1.21.1 || 1.21.4', true",
+            "1.21.4, '1.21.1 || 1.21.4', true",
+            "1.21.3, '1.21.1 || 1.21.4', false",
+            "1.21.8, '1.21.5 || >=1.21.7 <=1.21.8 || >=26.3 <=26.3', true",
+            "1.21.6, '1.21.5 || >=1.21.7 <=1.21.8 || >=26.3 <=26.3', false",
+            "26.3, '1.21.5 || >=1.21.7 <=1.21.8 || >=26.3 <=26.3', true",
+            "26.1, '>=26.1.2 <=26.1.2 || >=26.2 <=26.2', false",
     })
     public void testCompatibilityChecker(@NotNull String mcVer, @NotNull String range, boolean exp) {
         final Version version = Version.fromString(mcVer);

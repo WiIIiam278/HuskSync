@@ -1,9 +1,26 @@
+import groovy.io.FileType
+
+import java.nio.file.Files
+import java.nio.file.StandardCopyOption
+
 plugins {
     id 'java'
-    id 'net.william278.preprocessor' version '1.0'
     id 'xyz.jpenilla.run-paper' version '2.3.1'
     id 'maven-publish'
 }
+
+// One jar runs on every Minecraft version with a folder here. Each folder's gradle.properties gives the versions it
+// covers, their Paper API and their Java version. Oldest first
+def supportedVersions = projectDir.listFiles((FileFilter) ((File file) ->
+        file.isDirectory() && file.name ==~ /(\d+)\.(\d+)(\.(\d+))?/))
+        .collect { dir ->
+            def properties = new Properties()
+            dir.toPath().resolve('gradle.properties').withInputStream { properties.load(it) }
+            [name: dir.name] + properties
+        }
+        .sort { it.name.tokenize('.')*.toInteger().with { (it[0] * 100 + it[1]) * 100 + (it[2] ?: 0) } }
+def oldest = supportedVersions.first()
+def javaVersions = supportedVersions.collect { it.java_version as int }
 
 dependencies {
     implementation project(path: ':common')
@@ -20,7 +37,7 @@ dependencies {
     implementation 'space.arim.morepaperlib:morepaperlib:0.4.4'
     implementation 'de.tr7zw:item-nbt-api:2.16.1'
 
-    compileOnly "io.papermc.paper:paper-api:${paper_api_version}"
+    compileOnly "io.papermc.paper:paper-api:${oldest.paper_api_version}"
     compileOnly 'com.github.retrooper:packetevents-spigot:2.14.0'
     compileOnly 'net.dmulloy2:ProtocolLib:5.4.0'
     compileOnly 'org.projectlombok:lombok:1.18.42'
@@ -36,26 +53,24 @@ dependencies {
     annotationProcessor 'org.projectlombok:lombok:1.18.42'
 }
 
-processResources {
-    filesMatching(['**/*.json', '**/*.yml']) {
-        expand([
-                version: version,
-                paper_api_version: paper_api_version,
-                minecraft_version: project.name,
-                minecraft_version_range: minecraft_version_range,
-                minecraft_api_version: minecraft_api_version
-        ])
+// Compiled against the oldest API, for the oldest Java, by a JDK that can read the newest API (see checkPaperApis)
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(javaVersions.max())
     }
 }
+compileJava.options.release.set javaVersions.min()
 
-sourceSets.main {
-    java.srcDirs '../src/main/java'
-    resources.srcDirs '../src/main/resources'
-}
-javadoc.setSource('./build/generated/preprocessed/main/java')
-
-preprocess {
-    vars.put('MC', minecraft_version_numeric)
+processResources {
+    def expansions = [
+            version                : version.toString(),
+            minecraft_version_range: supportedVersions*.minecraft_version_range.join(' || '),
+            minecraft_api_version  : oldest.minecraft_api_version
+    ]
+    inputs.properties expansions
+    filesMatching(['**/*.json', '**/*.yml']) {
+        expand expansions
+    }
 }
 
 shadowJar {
@@ -87,9 +102,96 @@ shadowJar {
     minimize()
 }
 
+// The jar is also copied as HuskSync-Bukkit-<version>+mc.<Minecraft version>.jar for each supported version, the
+// names each version's download on William278.net (see the CI workflows) and HuskNet go by
+def versionedJars = tasks.register('versionedJars') {
+    description = 'Copies the plugin jar for each supported Minecraft version'
+    def jar = shadowJar.archiveFile
+    def copies = supportedVersions.collect {
+        file("$rootDir/target/${base.archivesName.get()}-$version+mc.${it.name}.jar")
+    }
+    inputs.file jar
+    outputs.files copies
+    doLast {
+        copies.each { Files.copy(jar.get().asFile.toPath(), it.toPath(), StandardCopyOption.REPLACE_EXISTING) }
+    }
+}
+assemble.dependsOn versionedJars
+
+// The jar has to call every supported version's API in the same way, so the plugin is compiled against each one too,
+// and must come out the same. It wouldn't if, say, a class changed from an enum to an interface (as Attribute did in
+// Minecraft 1.21.3) or a method's signature changed, and the jar would then fail on those versions
+def apiClassesDir = layout.buildDirectory.dir('paper-api')
+def paperApiCompiles = supportedVersions.drop(1).collectEntries { minecraft ->
+    def id = minecraft.name.replace('.', '_')
+    def apiClasspath = configurations.create("paper${id}CompileClasspath") {
+        description = "Compile classpath for the plugin against the Paper ${minecraft.name} API"
+        canBeConsumed = false
+        extendsFrom configurations.implementation, configurations.compileOnly
+        attributes {
+            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_API))
+            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.LIBRARY))
+            attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.CLASSES))
+            attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling, Bundling.EXTERNAL))
+            attribute(TargetJvmEnvironment.TARGET_JVM_ENVIRONMENT_ATTRIBUTE,
+                    objects.named(TargetJvmEnvironment, TargetJvmEnvironment.STANDARD_JVM))
+            attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, minecraft.java_version as int)
+        }
+        resolutionStrategy.eachDependency { DependencyResolveDetails details ->
+            if (details.requested.group == 'io.papermc.paper' && details.requested.name == 'paper-api') {
+                details.useVersion minecraft.paper_api_version
+            }
+        }
+    }
+    [(minecraft.name): tasks.register("compilePaper${id}Java", JavaCompile) {
+        description = "Compiles the plugin against the Paper ${minecraft.name} API"
+        source = sourceSets.main.java
+        classpath = apiClasspath
+        destinationDirectory.set apiClassesDir.map { it.dir(minecraft.name) }
+        options.encoding = compileJava.options.encoding
+        options.release.set compileJava.options.release
+        options.annotationProcessorPath = sourceSets.main.annotationProcessorPath
+    }]
+}
+
+def checkPaperApis = tasks.register('checkPaperApis') {
+    description = 'Checks the plugin calls every supported Paper API in the same way'
+    group = 'verification'
+    def expectedDir = compileJava.destinationDirectory
+    def apiDirs = paperApiCompiles.collectEntries { name, compile -> [(name): compile.flatMap { it.destinationDirectory }] }
+    inputs.files compileJava, paperApiCompiles.values()
+    doLast {
+        def classesIn = { File dir ->
+            def classes = [:]
+            dir.eachFileRecurse(FileType.FILES) {
+                if (it.name.endsWith('.class')) {
+                    classes[dir.toPath().relativize(it.toPath()).toString()] = it.bytes
+                }
+            }
+            return classes
+        }
+        def expected = classesIn(expectedDir.get().asFile)
+        def mismatches = apiDirs.collectEntries { name, dir ->
+            def actual = classesIn(dir.get().asFile)
+            [(name): (expected.keySet() + actual.keySet()).findAll { !Arrays.equals(expected[it], actual[it]) }.sort()]
+        }.findAll { it.value }
+        if (mismatches) {
+            throw new GradleException(([
+                    "The plugin is compiled against the Paper ${oldest.name} API, but compiles differently against:",
+                    *mismatches.collect { name, classes -> "  Paper $name: ${classes.join(', ')}".toString() },
+                    'It has to call every supported version\'s API in the same way to run on all of them. To see how',
+                    "they differ, compare the classes in ${expectedDir.get().asFile} and" +
+                            " ${apiClassesDir.get().asFile}/<version> with `javap -c -p`."
+            ]).join('\n'))
+        }
+    }
+}
+check.dependsOn checkPaperApis
+
 tasks {
+    // Runs a test server on the newest supported version, or another with -Pminecraft_version=1.21.8
     runServer {
-        minecraftVersion(project.name)
+        minecraftVersion(findProperty('minecraft_version') ?: supportedVersions.last().name)
 
         downloadPlugins {
             github("plan-player-analytics", "Plan", "5.6.2965", "Plan-5.6-build-2965.jar")

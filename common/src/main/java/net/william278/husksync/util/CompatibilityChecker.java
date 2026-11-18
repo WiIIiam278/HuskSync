@@ -28,6 +28,7 @@ import net.william278.husksync.HuskSync;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.function.BiFunction;
 import java.util.logging.Level;
 
@@ -78,7 +79,13 @@ public interface CompatibilityChecker {
             private final String match;
             private final BiFunction<Version, String, Boolean> function;
 
-            private static boolean check(@NotNull String versionRange, @NotNull Version mcVer) {
+            // Ranges joined with "||" pass if any one of them does (e.g. "1.21.1 || >=1.21.7 <=1.21.8")
+            private static boolean check(@NotNull String versionRanges, @NotNull Version mcVer) {
+                return Arrays.stream(versionRanges.split("\\|\\|")).anyMatch(range -> checkRange(range.trim(), mcVer));
+            }
+
+            // Every space-separated expression in a range has to pass
+            private static boolean checkRange(@NotNull String versionRange, @NotNull Version mcVer) {
                 boolean passes = true;
                 versions:
                 for (String exp : versionRange.split(" ")) {
